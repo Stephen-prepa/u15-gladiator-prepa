@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Prépa Estivale — U15 HBCCS</title>
+<meta name="theme-color" content="#003F8A">
+<meta name="description" content="Préparation physique autonome estivale pour les U15 du HBCCS">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prépa U15">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+:root {
+  --bleu:#003F8A; --bleu-light:#0052B4;
+  --jaune:#F5C400; --jaune-dark:#C9A000;
+  --rouge:#C0392B; --rouge-light:#E8543A;
+  --noir:#0A1628; --gris-fonce:#0E1F3D; --gris-moyen:#1A3060;
+  --blanc:#FFFFFF; --gris-clair:#C8D4E8; --gris-texte:#8AA0C0;
+  --vert:#2ECC71;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--noir);color:var(--blanc);font-family:'Barlow',sans-serif;font-size:15px;line-height:1.5;min-height:100vh;}
+.header{background:var(--gris-fonce);border-bottom:3px solid var(--jaune);padding:20px 16px 16px;text-align:center;position:relative;overflow:hidden;}
+.header::before{content:'HBCCS';position:absolute;top:-8px;right:-8px;font-family:'Barlow Condensed',sans-serif;font-size:100px;font-weight:800;color:rgba(245,196,0,0.04);pointer-events:none;}
+.header .club{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;color:var(--jaune);text-transform:uppercase;margin-bottom:4px;}
+.header h1{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:800;line-height:1;text-transform:uppercase;}
+.header h1 span{color:var(--jaune);}
+.header .subtitle{font-size:12px;color:var(--gris-texte);margin-top:6px;}
+.header .reprise{display:inline-block;margin-top:10px;background:var(--bleu);color:var(--jaune);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:2px;}
+.whoami{margin-top:10px;font-size:12px;color:var(--gris-clair);}
+.whoami-logout{color:var(--jaune);text-decoration:underline;cursor:pointer;}
+.global-prog{background:var(--gris-fonce);margin:12px 16px 0;border-radius:6px;padding:14px 16px;border:1px solid rgba(245,196,0,0.2);}
+.gp-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--jaune);margin-bottom:10px;}
+.gp-row{display:flex;align-items:center;gap:10px;}
+.gp-bar{flex:1;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;}
+.gp-fill{height:100%;background:linear-gradient(90deg,var(--bleu),var(--jaune));border-radius:4px;transition:width .5s ease;}
+.gp-pct{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--jaune);min-width:48px;text-align:right;}
+.gp-sub{font-size:11px;color:var(--gris-texte);margin-top:4px;}
+.intro{background:var(--gris-fonce);margin:12px 16px 0;border-left:4px solid var(--jaune);padding:12px 14px;border-radius:0 4px 4px 0;}
+.intro h2{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--jaune);margin-bottom:6px;}
+.intro p{font-size:13px;color:var(--gris-clair);line-height:1.6;}
+.intro p+p{margin-top:5px;}
+.chaleur-banner{margin:10px 16px 0;background:linear-gradient(135deg,#1a0f00,#2d1a00);border:1px solid rgba(245,196,0,0.3);border-radius:4px;padding:10px 12px;display:flex;gap:8px;}
+.chaleur-banner .ic{font-size:18px;flex-shrink:0;}
+.chaleur-banner .tx{font-size:12px;color:#E8C84A;line-height:1.4;}
+.chaleur-banner .tx strong{color:var(--jaune);}
+.tabs{display:flex;margin:16px 16px 0;border-bottom:2px solid var(--gris-moyen);overflow-x:auto;scrollbar-width:none;background:var(--noir);}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:10px 14px;cursor:pointer;border:none;background:var(--noir);color:var(--gris-texte);white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .2s,border-color .2s;}
+.tab.active{color:var(--blanc);border-bottom-color:var(--jaune);}
+.tab:hover:not(.active){color:var(--gris-clair);}
+.content{padding:0 16px 80px;background:var(--noir);}
+.tab-panel{display:none;background:var(--noir);}
+.tab-panel.active{display:block;}
+/* Difficulty rating prompt */
+.so-difficulty{margin-top:18px;text-align:center;animation:fadeInUp .4s ease;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.so-diff-q{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--gris-clair);margin-bottom:14px;}
+.so-diff-btns{display:flex;gap:10px;justify-content:center;}
+.so-diff-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--gris-fonce);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gris-clair);cursor:pointer;transition:transform .15s,border-color .15s;}
+.so-diff-btn span{font-size:28px;}
+.so-diff-btn:active{transform:scale(0.94);border-color:var(--jaune);}
+.so-diff-skip{margin-top:14px;font-size:12px;color:var(--gris-texte);text-decoration:underline;cursor:pointer;}
+/* Role toggle (Joueur/GB) */
+.role-toggle{margin:14px 16px 0;display:flex;background:var(--gris-fonce);border-radius:6px;padding:4px;gap:4px;}
+.role-btn{flex:1;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 10px;border:none;border-radius:4px;background:transparent;color:var(--gris-texte);cursor:pointer;transition:background .2s,color .2s;}
+.role-btn.active{background:var(--bleu);color:var(--jaune);}
+[data-role="gb"]{display:none;}
+body.gb-mode [data-role="joueur"]{display:none;}
+body.gb-mode [data-role="gb"]{display:block;}
+/* Install banner */
+.install-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--bleu),var(--bleu-light));margin:0;padding:12px 14px;border-bottom:2px solid var(--jaune);}
+.ib-icon{font-size:24px;flex-shrink:0;}
+.ib-text{flex:1;min-width:0;}
+.ib-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--blanc);line-height:1.2;}
+.ib-sub{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;}
+.ib-btn{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;background:var(--jaune);color:var(--noir);border:none;border-radius:4px;padding:8px 14px;cursor:pointer;flex-shrink:0;}
+.ib-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:16px;cursor:pointer;padding:4px;flex-shrink:0;}
+/* iOS install guide overlay */
+.ios-install-guide{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:flex-end;justify-content:center;}
+.ios-install-guide.show{display:flex;}
+.iig-card{position:relative;background:var(--gris-fonce);border-top:3px solid var(--jaune);border-radius:14px 14px 0 0;padding:24px 20px 28px;width:100%;max-width:480px;}
+.iig-close{position:absolute;top:14px;right:16px;color:var(--gris-texte);font-size:18px;cursor:pointer;}
+.iig-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;color:var(--jaune);margin-bottom:16px;}
+.iig-step{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--gris-clair);line-height:1.4;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.iig-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--bleu);color:var(--jaune);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.iig-share-ic,.iig-plus-ic{font-size:14px;}
+.iig-ok{width:100%;margin-top:18px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:14px;border:none;border-radius:6px;cursor:pointer;background:var(--jaune);color:var(--noir);}
+/* Planning */
+.legende{margin:14px 0 0;display:flex;flex-wrap:wrap;gap:8px;}
+.legende-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gris-clair);}
+.legende-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.planning-grid{margin-top:12px;display:grid;gap:8px;}
+.planning-semaine{background:var(--gris-fonce);border-radius:6px;padding:12px 14px;}
+.planning-semaine h3{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--jaune);margin-bottom:10px;}
+.jours{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.jour{background:rgba(255,255,255,0.05);border-radius:4px;padding:8px;text-align:center;cursor:pointer;transition:background .2s;}
+.jour:hover{background:rgba(255,255,255,0.09);}
+.jour .jl{font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gris-texte);margin-bottom:3px;}
+.jour .jc{font-size:11px;color:var(--gris-clair);line-height:1.3;}
+.jour .gjb{display:block;font-size:10px;color:var(--jaune);margin-top:2px;}
+.fond-j{border-top:2px solid var(--jaune);}
+.explo-j{border-top:2px solid var(--rouge-light);}
+.renfo-j{border-top:2px solid var(--bleu-light);}
+/* Accordion */
+.sg{margin-top:18px;}
+.sg-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;user-select:none;background:var(--bleu);padding:10px 12px;border-radius:4px;border-bottom:2px solid var(--jaune);}
+.sg-num{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--jaune);background:rgba(245,196,0,0.1);padding:3px 8px;border-radius:2px;flex-shrink:0;}
+.sg-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;flex:1;color:var(--jaune);}
+.sg-chev{color:var(--gris-texte);font-size:16px;transition:transform .2s;}
+.sg-chev.open{transform:rotate(180deg);}
+.sg-body{display:none;}
+.sg-body.open{display:block;}
+.seance{background:var(--gris-fonce);border-radius:6px;margin-bottom:10px;overflow:hidden;}
+.seance-header{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;user-select:none;border-left:4px solid transparent;}
+.seance-header.fond{border-left-color:var(--jaune);}
+.seance-header.explo{border-left-color:var(--rouge-light);}
+.seance-header.renfo{border-left-color:var(--bleu-light);}
+.stag{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:2px;flex-shrink:0;}
+.fond .stag{background:rgba(245,196,0,0.15);color:var(--jaune);}
+.explo .stag{background:rgba(232,84,58,0.2);color:#F08070;}
+.renfo .stag{background:rgba(0,82,180,0.25);color:#7AAFF5;}
+.sname{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;flex:1;color:var(--blanc);line-height:1.2;}
+.sdur{font-size:11px;color:var(--gris-texte);flex-shrink:0;}
+.schev{color:var(--gris-texte);font-size:13px;transition:transform .2s;}
+.schev.open{transform:rotate(180deg);}
+.seance-body{display:none;}
+.seance-body.open{display:block;}
+.btn-demarrer{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(135deg,var(--bleu),var(--bleu-light));cursor:pointer;border:none;width:100%;text-align:left;}
+.btn-demarrer .bd-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--jaune);}
+.btn-demarrer .bd-dur{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--blanc);}
+.btn-demarrer:hover{filter:brightness(1.1);}
+.bloc-section{padding:14px 14px 4px;}
+.bloc{background:rgba(255,255,255,0.05);border-radius:4px;padding:10px 12px;margin-bottom:8px;}
+.bloc-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gris-texte);margin-bottom:8px;}
+.bloc ul{list-style:none;}
+.bloc ul li{font-size:13px;padding:4px 0 4px 14px;position:relative;color:var(--gris-clair);line-height:1.5;border-bottom:1px solid rgba(255,255,255,0.05);}
+.bloc ul li:last-child{border-bottom:none;}
+.bloc ul li::before{content:'→';position:absolute;left:0;color:var(--gris-texte);font-size:10px;top:6px;}
+.bloc ul li strong{color:var(--blanc);}
+.bloc ul li em{color:var(--gris-texte);font-style:normal;font-size:11.5px;}
+.bloc-alterne{background:rgba(255,255,255,0.05);border-radius:4px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--bleu-light);}
+.bloc-alterne .bloc-title{color:var(--gris-texte);}
+.bloc-alterne ul{list-style:none;}
+.bloc-alterne ul li{font-size:13px;padding:4px 0 4px 14px;position:relative;color:var(--gris-clair);line-height:1.5;border-bottom:1px solid rgba(255,255,255,0.05);}
+.bloc-alterne ul li:last-child{border-bottom:none;}
+.bloc-alterne ul li::before{content:'→';position:absolute;left:0;color:var(--gris-texte);font-size:10px;top:6px;}
+.bloc-alterne ul li strong{color:var(--blanc);}
+.bloc-alterne ul li em{color:var(--gris-texte);font-style:normal;font-size:11.5px;}
+.bloc-alterne .tag-renfo{color:var(--jaune);font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.bloc-alterne .tag-gainage{color:#7AAFF5;font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.circuit-warmup{background:rgba(192,57,43,0.1);border:1px solid rgba(232,84,58,0.25);border-radius:4px;padding:10px 12px;margin-bottom:8px;}
+.cw-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#F08070;margin-bottom:8px;}
+.circuit-warmup ul,.circuit-box ul{list-style:none;}
+.circuit-warmup ul li,.circuit-box ul li{font-size:13px;padding:4px 0 4px 14px;position:relative;color:var(--gris-clair);line-height:1.5;border-bottom:1px solid rgba(255,255,255,0.05);}
+.circuit-warmup ul li:last-child,.circuit-box ul li:last-child{border-bottom:none;}
+.circuit-warmup ul li::before,.circuit-box ul li::before{content:'→';position:absolute;left:0;color:var(--gris-texte);font-size:10px;top:6px;}
+.circuit-warmup ul li strong,.circuit-box ul li strong{color:var(--blanc);}
+.circuit-warmup ul li em,.circuit-box ul li em{color:var(--gris-texte);font-style:normal;font-size:11.5px;}
+.circuit-box{background:rgba(0,63,138,0.15);border:1px solid rgba(0,82,180,0.3);border-radius:4px;padding:10px 12px;margin-bottom:8px;}
+.cb-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#7AAFF5;margin-bottom:8px;}
+.note-chaleur{display:flex;gap:8px;background:rgba(245,196,0,0.06);border:1px solid rgba(245,196,0,0.15);border-radius:4px;padding:8px 10px;margin-bottom:8px;}
+.note-chaleur .ic{font-size:13px;flex-shrink:0;}
+.note-chaleur .tx{font-size:12px;color:#E8C84A;line-height:1.4;}
+.badge-bonus{background:rgba(0,63,138,0.2);border:1px solid rgba(0,82,180,0.35);border-radius:3px;padding:4px 10px;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7AAFF5;margin-bottom:8px;display:block;}
+.seance-done-badge{display:none;align-items:center;gap:6px;padding:8px 14px;background:rgba(46,204,113,0.1);border-top:1px solid rgba(46,204,113,0.2);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--vert);}
+.seance-done-badge.show{display:flex;}
+/* Conseils */
+.principe{background:var(--gris-fonce);border-radius:6px;margin-top:10px;padding:14px;display:flex;gap:12px;}
+.principe .icon{font-size:20px;flex-shrink:0;}
+.principe .text h3{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;margin-bottom:4px;color:var(--blanc);}
+.principe .text p{font-size:12.5px;color:var(--gris-clair);line-height:1.5;}
+hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
+.materiel-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.mat-item{background:rgba(255,255,255,0.07);border-radius:4px;padding:5px 10px;font-size:12px;color:var(--gris-clair);}
+/* Full screen session */
+.session-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--noir);z-index:9999;flex-direction:column;overflow:hidden;}
+.session-overlay.active{display:flex;}
+.so-topbar{background:var(--gris-fonce);padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--gris-moyen);flex-shrink:0;}
+.so-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;color:var(--gris-clair);flex:1;line-height:1.2;}
+.so-global-time{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--jaune);}
+.so-quit{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:5px 10px;color:var(--gris-clair);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
+.login-overlay{position:fixed;inset:0;background:var(--noir);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;}
+.login-box{width:100%;max-width:340px;text-align:center;}
+.login-logo{font-size:44px;margin-bottom:8px;}
+.login-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:0.5px;}
+.login-sub{color:var(--gris-clair);font-size:13px;margin:6px 0 20px;}
+.login-input{width:100%;box-sizing:border-box;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:14px;color:#fff;font-size:18px;letter-spacing:2px;text-align:center;text-transform:uppercase;margin-bottom:10px;font-family:'Barlow Condensed',sans-serif;}
+.login-input::placeholder{color:var(--gris-clair);letter-spacing:1px;}
+.login-name-wrap{margin-bottom:4px;}
+.login-btn{width:100%;background:var(--jaune);color:var(--noir);border:none;border-radius:6px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:6px;}
+.login-btn:disabled{opacity:0.5;}
+.login-error{color:#ff6b6b;font-size:13px;margin-top:12px;min-height:16px;}
+.so-voice{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:5px 9px;font-size:14px;cursor:pointer;line-height:1;flex-shrink:0;}
+.so-voice.off{opacity:0.4;}
+.so-progress-bar{height:4px;background:var(--gris-moyen);flex-shrink:0;}
+.so-progress-fill{height:100%;background:linear-gradient(90deg,var(--bleu),var(--jaune));transition:width .5s;}
+.so-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 24px;text-align:center;}
+.so-bloc-info{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gris-texte);margin-bottom:6px;}
+.so-phase{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px;margin-bottom:10px;display:inline-block;}
+.so-phase.exercice{background:rgba(245,196,0,0.15);color:var(--jaune);}
+.so-phase.repos{background:rgba(0,82,180,0.25);color:#7AAFF5;}
+.so-phase.transition{background:rgba(255,255,255,0.08);color:var(--gris-texte);}
+.so-phase.termine{background:rgba(46,204,113,0.15);color:var(--vert);}
+.so-exercise{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:800;text-transform:uppercase;color:var(--blanc);line-height:1.1;margin-bottom:4px;max-width:320px;}
+.so-exercise.rest-ex{color:#7AAFF5;}
+.so-exercise.trans-ex{color:var(--gris-texte);font-size:22px;}
+.so-detail{font-size:12px;color:var(--gris-texte);margin-bottom:10px;min-height:16px;}
+.so-time{font-family:'Barlow Condensed',sans-serif;font-size:80px;font-weight:800;line-height:1;margin-bottom:6px;color:var(--jaune);}
+.so-time.repos{color:#7AAFF5;}
+.so-time.trans{color:var(--gris-texte);font-size:56px;}
+.so-time.fin{color:var(--vert);}
+.so-cd-bar{width:100%;max-width:280px;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;margin:0 auto 12px;}
+.so-cd-fill{height:100%;border-radius:3px;transition:width .9s linear;}
+.so-cd-fill.ex{background:var(--jaune);}
+.so-cd-fill.rest{background:#7AAFF5;}
+.so-cd-fill.trans{background:rgba(255,255,255,0.2);}
+.so-next{font-size:12px;color:var(--gris-texte);margin-bottom:14px;}
+.so-next span{color:var(--gris-clair);}
+.so-dots{display:flex;gap:4px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;max-width:280px;}
+.so-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);}
+.so-dot.done{background:var(--jaune);}
+.so-dot.current{background:var(--blanc);transform:scale(1.3);}
+.so-controls{background:var(--gris-fonce);padding:14px;display:flex;gap:10px;justify-content:center;border-top:1px solid var(--gris-moyen);flex-shrink:0;}
+.so-btn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;flex:1;max-width:140px;}
+.so-btn.pause{background:var(--gris-moyen);color:var(--blanc);}
+.so-btn.pause.paused{background:var(--jaune);color:var(--noir);}
+.so-btn.skip{background:rgba(255,255,255,0.08);color:var(--gris-clair);border:1px solid rgba(255,255,255,0.15);}
+.so-pause-overlay{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,22,40,0.92);align-items:center;justify-content:center;z-index:10;}
+.so-pause-overlay.show{display:flex;}
+.so-pause-card{text-align:center;padding:24px;}
+.so-pause-card h2{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--blanc);margin-bottom:8px;}
+.so-pause-card p{font-size:13px;color:var(--gris-texte);margin-bottom:20px;}
+.so-pause-card button{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:14px 28px;border:none;border-radius:6px;cursor:pointer;background:var(--jaune);color:var(--noir);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="club">Clermont Salagou HBC · U15</div>
+  <h1>PRÉPA<br><span>ESTIVALE</span></h1>
+  <div class="subtitle">Programme de reconditionnement physique autonome</div>
+  <div class="reprise">▶ Reprise le 17 août</div>
+  <div class="whoami" id="whoami" style="display:none;">Connecté : <span id="whoami-name"></span> · <span class="whoami-logout" onclick="logoutPlayer()">changer de code</span></div>
+</div>
+
+<div class="install-banner" id="install-banner" style="display:none;">
+  <div class="ib-icon">📲</div>
+  <div class="ib-text">
+    <div class="ib-title" id="ib-title">Installe l'appli sur ton téléphone</div>
+    <div class="ib-sub" id="ib-sub">Accès en un tap, comme une vraie appli</div>
+  </div>
+  <button class="ib-btn" id="ib-btn">Installer</button>
+  <button class="ib-close" id="ib-close" onclick="dismissInstallBanner()">✕</button>
+</div>
+
+<div class="ios-install-guide" id="ios-install-guide">
+  <div class="iig-card">
+    <div class="iig-close" onclick="closeIosGuide()">✕</div>
+    <div class="iig-title">Ajouter à l'écran d'accueil</div>
+    <div class="iig-step"><span class="iig-num">1</span> Appuie sur le bouton <strong>Partager</strong> <span class="iig-share-ic">⬆️</span> en bas de Safari</div>
+    <div class="iig-step"><span class="iig-num">2</span> Fais défiler et choisis <strong>"Sur l'écran d'accueil"</strong> <span class="iig-plus-ic">➕</span></div>
+    <div class="iig-step"><span class="iig-num">3</span> Appuie sur <strong>"Ajouter"</strong> en haut à droite</div>
+    <button class="iig-ok" onclick="closeIosGuide()">Compris</button>
+  </div>
+</div>
+
+<div class="global-prog">
+  <div class="gp-title">📊 Progression de la préparation</div>
+  <div class="gp-row">
+    <div class="gp-bar"><div class="gp-fill" id="gp-fill" style="width:0%"></div></div>
+    <div class="gp-pct" id="gp-pct">0%</div>
+  </div>
+  <div class="gp-sub" id="gp-sub">0 séance(s) terminée(s) sur 12</div>
+</div>
+
+<div class="intro">
+  <h2>Structure du programme</h2>
+  <p>3 séances par semaine · 40 à 50 min · Progression sur 4 semaines</p>
+  <p><strong style="color:var(--jaune)">A</strong> — Fond/cardio · <strong style="color:#F08070">B</strong> — Circuit cardio + Explosivité + Gainage dynamique · <strong style="color:#7AAFF5">C</strong> — Cardio + Renfo &amp; Gainage alternés</p>
+</div>
+
+<div class="chaleur-banner">
+  <div class="ic">☀️</div>
+  <div class="tx"><strong>Règle absolue :</strong> toute séance avant 10h ou après 18h30. 500 ml d'eau avant chaque séance.</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('planning',this)">Vue d'ensemble</button>
+  <button class="tab" onclick="switchTab('seances',this)">Les séances</button>
+  <button class="tab" onclick="switchTab('conseils',this)">Conseils</button>
+  <button class="tab" id="tab-coach" onclick="switchTab('coach',this)" style="display:none;">🔒 Coach</button>
+</div>
+
+<div class="content">
+
+<!-- PLANNING -->
+<div class="tab-panel active" id="panel-planning">
+  <div class="legende">
+    <div class="legende-item"><div class="legende-dot" style="background:var(--jaune)"></div>Fond/Cardio</div>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--rouge-light)"></div>Explo + Gainage</div>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--bleu-light)"></div>Renfo + Gainage</div>
+  </div>
+  <div class="planning-grid">
+    <div class="planning-semaine">
+      <h3>Semaine 1 — Mise en route</h3>
+      <div class="jours">
+        <div class="jour fond-j" onclick="goToSeance('S1-A')"><div class="jl">Séance A</div><div class="jc">Fond ciblé<span class="gjb">41 min</span></div></div>
+        <div class="jour explo-j" onclick="goToSeance('S1-B')"><div class="jl">Séance B</div><div class="jc">Circuit + Explo<span class="gjb">44 min</span></div></div>
+        <div class="jour renfo-j" onclick="goToSeance('S1-C')"><div class="jl">Séance C</div><div class="jc">Renfo &amp; Gainage<span class="gjb">40 min</span></div></div>
+      </div>
+    </div>
+    <div class="planning-semaine">
+      <h3>Semaine 2 — Montée en charge</h3>
+      <div class="jours">
+        <div class="jour fond-j" onclick="goToSeance('S2-A')"><div class="jl">Séance A</div><div class="jc">Fond ciblé<span class="gjb">47 min</span></div></div>
+        <div class="jour explo-j" onclick="goToSeance('S2-B')"><div class="jl">Séance B</div><div class="jc">Circuit + Explo<span class="gjb">45 min</span></div></div>
+        <div class="jour renfo-j" onclick="goToSeance('S2-C')"><div class="jl">Séance C</div><div class="jc">Renfo &amp; Gainage<span class="gjb">45 min</span></div></div>
+      </div>
+    </div>
+    <div class="planning-semaine">
+      <h3>Semaine 3 — Consolidation</h3>
+      <div class="jours">
+        <div class="jour fond-j" onclick="goToSeance('S3-A')"><div class="jl">Séance A</div><div class="jc">Fond ciblé<span class="gjb">57 min</span></div></div>
+        <div class="jour explo-j" onclick="goToSeance('S3-B')"><div class="jl">Séance B</div><div class="jc">Circuit + Explo<span class="gjb">50 min</span></div></div>
+        <div class="jour renfo-j" onclick="goToSeance('S3-C')"><div class="jl">Séance C<span class="gjb" style="color:#7AAFF5">Pic intensité</span></div><div class="jc">Circuit intensif<span class="gjb">52 min</span></div></div>
+      </div>
+    </div>
+    <div class="planning-semaine">
+      <h3>Semaine 4 — Maintien pré-reprise</h3>
+      <div class="jours">
+        <div class="jour fond-j" onclick="goToSeance('S4-A')"><div class="jl">Séance A</div><div class="jc">Fond récup<span class="gjb">45 min</span></div></div>
+        <div class="jour explo-j" onclick="goToSeance('S4-B')"><div class="jl">Séance B</div><div class="jc">Circuit + Explo<span class="gjb">42 min</span></div></div>
+        <div class="jour renfo-j" onclick="goToSeance('S4-C')"><div class="jl">Séance C</div><div class="jc">Renfo &amp; Gainage<span class="gjb">42 min</span></div></div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--gris-texte);margin-top:10px;text-align:center">Cliquer sur une séance pour y accéder · 1 jour de repos minimum entre séances</p>
+</div>
+
+<!-- SÉANCES -->
+<div class="tab-panel" id="panel-seances">
+
+  <div class="role-toggle">
+    <button class="role-btn" id="role-btn-joueur" onclick="setRole('joueur')">Joueur de champ</button>
+    <button class="role-btn" id="role-btn-gb" onclick="setRole('gb')">Gardien</button>
+  </div>
+
+  <!-- S1 -->
+  <div class="sg">
+    <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S1</span><span class="sg-title">Semaine 1 — Mise en route</span><span class="sg-chev">▼</span></div>
+    <div class="sg-body">
+
+      <div class="seance" id="seance-S1-A">
+        <div class="seance-header fond" onclick="toggleSeance(this)"><span class="stag">Fond</span><span class="sname">S1-A · Footing de relance</span><span class="sdur">41 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S1-A')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">41:00</span></button>
+          <div class="bloc-section">
+            <div class="bloc"><div class="bloc-title">Échauffement (5 min)</div><ul><li>Marche rapide puis trot très léger</li><li>Montées de genoux 30 sec · Talons-fesses 30 sec</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Activation core (2 min 10)</div><ul><li><strong>Équilibre unipodal</strong> — 20 sec par jambe + 10 petits sauts sur chaque jambe</li><li><strong>Planche</strong> — 20 sec, corps aligné</li><li><strong>Bird dog</strong> — 20 sec, 10 sec chaque côté</li><li><strong>Gainage latéral</strong> — 15 sec chaque côté</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Fond (27 min)</div><ul><li><strong>27 min footing continu</strong> — allure conversationnelle, pouvoir parler sans s'étouffer</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (7 min)</div><ul><li>Marche 3 min · Étirements mollets, quadriceps, ischio, hanches 40 sec chaque</li></ul></div>
+            <div class="note-chaleur"><div class="ic">☀️</div><div class="tx">Tôt le matin ou soirée. Alternative : corde à sauter 27 min en fractionné — 3 min sauts / 1 min marche.</div></div>
+          </div>
+          <div class="seance-done-badge" id="done-S1-A">✓ Séance terminée</div>
+        </div>
+      </div>
+
+      <div class="seance" id="seance-S1-B">
+        <div class="seance-header explo" onclick="toggleSeance(this)"><span class="stag">Explo + Gainage</span><span class="sname">S1-B · Circuit cardio + Explosivité + Gainage + Cardio</span><span class="sdur">41,5 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S1-B')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">44:00</span></button>
+          <div class="bloc-section">
+            <div class="circuit-warmup"><div class="cw-title">🔥 Échauffement — Circuit cardio (8 min · 2 tours · 45 sec/ex)</div><ul><li><strong>Corde à sauter</strong> — 45 sec</li><li><strong>Montées de genoux</strong> — 45 sec</li><li><strong>Pas chassés latéraux</strong> — 45 sec</li><li><strong>Talons-fesses</strong> — 45 sec</li><li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Explosivité — 3 séries · récup 90 sec</div><ul><li><strong>Squats sautés × 5</strong> — descente lente, montée explosive</li><li><strong>Fentes sautées × 6</strong> — 3 par jambe, switch rapide</li><li><strong>Démarrages explosifs × 4</strong> — signal sonore, sprint 5m</li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Explosivité GB — 3 séries · récup 90 sec</div><ul><li><strong>Squats sautés bras hauts × 5</strong> — extension complète des bras</li><li><strong>Fentes latérales explosives × 6</strong> — 3 par côté, appui-poussée</li><li><strong>Départs réactifs ligne de but × 4</strong> — signal sonore, 2-3m gauche/droite</li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Gainage dynamique — 4 tours · repos 45 sec</div><ul><li><strong>Planche + toucher épaule</strong> — 30 sec</li><li><strong>Bear crawl</strong> — 30 sec</li><li><strong>Mountain climbers lents</strong> — 30 sec</li><li><strong>Gainage latéral</strong> — 20 sec chaque côté</li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Gainage dynamique GB — 4 tours · repos 45 sec</div><ul><li><strong>Planche extension bras alternée</strong> — 30 sec</li><li><strong>Bear crawl latéral</strong> — 30 sec</li><li><strong>Mountain climbers + réception</strong> — 30 sec</li><li><strong>Gainage latéral bras tendu</strong> — 20 sec chaque côté</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Cardio intermittent — finisher (6 min · 30/30 · ~100-105% VMA)</div><ul><li><strong>Montées de genoux rapides</strong> — 3 × 30 sec effort / 30 sec repos</li><li><strong>Navette courte 5m</strong> — 3 × 30 sec effort / 30 sec repos</li><li><em>⇄ En alternance à chaque répétition (1 genoux, 1 navette, 1 genoux…) — pas 3 fois de suite le même</em></li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (4 min)</div><ul><li>Marche + étirements quadriceps, mollets, épaules</li></ul></div>
+          </div>
+          <div class="seance-done-badge" id="done-S1-B">✓ Séance terminée</div>
+        </div>
+      </div>
+
+      <div class="seance" id="seance-S1-C">
+        <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">Renfo &amp; Gainage</span><span class="sname">S1-C · Cardio + Renfo &amp; Gainage alternés</span><span class="sdur">35,5 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S1-C')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">40:00</span></button>
+          <div class="bloc-section">
+            <div class="bloc"><div class="bloc-title">Échauffement cardio (8 min)</div><ul><li><strong>Corde à sauter</strong> — 3 min rythme libre</li><li>Pas chassés + montées de genoux — 3 min</li><li>Squats lents × 6 + pompes lentes × 4 (activation)</li></ul></div>
+            <div class="bloc-alterne" data-role="joueur"><div class="bloc-title">Circuit Renfo &amp; Gainage alternés — 3 séries · repos 90 sec</div><ul>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squats × 8</strong> <em>— descente 3 sec, montée 2 sec</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Planche tenue 30 sec</strong> <em>— respiration contrôlée</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Pompes × 6</strong> <em>— corps aligné, coudes à 45°</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Dead bug 25 sec</strong> <em>— bas du dos collé au sol</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Fentes marchées × 6</strong> <em>— 3 par jambe</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squat bulgare × 6</strong> <em>— 3 par jambe, descente contrôlée</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Gainage latéral 20 sec chaque côté</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Y-T-W × 8</strong> <em>— 6 à 8 reps de chaque lettre, maintien 2 sec</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Bear Hold + toucher épaule 20 sec</strong> <em>— genoux décollés, hanches basses</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Hip thrust × 12</strong> <em>— fessiers serrés 1 sec en haut</em></li>
+            </ul></div>
+            <div class="bloc-alterne" data-role="gb"><div class="bloc-title">Circuit Renfo &amp; Gainage GB alternés — 3 séries · repos 90 sec</div><ul>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squats sumo × 8</strong> <em>— posture large, descente 3 sec</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Planche extension bras 30 sec</strong> <em>— position de plongeon</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Pompes explosives × 6</strong> <em>— mains décollent, puissance bras</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Dead bug 25 sec</strong> <em>— bas du dos collé au sol</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Fentes latérales bras haut × 6</strong> <em>— 3 par côté</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squat bulgare × 6</strong> <em>— 3 par jambe, descente contrôlée</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Gainage latéral bras tendu 20 sec chaque côté</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Y-T-W + maintien 3 sec × 8</strong> <em>— renfo épaule/coiffe</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Bear Hold + toucher épaule 20 sec</strong> <em>— genoux décollés, hanches basses</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Hip thrust unipodal × 12</strong> <em>— alterné, fessiers serrés 1 sec</em></li>
+            </ul></div>
+            <div class="bloc"><div class="bloc-title">Cardio intermittent — finisher (6 min · 30/30 · ~100-105% VMA)</div><ul><li><strong>Montées de genoux rapides</strong> — 3 × 30 sec effort / 30 sec repos</li><li><strong>Navette courte 5m</strong> — 3 × 30 sec effort / 30 sec repos</li><li><em>⇄ En alternance à chaque répétition (1 genoux, 1 navette, 1 genoux…) — pas 3 fois de suite le même</em></li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (4 min)</div><ul><li>Marche + étirements complets</li></ul></div>
+          </div>
+          <div class="seance-done-badge" id="done-S1-C">✓ Séance terminée</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="sg">
+    <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S2</span><span class="sg-title">Semaine 2 — Montée en charge</span><span class="sg-chev">▼</span></div>
+    <div class="sg-body">
+
+      <div class="seance" id="seance-S2-A">
+        <div class="seance-header fond" onclick="toggleSeance(this)"><span class="stag">Fond</span><span class="sname">S2-A · Footing + accélérations</span><span class="sdur">47 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S2-A')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">47:00</span></button>
+          <div class="bloc-section">
+            <div class="bloc"><div class="bloc-title">Échauffement (5 min)</div><ul><li>Marche rapide + trot léger progressif</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Activation core (2 min 40)</div><ul><li><strong>Équilibre unipodal</strong> — 20 sec par jambe + 10 petits sauts sur chaque jambe</li><li><strong>Planche</strong> — 25 sec, corps aligné</li><li><strong>Bird dog</strong> — 25 sec, 12 sec chaque côté</li><li><strong>Gainage latéral</strong> — 20 sec chaque côté</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Fond (31,5 min)</div><ul><li><strong>18,5 min footing</strong> — allure régulière</li><li><strong>6 × 20 sec accélérations</strong> progressives — 40 sec trot entre chaque</li><li><strong>8 min footing léger</strong> pour terminer</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (7 min)</div><ul><li>Marche + étirements mollets, quadriceps, ischio</li></ul></div>
+            <div class="note-chaleur"><div class="ic">☀️</div><div class="tx">Alternative intérieure : corde 8 min + 20 min montées d'escaliers + 6 × montées rapides.</div></div>
+          </div>
+          <div class="seance-done-badge" id="done-S2-A">✓ Séance terminée</div>
+        </div>
+      </div>
+
+      <div class="seance" id="seance-S2-B">
+        <div class="seance-header explo" onclick="toggleSeance(this)"><span class="stag">Explo + Gainage</span><span class="sname">S2-B · Circuit cardio + Explosivité ↑ + Gainage</span><span class="sdur">45 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S2-B')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">45:00</span></button>
+          <div class="bloc-section">
+            <div class="circuit-warmup"><div class="cw-title">🔥 Échauffement — Circuit cardio (10 min · 2 tours · 1 min/ex)</div><ul><li><strong>Corde à sauter</strong> — 1 min</li><li><strong>Montées de genoux</strong> — 1 min</li><li><strong>Pas chassés latéraux</strong> — 1 min</li><li><strong>Talons-fesses</strong> — 1 min</li><li><strong>Sauts pieds joints</strong> — 1 min</li><li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Explosivité — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés × 6</strong> — focus rebond au sol</li><li><strong>Fentes sautées × 8</strong> — 4 par jambe</li><li><strong>Démarrages explosifs × 5</strong> — varier les positions de départ</li><li><strong>Sauts de haies × 10</strong> — repères au sol</li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Explosivité GB — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés bras hauts × 6</strong> — focus rebond au sol</li><li><strong>Fentes latérales explosives × 8</strong> — 4 par côté</li><li><strong>Départs réactifs ligne de but × 5</strong> — varier les positions</li><li><strong>Sauts pieds joints largeur cage × 10</strong> — repères au sol</li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Gainage dynamique — 3 tours · repos 45 sec</div><ul><li><strong>Planche + toucher épaule</strong> — 40 sec</li><li><strong>Bear crawl</strong> — 40 sec</li><li><strong>Mountain climbers lents</strong> — 40 sec</li><li><strong>Gainage latéral avec rotation</strong> — 30 sec chaque côté</li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Gainage dynamique GB — 3 tours · repos 45 sec</div><ul><li><strong>Planche extension bras alternée</strong> — 40 sec</li><li><strong>Bear crawl latéral</strong> — 40 sec</li><li><strong>Mountain climbers + réception</strong> — 40 sec</li><li><strong>Gainage latéral rotation bras tendu</strong> — 30 sec chaque côté</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (4 min)</div><ul><li>Marche + étirements</li></ul></div>
+          </div>
+          <div class="seance-done-badge" id="done-S2-B">✓ Séance terminée</div>
+        </div>
+      </div>
+
+      <div class="seance" id="seance-S2-C">
+        <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">Renfo &amp; Gainage</span><span class="sname">S2-C · Cardio + Renfo &amp; Gainage alternés ↑</span><span class="sdur">47 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S2-C')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">45:00</span></button>
+          <div class="bloc-section">
+            <div class="bloc"><div class="bloc-title">Échauffement cardio (9 min)</div><ul><li><strong>Corde à sauter</strong> — 4 min progressif</li><li>Activation : squats × 8 + pompes × 6</li><li><strong>Équilibre unipodal</strong> — 20 sec par jambe + 10 petits sauts sur chaque jambe</li></ul></div>
+            <div class="bloc-alterne" data-role="joueur"><div class="bloc-title">Circuit Renfo &amp; Gainage alternés — 3 séries · repos 90 sec</div><ul>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squats × 10</strong> <em>— descente 3 sec, montée 2 sec</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Planche tenue 35 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Pompes × 8</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Dead bug 30 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Fentes avec élastique × 8</strong> <em>— 4 par jambe</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squat bulgare × 6</strong> <em>— 3 par jambe, descente contrôlée</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Gainage latéral 25 sec chaque côté</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Y-T-W × 10</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Bear Hold + toucher épaule 25 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Hip thrust × 14</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Relevés de buste × 8</strong> <em>— montée 2 sec, descente 3 sec</em></li>
+            </ul></div>
+            <div class="bloc-alterne" data-role="gb"><div class="bloc-title">Circuit Renfo &amp; Gainage GB alternés — 3 séries · repos 90 sec</div><ul>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squats sumo × 10</strong> <em>— posture large</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Planche extension bras 35 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Pompes explosives × 8</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Dead bug 30 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Fentes latérales élastique × 8</strong> <em>— 4 par côté</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squat bulgare × 6</strong> <em>— 3 par jambe, descente contrôlée</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Gainage latéral bras tendu 25 sec chaque côté</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Y-T-W + maintien 3 sec × 10</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Bear Hold + toucher épaule 25 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Hip thrust unipodal × 14</strong> <em>— alterné</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Relevés de buste × 8</strong> <em>— montée 2 sec, descente 3 sec</em></li>
+            </ul></div>
+            <div class="bloc"><div class="bloc-title">Cardio intermittent — finisher (2 × ~6 min · 25/25 · ~103-108% VMA)</div><ul><li><strong>Pas chassés latéraux</strong> — 4 × 25 sec effort / 25 sec repos (par série)</li><li><strong>Talons-fesses rapides</strong> — 3 × 25 sec effort / 25 sec repos (par série)</li><li><em>⇄ En alternance à chaque répétition (1 pas chassés, 1 talons-fesses…) — pas les uns après les autres</em></li><li><em>2 séries · récupération complète 2 min entre les deux</em></li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (4 min)</div><ul><li>Marche + étirements complets</li></ul></div>
+          </div>
+          <div class="seance-done-badge" id="done-S2-C">✓ Séance terminée</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S3 -->
+  <div class="sg">
+    <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S3</span><span class="sg-title">Semaine 3 — Consolidation</span><span class="sg-chev">▼</span></div>
+    <div class="sg-body">
+
+      <div class="seance" id="seance-S3-A">
+        <div class="seance-header fond" onclick="toggleSeance(this)"><span class="stag">Fond</span><span class="sname">S3-A · Footing long + fractionné</span><span class="sdur">57 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S3-A')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">57:00</span></button>
+          <div class="bloc-section">
+            <div class="bloc"><div class="bloc-title">Échauffement (5 min)</div><ul><li>Marche rapide + trot progressif</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Activation core (3 min 10)</div><ul><li><strong>Équilibre unipodal</strong> — 20 sec par jambe + 10 petits sauts sur chaque jambe</li><li><strong>Planche</strong> — 30 sec, corps aligné</li><li><strong>Bird dog</strong> — 30 sec, 15 sec chaque côté</li><li><strong>Gainage latéral</strong> — 25 sec chaque côté</li><li><strong>Russian twist léger</strong> — 20 sec, rotation lente et contrôlée</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Fond (38 min)</div><ul><li><strong>22 min footing</strong> — allure régulière</li><li><strong>8 × 30 sec effort soutenu</strong> — allure nettement plus rapide, 1 min trot entre chaque</li><li><strong>8 min footing léger</strong> pour terminer</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (7 min)</div><ul><li>Marche + étirements complets</li></ul></div>
+            <div class="note-chaleur"><div class="ic">☀️</div><div class="tx">Séance longue — tôt le matin impérative. Alternative : corde 10 min + 22 min fractionné intérieur.</div></div>
+          </div>
+          <div class="seance-done-badge" id="done-S3-A">✓ Séance terminée</div>
+        </div>
+      </div>
+
+      <div class="seance" id="seance-S3-B">
+        <div class="seance-header explo" onclick="toggleSeance(this)"><span class="stag">Explo + Gainage</span><span class="sname">S3-B · Circuit cardio + Explosivité max + Gainage</span><span class="sdur">50 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S3-B')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">50:00</span></button>
+          <div class="bloc-section">
+            <div class="circuit-warmup"><div class="cw-title">🔥 Échauffement — Circuit cardio (10 min · 2 tours · 1 min/ex)</div><ul><li><strong>Corde à sauter</strong> — 1 min</li><li><strong>Montées de genoux</strong> — 1 min</li><li><strong>Pas chassés latéraux</strong> — 1 min</li><li><strong>Talons-fesses</strong> — 1 min</li><li><strong>Squats sautés légers</strong> — 1 min</li><li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Explosivité — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés × 8</strong></li><li><strong>Fentes sautées × 10</strong> — 5 par jambe</li><li><strong>Démarrages explosifs × 6</strong> — positions variées</li><li><strong>Sauts latéraux × 10</strong> — pieds joints, le plus loin possible</li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Explosivité GB — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés bras hauts × 8</strong></li><li><strong>Fentes latérales explosives × 10</strong> — 5 par côté</li><li><strong>Départs réactifs ligne de but × 6</strong> — positions variées</li><li><strong>Sauts latéraux amplitude max × 10</strong> — pieds joints, le plus loin possible</li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Gainage dynamique — 4 tours · repos 45 sec</div><ul><li><strong>Planche + toucher épaule</strong> — 45 sec</li><li><strong>Bear crawl</strong> — 45 sec</li><li><strong>Mountain climbers lents</strong> — 45 sec</li><li><strong>Gainage latéral avec rotation</strong> — 35 sec chaque côté</li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Gainage dynamique GB — 4 tours · repos 45 sec</div><ul><li><strong>Planche extension bras alternée</strong> — 45 sec</li><li><strong>Bear crawl latéral</strong> — 45 sec</li><li><strong>Mountain climbers + réception</strong> — 45 sec</li><li><strong>Gainage latéral rotation bras tendu</strong> — 35 sec chaque côté</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (5 min)</div><ul><li>Marche + étirements complets</li></ul></div>
+          </div>
+          <div class="seance-done-badge" id="done-S3-B">✓ Séance terminée</div>
+        </div>
+      </div>
+
+      <div class="seance" id="seance-S3-C">
+        <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">Circuit intensif</span><span class="sname">S3-C · Cardio + Circuit intensif + Finisher</span><span class="sdur">46,5 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S3-C')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">52:00</span></button>
+          <div class="bloc-section">
+            <div class="bloc"><div class="bloc-title">Échauffement cardio (9 min)</div><ul><li><strong>Corde à sauter</strong> — 4 min progressif</li><li>Activation : squats × 8 + pompes × 6</li><li><strong>Équilibre unipodal</strong> — 20 sec par jambe + 10 petits sauts sur chaque jambe</li></ul></div>
+            <div class="badge-bonus">🔥 Le pic d'intensité de la semaine — un seul circuit, 4 tours</div>
+            <div class="circuit-box" data-role="joueur"><div class="cb-title">Circuit intensif — 4 tours · repos 90 sec entre tours</div><ul>
+              <li><strong>Squats sautés × 8</strong> — descente lente, montée explosive</li>
+              <li><strong>Fentes alternées × 10</strong> <em>— 5 par jambe</em></li>
+              <li><strong>Pompes × 10</strong></li>
+              <li><strong>Mountain climbers × 24</strong></li>
+              <li><strong>Hip thrust × 14</strong></li>
+              <li><strong>Gainage latéral 25 sec chaque côté</strong></li>
+              <li><em>Sans pause entre les exercices, repos uniquement entre les tours</em></li>
+            </ul></div>
+            <div class="circuit-box" data-role="gb"><div class="cb-title">Circuit intensif GB — 4 tours · repos 90 sec entre tours</div><ul>
+              <li><strong>Squats sautés bras hauts × 8</strong> — extension complète des bras</li>
+              <li><strong>Fentes latérales explosives × 10</strong> <em>— 5 par côté</em></li>
+              <li><strong>Pompes explosives × 10</strong></li>
+              <li><strong>Mountain climbers + réception × 24</strong></li>
+              <li><strong>Hip thrust unipodal × 14</strong> <em>— alterné</em></li>
+              <li><strong>Gainage latéral bras tendu 25 sec chaque côté</strong></li>
+              <li><em>Sans pause entre les exercices, repos uniquement entre les tours</em></li>
+            </ul></div>
+            <div class="bloc"><div class="bloc-title">Cardio intermittent — finisher (2 × 6 min · 20/20 · ~105-110% VMA)</div><ul><li><strong>Montées de genoux rapides</strong> — 3 × 20 sec effort / 20 sec repos (par série)</li><li><strong>Navette courte 5m</strong> — 3 × 20 sec effort / 20 sec repos (par série)</li><li><strong>Pas chassés latéraux</strong> — 3 × 20 sec effort / 20 sec repos (par série)</li><li><em>⇄ En alternance à chaque répétition (genoux → navette → pas chassés → genoux…) — pas les uns après les autres</em></li><li><em>2 séries · récupération complète 2 min 30 entre les deux</em></li><li><em>Fait après le circuit pour ne pas dégrader la puissance dessus</em></li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (4 min)</div><ul><li>Marche + étirements complets</li></ul></div>
+          </div>
+          <div class="seance-done-badge" id="done-S3-C">✓ Séance terminée</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S4 -->
+  <div class="sg">
+    <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S4</span><span class="sg-title">Semaine 4 — Maintien pré-reprise</span><span class="sg-chev">▼</span></div>
+    <div class="sg-body">
+
+      <div class="seance" id="seance-S4-A">
+        <div class="seance-header fond" onclick="toggleSeance(this)"><span class="stag">Fond</span><span class="sname">S4-A · Footing de récupération</span><span class="sdur">43 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S4-A')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">45:00</span></button>
+          <div class="bloc-section">
+            <div class="bloc"><div class="bloc-title">Déroulé</div><ul><li><strong>5 min</strong> — échauffement léger</li><li><strong>1 min 10</strong> — activation core : planche 20 sec + bird dog 20 sec + gainage latéral 15 sec chaque côté</li><li><strong>29 min footing</strong> — allure confort absolu, pas de performance</li><li><strong>10 min</strong> — étirements complets</li></ul></div>
+            <div class="note-chaleur"><div class="ic">☀️</div><div class="tx">Arriver frais le 17 août est l'objectif — pas de performance ici. Le core reste léger, en maintien.</div></div>
+          </div>
+          <div class="seance-done-badge" id="done-S4-A">✓ Séance terminée</div>
+        </div>
+      </div>
+
+      <div class="seance" id="seance-S4-B">
+        <div class="seance-header explo" onclick="toggleSeance(this)"><span class="stag">Explo + Gainage</span><span class="sname">S4-B · Circuit cardio + Explosivité + Gainage + Cardio (maintien)</span><span class="sdur">42 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S4-B')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">42:00</span></button>
+          <div class="bloc-section">
+            <div class="circuit-warmup"><div class="cw-title">🔥 Échauffement — Circuit cardio (8 min · 2 tours · 1 min/ex)</div><ul><li><strong>Corde à sauter</strong> — 1 min</li><li><strong>Montées de genoux</strong> — 1 min</li><li><strong>Pas chassés latéraux</strong> — 1 min</li><li><strong>Talons-fesses</strong> — 1 min</li><li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Explosivité — 3 séries · récup 90 sec (maintien S3)</div><ul><li><strong>Squats sautés × 6</strong></li><li><strong>Fentes sautées × 8</strong> — 4 par jambe</li><li><strong>Démarrages explosifs × 4</strong></li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Explosivité GB — 3 séries · récup 90 sec (maintien S3)</div><ul><li><strong>Squats sautés bras hauts × 6</strong></li><li><strong>Fentes latérales explosives × 8</strong> — 4 par côté</li><li><strong>Départs réactifs ligne de but × 4</strong></li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Gainage dynamique — 3 tours · repos 45 sec</div><ul><li><strong>Planche + toucher épaule</strong> — 40 sec</li><li><strong>Bear crawl</strong> — 40 sec</li><li><strong>Gainage latéral</strong> — 30 sec chaque côté</li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Gainage dynamique GB — 3 tours · repos 45 sec</div><ul><li><strong>Planche extension bras alternée</strong> — 40 sec</li><li><strong>Bear crawl latéral</strong> — 40 sec</li><li><strong>Gainage latéral bras tendu</strong> — 30 sec chaque côté</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Cardio intermittent — finisher léger (6 min · 20/20 · ~105-110% VMA)</div><ul><li><strong>Jumping jacks légers</strong> — 5 × 20 sec effort / 20 sec repos</li><li><strong>Corde à sauter légère</strong> — 4 × 20 sec effort / 20 sec repos</li><li><em>⇄ En alternance à chaque répétition (1 jumping jacks, 1 corde…) — pas les uns après les autres</em></li><li><em>Volume réduit (décharge)</em></li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (4 min)</div><ul><li>Marche + étirements</li></ul></div>
+          </div>
+          <div class="seance-done-badge" id="done-S4-B">✓ Séance terminée</div>
+        </div>
+      </div>
+
+      <div class="seance" id="seance-S4-C">
+        <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">Renfo &amp; Gainage</span><span class="sname">S4-C · Cardio + Renfo &amp; Gainage (maintien)</span><span class="sdur">34,5 min</span><span class="schev">▼</span></div>
+        <div class="seance-body">
+          <button class="btn-demarrer" onclick="launchSession('S4-C')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">42:00</span></button>
+          <div class="bloc-section">
+            <div class="bloc"><div class="bloc-title">Échauffement cardio (8 min)</div><ul><li><strong>Corde à sauter</strong> — 3 min</li><li>Activation : squats × 6 + pompes × 5</li><li><strong>Équilibre unipodal</strong> — 20 sec par jambe + 10 petits sauts sur chaque jambe</li></ul></div>
+            <div class="bloc-alterne" data-role="joueur"><div class="bloc-title">Circuit Renfo &amp; Gainage alternés — 3 séries · repos 90 sec</div><ul>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squats × 8</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Planche tenue 35 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Pompes × 6</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Dead bug 30 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Fentes avec élastique × 8</strong> <em>— 4 par jambe</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squat bulgare × 6</strong> <em>— 3 par jambe, descente contrôlée</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Gainage latéral 20 sec chaque côté</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Y-T-W × 8</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Bear Hold + toucher épaule 20 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Hip thrust × 12</strong></li>
+            </ul></div>
+            <div class="bloc-alterne" data-role="gb"><div class="bloc-title">Circuit Renfo &amp; Gainage GB alternés — 3 séries · repos 90 sec</div><ul>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squats sumo × 8</strong> <em>— maintien</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Planche extension bras 35 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Pompes explosives × 6</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Dead bug 30 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Fentes latérales élastique × 8</strong> <em>— 4 par côté</em></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Squat bulgare × 6</strong> <em>— 3 par jambe, descente contrôlée</em></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Gainage latéral bras tendu 20 sec chaque côté</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Y-T-W + maintien 3 sec × 8</strong></li>
+              <li><span class="tag-gainage">GAINAGE</span> <strong>Bear Hold + toucher épaule 20 sec</strong></li>
+              <li><span class="tag-renfo">RENFO</span> <strong>Hip thrust unipodal × 12</strong> <em>— alterné</em></li>
+            </ul></div>
+            <div class="bloc"><div class="bloc-title">Cardio intermittent — finisher (6 min · 15/15 · ~110-120% VMA)</div><ul><li><strong>Skater jumps légers</strong> — 4 × 15 sec effort / 15 sec repos</li><li><strong>Squat jumps légers</strong> — 4 × 15 sec effort / 15 sec repos</li><li><strong>High knees dynamiques</strong> — 4 × 15 sec effort / 15 sec repos</li><li><em>⇄ En alternance à chaque répétition (skater → squat → high knees → skater…) — pas les uns après les autres</em></li></ul></div>
+            <div class="bloc"><div class="bloc-title">Retour au calme (4 min)</div><ul><li>Marche + étirements — dernière séance avant le 17 août !</li></ul></div>
+          </div>
+          <div class="seance-done-badge" id="done-S4-C">✓ Séance terminée</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end panel-seances -->
+
+<!-- CONSEILS -->
+<div class="tab-panel" id="panel-conseils">
+  <div class="principe"><span class="icon">🕐</span><div class="text"><h3>Horaires — Non négociable</h3><p>Avant 10h ou après 18h30 pour tout effort physique. Par canicule (38°C+), séance renfo/gainage intérieure uniquement.</p></div></div>
+  <div class="principe"><span class="icon">💧</span><div class="text"><h3>Hydratation</h3><p>500 ml avant chaque séance. Boire pendant si la séance dépasse 25 min. Urine foncée = pas assez d'eau. Par forte chaleur, une pincée de sel dans l'eau.</p></div></div>
+  <div class="principe"><span class="icon">😴</span><div class="text"><h3>Récupération</h3><p>Au moins 1 jour de repos entre chaque séance. En semaine 4, on maintient les charges de S3 pour arriver frais le 17 août.</p></div></div>
+  <div class="principe"><span class="icon">📈</span><div class="text"><h3>La progression</h3><p>Le fond (séance A) est la priorité. Les charges augmentent chaque semaine sur les répétitions et les durées. Le circuit training n'apparaît qu'une seule fois en semaine 3.</p></div></div>
+  <div class="principe"><span class="icon">🎯</span><div class="text"><h3>L'objectif</h3><p>Arriver le 17 août avec le souffle présent, les jambes déverrouillées, les abdominaux actifs. Chaque séance cochée est une séance de gagnée.</p></div></div>
+  <hr class="divider">
+  <p style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--jaune);margin-bottom:8px;">Matériel</p>
+  <div class="materiel-grid">
+    <div class="mat-item">🪢 Corde à sauter</div>
+    <div class="mat-item">🤸 Élastique léger</div>
+    <div class="mat-item">🏐 Ballon</div>
+    <div class="mat-item">🪑 Une chaise</div>
+    <div class="mat-item">🧘 Tapis ou serviette</div>
+    <div class="mat-item">📱 Téléphone (timer)</div>
+  </div>
+</div>
+
+<!-- COACH (hidden — visible only when logged in as COACHTEST) -->
+<div class="tab-panel" id="panel-coach">
+  <div style="padding:16px;">
+    <button onclick="loadCoachData()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;float:right;">↻ Actualiser</button>
+    <h2 style="font-size:18px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Tableau de bord</h2>
+    <div style="font-size:12px;color:var(--gris-texte);margin-bottom:18px;">Suivi en temps réel des joueurs</div>
+
+    <div id="coach-cards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;"></div>
+
+    <input type="text" id="coach-search" placeholder="Rechercher un joueur ou un code..." oninput="renderCoachTable()"
+      style="width:100%;background:var(--gris-fonce);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--blanc);font-size:14px;margin-bottom:14px;">
+
+    <div id="coach-table-wrap"><div style="text-align:center;padding:40px;color:var(--gris-texte);">Chargement...</div></div>
+  </div>
+</div>
+
+</div><!-- end content -->
+
+
+<!-- LOGIN GATE -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">🤾</div>
+    <div class="login-title">Clermont Salagou HBC · U15</div>
+    <div class="login-sub">Entre ton code pour accéder à ta préparation</div>
+    <input type="text" id="login-code" class="login-input" placeholder="CODE" maxlength="20" autocapitalize="characters" autocomplete="off">
+    <div id="login-name-wrap" class="login-name-wrap" style="display:none;">
+      <input type="text" id="login-name" class="login-input" placeholder="Ton prénom" maxlength="30" autocomplete="off">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="submitLoginCode()">Valider</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- FULL SCREEN SESSION -->
+<div class="session-overlay" id="session-overlay">
+  <div class="so-topbar">
+    <div class="so-title" id="so-title">—</div>
+    <div class="so-global-time" id="so-global-time">00:00</div>
+    <button class="so-voice" id="so-voice-btn" onclick="toggleVoice()">🔊</button>
+    <button class="so-quit" onclick="quitSession()">✕ Quitter</button>
+  </div>
+  <div class="so-progress-bar"><div class="so-progress-fill" id="so-prog-fill" style="width:0%"></div></div>
+  <div class="so-main">
+    <div class="so-bloc-info" id="so-bloc-info">ÉTAPE 1</div>
+    <div class="so-phase exercice" id="so-phase">EXERCICE</div>
+    <div class="so-exercise" id="so-exercise">—</div>
+    <div class="so-detail" id="so-detail"></div>
+    <div class="so-difficulty" id="so-difficulty" style="display:none;">
+      <div class="so-diff-q">Comment tu as trouvé cette séance ?</div>
+      <div class="so-diff-btns">
+        <button class="so-diff-btn" onclick="submitDifficulty('facile')"><span>😊</span>Facile</button>
+        <button class="so-diff-btn" onclick="submitDifficulty('correct')"><span>😐</span>Correct</button>
+        <button class="so-diff-btn" onclick="submitDifficulty('dur')"><span>🥵</span>Dur</button>
+      </div>
+      <div class="so-diff-skip" onclick="submitDifficulty(null)">Passer</div>
+    </div>
+    <div class="so-time" id="so-time">00:00</div>
+    <div class="so-cd-bar"><div class="so-cd-fill ex" id="so-cd-fill" style="width:100%"></div></div>
+    <div class="so-next">Suivant : <span id="so-next-ex">—</span></div>
+    <div class="so-dots" id="so-dots"></div>
+  </div>
+  <div class="so-controls">
+    <button class="so-btn pause" id="so-pause-btn" onclick="togglePause()">⏸ Pause</button>
+    <button class="so-btn skip" onclick="skipStep()">⏭ Passer</button>
+  </div>
+  <div class="so-pause-overlay" id="so-pause-overlay">
+    <div class="so-pause-card">
+      <h2>⏸ Pause</h2>
+      <p>La séance est en pause.<br>Reprends quand tu es prêt.</p>
+      <button onclick="togglePause()">▶ Reprendre</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== AUDIO =====================
+let audioCtx = null;
+function unlockAudio() {
+  if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = audioCtx.createBuffer(1, 1, 22050);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch(e) { audioCtx = null; }
+}
+function beep(freq, dur, vol, delay) {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine'; o.frequency.value = freq;
+    const t = audioCtx.currentTime + (delay || 0);
+    g.gain.setValueAtTime(0.001, t);
+    g.gain.linearRampToValueAtTime(vol || 0.35, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t); o.stop(t + dur + 0.05);
+  } catch(e) {}
+}
+function bip_start()  { beep(880, 0.2, 0.4); }
+function bip_end()    { beep(880, 0.15, 0.3); beep(1047, 0.25, 0.4, 0.2); }
+function bip_rest()   { beep(440, 0.45, 0.3); }
+function bip_resume() { beep(660, 0.12, 0.3); beep(880, 0.2, 0.35, 0.18); }
+function bip_alert()  { beep(660, 0.1, 0.2); }
+function bip_finish() { beep(880, 0.18, 0.35); beep(1047, 0.18, 0.38, 0.25); beep(1319, 0.35, 0.4, 0.5); }
+
+// ===================== VOIX — FICHIERS AUDIO (avec repli synthese vocale) =====================
+const AUDIO_BASE = 'audio/';
+const audioMissing = new Set(); // slugs already confirmed 404 this session, avoid re-trying every time
+function audioKey(text) {
+  if (!text) return '';
+  let t = text.toLowerCase();
+  t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // strip accents
+  t = t.replace(/×/g, 'x');
+  t = t.replace(/\d+/g, '');       // strip numbers (reps/seconds)
+  t = t.replace(/\bx\b/g, '');     // strip standalone x rep-count marker
+  t = t.replace(/\bsec\b/g, '');
+  t = t.replace(/[^a-z]+/g, '-');
+  t = t.replace(/^-+|-+$/g, '');
+  return t;
+}
+function playAudioOrSpeak(text) {
+  if (!voiceEnabled || !text) return;
+  const key = audioKey(text);
+  if (!key || audioMissing.has(key)) { speak(text); return; }
+  const audio = new Audio(AUDIO_BASE + key + '.mp3');
+  let fellBack = false;
+  const fallback = () => {
+    if (fellBack) return;
+    fellBack = true;
+    audioMissing.add(key);
+    speak(text);
+  };
+  audio.addEventListener('error', fallback);
+  audio.play().catch(fallback);
+}
+
+// ===================== VOIX (Web Speech API) =====================
+let frVoice = null;
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  frVoice = voices.find(v => v.lang === 'fr-FR') || voices.find(v => v.lang && v.lang.startsWith('fr')) || null;
+}
+if ('speechSynthesis' in window) {
+  pickVoice();
+  window.speechSynthesis.onvoiceschanged = pickVoice;
+}
+function speak(text) {
+  if (!voiceEnabled || !text) return;
+  if (!('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR';
+    if (frVoice) u.voice = frVoice;
+    u.rate = 1.02;
+    u.volume = 1;
+    window.speechSynthesis.speak(u);
+  } catch(e) {}
+}
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+  appState.voiceEnabled = voiceEnabled;
+  saveState();
+  const btn = document.getElementById('so-voice-btn');
+  if (btn) { btn.textContent = voiceEnabled ? '🔊' : '🔇'; btn.classList.toggle('off', !voiceEnabled); }
+  if (voiceEnabled) playAudioOrSpeak('Voix activée');
+  else if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+// ===================== STATE =====================
+const SK = 'hbccs_prepa_u15_v7';
+let appState = {};
+try { appState = JSON.parse(localStorage.getItem(SK) || '{}'); } catch(e) {}
+function saveState() { try { localStorage.setItem(SK, JSON.stringify(appState)); } catch(e) {} }
+function pk(key) {
+  // Namespace progress keys by player code so switching codes on the same device
+  // never shows another player's local progress.
+  return 'p_' + (appState.playerCode || 'anon') + '__' + key;
+}
+let voiceEnabled = appState.voiceEnabled !== false;
+
+// ===================== SUPABASE =====================
+const SB_URL = 'https://cponudkorfxtwptwtulq.supabase.co';
+const SB_KEY = 'sb_publishable_nJX25A0br_xcAsvEzUrJCg_olfuuySe';
+const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY };
+
+async function sbValidateCode(code) {
+  const res = await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code) + '&select=*', { headers: SB_HEADERS });
+  if (!res.ok) throw new Error('network');
+  const rows = await res.json();
+  return rows[0] || null;
+}
+async function sbClaimPlayer(code, name, deviceToken) {
+  await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
+    method: 'PATCH',
+    headers: { ...SB_HEADERS, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name, claimed_at: new Date().toISOString(), device_token: deviceToken }),
+  }).catch(() => {});
+}
+function getOrCreateDeviceToken() {
+  if (!appState.deviceToken) {
+    appState.deviceToken = 'dev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12);
+    saveState();
+  }
+  return appState.deviceToken;
+}
+async function sbPushCompletion(sessionId, difficulty) {
+  if (!appState.playerCode) return;
+  try {
+    const body = { player_code: appState.playerCode, session_id: sessionId };
+    if (difficulty !== undefined) body.difficulty = difficulty || null;
+    await fetch(SB_URL + '/rest/v1/completions', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify(body),
+    });
+  } catch(e) {}
+}
+async function sbPullCompletions(code) {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/completions?player_code=eq.' + encodeURIComponent(code) + '&select=session_id', { headers: SB_HEADERS });
+    if (!res.ok) return;
+    const rows = await res.json();
+    rows.forEach(r => { appState[pk('done_' + r.session_id)] = true; });
+    saveState();
+  } catch(e) {}
+}
+
+async function submitLoginCode() {
+  const codeInput = document.getElementById('login-code');
+  const nameWrap = document.getElementById('login-name-wrap');
+  const nameInput = document.getElementById('login-name');
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  const code = codeInput.value.trim().toUpperCase();
+  errEl.textContent = '';
+  if (!code) { errEl.textContent = 'Entre ton code.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Vérification...';
+  try {
+    const player = await sbValidateCode(code);
+    if (!player) {
+      errEl.textContent = 'Code inconnu — vérifie auprès du coach.';
+      btn.disabled = false; btn.textContent = 'Valider';
+      return;
+    }
+    const myDeviceToken = getOrCreateDeviceToken();
+    if (code !== 'COACHTEST' && player.claimed_at && player.device_token && player.device_token !== myDeviceToken) {
+      errEl.textContent = 'Ce code est déjà utilisé sur un autre appareil. Demande à ton coach de le réinitialiser si besoin.';
+      btn.disabled = false; btn.textContent = 'Valider';
+      return;
+    }
+    if (!player.claimed_at && nameWrap.style.display === 'none') {
+      // First time with this code: ask for a first name
+      nameWrap.style.display = 'block';
+      btn.textContent = 'Confirmer';
+      btn.disabled = false;
+      nameInput.focus();
+      return;
+    }
+    if (!player.claimed_at) {
+      const name = nameInput.value.trim();
+      if (!name) { errEl.textContent = 'Entre ton prénom.'; btn.disabled = false; btn.textContent = 'Confirmer'; return; }
+      await sbClaimPlayer(code, name, myDeviceToken);
+      appState.playerName = name;
+    } else if (!player.device_token) {
+      // Deja revendique avant l'ajout du verrouillage : on adopte cet appareil comme reference
+      await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
+        method: 'PATCH',
+        headers: { ...SB_HEADERS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_token: myDeviceToken }),
+      }).catch(() => {});
+      appState.playerName = player.name;
+    } else {
+      appState.playerName = player.name;
+    }
+    appState.playerCode = code;
+    saveState();
+    await sbPullCompletions(code);
+    document.getElementById('login-overlay').style.display = 'none';
+    refreshDoneBadges();
+    updateGlobalProgress();
+    showWhoAmI();
+  } catch(e) {
+    errEl.textContent = 'Connexion impossible — réessaie (vérifie ta connexion internet).';
+    btn.disabled = false; btn.textContent = 'Valider';
+  }
+}
+function refreshDoneBadges() {
+  // Clear all badges first so a previous player's progress never leaks visually
+  document.querySelectorAll('.seance-done-badge.show').forEach(b => b.classList.remove('show'));
+  const prefix = pk('done_');
+  Object.keys(appState).forEach(k => {
+    if (k.startsWith(prefix)) {
+      const badge = document.getElementById('done-' + k.slice(prefix.length));
+      if (badge) badge.classList.add('show');
+    }
+  });
+}
+function showWhoAmI() {
+  const el = document.getElementById('whoami');
+  if (!el) return;
+  if (appState.playerCode) {
+    el.style.display = 'block';
+    document.getElementById('whoami-name').textContent = appState.playerName || appState.playerCode;
+  } else {
+    el.style.display = 'none';
+  }
+  updateCoachTabVisibility();
+}
+function logoutPlayer() {
+  if (!confirm('Se déconnecter ? Tu devras retaper ton code pour revenir.')) return;
+  delete appState.playerCode;
+  delete appState.playerName;
+  saveState();
+  showWhoAmI();
+  refreshDoneBadges();
+  updateGlobalProgress();
+  document.getElementById('login-code').value = '';
+  document.getElementById('login-name-wrap').style.display = 'none';
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-btn').textContent = 'Valider';
+  document.getElementById('login-overlay').style.display = 'flex';
+}
+
+let sessionId = null, sessionSteps = [], currentStepIdx = 0;
+let stepRemaining = 0, globalRemaining = 0, isPaused = false;
+let mainInterval = null, globalInterval = null;
+let stepStartTime = null, stepDuration = 0;
+let globalStartTime = null, globalDuration = 0;
+let pausedStepRemaining = 0, pausedGlobalRemaining = 0;
+
+// ===================== SESSION BUILDER HELPERS =====================
+function circuitWarmup(tours, exDur, restDur, exList) {
+  const steps = [];
+  for (let t = 1; t <= tours; t++) {
+    steps.push({type:'info', name:'Circuit cardio — Tour ' + t + '/' + tours, detail:'Enchaîner sans pause', duration:3});
+    exList.forEach((ex, i) => steps.push({type:'exo', name:ex, detail:'Tour ' + t + '/' + tours + ' · Ex ' + (i+1) + '/' + exList.length, duration:exDur}));
+    if (t < tours) steps.push({type:'repos', name:'Repos entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
+  }
+  return steps;
+}
+function explo(series, exList, restDur) {
+  const steps = [];
+  for (let s = 1; s <= series; s++) {
+    steps.push({type:'info', name:'Explosivité — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : '', duration:3});
+    exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
+    if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
+  }
+  return steps;
+}
+function gainage(tours, exList, restDur) {
+  const steps = [];
+  for (let t = 1; t <= tours; t++) {
+    steps.push({type:'info', name:'Gainage — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : '', duration:3});
+    exList.forEach(([n,d]) => {
+      if (n==='T') steps.push({type:'trans', name:'Transition', detail:'', duration:d});
+      else steps.push({type:'exo', name:n, detail:'', duration:d});
+    });
+    if (t < tours) steps.push({type:'repos', name:'Repos entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
+  }
+  return steps;
+}
+function renfoGainage(series, exList, restDur) {
+  const steps = [];
+  for (let s = 1; s <= series; s++) {
+    steps.push({type:'info', name:'Renfo & Gainage — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : 'Renfo + Gainage alternés', duration:3});
+    exList.forEach(([n,d,det]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
+    if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
+  }
+  return steps;
+}
+function circuitIntense(tours, exList, restDur) {
+  const steps = [];
+  for (let t = 1; t <= tours; t++) {
+    steps.push({type:'info', name:'Circuit intensif — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : 'Le pic d\'intensite de la semaine', duration:3});
+    exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
+    if (t < tours) steps.push({type:'repos', name:'Récupération entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
+  }
+  return steps;
+}
+function cardioInter(reps, effortDur, restDur, exNames) {
+  const names = (exNames && exNames.length) ? exNames : ['Sprint sur place'];
+  const steps = [];
+  steps.push({type:'info', name:'Cardio intermittent', detail: reps + ' x ' + effortDur + '/' + restDur + ' sec', duration:3});
+  for (let i = 1; i <= reps; i++) {
+    const exName = names[(i - 1) % names.length];
+    steps.push({type:'exo', name:exName, detail:'Effort ' + i + '/' + reps, duration:effortDur});
+    steps.push({type:'repos', name:'Récupération', detail:'', duration:restDur});
+  }
+  return steps;
+}
+
+function cardioInterSplit(repsPerBlock, effortDur, restDur, bigRestDur, exNames) {
+  return [
+    ...cardioInter(repsPerBlock, effortDur, restDur, exNames),
+    {type:'repos', name:'Récupération complète', detail:'Repos long avant la 2e série', duration: bigRestDur},
+    ...cardioInter(repsPerBlock, effortDur, restDur, exNames),
+  ];
+}
+
+// ===================== EXERCISE CONFIGS =====================
+const CW_S1 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talons-fesses'];
+const CW_S2 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talons-fesses','Sauts pieds joints'];
+const CW_S3 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talons-fesses','Squats sautes legers'];
+
+const GDyn_S1 = [['Planche toucher epaule',30],['T',15],['Bear crawl',30],['T',15],['Mountain climbers lents',30],['T',15],['Gainage lateral droit',20],['T',10],['Gainage lateral gauche',20]];
+const GDyn_S2 = [['Planche toucher epaule',40],['T',15],['Bear crawl',40],['T',15],['Mountain climbers lents',40],['T',15],['Gainage lateral rotation droit',30],['T',10],['Gainage lateral rotation gauche',30]];
+const GDyn_S3 = [['Planche toucher epaule',45],['T',15],['Bear crawl',45],['T',15],['Mountain climbers lents',45],['T',15],['Gainage lateral rotation droit',35],['T',10],['Gainage lateral rotation gauche',35]];
+const GDyn_S4 = [['Planche toucher epaule',40],['T',15],['Bear crawl',40],['T',15],['Gainage lateral droit',30],['T',10],['Gainage lateral gauche',30]];
+
+// S1: x5/x6/x4 explo, S2: x6/x8/x5 + haies, S3: x8/x10/x6 + sauts lat, S4: x6/x8/x4
+const Explo_S1 = [['Squats sautes x5','Descente lente, montee explosive',38],['Fentes sautees x6','3 par jambe, switch rapide',35],['Demarrages explosifs x4','Signal sonore, sprint 5m',33]];
+const Explo_S2 = [['Squats sautes x6','Focus rebond au sol',40],['Fentes sautees x8','4 par jambe',38],['Demarrages explosifs x5','Varier les positions',36],['Sauts de haies x10','Reperes au sol',30]];
+const Explo_S3 = [['Squats sautes x8','',42],['Fentes sautees x10','5 par jambe',42],['Demarrages explosifs x6','Positions variees',38],['Sauts lateraux x10','Pieds joints, le plus loin',32]];
+const Explo_S4 = [['Squats sautes x6','',38],['Fentes sautees x8','4 par jambe — maintien',36],['Demarrages explosifs x4','',33]];
+
+// Renfo+Gainage alternés: [name, duration, detail]
+const RG_S1 = [
+  ['Squats x8','40','Descente 3 sec, montee 2 sec'],['Planche 30 sec','30','Respiration controlee'],
+  ['Pompes x6','28','Corps aligne, coudes a 45'],['Dead bug 25 sec','25','Bas du dos colle au sol'],
+  ['Fentes marchees x6','28','3 par jambe'],['Squat bulgare x6','32','3 par jambe, descente controlee'],
+  ['Gainage lateral droit 20 sec','20',''],['Gainage lateral gauche 20 sec','20',''],
+  ['Y-T-W x8','28','6 a 8 reps de chaque lettre, maintien 2 sec'],['Bear Hold toucher epaule 20 sec','20','Genoux decolles, hanches basses'],
+  ['Hip thrust x12','35','Fessiers serres 1 sec'],
+];
+const RG_S2 = [
+  ['Squats x10','42','Descente 3 sec, montee 2 sec'],['Planche 35 sec','35',''],
+  ['Pompes x8','30',''],['Dead bug 30 sec','30',''],
+  ['Fentes elastique x8','32','4 par jambe'],['Squat bulgare x6','32','3 par jambe, descente controlee'],
+  ['Gainage lateral droit 25 sec','25',''],['Gainage lateral gauche 25 sec','25',''],
+  ['Y-T-W x10','32',''],['Bear Hold toucher epaule 25 sec','25',''],
+  ['Hip thrust x14','38',''],['Releves buste x8','38','Montee 2 sec, descente 3 sec'],
+];
+const RG_S3 = [
+  ['Squats x10','42',''],['Planche 40 sec','40',''],
+  ['Pompes x8','30',''],['Dead bug 35 sec','35',''],
+  ['Fentes elastique x10','38','5 par jambe'],['Gainage lateral droit 25 sec','25',''],['Gainage lateral gauche 25 sec','25',''],
+  ['Dips x10','32',''],['Superman 25 sec','25',''],
+  ['Hip thrust x14','38',''],
+];
+const RG_S4 = [
+  ['Squats x8','40','Maintien'],['Planche 35 sec','35',''],
+  ['Pompes x6','28',''],['Dead bug 30 sec','30',''],
+  ['Fentes elastique x8','32','4 par jambe'],['Squat bulgare x6','32','3 par jambe, descente controlee'],
+  ['Gainage lateral droit 20 sec','20',''],['Gainage lateral gauche 20 sec','20',''],
+  ['Y-T-W x8','28',''],['Bear Hold toucher epaule 20 sec','20',''],
+  ['Hip thrust x12','35',''],
+];
+
+// Fix RG arrays: duration is string, convert
+[RG_S1, RG_S2, RG_S3, RG_S4].forEach(arr => {
+  arr.forEach(ex => { ex[1] = parseInt(ex[1]); });
+});
+
+// Circuit intensif S3-C — fusion renfo+gainage+explosivite en UN seul circuit (4 tours)
+const CI_S3 = [
+  ['Squats sautes x8','Descente lente, montee explosive',38],
+  ['Fentes alternees x10','5 par jambe',38],
+  ['Pompes x10','',34],
+  ['Mountain climbers x24','',36],
+  ['Hip thrust x14','Fessiers serres 1 sec',38],
+  ['Gainage lateral droit 25 sec','',25],
+  ['Gainage lateral gauche 25 sec','',25],
+];
+
+// ===================== EXERCISE CONFIGS — GARDIEN DE BUT =====================
+const GDyn_S1_GB = [['Planche extension bras alternee',30],['T',15],['Bear crawl lateral',30],['T',15],['Mountain climbers + reception',30],['T',15],['Gainage lateral bras tendu droit',20],['T',10],['Gainage lateral bras tendu gauche',20]];
+const GDyn_S2_GB = [['Planche extension bras alternee',40],['T',15],['Bear crawl lateral',40],['T',15],['Mountain climbers + reception',40],['T',15],['Gainage lateral rotation bras tendu droit',30],['T',10],['Gainage lateral rotation bras tendu gauche',30]];
+const GDyn_S3_GB = [['Planche extension bras alternee',45],['T',15],['Bear crawl lateral',45],['T',15],['Mountain climbers + reception',45],['T',15],['Gainage lateral rotation bras tendu droit',35],['T',10],['Gainage lateral rotation bras tendu gauche',35]];
+const GDyn_S4_GB = [['Planche extension bras alternee',40],['T',15],['Bear crawl lateral',40],['T',15],['Gainage lateral bras tendu droit',30],['T',10],['Gainage lateral bras tendu gauche',30]];
+
+const Explo_S1_GB = [['Squats sautes bras hauts x5','Extension complete des bras en l\'air',38],['Fentes laterales explosives x6','3 par cote, appui-poussee',35],['Departs reactifs ligne de but x4','Signal sonore, 2-3m gauche/droite',33]];
+const Explo_S2_GB = [['Squats sautes bras hauts x6','Focus rebond au sol',40],['Fentes laterales explosives x8','4 par cote',38],['Departs reactifs ligne de but x5','Varier les positions',36],['Sauts pieds joints largeur cage x10','Reperes au sol',30]];
+const Explo_S3_GB = [['Squats sautes bras hauts x8','',42],['Fentes laterales explosives x10','5 par cote',42],['Departs reactifs ligne de but x6','Positions variees',38],['Sauts lateraux amplitude max x10','Pieds joints, le plus loin',32]];
+const Explo_S4_GB = [['Squats sautes bras hauts x6','',38],['Fentes laterales explosives x8','4 par cote — maintien',36],['Departs reactifs ligne de but x4','',33]];
+
+const RG_S1_GB = [
+  ['Squats sumo x8','40','Posture large, descente 3 sec'],['Planche extension bras 30 sec','30','Position de plongeon'],
+  ['Pompes explosives x6','28','Mains decollent — puissance bras'],['Dead bug 25 sec','25','Bas du dos colle au sol'],
+  ['Fentes laterales bras haut x6','28','3 par cote'],['Squat bulgare x6','32','3 par jambe, descente controlee'],
+  ['Gainage lateral bras tendu droit 20 sec','20',''],['Gainage lateral bras tendu gauche 20 sec','20',''],
+  ['Y-T-W + maintien 3 sec x8','28','Renfo epaule/coiffe'],['Bear Hold toucher epaule 20 sec','20','Genoux decolles, hanches basses'],
+  ['Hip thrust unipodal x12','35','Alterne, fessiers serres 1 sec'],
+];
+const RG_S2_GB = [
+  ['Squats sumo x10','42','Posture large'],['Planche extension bras 35 sec','35',''],
+  ['Pompes explosives x8','30',''],['Dead bug 30 sec','30',''],
+  ['Fentes laterales elastique x8','32','4 par cote'],['Squat bulgare x6','32','3 par jambe, descente controlee'],
+  ['Gainage lateral bras tendu droit 25 sec','25',''],['Gainage lateral bras tendu gauche 25 sec','25',''],
+  ['Y-T-W + maintien 3 sec x10','32',''],['Bear Hold toucher epaule 25 sec','25',''],
+  ['Hip thrust unipodal x14','38','Alterne'],['Releves buste x8','38','Montee 2 sec, descente 3 sec'],
+];
+const RG_S3_GB = [
+  ['Squats sumo x10','42',''],['Planche extension bras 40 sec','40',''],
+  ['Pompes explosives x8','30',''],['Dead bug 35 sec','35',''],
+  ['Fentes laterales elastique x10','38','5 par cote'],['Gainage lateral bras tendu droit 25 sec','25',''],['Gainage lateral bras tendu gauche 25 sec','25',''],
+  ['Dips x10','32',''],['Superman 25 sec','25',''],
+  ['Hip thrust unipodal x14','38','Alterne'],
+];
+const RG_S4_GB = [
+  ['Squats sumo x8','40','Maintien'],['Planche extension bras 35 sec','35',''],
+  ['Pompes explosives x6','28',''],['Dead bug 30 sec','30',''],
+  ['Fentes laterales elastique x8','32','4 par cote'],['Squat bulgare x6','32','3 par jambe, descente controlee'],
+  ['Gainage lateral bras tendu droit 20 sec','20',''],['Gainage lateral bras tendu gauche 20 sec','20',''],
+  ['Y-T-W + maintien 3 sec x8','28',''],['Bear Hold toucher epaule 20 sec','20',''],
+  ['Hip thrust unipodal x12','35','Alterne'],
+];
+[RG_S1_GB, RG_S2_GB, RG_S3_GB, RG_S4_GB].forEach(arr => {
+  arr.forEach(ex => { ex[1] = parseInt(ex[1]); });
+});
+
+const CI_S3_GB = [
+  ['Squats sautes bras hauts x8','Extension complete des bras',38],
+  ['Fentes laterales explosives x10','5 par cote',38],
+  ['Pompes explosives x10','',34],
+  ['Mountain climbers + reception x24','',36],
+  ['Hip thrust unipodal x14','Alterne, fessiers serres 1 sec',38],
+  ['Gainage lateral bras tendu droit 25 sec','',25],
+  ['Gainage lateral bras tendu gauche 25 sec','',25],
+];
+
+// ===================== SESSIONS =====================
+function buildSessions(role) {
+  const gb = role === 'gb';
+  return {
+  'S1-A': { name:'S1-A · Footing de relance', duration:41*60, steps:[
+    {type:'exo', name:'Echauffement', detail:'Marche rapide + montees de genoux + talons-fesses', duration:300},
+    {type:'exo', name:'Equilibre unipodal', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
+    {type:'exo', name:'Planche', detail:'Gainage de reveil — corps aligne', duration:20},
+    {type:'exo', name:'Bird dog', detail:'10 sec chaque cote — bras + jambe opposes', duration:20},
+    {type:'exo', name:'Gainage lateral droit', detail:'', duration:15},
+    {type:'exo', name:'Gainage lateral gauche', detail:'', duration:15},
+    {type:'fond', name:'Footing continu', detail:'Allure conversationnelle — pouvoir parler sans s\'etouffer', duration:1610},
+    {type:'retour', name:'Retour au calme', detail:'Marche 3 min + etirements complets', duration:420},
+  ]},
+  'S1-B': { name:'S1-B · Circuit + Explo + Gainage + Cardio', duration:2490, steps:[
+    ...circuitWarmup(2, 45, 60, CW_S1),
+    {type:'repos', name:'Transition — Explosivite', detail:'Reprends ton souffle', duration:30},
+    ...explo(3, gb?Explo_S1_GB:Explo_S1, 90),
+    {type:'repos', name:'Transition — Gainage', detail:'Prepare-toi pour le gainage', duration:30},
+    ...gainage(4, gb?GDyn_S1_GB:GDyn_S1, 45),
+    {type:'repos', name:'Transition — Cardio', detail:'Dernier bloc, courage', duration:30},
+    ...cardioInter(6, 30, 30, ['Montees de genoux rapides', 'Navette courte 5m']),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
+  ]},
+  'S1-C': { name:'S1-C · Cardio + Renfo & Gainage alternes', duration:2130, steps:[
+    {type:'exo', name:'Corde a sauter', detail:'Echauffement — 3 min rythme libre', duration:180},
+    {type:'exo', name:'Activation', detail:'Pas chasses + montees genoux + squats lents x6 + pompes x4', duration:240},
+    ...renfoGainage(3, gb?RG_S1_GB:RG_S1, 90),
+    {type:'repos', name:'Transition — Cardio', detail:'', duration:20},
+    ...cardioInter(6, 30, 30, ['Montees de genoux rapides', 'Navette courte 5m']),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements complets', duration:240},
+  ]},
+  'S2-A': { name:'S2-A · Footing + accelerations', duration:47*60, steps:[
+    {type:'exo', name:'Echauffement', detail:'Marche rapide + trot progressif', duration:300},
+    {type:'exo', name:'Equilibre unipodal', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
+    {type:'exo', name:'Planche', detail:'Gainage de reveil — corps aligne', duration:25},
+    {type:'exo', name:'Bird dog', detail:'12 sec chaque cote', duration:25},
+    {type:'exo', name:'Gainage lateral droit', detail:'', duration:20},
+    {type:'exo', name:'Gainage lateral gauche', detail:'', duration:20},
+    {type:'fond', name:'Footing continu', detail:'18,5 min allure reguliere', duration:1110},
+    {type:'exo', name:'Accelerations x6', detail:'6 x 20 sec effort soutenu — 40 sec trot entre chaque', duration:360},
+    {type:'fond', name:'Footing leger', detail:'8 min pour terminer', duration:480},
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:420},
+  ]},
+  'S2-B': { name:'S2-B · Circuit + Explo + Gainage', duration:45*60, steps:[
+    ...circuitWarmup(2, 60, 60, CW_S2),
+    {type:'repos', name:'Transition — Explosivite', detail:'', duration:30},
+    ...explo(4, gb?Explo_S2_GB:Explo_S2, 90),
+    {type:'repos', name:'Transition — Gainage', detail:'', duration:30},
+    ...gainage(3, gb?GDyn_S2_GB:GDyn_S2, 45),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
+  ]},
+  'S2-C': { name:'S2-C · Cardio + Renfo & Gainage alternes ↑', duration:2833, steps:[
+    {type:'exo', name:'Corde a sauter', detail:'Echauffement — 4 min progressif', duration:240},
+    {type:'exo', name:'Activation', detail:'Squats x8 + pompes x6', duration:120},
+    {type:'exo', name:'Equilibre unipodal', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
+    ...renfoGainage(3, gb?RG_S2_GB:RG_S2, 90),
+    {type:'repos', name:'Transition — Cardio', detail:'', duration:20},
+    ...cardioInterSplit(7, 25, 25, 120, ['Pas chasses lateraux', 'Talons-fesses rapides']),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
+  ]},
+  'S3-A': { name:'S3-A · Footing long + fractionne', duration:57*60, steps:[
+    {type:'exo', name:'Echauffement', detail:'Marche rapide + trot progressif', duration:300},
+    {type:'exo', name:'Equilibre unipodal', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
+    {type:'exo', name:'Planche', detail:'Gainage de reveil', duration:30},
+    {type:'exo', name:'Bird dog', detail:'15 sec chaque cote', duration:30},
+    {type:'exo', name:'Gainage lateral droit', detail:'', duration:25},
+    {type:'exo', name:'Gainage lateral gauche', detail:'', duration:25},
+    {type:'exo', name:'Russian twist leger', detail:'Rotation lente et controlee — pas de vitesse', duration:20},
+    {type:'fond', name:'Footing continu', detail:'22 min allure reguliere', duration:1320},
+    {type:'exo', name:'Fractionne x8', detail:'8 x 30 sec effort soutenu — 1 min trot entre chaque', duration:720},
+    {type:'fond', name:'Footing leger', detail:'8 min pour terminer', duration:480},
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements complets', duration:420},
+  ]},
+  'S3-B': { name:'S3-B · Circuit + Explo max + Gainage', duration:50*60, steps:[
+    ...circuitWarmup(2, 60, 60, CW_S3),
+    {type:'repos', name:'Transition — Explosivite', detail:'', duration:30},
+    ...explo(4, gb?Explo_S3_GB:Explo_S3, 90),
+    {type:'repos', name:'Transition — Gainage', detail:'', duration:30},
+    ...gainage(4, gb?GDyn_S3_GB:GDyn_S3, 45),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:300},
+  ]},
+  'S3-C': { name:'S3-C · Cardio + Circuit intensif + Finisher', duration:2793, steps:[
+    {type:'exo', name:'Corde a sauter', detail:'Echauffement — 4 min progressif', duration:240},
+    {type:'exo', name:'Activation', detail:'Squats x8 + pompes x6', duration:120},
+    {type:'exo', name:'Equilibre unipodal', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
+    {type:'repos', name:'Transition — Circuit intensif', detail:'Le pic de la semaine !', duration:30},
+    ...circuitIntense(4, gb?CI_S3_GB:CI_S3, 90),
+    {type:'repos', name:'Transition — Cardio', detail:'Dernier effort', duration:30},
+    ...cardioInterSplit(9, 20, 20, 150, ['Montees de genoux rapides', 'Navette courte 5m', 'Pas chasses lateraux']),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements complets', duration:240},
+  ]},
+  'S4-A': { name:'S4-A · Footing de recuperation', duration:2580, steps:[
+    {type:'exo', name:'Echauffement leger', detail:'5 min marche + trot tres lent', duration:300},
+    {type:'exo', name:'Planche', detail:'Gainage de reveil — maintien', duration:20},
+    {type:'exo', name:'Bird dog', detail:'10 sec chaque cote', duration:20},
+    {type:'exo', name:'Gainage lateral droit', detail:'', duration:15},
+    {type:'exo', name:'Gainage lateral gauche', detail:'', duration:15},
+    {type:'fond', name:'Footing de recuperation', detail:'29 min allure confort absolu — pas de performance', duration:1730},
+    {type:'retour', name:'Etirements complets', detail:'10 min — derniere seance avant le 17 aout !', duration:600},
+  ]},
+  'S4-B': { name:'S4-B · Circuit + Explo + Gainage + Cardio (maintien)', duration:42*60, steps:[
+    ...circuitWarmup(2, 60, 60, CW_S1),
+    {type:'repos', name:'Transition — Explosivite', detail:'', duration:30},
+    ...explo(3, gb?Explo_S4_GB:Explo_S4, 90),
+    {type:'repos', name:'Transition — Gainage', detail:'', duration:30},
+    ...gainage(3, gb?GDyn_S4_GB:GDyn_S4, 45),
+    {type:'repos', name:'Transition — Cardio', detail:'Dernier bloc, courage', duration:30},
+    ...cardioInter(9, 20, 20, ['Jumping jacks legers', 'Corde a sauter legere']),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
+  ]},
+  'S4-C': { name:'S4-C · Cardio + Renfo & Gainage (maintien)', duration:2080, steps:[
+    {type:'exo', name:'Corde a sauter', detail:'Echauffement — 3 min', duration:180},
+    {type:'exo', name:'Activation', detail:'Squats x6 + pompes x5', duration:100},
+    {type:'exo', name:'Equilibre unipodal', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
+    ...renfoGainage(3, gb?RG_S4_GB:RG_S4, 90),
+    {type:'repos', name:'Transition — Cardio', detail:'', duration:20},
+    ...cardioInter(12, 15, 15, ['Skater jumps legers', 'Squat jumps legers', 'High knees dynamiques']),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements — derniere seance avant le 17 aout !', duration:240},
+  ]},
+  };
+}
+
+// ===================== SESSION ENGINE =====================
+function launchSession(sid) {
+  unlockAudio();
+  const cfg = buildSessions(appState.role || 'joueur')[sid];
+  if (!cfg) return;
+  sessionId = sid;
+  sessionSteps = cfg.steps;
+  currentStepIdx = appState[pk('resume_'+sid)] || 0;
+  globalRemaining = appState[pk('global_'+sid)] || cfg.duration;
+  isPaused = false;
+
+  document.getElementById('so-title').textContent = cfg.name;
+  document.getElementById('session-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('so-pause-btn').textContent = '⏸ Pause';
+  document.getElementById('so-pause-btn').classList.remove('paused');
+  document.getElementById('so-pause-overlay').classList.remove('show');
+  const vbtn = document.getElementById('so-voice-btn');
+  if (vbtn) { vbtn.textContent = voiceEnabled ? '🔊' : '🔇'; vbtn.classList.toggle('off', !voiceEnabled); }
+
+  buildDots();
+  runStep();
+  startGlobalTimer();
+}
+
+function buildDots() {
+  const exoCount = sessionSteps.filter(s => s.type === 'exo').length;
+  document.getElementById('so-dots').innerHTML = Array.from({length:exoCount}, (_,i) =>
+    '<div class="so-dot" id="sdot-'+i+'"></div>').join('');
+}
+
+function updateDots() {
+  const doneExo = sessionSteps.slice(0, currentStepIdx).filter(s => s.type === 'exo').length;
+  sessionSteps.filter(s => s.type === 'exo').forEach((_, i) => {
+    const d = document.getElementById('sdot-'+i);
+    if (d) d.className = 'so-dot' + (i < doneExo ? ' done' : i === doneExo ? ' current' : '');
+  });
+}
+
+function runStep() {
+  if (currentStepIdx >= sessionSteps.length) { finishSession(); return; }
+  const step = sessionSteps[currentStepIdx];
+  stepDuration = step.duration;
+  stepRemaining = step.duration;
+  stepStartTime = Date.now();
+
+  if (step.type === 'exo') { bip_start(); playAudioOrSpeak(step.name); }
+  else if (step.type === 'repos') { bip_rest(); playAudioOrSpeak('Récupération'); }
+  else if (step.type === 'retour') { bip_rest(); playAudioOrSpeak(step.name); }
+  else if (step.type === 'fond') { playAudioOrSpeak(step.name); }
+  else if (step.type === 'info') { playAudioOrSpeak(step.name); }
+  else if (step.type === 'trans') { playAudioOrSpeak(step.name); }
+
+  renderStep(step);
+  updateDots();
+
+  if (mainInterval) clearInterval(mainInterval);
+  let lastAlerted = -1;
+  mainInterval = setInterval(() => {
+    if (isPaused) return;
+    // Calculate remaining using wall clock — survives sleep/background
+    const elapsed = Math.floor((Date.now() - stepStartTime) / 1000);
+    stepRemaining = Math.max(0, stepDuration - elapsed);
+
+    // Alert beeps at 3,2,1
+    if (stepRemaining <= 3 && stepRemaining > 0 && stepRemaining !== lastAlerted &&
+        (step.type === 'exo' || step.type === 'repos' || step.type === 'fond' || step.type === 'retour')) {
+      bip_alert();
+      lastAlerted = stepRemaining;
+    }
+    if (stepRemaining <= 0) {
+      clearInterval(mainInterval);
+      if (step.type === 'exo') bip_end();
+      else if (step.type === 'repos') bip_resume();
+      currentStepIdx++;
+      appState[pk('resume_'+sessionId)] = currentStepIdx;
+      saveState();
+      setTimeout(runStep, 350);
+    } else {
+      document.getElementById('so-time').textContent = fmt(stepRemaining);
+      document.getElementById('so-cd-fill').style.width = (stepRemaining / stepDuration * 100) + '%';
+    }
+  }, 250); // Check every 250ms for responsiveness after wake
+}
+
+function renderStep(step) {
+  const phaseEl = document.getElementById('so-phase');
+  const exEl = document.getElementById('so-exercise');
+  const detEl = document.getElementById('so-detail');
+  const timeEl = document.getElementById('so-time');
+  const fillEl = document.getElementById('so-cd-fill');
+  const nextEl = document.getElementById('so-next-ex');
+  const infoEl = document.getElementById('so-bloc-info');
+  const progEl = document.getElementById('so-prog-fill');
+
+  const phaseMap = {exo:'EXERCICE',repos:'REPOS',trans:'TRANSITION',info:'PROCHAINE ETAPE',fond:'CARDIO',retour:'RETOUR AU CALME'};
+  phaseEl.className = 'so-phase ' + (step.type === 'repos' || step.type === 'retour' ? 'repos' : step.type === 'trans' ? 'transition' : step.type === 'info' ? 'transition' : 'exercice');
+  phaseEl.textContent = phaseMap[step.type] || 'EXERCICE';
+
+  exEl.className = 'so-exercise' + (step.type === 'repos' || step.type === 'retour' ? ' rest-ex' : step.type === 'trans' || step.type === 'info' ? ' trans-ex' : '');
+  exEl.textContent = step.name;
+  detEl.textContent = step.detail || '';
+
+  timeEl.className = 'so-time' + (step.type === 'repos' || step.type === 'retour' ? ' repos' : step.type === 'trans' ? ' trans' : '');
+  timeEl.textContent = fmt(step.duration);
+
+  fillEl.className = 'so-cd-fill ' + (step.type === 'repos' || step.type === 'retour' ? 'rest' : step.type === 'trans' ? 'trans' : 'ex');
+  fillEl.style.width = '100%';
+
+  const next = sessionSteps[currentStepIdx + 1];
+  nextEl.textContent = next ? next.name : 'Fin de séance !';
+
+  const exoIdx = sessionSteps.slice(0, currentStepIdx + 1).filter(s => s.type === 'exo').length;
+  const totalExo = sessionSteps.filter(s => s.type === 'exo').length;
+  infoEl.textContent = 'Étape ' + (currentStepIdx+1) + '/' + sessionSteps.length + ' · ' + exoIdx + '/' + totalExo + ' exercices';
+  progEl.style.width = Math.round(currentStepIdx / sessionSteps.length * 100) + '%';
+}
+
+function fmt(secs) {
+  return String(Math.floor(secs/60)).padStart(2,'0') + ':' + String(secs%60).padStart(2,'0');
+}
+
+function startGlobalTimer() {
+  if (globalInterval) clearInterval(globalInterval);
+  globalDuration = globalRemaining;
+  globalStartTime = Date.now();
+  document.getElementById('so-global-time').textContent = fmt(Math.max(0, globalRemaining));
+  globalInterval = setInterval(() => {
+    if (isPaused) return;
+    const elapsed = Math.floor((Date.now() - globalStartTime) / 1000);
+    globalRemaining = Math.max(0, globalDuration - elapsed);
+    appState[pk('global_'+sessionId)] = globalRemaining;
+    document.getElementById('so-global-time').textContent = fmt(globalRemaining);
+    if (globalRemaining <= 0) clearInterval(globalInterval);
+  }, 500);
+}
+
+function togglePause() {
+  unlockAudio();
+  isPaused = !isPaused;
+  if (isPaused) {
+    // Save remaining at pause
+    pausedStepRemaining = stepRemaining;
+    pausedGlobalRemaining = globalRemaining;
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  } else {
+    // Recalculate start times so wall-clock is correct on resume
+    stepStartTime = Date.now() - ((stepDuration - pausedStepRemaining) * 1000);
+    globalStartTime = Date.now() - ((globalDuration - pausedGlobalRemaining) * 1000);
+    bip_resume();
+  }
+  const btn = document.getElementById('so-pause-btn');
+  btn.textContent = isPaused ? '▶ Reprendre' : '⏸ Pause';
+  btn.classList.toggle('paused', isPaused);
+  document.getElementById('so-pause-overlay').classList.toggle('show', isPaused);
+}
+
+function skipStep() {
+  if (mainInterval) clearInterval(mainInterval);
+  currentStepIdx++;
+  appState[pk('resume_'+sessionId)] = currentStepIdx;
+  saveState();
+  stepStartTime = Date.now();
+  runStep();
+}
+
+function quitSession() {
+  if (mainInterval) clearInterval(mainInterval);
+  if (globalInterval) clearInterval(globalInterval);
+  isPaused = false;
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  document.getElementById('session-overlay').classList.remove('active');
+  document.getElementById('so-pause-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function finishSession() {
+  if (mainInterval) clearInterval(mainInterval);
+  if (globalInterval) clearInterval(globalInterval);
+  bip_finish();
+  playAudioOrSpeak('Séance terminée, bravo !');
+
+  document.getElementById('so-phase').className = 'so-phase termine';
+  document.getElementById('so-phase').textContent = 'TERMINÉ !';
+  document.getElementById('so-exercise').className = 'so-exercise';
+  document.getElementById('so-exercise').style.color = 'var(--vert)';
+  document.getElementById('so-exercise').textContent = '🎉 Séance terminée !';
+  document.getElementById('so-detail').textContent = 'Bravo !';
+  document.getElementById('so-time').className = 'so-time fin';
+  document.getElementById('so-time').textContent = '✓';
+  document.getElementById('so-cd-fill').style.width = '0%';
+  document.getElementById('so-prog-fill').style.width = '100%';
+  document.getElementById('so-next-ex').textContent = '—';
+
+  appState[pk('done_'+sessionId)] = true;
+  delete appState[pk('resume_'+sessionId)];
+  delete appState[pk('global_'+sessionId)];
+  saveState();
+  sbPushCompletion(sessionId); // synchro immediate (filet de securite si le joueur quitte avant de noter)
+
+  const badge = document.getElementById('done-'+sessionId);
+  if (badge) badge.classList.add('show');
+  updateGlobalProgress();
+
+  setTimeout(() => {
+    document.getElementById('so-difficulty').style.display = 'block';
+  }, 1500);
+}
+function submitDifficulty(level) {
+  document.getElementById('so-difficulty').style.display = 'none';
+  sbPushCompletion(sessionId, level); // upsert : complete la note sur la ligne deja envoyee
+  document.getElementById('so-detail').textContent = level ? 'Merci !' : 'Bravo !';
+  setTimeout(() => {
+    document.getElementById('session-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }, 900);
+}
+
+// ===================== NAVIGATION =====================
+function goToSeance(sid) {
+  switchTab('seances', null);
+  setTimeout(() => {
+    const el = document.getElementById('seance-'+sid);
+    if (!el) return;
+    const sgBody = el.closest('.sg-body');
+    if (sgBody && !sgBody.classList.contains('open')) {
+      sgBody.classList.add('open');
+      sgBody.previousElementSibling.querySelector('.sg-chev').classList.add('open');
+    }
+    const sb = el.querySelector('.seance-body');
+    if (sb && !sb.classList.contains('open')) {
+      sb.classList.add('open');
+      el.querySelector('.schev').classList.add('open');
+    }
+    el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
+}
+
+// ===================== INSTALL BANNER =====================
+let deferredInstallPrompt = null;
+const IB_DISMISS_KEY = 'u15hbccs_install_dismissed';
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function isIos() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+function isSafari() {
+  const ua = navigator.userAgent;
+  return /safari/i.test(ua) && !/crios|fxios|edgios|chrome|android/i.test(ua);
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  showInstallBanner('android');
+});
+
+function showInstallBanner(platform) {
+  if (isStandalone()) return;
+  if (localStorage.getItem(IB_DISMISS_KEY)) return;
+  const banner = document.getElementById('install-banner');
+  const title = document.getElementById('ib-title');
+  const sub = document.getElementById('ib-sub');
+  const btn = document.getElementById('ib-btn');
+  if (platform === 'ios-safari') {
+    title.textContent = "Installe l'appli sur ton téléphone";
+    sub.textContent = "Accès en un tap, comme une vraie appli";
+    btn.textContent = 'Voir comment';
+    btn.onclick = () => { document.getElementById('ios-install-guide').classList.add('show'); };
+  } else {
+    title.textContent = "Installe l'appli sur ton téléphone";
+    sub.textContent = "Accès en un tap, comme une vraie appli";
+    btn.textContent = 'Installer';
+    btn.onclick = async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice.outcome === 'accepted') dismissInstallBanner();
+      deferredInstallPrompt = null;
+    };
+  }
+  banner.style.display = 'flex';
+}
+function dismissInstallBanner() {
+  document.getElementById('install-banner').style.display = 'none';
+  localStorage.setItem(IB_DISMISS_KEY, '1');
+}
+function closeIosGuide() {
+  document.getElementById('ios-install-guide').classList.remove('show');
+}
+
+function initInstallBanner() {
+  if (isStandalone()) return;
+  if (isIos() && isSafari()) {
+    showInstallBanner('ios-safari');
+  }
+  // Android/Chrome case is handled by the beforeinstallprompt listener above
+}
+
+// ===================== TABLEAU DE BORD COACH (visible uniquement pour COACHTEST) =====================
+const COACH_TOTAL_SESSIONS = 12;
+let coachPlayers = [];
+let coachDiffCounts = { facile: 0, correct: 0, dur: 0 };
+
+function updateCoachTabVisibility() {
+  const tab = document.getElementById('tab-coach');
+  if (!tab) return;
+  if (appState.playerCode === 'COACHTEST') {
+    tab.style.display = 'inline-block';
+  } else {
+    tab.style.display = 'none';
+    // If somehow on the coach panel while not COACHTEST, bounce back to planning
+    const panel = document.getElementById('panel-coach');
+    if (panel && panel.classList.contains('active')) switchTab('planning');
+  }
+}
+
+async function loadCoachData() {
+  const wrap = document.getElementById('coach-table-wrap');
+  wrap.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gris-texte);">Chargement...</div>';
+  try {
+    const [pRes, cRes] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/players?select=code,name,claimed_at,device_token&order=name', { headers: SB_HEADERS }),
+      fetch(SB_URL + '/rest/v1/completions?select=player_code,session_id,completed_at,difficulty', { headers: SB_HEADERS }),
+    ]);
+    const players = await pRes.json();
+    const completions = await cRes.json();
+
+    const doneByCode = {};
+    const lastByCode = {};
+    const sessionsByCode = {};
+    const diffCounts = { facile: 0, correct: 0, dur: 0 };
+    completions.forEach(c => {
+      doneByCode[c.player_code] = (doneByCode[c.player_code] || 0) + 1;
+      if (!lastByCode[c.player_code] || c.completed_at > lastByCode[c.player_code]) lastByCode[c.player_code] = c.completed_at;
+      (sessionsByCode[c.player_code] = sessionsByCode[c.player_code] || []).push({ id: c.session_id, difficulty: c.difficulty });
+      if (c.difficulty && diffCounts.hasOwnProperty(c.difficulty)) diffCounts[c.difficulty]++;
+    });
+
+    coachPlayers = players.filter(p => p.code !== 'COACHTEST').map(p => ({
+      code: p.code,
+      name: p.name,
+      claimed: !!p.claimed_at,
+      done: doneByCode[p.code] || 0,
+      lastActivity: lastByCode[p.code] || null,
+      sessions: sessionsByCode[p.code] || [],
+    }));
+    coachDiffCounts = diffCounts;
+
+    renderCoachCards();
+    renderCoachTable();
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gris-texte);">Erreur de chargement — vérifie ta connexion.</div>';
+  }
+}
+
+function renderCoachCards() {
+  const claimed = coachPlayers.filter(p => p.claimed);
+  const totalDone = coachPlayers.reduce((s, p) => s + p.done, 0);
+  const avgPct = claimed.length ? Math.round(claimed.reduce((s, p) => s + p.done / COACH_TOTAL_SESSIONS, 0) / claimed.length * 100) : 0;
+  const notStarted = claimed.filter(p => p.done === 0).length;
+
+  document.getElementById('coach-cards').innerHTML = `
+    <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--jaune);">${claimed.length}/${coachPlayers.length}</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Codes réclamés</div></div>
+    <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--jaune);">${totalDone}</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Séances complétées</div></div>
+    <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--jaune);">${avgPct}%</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Progression moyenne</div></div>
+    <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--jaune);">${notStarted}</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Inscrits sans séance</div></div>
+    <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;grid-column:1/-1;">
+      <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;text-transform:uppercase;">Ressenti des séances notées</div>
+      <div style="display:flex;justify-content:center;gap:22px;font-size:14px;font-weight:700;color:var(--gris-clair);">
+        <span>😊 ${coachDiffCounts.facile}</span>
+        <span>😐 ${coachDiffCounts.correct}</span>
+        <span>🥵 ${coachDiffCounts.dur}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderCoachTable() {
+  const q = (document.getElementById('coach-search').value || '').toLowerCase();
+  const filtered = coachPlayers.filter(p =>
+    (p.name || '').toLowerCase().includes(q) || p.code.toLowerCase().includes(q)
+  ).sort((a, b) => (b.claimed - a.claimed) || (b.done - a.done));
+
+  const ALL_SESSIONS = ['S1-A','S1-B','S1-C','S2-A','S2-B','S2-C','S3-A','S3-B','S3-C','S4-A','S4-B','S4-C'];
+
+  const rows = filtered.map((p, i) => {
+    const pct = Math.round(p.done / COACH_TOTAL_SESSIONS * 100);
+    const lastAct = p.lastActivity ? new Date(p.lastActivity).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '—';
+    const rowId = 'coach-detail-' + i;
+    const DIFF_EMOJI = { facile: '😊', correct: '😐', dur: '🥵' };
+    const badges = ALL_SESSIONS.map(sid => {
+      const rec = p.sessions.find(s => s.id === sid);
+      const done = !!rec;
+      const emoji = done && rec.difficulty ? ' ' + DIFF_EMOJI[rec.difficulty] : '';
+      return `<span style="display:inline-block;padding:4px 9px;margin:2px;border-radius:6px;font-size:11px;font-weight:700;font-family:monospace;${done ? 'background:rgba(46,204,113,0.15);color:#2ecc71;' : 'background:rgba(255,255,255,0.05);color:var(--gris-texte);'}">${done ? '✓ ' : ''}${sid}${emoji}</span>`;
+    }).join('');
+    return `<tr onclick="toggleCoachDetail('${rowId}')" style="cursor:pointer;">
+      <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-weight:700;color:var(--blanc);">${p.name || '<em style="color:#8a97ad;font-weight:400;">Non réclamé</em>'}</td>
+      <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-family:monospace;color:var(--gris-texte);font-size:11px;">${p.code}</td>
+      <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;${p.claimed ? 'background:rgba(46,204,113,0.15);color:#2ecc71;' : 'background:rgba(255,255,255,0.08);color:var(--gris-texte);'}">${p.claimed ? 'Verrouillé' : 'Libre'}</span></td>
+      <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);min-width:110px;">
+        <div style="background:rgba(255,255,255,0.08);border-radius:20px;height:6px;width:100%;overflow:hidden;"><div style="background:linear-gradient(90deg,var(--bleu),var(--jaune));height:100%;width:${pct}%;"></div></div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-top:3px;">${p.done}/${COACH_TOTAL_SESSIONS} · ${pct}%</div>
+      </td>
+      <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);">${lastAct}</td>
+    </tr>
+    <tr id="${rowId}" style="display:none;">
+      <td colspan="5" style="padding:4px 6px 14px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.02);">${badges}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('coach-table-wrap').innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr>
+        <th style="text-align:left;padding:8px 6px;color:var(--gris-texte);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.1);">Joueur</th>
+        <th style="text-align:left;padding:8px 6px;color:var(--gris-texte);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.1);">Code</th>
+        <th style="text-align:left;padding:8px 6px;color:var(--gris-texte);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.1);">Statut</th>
+        <th style="text-align:left;padding:8px 6px;color:var(--gris-texte);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.1);">Progression</th>
+        <th style="text-align:left;padding:8px 6px;color:var(--gris-texte);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.1);">Dernière séance</th>
+      </tr></thead>
+      <tbody>${rows || '<tr><td colspan="5" style="text-align:center;color:var(--gris-texte);padding:20px;">Aucun résultat</td></tr>'}</tbody>
+    </table>
+    <div style="font-size:11px;color:var(--gris-texte);margin-top:10px;text-align:center;">Clique sur un joueur pour voir le détail des séances</div>
+  `;
+}
+function toggleCoachDetail(rowId) {
+  const el = document.getElementById(rowId);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+}
+
+// ===================== ROLE (JOUEUR / GARDIEN) =====================
+function setRole(role) {
+  appState.role = role;
+  saveState();
+  applyRole();
+}
+function applyRole() {
+  const role = appState.role || 'joueur';
+  document.body.classList.toggle('gb-mode', role === 'gb');
+  const bj = document.getElementById('role-btn-joueur');
+  const bg = document.getElementById('role-btn-gb');
+  if (bj && bg) {
+    bj.classList.toggle('active', role !== 'gb');
+    bg.classList.toggle('active', role === 'gb');
+  }
+}
+
+// ===================== ACCORDION =====================
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (el) { el.classList.add('active'); }
+  else {
+    const idx = ['planning','seances','conseils','coach'].indexOf(name);
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs[idx]) tabs[idx].classList.add('active');
+  }
+  if (name === 'coach') loadCoachData();
+}
+function toggleSG(h) {
+  const b = h.nextElementSibling;
+  const c = h.querySelector('.sg-chev');
+  b.classList.toggle('open'); c.classList.toggle('open');
+}
+function toggleSeance(h) {
+  const b = h.nextElementSibling;
+  const c = h.querySelector('.schev');
+  b.classList.toggle('open'); c.classList.toggle('open');
+}
+
+// ===================== GLOBAL PROGRESS =====================
+function updateGlobalProgress() {
+  const prefix = pk('done_');
+  const done = Object.keys(appState).filter(k => k.startsWith(prefix)).length;
+  const pct = Math.round(done/12*100);
+  document.getElementById('gp-fill').style.width = pct + '%';
+  document.getElementById('gp-pct').textContent = pct + '%';
+  document.getElementById('gp-sub').textContent = done + ' séance(s) terminée(s) sur 12';
+}
+
+// ===================== PWA SERVICE WORKER =====================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed:', err));
+  });
+  let swRefreshed = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (swRefreshed) return;
+    swRefreshed = true;
+    window.location.reload();
+  });
+}
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => {
+  applyRole();
+  initInstallBanner();
+  updateGlobalProgress();
+  refreshDoneBadges();
+  const first = document.querySelector('.sg-header');
+  if (first) { first.nextElementSibling.classList.add('open'); first.querySelector('.sg-chev').classList.add('open'); }
+
+  const loginOverlay = document.getElementById('login-overlay');
+  if (appState.playerCode) {
+    loginOverlay.style.display = 'none';
+    showWhoAmI();
+    sbPullCompletions(appState.playerCode).then(() => {
+      refreshDoneBadges();
+      updateGlobalProgress();
+    });
+  } else {
+    loginOverlay.style.display = 'flex';
+    document.getElementById('login-code').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitLoginCode();
+    });
+    document.getElementById('login-name') && document.getElementById('login-name').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitLoginCode();
+    });
+  }
+});
+</script>
+</body>
+</html>
