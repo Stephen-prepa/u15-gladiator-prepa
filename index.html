@@ -59,6 +59,7 @@ body{background:var(--noir);color:var(--blanc);font-family:'Barlow',sans-serif;f
 /* Images d'exercices */
 .ex-img-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;background:rgba(245,196,0,0.15);border-radius:5px;cursor:pointer;font-size:11px;vertical-align:middle;}
 .so-img-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:var(--gris-fonce);border:1px solid rgba(245,196,0,0.3);color:var(--jaune);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-radius:20px;padding:6px 14px;cursor:pointer;}
+.so-img{max-width:220px;max-height:150px;width:auto;height:auto;border-radius:10px;border:2px solid rgba(245,196,0,0.4);margin:8px 0;cursor:pointer;object-fit:cover;}
 .img-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1200;align-items:center;justify-content:center;padding:20px;}
 .img-lightbox.show{display:flex;}
 .img-lightbox-inner{position:relative;max-width:480px;width:100%;}
@@ -731,7 +732,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     <div class="so-bloc-info" id="so-bloc-info">ÉTAPE 1</div>
     <div class="so-phase exercice" id="so-phase">EXERCICE</div>
     <div class="so-exercise" id="so-exercise">—</div>
-    <button class="so-img-btn" id="so-img-btn" style="display:none;" onclick="openImageLightbox(currentImageKey)">📷 Voir l'image</button>
+    <img class="so-img" id="so-img" src="" alt="" style="display:none;" onclick="openImageLightbox(currentImageKey)">
     <div class="so-detail" id="so-detail"></div>
     <div class="so-difficulty" id="so-difficulty" style="display:none;">
       <div class="so-diff-q">Comment tu as trouvé cette séance ?</div>
@@ -1432,8 +1433,17 @@ function runStep() {
   else if (step.type === 'trans') { playAudioOrSpeak(step.name); }
 
   currentImageKey = step.type === 'exo' ? imageKey(step.name) : '';
-  const imgBtn = document.getElementById('so-img-btn');
-  if (imgBtn) imgBtn.style.display = (currentImageKey && KNOWN_IMAGES.has(currentImageKey)) ? 'inline-flex' : 'none';
+  const imgEl = document.getElementById('so-img');
+  if (imgEl) {
+    if (currentImageKey && KNOWN_IMAGES.has(currentImageKey)) {
+      imgEl.src = IMAGE_BASE + currentImageKey + '.jpg';
+      imgEl.alt = step.name;
+      imgEl.style.display = 'block';
+    } else {
+      imgEl.style.display = 'none';
+      imgEl.src = '';
+    }
+  }
 
   renderStep(step);
   updateDots();
