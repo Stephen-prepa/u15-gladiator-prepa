@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Préparation de Estivale — U15 HBCCS</title>
+<title>Prépa Estivale — U15 HBCCS</title>
 <meta name="theme-color" content="#003F8A">
-<meta name="description" content="Préparation physique autonome Estivale pour les U-15 du HBCCS">
+<meta name="description" content="Préparation physique autonome estivale pour les U15 du HBCCS">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -56,6 +56,15 @@ body{background:var(--noir);color:var(--blanc);font-family:'Barlow',sans-serif;f
 .content{padding:0 16px 80px;background:var(--noir);}
 .tab-panel{display:none;background:var(--noir);}
 .tab-panel.active{display:block;}
+/* Images d'exercices */
+.ex-img-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;background:rgba(245,196,0,0.15);border-radius:5px;cursor:pointer;font-size:11px;vertical-align:middle;}
+.so-img-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:var(--gris-fonce);border:1px solid rgba(245,196,0,0.3);color:var(--jaune);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-radius:20px;padding:6px 14px;cursor:pointer;}
+.img-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1200;align-items:center;justify-content:center;padding:20px;}
+.img-lightbox.show{display:flex;}
+.img-lightbox-inner{position:relative;max-width:480px;width:100%;}
+.img-lightbox-inner img{width:100%;border-radius:10px;display:block;}
+.img-lightbox-close{position:absolute;top:-40px;right:0;color:var(--blanc);font-size:22px;cursor:pointer;padding:6px;}
+.img-lightbox-caption{text-align:center;color:var(--gris-clair);font-size:13px;margin-top:12px;}
 /* Difficulty rating prompt */
 .so-difficulty{margin-top:18px;text-align:center;animation:fadeInUp .4s ease;}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
@@ -266,6 +275,14 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     <div class="iig-step"><span class="iig-num">2</span> Fais défiler et choisis <strong>"Sur l'écran d'accueil"</strong> <span class="iig-plus-ic">➕</span></div>
     <div class="iig-step"><span class="iig-num">3</span> Appuie sur <strong>"Ajouter"</strong> en haut à droite</div>
     <button class="iig-ok" onclick="closeIosGuide()">Compris</button>
+  </div>
+</div>
+
+<div class="img-lightbox" id="img-lightbox" onclick="closeImageLightbox(event)">
+  <div class="img-lightbox-inner">
+    <div class="img-lightbox-close" onclick="closeImageLightbox(event)">✕</div>
+    <img id="img-lightbox-img" src="" alt="Exercice">
+    <div class="img-lightbox-caption" id="img-lightbox-caption"></div>
   </div>
 </div>
 
@@ -714,6 +731,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     <div class="so-bloc-info" id="so-bloc-info">ÉTAPE 1</div>
     <div class="so-phase exercice" id="so-phase">EXERCICE</div>
     <div class="so-exercise" id="so-exercise">—</div>
+    <button class="so-img-btn" id="so-img-btn" style="display:none;" onclick="openImageLightbox(currentImageKey)">📷 Voir l'image</button>
     <div class="so-detail" id="so-detail"></div>
     <div class="so-difficulty" id="so-difficulty" style="display:none;">
       <div class="so-diff-q">Comment tu as trouvé cette séance ?</div>
@@ -776,6 +794,46 @@ function bip_rest()   { beep(440, 0.45, 0.3); }
 function bip_resume() { beep(660, 0.12, 0.3); beep(880, 0.2, 0.35, 0.18); }
 function bip_alert()  { beep(660, 0.1, 0.2); }
 function bip_finish() { beep(880, 0.18, 0.35); beep(1047, 0.18, 0.38, 0.25); beep(1319, 0.35, 0.4, 0.5); }
+
+// ===================== IMAGES D'EXERCICES =====================
+const IMAGE_BASE = 'images/';
+// Slugs des exercices pour lesquels une image existe (a completer au fur et a mesure)
+const KNOWN_IMAGES = new Set([
+  'bear-hold-toucher-epaule',
+  'bird-dog',
+  'y-t-w',
+  'squat-bulgare',
+  'dead-bug',
+  'planche-extension-bras-alternee',
+  'hip-thrust-unipodal',
+  'squats-sumo',
+  'skater-jumps-legers',
+]);
+function imageKey(text) { return audioKey(text); } // meme logique de slug que l'audio
+function openImageLightbox(key) {
+  if (!key) return;
+  document.getElementById('img-lightbox-img').src = IMAGE_BASE + key + '.jpg';
+  document.getElementById('img-lightbox-caption').textContent = '';
+  document.getElementById('img-lightbox').classList.add('show');
+}
+function closeImageLightbox(e) {
+  if (e && e.target.closest('.img-lightbox-inner') && !e.target.classList.contains('img-lightbox-close')) return;
+  document.getElementById('img-lightbox').classList.remove('show');
+}
+function injectExerciseImageIcons() {
+  document.querySelectorAll('.bloc li strong, .bloc-alterne li strong, .circuit-box li strong').forEach(el => {
+    if (el.dataset.imgDone) return;
+    el.dataset.imgDone = '1';
+    const key = imageKey(el.textContent);
+    if (KNOWN_IMAGES.has(key)) {
+      const icon = document.createElement('span');
+      icon.className = 'ex-img-icon';
+      icon.textContent = '📷';
+      icon.onclick = (e) => { e.stopPropagation(); openImageLightbox(key); };
+      el.after(icon);
+    }
+  });
+}
 
 // ===================== VOIX — FICHIERS AUDIO (avec repli synthese vocale) =====================
 const AUDIO_BASE = 'audio/';
@@ -1000,6 +1058,7 @@ function logoutPlayer() {
 }
 
 let sessionId = null, sessionSteps = [], currentStepIdx = 0;
+let currentImageKey = '';
 let stepRemaining = 0, globalRemaining = 0, isPaused = false;
 let mainInterval = null, globalInterval = null;
 let stepStartTime = null, stepDuration = 0;
@@ -1371,6 +1430,10 @@ function runStep() {
   else if (step.type === 'fond') { playAudioOrSpeak(step.name); }
   else if (step.type === 'info') { playAudioOrSpeak(step.name); }
   else if (step.type === 'trans') { playAudioOrSpeak(step.name); }
+
+  currentImageKey = step.type === 'exo' ? imageKey(step.name) : '';
+  const imgBtn = document.getElementById('so-img-btn');
+  if (imgBtn) imgBtn.style.display = (currentImageKey && KNOWN_IMAGES.has(currentImageKey)) ? 'inline-flex' : 'none';
 
   renderStep(step);
   updateDots();
@@ -1821,6 +1884,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   applyRole();
   initInstallBanner();
+  injectExerciseImageIcons();
   updateGlobalProgress();
   refreshDoneBadges();
   const first = document.querySelector('.sg-header');
