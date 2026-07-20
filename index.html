@@ -966,6 +966,7 @@ const KNOWN_IMAGES = new Set([
   'dead-bug',
   'planche-extension-bras-alternee',
   'hip-thrust-station-debout-sur-un-pied',
+  'hip-thrust',
   'squats-sumo',
   'skater-jumps-legers',
   'mobilite-hanche-assise',
@@ -1273,10 +1274,7 @@ function circuitWarmup(tours, exDur, restDur, exList) {
   const steps = [];
   for (let t = 1; t <= tours; t++) {
     steps.push({type:'info', name:'Échauffement — Tour ' + t + '/' + tours, detail:'Enchaîner sans pause', duration:4});
-    exList.forEach((ex, i) => {
-      steps.push({type:'exo', name:ex, detail:'Tour ' + t + '/' + tours + ' · Ex ' + (i+1) + '/' + exList.length, duration:exDur});
-      if (i < exList.length - 1) steps.push({type:'trans', name:'Transition', detail:'', duration:5});
-    });
+    exList.forEach((ex, i) => steps.push({type:'exo', name:ex, detail:'Tour ' + t + '/' + tours + ' · Ex ' + (i+1) + '/' + exList.length, duration:exDur}));
     if (t < tours) steps.push({type:'repos', name:'Repos entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
   }
   return steps;
@@ -1285,10 +1283,7 @@ function explo(series, exList, restDur) {
   const steps = [];
   for (let s = 1; s <= series; s++) {
     steps.push({type:'info', name:'Explosivité — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : '', duration:4});
-    exList.forEach(([n,det,d], i) => {
-      steps.push({type:'exo', name:n, detail:det||'', duration:d});
-      if (i < exList.length - 1) steps.push({type:'trans', name:'Transition', detail:'', duration:5});
-    });
+    exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
     if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
   }
   return steps;
@@ -1298,8 +1293,8 @@ function gainage(tours, exList, restDur) {
   for (let t = 1; t <= tours; t++) {
     steps.push({type:'info', name:'Gainage — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : '', duration:4});
     exList.forEach(([n,d]) => {
-      if (n==='T') steps.push({type:'trans', name:'Transition', detail:'', duration:d});
-      else steps.push({type:'exo', name:n, detail:'', duration:d});
+      if (n==='T') return; // plus besoin d'etape a part, le delai est integre au debut de l'exercice suivant
+      steps.push({type:'exo', name:n, detail:'', duration:d});
     });
     if (t < tours) steps.push({type:'repos', name:'Repos entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
   }
@@ -1309,10 +1304,7 @@ function renfoGainage(series, exList, restDur) {
   const steps = [];
   for (let s = 1; s <= series; s++) {
     steps.push({type:'info', name:'Renfo & Gainage — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : 'Renfo + Gainage alternés', duration:4});
-    exList.forEach(([n,d,det], i) => {
-      steps.push({type:'exo', name:n, detail:det||'', duration:d});
-      if (i < exList.length - 1) steps.push({type:'trans', name:'Transition', detail:'', duration:5});
-    });
+    exList.forEach(([n,d,det]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
     if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
   }
   return steps;
@@ -1321,10 +1313,7 @@ function circuitIntense(tours, exList, restDur) {
   const steps = [];
   for (let t = 1; t <= tours; t++) {
     steps.push({type:'info', name:'Circuit intensif — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : 'Le pic d\'intensite de la semaine', duration:4});
-    exList.forEach(([n,det,d], i) => {
-      steps.push({type:'exo', name:n, detail:det||'', duration:d});
-      if (i < exList.length - 1) steps.push({type:'trans', name:'Transition', detail:'', duration:5});
-    });
+    exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
     if (t < tours) steps.push({type:'repos', name:'Récupération entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
   }
   return steps;
@@ -1354,10 +1343,10 @@ const CW_S1 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talo
 const CW_S2 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talons-fesses','Sauts pieds joints'];
 const CW_S3 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talons-fesses','Squats sautes legers'];
 
-const GDyn_S1 = [['Planche toucher epaule',30],['T',5],['Bear crawl',30],['T',5],['Mountain climbers lents',30],['T',5],['Gainage lateral droit',20],['T',5],['Gainage lateral gauche',20]];
-const GDyn_S2 = [['Planche toucher epaule',40],['T',5],['Bear crawl',40],['T',5],['Mountain climbers lents',40],['T',5],['Gainage lateral rotation droit',30],['T',5],['Gainage lateral rotation gauche',30]];
-const GDyn_S3 = [['Planche toucher epaule',45],['T',5],['Bear crawl',45],['T',5],['Mountain climbers lents',45],['T',5],['Gainage lateral rotation droit',35],['T',5],['Gainage lateral rotation gauche',35]];
-const GDyn_S4 = [['Planche toucher epaule',40],['T',5],['Bear crawl',40],['T',5],['Gainage lateral droit',30],['T',5],['Gainage lateral gauche',30]];
+const GDyn_S1 = [['Planche toucher epaule',30],['T',3],['Bear crawl',30],['T',3],['Mountain climbers lents',30],['T',3],['Gainage lateral droit',20],['T',3],['Gainage lateral gauche',20]];
+const GDyn_S2 = [['Planche toucher epaule',40],['T',3],['Bear crawl',40],['T',3],['Mountain climbers lents',40],['T',3],['Gainage lateral rotation droit',30],['T',3],['Gainage lateral rotation gauche',30]];
+const GDyn_S3 = [['Planche toucher epaule',45],['T',3],['Bear crawl',45],['T',3],['Mountain climbers lents',45],['T',3],['Gainage lateral rotation droit',35],['T',3],['Gainage lateral rotation gauche',35]];
+const GDyn_S4 = [['Planche toucher epaule',40],['T',3],['Bear crawl',40],['T',3],['Gainage lateral droit',30],['T',3],['Gainage lateral gauche',30]];
 
 // S1: x5/x6/x4 explo, S2: x6/x8/x5 + haies, S3: x8/x10/x6 + sauts lat, S4: x6/x8/x4
 const Explo_S1 = [['Squats sautes x5','Descente lente, montee explosive',38],['Fentes sautees x6','3 par jambe, switch rapide',35],['Demarrages explosifs x4','Signal sonore, sprint 5m',33]];
@@ -1415,10 +1404,10 @@ const CI_S3 = [
 ];
 
 // ===================== EXERCISE CONFIGS — GARDIEN DE BUT =====================
-const GDyn_S1_GB = [['Planche extension bras alternee',30],['T',5],['Bear crawl lateral',30],['T',5],['Gainage lateral bras tendu droit',20],['T',5],['Gainage lateral bras tendu gauche',20]];
-const GDyn_S2_GB = [['Planche extension bras alternee',40],['T',5],['Bear crawl lateral',40],['T',5],['Gainage lateral rotation bras tendu droit',30],['T',5],['Gainage lateral rotation bras tendu gauche',30]];
-const GDyn_S3_GB = [['Planche extension bras alternee',45],['T',5],['Bear crawl lateral',45],['T',5],['Gainage lateral rotation bras tendu droit',35],['T',5],['Gainage lateral rotation bras tendu gauche',35]];
-const GDyn_S4_GB = [['Planche extension bras alternee',40],['T',5],['Bear crawl lateral',40],['T',5],['Gainage lateral bras tendu droit',30],['T',5],['Gainage lateral bras tendu gauche',30]];
+const GDyn_S1_GB = [['Planche extension bras alternee',30],['T',3],['Bear crawl lateral',30],['T',3],['Gainage lateral bras tendu droit',20],['T',3],['Gainage lateral bras tendu gauche',20]];
+const GDyn_S2_GB = [['Planche extension bras alternee',40],['T',3],['Bear crawl lateral',40],['T',3],['Gainage lateral rotation bras tendu droit',30],['T',3],['Gainage lateral rotation bras tendu gauche',30]];
+const GDyn_S3_GB = [['Planche extension bras alternee',45],['T',3],['Bear crawl lateral',45],['T',3],['Gainage lateral rotation bras tendu droit',35],['T',3],['Gainage lateral rotation bras tendu gauche',35]];
+const GDyn_S4_GB = [['Planche extension bras alternee',40],['T',3],['Bear crawl lateral',40],['T',3],['Gainage lateral bras tendu droit',30],['T',3],['Gainage lateral bras tendu gauche',30]];
 
 const Explo_S1_GB = [['Squats sautes bras hauts x5','Extension complete des bras en l\'air',38],['Fentes laterales explosives x6','3 par cote, appui-poussee',35],['Departs reactifs ligne de but x4','Signal sonore, 2-3m gauche/droite',33]];
 const Explo_S2_GB = [['Squats sautes bras hauts x6','Focus rebond au sol',40],['Fentes laterales explosives x8','4 par cote',38],['Departs reactifs ligne de but x5','Varier les positions',36],['Sauts pieds joints largeur cage x10','Reperes au sol',30]];
@@ -1778,10 +1767,16 @@ function runStep() {
   if (currentStepIdx >= sessionSteps.length) { finishSession(); return; }
   const step = sessionSteps[currentStepIdx];
   stepDuration = step.duration;
+  // Pour un exercice : on annonce tout de suite, mais le vrai decompte ne demarre
+  // que 3 sec plus tard (le temps d'entendre le nom et de se mettre en position).
+  const prepDelay = (step.type === 'exo') ? 5 : 0;
+  stepStartTime = Date.now() + prepDelay * 1000;
   stepRemaining = step.duration;
-  stepStartTime = Date.now();
 
-  if (step.type === 'exo') { bip_start(); playAudioOrSpeak(step.name); }
+  if (step.type === 'exo') {
+    playAudioOrSpeak(step.name);
+    if (prepDelay) setTimeout(bip_start, prepDelay * 1000); else bip_start();
+  }
   else if (step.type === 'repos') { bip_rest(); playAudioOrSpeak('Récupération'); }
   else if (step.type === 'retour') { bip_rest(); playAudioOrSpeak(step.name); }
   else if (step.type === 'fond') { playAudioOrSpeak(step.name); }
@@ -1810,7 +1805,7 @@ function runStep() {
     if (isPaused) return;
     // Calculate remaining using wall clock — survives sleep/background
     const elapsed = Math.floor((Date.now() - stepStartTime) / 1000);
-    stepRemaining = Math.max(0, stepDuration - elapsed);
+    stepRemaining = elapsed < 0 ? stepDuration : Math.max(0, stepDuration - elapsed);
 
     // Alert beeps at 3,2,1
     if (stepRemaining <= 3 && stepRemaining > 0 && stepRemaining !== lastAlerted &&
