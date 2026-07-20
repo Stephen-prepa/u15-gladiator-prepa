@@ -963,10 +963,11 @@ const KNOWN_IMAGES = new Set([
   'squat-bulgare',
   'dead-bug',
   'planche-extension-bras-alternee',
-  'hip-thrust-station debout sur un pied',
+  'hip-thrust-station-debout-sur-un-pied',
   'squats-sumo',
   'skater-jumps-legers',
   'mobilite-hanche-assise',
+  'russian-twist-leger',
 ]);
 function imageKey(text) { return audioKey(text); } // meme logique de slug que l'audio
 function openImageLightbox(key) {
@@ -1027,6 +1028,39 @@ function tryPlayAudio(key, extensions, text) {
   };
   audio.addEventListener('error', fallback);
   audio.play().catch(fallback);
+}
+
+// ===================== ANNONCES DE CIRCUIT (Tour X/Y, Serie X/Y) — composees de petits fichiers =====================
+const DIGIT_WORDS = {1:'un',2:'deux',3:'trois',4:'quatre',5:'cinq',6:'six',7:'sept',8:'huit',9:'neuf',10:'dix'};
+function playInfoAnnouncement(text) {
+  if (!voiceEnabled || !text) return;
+  const m = text.match(/^(.+?) — (Tour|Série) (\d+)\/(\d+)$/);
+  if (!m) { playAudioOrSpeak(text); return; }
+  const [, category, word, x, y] = m;
+  const keys = [
+    audioKey(category),
+    word === 'Tour' ? 'tour' : 'serie',
+    'chiffre-' + x,
+    'sur',
+    'chiffre-' + y,
+  ];
+  playAudioSequence(keys, 0, text);
+}
+function playAudioSequence(keys, idx, fallbackText) {
+  if (idx >= keys.length) return;
+  const key = keys[idx];
+  if (audioMissing.has(key)) { speak(fallbackText); return; } // un morceau manque deja -> repli phrase complete en TTS
+  trySequenceStep(key, ['m4a', 'mp3'], keys, idx, fallbackText);
+}
+function trySequenceStep(key, extensions, keys, idx, fallbackText) {
+  if (!extensions.length) { audioMissing.add(key); speak(fallbackText); return; }
+  const [ext, ...rest] = extensions;
+  const audio = new Audio(AUDIO_BASE + key + '.' + ext);
+  let fellBack = false;
+  const fail = () => { if (fellBack) return; fellBack = true; trySequenceStep(key, rest, keys, idx, fallbackText); };
+  audio.addEventListener('error', fail);
+  audio.addEventListener('ended', () => playAudioSequence(keys, idx + 1, fallbackText));
+  audio.play().catch(fail);
 }
 
 // ===================== VOIX (Web Speech API) =====================
@@ -1712,7 +1746,7 @@ function runStep() {
   else if (step.type === 'repos') { bip_rest(); playAudioOrSpeak('Récupération'); }
   else if (step.type === 'retour') { bip_rest(); playAudioOrSpeak(step.name); }
   else if (step.type === 'fond') { playAudioOrSpeak(step.name); }
-  else if (step.type === 'info') { playAudioOrSpeak(step.name); }
+  else if (step.type === 'info') { playInfoAnnouncement(step.name); }
   else if (step.type === 'trans') { playAudioOrSpeak(step.name); }
 
   currentImageKey = step.type === 'exo' ? imageKey(step.name) : '';
