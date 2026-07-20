@@ -240,6 +240,8 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .so-btn.pause{background:var(--gris-moyen);color:var(--blanc);}
 .so-btn.pause.paused{background:var(--jaune);color:var(--noir);}
 .so-btn.skip{background:rgba(255,255,255,0.08);color:var(--gris-clair);border:1px solid rgba(255,255,255,0.15);}
+.so-btn.rewind{background:rgba(255,255,255,0.08);color:var(--gris-clair);border:1px solid rgba(255,255,255,0.15);flex:0 0 auto;padding-left:14px;padding-right:14px;}
+.so-restart-link{text-align:center;padding:8px 14px 12px;background:var(--gris-fonce);font-size:11px;color:var(--gris-texte);text-decoration:underline;cursor:pointer;flex-shrink:0;}
 .so-pause-overlay{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,22,40,0.92);align-items:center;justify-content:center;z-index:10;}
 .so-pause-overlay.show{display:flex;}
 .so-pause-card{text-align:center;padding:24px;}
@@ -433,7 +435,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
               <li><span class="tag-renfo">RENFO</span> <strong>Pompes × 6</strong> <em>— corps aligné, coudes à 45°</em></li>
               <li><span class="tag-gainage">GAINAGE</span> <strong>Dead bug 25 sec</strong> <em>— bas du dos collé au sol</em></li>
               <li><span class="tag-renfo">RENFO</span> <strong>Fentes marchées × 6</strong> <em>— 3 par jambe</em></li>
-              <li><span class="tag-renfo">RENFO</span> <strong>Squat bulgare × 6</strong> <em>— 3 par jambe, descente contrôlée</em></li>
               <li><span class="tag-gainage">GAINAGE</span> <strong>Gainage latéral 20 sec chaque côté</strong></li>
               <li><span class="tag-renfo">RENFO</span> <strong>Y-T-W × 8</strong> <span class="ex-img-icon" onclick="openImageLightbox('y-t-w')">🖼</span> <em>— 6 à 8 reps de chaque lettre, maintien 2 sec</em></li>
               <li><span class="tag-gainage">GAINAGE</span> <strong>Bear Hold + toucher épaule 20 sec</strong> <em>— genoux décollés, hanches basses</em></li>
@@ -445,7 +446,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
               <li><span class="tag-renfo">RENFO</span> <strong>Pompes explosives × 6</strong> <em>— mains décollent, puissance bras</em></li>
               <li><span class="tag-gainage">GAINAGE</span> <strong>Dead bug 25 sec</strong> <em>— bas du dos collé au sol</em></li>
               <li><span class="tag-renfo">RENFO</span> <strong>Fentes latérales bras haut × 6</strong> <em>— 3 par côté</em></li>
-              <li><span class="tag-renfo">RENFO</span> <strong>Squat bulgare × 6</strong> <em>— 3 par jambe, descente contrôlée</em></li>
               <li><span class="tag-gainage">GAINAGE</span> <strong>Gainage latéral bras tendu 20 sec chaque côté</strong></li>
               <li><span class="tag-renfo">RENFO</span> <strong>Y-T-W + maintien 3 sec × 8</strong> <span class="ex-img-icon" onclick="openImageLightbox('y-t-w')">🖼</span> <em>— renfo épaule/coiffe</em></li>
               <li><span class="tag-gainage">GAINAGE</span> <strong>Bear Hold + toucher épaule 20 sec</strong> <em>— genoux décollés, hanches basses</em></li>
@@ -906,9 +906,11 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     <div class="so-dots" id="so-dots"></div>
   </div>
   <div class="so-controls">
+    <button class="so-btn rewind" onclick="rewindStep()" title="Etape precedente">⏮</button>
     <button class="so-btn pause" id="so-pause-btn" onclick="togglePause()">⏸ Pause</button>
     <button class="so-btn skip" onclick="skipStep()">⏭ Passer</button>
   </div>
+  <div class="so-restart-link" onclick="restartSession()">↺ Recommencer depuis le début</div>
   <div class="so-pause-overlay" id="so-pause-overlay">
     <div class="so-pause-card">
       <h2>⏸ Pause</h2>
@@ -997,7 +999,7 @@ function injectExerciseImageIcons() {
 
 // ===================== VOIX — FICHIERS AUDIO (avec repli synthese vocale) =====================
 const AUDIO_BASE = 'audio/';
-const audioMissing = new Set(); // slugs already confirmed 404 this session, avoid re-trying every time
+const audioMissing = new Set(); // slugs already confirmes 404 cette session, evite de re-tenter a chaque fois
 function audioKey(text) {
   if (!text) return '';
   let t = text.toLowerCase();
@@ -1010,68 +1012,62 @@ function audioKey(text) {
   t = t.replace(/^-+|-+$/g, '');
   return t;
 }
+
+// Un seul lecteur audio reutilise pour toute l'appli — plus fiable sur iOS que de creer
+// un nouvel objet Audio a chaque annonce (source des soucis de sons qui ne se declenchent pas).
+const sharedPlayer = new Audio();
+let playToken = 0;
+
 function playAudioOrSpeak(text) {
   if (!voiceEnabled || !text) return;
   const key = audioKey(text);
-  if (!key || audioMissing.has(key)) { speak(text); return; }
-  tryPlayAudio(key, ['m4a', 'mp3'], text);
-}
-function tryPlayAudio(key, extensions, text) {
-  if (!extensions.length) { audioMissing.add(key); speak(text); return; }
-  const [ext, ...rest] = extensions;
-  const audio = new Audio(AUDIO_BASE + key + '.' + ext);
-  let fellBack = false;
-  const fallback = () => {
-    if (fellBack) return;
-    fellBack = true;
-    tryPlayAudio(key, rest, text); // essaie l'extension suivante, sinon repli TTS
-  };
-  audio.addEventListener('error', fallback);
-  audio.play().catch(fallback);
+  if (!key) { speak(text); return; }
+  playSequence([key], text);
 }
 
-// ===================== ANNONCES DE CIRCUIT (Tour X/Y, Serie X/Y) — composees de petits fichiers =====================
-const DIGIT_WORDS = {1:'un',2:'deux',3:'trois',4:'quatre',5:'cinq',6:'six',7:'sept',8:'huit',9:'neuf',10:'dix'};
-let announceToken = 0;
+// ===================== ANNONCES DE CIRCUIT (Tour X/Y, Serie X/Y) — un seul fichier par combinaison =====================
 function playInfoAnnouncement(text) {
   if (!voiceEnabled || !text) return;
   const m = text.match(/^(.+?) — (Tour|Série) (\d+)\/(\d+)$/);
   if (!m) { playAudioOrSpeak(text); return; }
-  const [, category, word, x, y] = m;
-  const keys = [
-    audioKey(category),
-    word === 'Tour' ? 'tour' : 'serie',
-    'chiffre-' + x,
-    'sur',
-    'chiffre-' + y,
-  ];
-  const myToken = ++announceToken;
+  const [, category, , x, y] = m;
+  const key = audioKey(category) + '-' + x + '-sur-' + y;
+  playSequence([key], text);
+}
+
+// Joue une liste de fichiers audio les uns a la suite des autres avec le lecteur partage.
+// Si un morceau manque, on passe au suivant ; si tout echoue ou que rien ne s'est joue au bout
+// de 4 sec (bug navigateur, fichier corrompu, etc.), on bascule sur la voix de synthese.
+function playSequence(keys, fallbackText) {
+  const myToken = ++playToken;
   let started = false;
-  playAudioSequence(keys, 0, text, myToken, () => { started = true; });
-  // Filet de securite : si rien n'a demarre au bout de 4 sec (sequence bloquee silencieusement,
-  // souci navigateur, etc.), on bascule sur la voix de synthese plutot que de rester muet.
+  playSegment(keys, 0, fallbackText, myToken, ['m4a', 'mp3'], () => { started = true; });
   setTimeout(() => {
-    if (!started && myToken === announceToken) speak(text);
+    if (!started && myToken === playToken) speak(fallbackText);
   }, 4000);
 }
-function playAudioSequence(keys, idx, fallbackText, token, onStart) {
-  if (token !== announceToken) return; // une annonce plus recente a pris le relais, on abandonne celle-ci
+function playSegment(keys, idx, fallbackText, token, extensions, onStart) {
+  if (token !== playToken) return; // une annonce plus recente a pris le relais
   if (idx >= keys.length) return;
   const key = keys[idx];
-  if (audioMissing.has(key)) { speak(fallbackText); return; }
-  trySequenceStep(key, ['m4a', 'mp3'], keys, idx, fallbackText, token, onStart);
-}
-function trySequenceStep(key, extensions, keys, idx, fallbackText, token, onStart) {
-  if (token !== announceToken) return;
-  if (!extensions.length) { audioMissing.add(key); speak(fallbackText); return; }
+  if (audioMissing.has(key)) {
+    if (idx + 1 < keys.length) playSegment(keys, idx + 1, fallbackText, token, ['m4a', 'mp3'], onStart);
+    return;
+  }
+  if (!extensions.length) {
+    audioMissing.add(key);
+    if (idx + 1 < keys.length) playSegment(keys, idx + 1, fallbackText, token, ['m4a', 'mp3'], onStart);
+    return;
+  }
   const [ext, ...rest] = extensions;
-  const audio = new Audio(AUDIO_BASE + key + '.' + ext);
-  let fellBack = false;
-  const fail = () => { if (fellBack) return; fellBack = true; trySequenceStep(key, rest, keys, idx, fallbackText, token, onStart); };
-  audio.addEventListener('error', fail);
-  audio.addEventListener('ended', () => playAudioSequence(keys, idx + 1, fallbackText, token, onStart));
-  audio.play().then(() => { if (onStart) onStart(); }).catch(fail);
+  sharedPlayer.onerror = null;
+  sharedPlayer.onended = null;
+  sharedPlayer.src = AUDIO_BASE + key + '.' + ext;
+  sharedPlayer.onerror = () => { if (token === playToken) playSegment(keys, idx, fallbackText, token, rest, onStart); };
+  sharedPlayer.onended = () => { if (token === playToken) playSegment(keys, idx + 1, fallbackText, token, ['m4a', 'mp3'], onStart); };
+  sharedPlayer.play().then(() => { if (onStart) onStart(); }).catch(() => { if (token === playToken) playSegment(keys, idx, fallbackText, token, rest, onStart); });
 }
+
 
 // ===================== VOIX (Web Speech API) =====================
 let frVoice = null;
@@ -1276,8 +1272,11 @@ let pausedStepRemaining = 0, pausedGlobalRemaining = 0;
 function circuitWarmup(tours, exDur, restDur, exList) {
   const steps = [];
   for (let t = 1; t <= tours; t++) {
-    steps.push({type:'info', name:'Circuit cardio — Tour ' + t + '/' + tours, detail:'Enchaîner sans pause', duration:6});
-    exList.forEach((ex, i) => steps.push({type:'exo', name:ex, detail:'Tour ' + t + '/' + tours + ' · Ex ' + (i+1) + '/' + exList.length, duration:exDur}));
+    steps.push({type:'info', name:'Échauffement — Tour ' + t + '/' + tours, detail:'Enchaîner sans pause', duration:4});
+    exList.forEach((ex, i) => {
+      steps.push({type:'exo', name:ex, detail:'Tour ' + t + '/' + tours + ' · Ex ' + (i+1) + '/' + exList.length, duration:exDur});
+      if (i < exList.length - 1) steps.push({type:'trans', name:'Transition', detail:'', duration:5});
+    });
     if (t < tours) steps.push({type:'repos', name:'Repos entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
   }
   return steps;
@@ -1285,8 +1284,11 @@ function circuitWarmup(tours, exDur, restDur, exList) {
 function explo(series, exList, restDur) {
   const steps = [];
   for (let s = 1; s <= series; s++) {
-    steps.push({type:'info', name:'Explosivité — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : '', duration:6});
-    exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
+    steps.push({type:'info', name:'Explosivité — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : '', duration:4});
+    exList.forEach(([n,det,d], i) => {
+      steps.push({type:'exo', name:n, detail:det||'', duration:d});
+      if (i < exList.length - 1) steps.push({type:'trans', name:'Transition', detail:'', duration:5});
+    });
     if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
   }
   return steps;
@@ -1294,7 +1296,7 @@ function explo(series, exList, restDur) {
 function gainage(tours, exList, restDur) {
   const steps = [];
   for (let t = 1; t <= tours; t++) {
-    steps.push({type:'info', name:'Gainage — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : '', duration:6});
+    steps.push({type:'info', name:'Gainage — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : '', duration:4});
     exList.forEach(([n,d]) => {
       if (n==='T') steps.push({type:'trans', name:'Transition', detail:'', duration:d});
       else steps.push({type:'exo', name:n, detail:'', duration:d});
@@ -1306,8 +1308,11 @@ function gainage(tours, exList, restDur) {
 function renfoGainage(series, exList, restDur) {
   const steps = [];
   for (let s = 1; s <= series; s++) {
-    steps.push({type:'info', name:'Renfo & Gainage — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : 'Renfo + Gainage alternés', duration:6});
-    exList.forEach(([n,d,det]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
+    steps.push({type:'info', name:'Renfo & Gainage — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : 'Renfo + Gainage alternés', duration:4});
+    exList.forEach(([n,d,det], i) => {
+      steps.push({type:'exo', name:n, detail:det||'', duration:d});
+      if (i < exList.length - 1) steps.push({type:'trans', name:'Transition', detail:'', duration:5});
+    });
     if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
   }
   return steps;
@@ -1315,8 +1320,11 @@ function renfoGainage(series, exList, restDur) {
 function circuitIntense(tours, exList, restDur) {
   const steps = [];
   for (let t = 1; t <= tours; t++) {
-    steps.push({type:'info', name:'Circuit intensif — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : 'Le pic d\'intensite de la semaine', duration:6});
-    exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
+    steps.push({type:'info', name:'Circuit intensif — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : 'Le pic d\'intensite de la semaine', duration:4});
+    exList.forEach(([n,det,d], i) => {
+      steps.push({type:'exo', name:n, detail:det||'', duration:d});
+      if (i < exList.length - 1) steps.push({type:'trans', name:'Transition', detail:'', duration:5});
+    });
     if (t < tours) steps.push({type:'repos', name:'Récupération entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
   }
   return steps;
@@ -1346,10 +1354,10 @@ const CW_S1 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talo
 const CW_S2 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talons-fesses','Sauts pieds joints'];
 const CW_S3 = ['Corde a sauter','Montees de genoux','Pas chasses lateraux','Talons-fesses','Squats sautes legers'];
 
-const GDyn_S1 = [['Planche toucher epaule',30],['T',15],['Bear crawl',30],['T',15],['Mountain climbers lents',30],['T',15],['Gainage lateral droit',20],['T',10],['Gainage lateral gauche',20]];
-const GDyn_S2 = [['Planche toucher epaule',40],['T',15],['Bear crawl',40],['T',15],['Mountain climbers lents',40],['T',15],['Gainage lateral rotation droit',30],['T',10],['Gainage lateral rotation gauche',30]];
-const GDyn_S3 = [['Planche toucher epaule',45],['T',15],['Bear crawl',45],['T',15],['Mountain climbers lents',45],['T',15],['Gainage lateral rotation droit',35],['T',10],['Gainage lateral rotation gauche',35]];
-const GDyn_S4 = [['Planche toucher epaule',40],['T',15],['Bear crawl',40],['T',15],['Gainage lateral droit',30],['T',10],['Gainage lateral gauche',30]];
+const GDyn_S1 = [['Planche toucher epaule',30],['T',5],['Bear crawl',30],['T',5],['Mountain climbers lents',30],['T',5],['Gainage lateral droit',20],['T',5],['Gainage lateral gauche',20]];
+const GDyn_S2 = [['Planche toucher epaule',40],['T',5],['Bear crawl',40],['T',5],['Mountain climbers lents',40],['T',5],['Gainage lateral rotation droit',30],['T',5],['Gainage lateral rotation gauche',30]];
+const GDyn_S3 = [['Planche toucher epaule',45],['T',5],['Bear crawl',45],['T',5],['Mountain climbers lents',45],['T',5],['Gainage lateral rotation droit',35],['T',5],['Gainage lateral rotation gauche',35]];
+const GDyn_S4 = [['Planche toucher epaule',40],['T',5],['Bear crawl',40],['T',5],['Gainage lateral droit',30],['T',5],['Gainage lateral gauche',30]];
 
 // S1: x5/x6/x4 explo, S2: x6/x8/x5 + haies, S3: x8/x10/x6 + sauts lat, S4: x6/x8/x4
 const Explo_S1 = [['Squats sautes x5','Descente lente, montee explosive',38],['Fentes sautees x6','3 par jambe, switch rapide',35],['Demarrages explosifs x4','Signal sonore, sprint 5m',33]];
@@ -1361,7 +1369,7 @@ const Explo_S4 = [['Squats sautes x6','',38],['Fentes sautees x8','4 par jambe �
 const RG_S1 = [
   ['Squats x8','40','Descente 3 sec, montee 2 sec'],['Planche 30 sec','30','Respiration controlee'],
   ['Pompes x6','28','Corps aligne, coudes a 45'],['Dead bug 25 sec','25','Bas du dos colle au sol'],
-  ['Fentes marchees x6','28','3 par jambe'],['Squat bulgare x6','32','3 par jambe, descente controlee'],
+  ['Fentes marchees x6','28','3 par jambe'],
   ['Gainage lateral droit 20 sec','20',''],['Gainage lateral gauche 20 sec','20',''],
   ['Y-T-W x8','28','6 a 8 reps de chaque lettre, maintien 2 sec'],['Bear Hold toucher epaule 20 sec','20','Genoux decolles, hanches basses'],
   ['Hip thrust x12','35','Fessiers serres 1 sec'],
@@ -1407,10 +1415,10 @@ const CI_S3 = [
 ];
 
 // ===================== EXERCISE CONFIGS — GARDIEN DE BUT =====================
-const GDyn_S1_GB = [['Planche extension bras alternee',30],['T',15],['Bear crawl lateral',30],['T',15],['Gainage lateral bras tendu droit',20],['T',10],['Gainage lateral bras tendu gauche',20]];
-const GDyn_S2_GB = [['Planche extension bras alternee',40],['T',15],['Bear crawl lateral',40],['T',15],['Gainage lateral rotation bras tendu droit',30],['T',10],['Gainage lateral rotation bras tendu gauche',30]];
-const GDyn_S3_GB = [['Planche extension bras alternee',45],['T',15],['Bear crawl lateral',45],['T',15],['Gainage lateral rotation bras tendu droit',35],['T',10],['Gainage lateral rotation bras tendu gauche',35]];
-const GDyn_S4_GB = [['Planche extension bras alternee',40],['T',15],['Bear crawl lateral',40],['T',15],['Gainage lateral bras tendu droit',30],['T',10],['Gainage lateral bras tendu gauche',30]];
+const GDyn_S1_GB = [['Planche extension bras alternee',30],['T',5],['Bear crawl lateral',30],['T',5],['Gainage lateral bras tendu droit',20],['T',5],['Gainage lateral bras tendu gauche',20]];
+const GDyn_S2_GB = [['Planche extension bras alternee',40],['T',5],['Bear crawl lateral',40],['T',5],['Gainage lateral rotation bras tendu droit',30],['T',5],['Gainage lateral rotation bras tendu gauche',30]];
+const GDyn_S3_GB = [['Planche extension bras alternee',45],['T',5],['Bear crawl lateral',45],['T',5],['Gainage lateral rotation bras tendu droit',35],['T',5],['Gainage lateral rotation bras tendu gauche',35]];
+const GDyn_S4_GB = [['Planche extension bras alternee',40],['T',5],['Bear crawl lateral',40],['T',5],['Gainage lateral bras tendu droit',30],['T',5],['Gainage lateral bras tendu gauche',30]];
 
 const Explo_S1_GB = [['Squats sautes bras hauts x5','Extension complete des bras en l\'air',38],['Fentes laterales explosives x6','3 par cote, appui-poussee',35],['Departs reactifs ligne de but x4','Signal sonore, 2-3m gauche/droite',33]];
 const Explo_S2_GB = [['Squats sautes bras hauts x6','Focus rebond au sol',40],['Fentes laterales explosives x8','4 par cote',38],['Departs reactifs ligne de but x5','Varier les positions',36],['Sauts pieds joints largeur cage x10','Reperes au sol',30]];
@@ -1420,7 +1428,7 @@ const Explo_S4_GB = [['Squats sautes bras hauts x6','',38],['Fentes laterales ex
 const RG_S1_GB = [
   ['Squats sumo x8','40','Posture large, descente 3 sec'],['Planche extension bras 30 sec','30','Position de plongeon'],
   ['Pompes explosives x6','28','Mains decollent — puissance bras'],['Dead bug 25 sec','25','Bas du dos colle au sol'],
-  ['Fentes laterales bras haut x6','28','3 par cote'],['Squat bulgare x6','32','3 par jambe, descente controlee'],
+  ['Fentes laterales bras haut x6','28','3 par cote'],
   ['Gainage lateral bras tendu droit 20 sec','20',''],['Gainage lateral bras tendu gauche 20 sec','20',''],
   ['Y-T-W + maintien 3 sec x8','28','Renfo epaule/coiffe'],['Bear Hold toucher epaule 20 sec','20','Genoux decolles, hanches basses'],
   ['Hip thrust station debout sur un pied x12','35','Alterne, fessiers serres 1 sec'],
@@ -1470,7 +1478,6 @@ function buildSessions(role) {
     ...(gb ? [] : [
       {type:'exo', name:'Activation core', detail:'Equilibre + planche + bird dog + gainage lateral', duration:130},
     ]),
-    {type:'fond', name:'Footing continu', detail:'Allure conversationnelle — pouvoir parler sans s\'etouffer', duration: gb ? 1296 : 1610},
     {type:'fond', name: gb ? 'Footing continu GB' : 'Footing continu', detail:'Allure conversationnelle — pouvoir parler sans s\'etouffer', duration: gb ? 1296 : 1610},
     ...(gb ? [
       {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S1 rythme lent · recup 20 sec entre variantes', duration:4},
@@ -1497,6 +1504,7 @@ function buildSessions(role) {
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
   ]},
   'S1-C': { name:'S1-C · Cardio + Renfo & Gainage alternes', duration:2066, steps:[
+    {type:'info', name:'Échauffement', detail:'', duration:4},
     {type:'exo', name:'Corde a sauter', detail:'Echauffement — 3 min rythme libre', duration:180},
     {type:'exo', name:'Activation', detail:'Pas chasses + montees genoux + squats lents x6 + pompes x4', duration:240},
     ...renfoGainage(3, gb?RG_S1_GB:RG_S1, 90),
@@ -1729,6 +1737,7 @@ document.addEventListener('visibilitychange', () => {
 function launchSession(sid) {
   unlockAudio();
   acquireWakeLock();
+  document.getElementById('so-difficulty').style.display = 'none';
   const cfg = buildSessions(appState.role || 'joueur')[sid];
   if (!cfg) return;
   sessionId = sid;
@@ -1777,7 +1786,7 @@ function runStep() {
   else if (step.type === 'retour') { bip_rest(); playAudioOrSpeak(step.name); }
   else if (step.type === 'fond') { playAudioOrSpeak(step.name); }
   else if (step.type === 'info') { playInfoAnnouncement(step.name); }
-  else if (step.type === 'trans') { playAudioOrSpeak(step.name); }
+  else if (step.type === 'trans') { bip_rest(); }
 
   currentImageKey = step.type === 'exo' ? imageKey(step.name) : '';
   const imgEl = document.getElementById('so-img');
@@ -1904,12 +1913,33 @@ function skipStep() {
   stepStartTime = Date.now();
   runStep();
 }
+function rewindStep() {
+  if (currentStepIdx <= 0) return; // deja au tout debut
+  if (mainInterval) clearInterval(mainInterval);
+  currentStepIdx--;
+  appState[pk('resume_'+sessionId)] = currentStepIdx;
+  saveState();
+  stepStartTime = Date.now();
+  runStep();
+  // Le chrono global de la seance continue de tourner normalement : reculer ne le remet pas
+  // a zero, donc revenir en arriere peut naturellement rallonger la duree totale de la seance.
+}
+function restartSession() {
+  if (!confirm('Revenir au tout debut de la seance ?')) return;
+  if (mainInterval) clearInterval(mainInterval);
+  currentStepIdx = 0;
+  appState[pk('resume_'+sessionId)] = 0;
+  saveState();
+  stepStartTime = Date.now();
+  runStep();
+}
 
 function quitSession() {
   if (mainInterval) clearInterval(mainInterval);
   if (globalInterval) clearInterval(globalInterval);
   isPaused = false;
   releaseWakeLock();
+  document.getElementById('so-difficulty').style.display = 'none';
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   document.getElementById('session-overlay').classList.remove('active');
   document.getElementById('so-pause-overlay').classList.remove('show');
