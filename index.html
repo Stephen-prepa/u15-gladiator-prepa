@@ -464,7 +464,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
             <div class="bloc" data-role="gb"><div class="bloc-title">Ouverture de hanche &amp; mobilité GB (10 min)</div><ul>
               <li><strong>Échange mur — plat du pied</strong> · 30 sec pied droit + 30 sec gauche · 2 séries</li>
               <li><strong>Mobilité articulaire hanche assise</strong> <span class="ex-img-icon" onclick="openImageLightbox('mobilite-hanche-assise')">🖼</span> — Assis au sol, bras tendus derrière toi, mains au sol. Genoux fléchis devant toi. Fais basculer les deux genoux comme un essuie-glace — chaque côté touche le sol, l'un par sa face externe, l'autre par sa face interne. 10 bascules de chaque côté, buste droit, fessiers fixes.</li>
-              <li><strong>Pigeon au sol</strong> — 40 sec chaque côté · 2 fois</li>
               <li><strong>Fente latérale — étirement adducteurs</strong> — 30 sec chaque côté</li>
               <li><strong>Rotation de hanche debout</strong> — 10 rotations ext + 10 int · chaque jambe</li>
             </ul></div>
@@ -580,7 +579,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
               <li><strong>Échange mur — plat du pied</strong> · 40 sec chaque pied · 2 séries</li>
               <li><strong>Mobilité articulaire hanche assise</strong> — 12 rotations chaque genou + cercles complets</li>
               <li><strong>Travail spécifique GB hanche sans ballon</strong> — position basse gardien, déplacements latéraux + ouverture hanche intérieure 2 sec à chaque arrêt · 1 min</li>
-              <li><strong>Pigeon au sol</strong> — 45 sec chaque côté · 2 fois</li>
               <li><strong>Fente latérale</strong> — aller plus bas qu'en S1 · 35 sec chaque côté</li>
               <li><strong>Psoas-iliaque — fente avant tenue</strong> — 30 sec chaque côté</li>
             </ul></div>
@@ -688,7 +686,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
             <div class="bloc" data-role="gb"><div class="bloc-title">Ouverture de hanche &amp; mobilité GB ↑↑ (10 min)</div><ul>
               <li><strong>Échange mur — plat du pied</strong> · 45 sec chaque pied · 2 séries</li>
               <li><strong>Travail spécifique GB hanche avec ballon</strong> — position basse gardien + déplacements + ballon · 1 min 30</li>
-              <li><strong>Pigeon au sol</strong> — 50 sec chaque côté · 2 fois</li>
               <li><strong>Fente latérale</strong> — amplitude maximale · 40 sec chaque côté</li>
               <li><strong>Psoas-iliaque — fente avant</strong> — 35 sec chaque côté</li>
               <li><strong>Rotation de hanche debout</strong> — 15 rotations ext + 15 int · chaque jambe</li>
@@ -803,7 +800,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
             <div class="bloc" data-role="gb"><div class="bloc-title">Ouverture de hanche &amp; mobilité GB — bilan (10 min)</div><ul>
               <li><strong>Échange mur — plat du pied</strong> · 45 sec chaque pied · 2 séries</li>
               <li><strong>Travail spécifique GB hanche avec ballon</strong> · 1 min 30</li>
-              <li><strong>Pigeon au sol</strong> — 50 sec chaque côté</li>
               <li><strong>Fente latérale</strong> — amplitude max · 40 sec chaque côté</li>
               <li><strong>Psoas-iliaque — fente avant</strong> — 35 sec chaque côté</li>
               <li><strong>Rotation de hanche debout</strong> — 15 rotations chaque sens · chaque jambe</li>
@@ -1018,13 +1014,17 @@ function playAudioOrSpeak(text) {
   if (!voiceEnabled || !text) return;
   const key = audioKey(text);
   if (!key || audioMissing.has(key)) { speak(text); return; }
-  const audio = new Audio(AUDIO_BASE + key + '.mp3');
+  tryPlayAudio(key, ['m4a', 'mp3'], text);
+}
+function tryPlayAudio(key, extensions, text) {
+  if (!extensions.length) { audioMissing.add(key); speak(text); return; }
+  const [ext, ...rest] = extensions;
+  const audio = new Audio(AUDIO_BASE + key + '.' + ext);
   let fellBack = false;
   const fallback = () => {
     if (fellBack) return;
     fellBack = true;
-    audioMissing.add(key);
-    speak(text);
+    tryPlayAudio(key, rest, text); // essaie l'extension suivante, sinon repli TTS
   };
   audio.addEventListener('error', fallback);
   audio.play().catch(fallback);
@@ -1454,7 +1454,7 @@ function buildSessions(role) {
     ...cardioInter(6, 30, 30, ['Montees de genoux rapides', 'Navette courte 5m']),
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
   ]},
-  'S1-C': { name:'S1-C · Cardio + Renfo & Gainage alternes', duration:2130, steps:[
+  'S1-C': { name:'S1-C · Cardio + Renfo & Gainage alternes', duration:2066, steps:[
     {type:'exo', name:'Corde a sauter', detail:'Echauffement — 3 min rythme libre', duration:180},
     {type:'exo', name:'Activation', detail:'Pas chasses + montees genoux + squats lents x6 + pompes x4', duration:240},
     ...renfoGainage(3, gb?RG_S1_GB:RG_S1, 90),
@@ -1467,8 +1467,6 @@ function buildSessions(role) {
       {type:'exo', name:'Echange mur — pied droit', detail:'Envoyer le ballon contre le mur avec le plat du pied et controler le retour · 30 sec', duration:30},
       {type:'exo', name:'Echange mur — pied gauche', detail:'30 sec', duration:30},
       {type:'exo', name:'Mobilite hanche assise', detail:'Essuie-glace des genoux — chaque cote touche le sol, l\'un par sa face externe, l\'autre par sa face interne · 10 bascules chaque cote', duration:90},
-      {type:'exo', name:'Pigeon au sol — cote droit', detail:'Genou droit croise devant, jambe gauche tendue derriere · 32 sec', duration:32},
-      {type:'exo', name:'Pigeon au sol — cote gauche', detail:'32 sec', duration:32},
       {type:'repos', name:'Transition — Roulade + parade', detail:'Sur tapis ou herbe', duration:20},
       {type:'info', name:'Roulade + remise debout + parade basse x6 — S1', detail:'Sans chute · geste lent — focus ouverture hanche et placement du pied', duration:5},
       {type:'exo', name:'Roulade → debout stabilise → parade — cote droit', detail:'Roulade avant → se relever bien stabilise → parade basse ouverture hanche', duration:22},
@@ -1510,7 +1508,7 @@ function buildSessions(role) {
     ...gainage(3, gb?GDyn_S2_GB:GDyn_S2, 45),
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
   ]},
-  'S2-C': { name:'S2-C · Cardio + Renfo & Gainage alternes ↑', duration:2833, steps:[
+  'S2-C': { name:'S2-C · Cardio + Renfo & Gainage alternes ↑', duration:2653, steps:[
     {type:'exo', name:'Corde a sauter', detail:'Echauffement — 4 min progressif', duration:240},
     {type:'exo', name:'Activation', detail:'Squats x8 + pompes x6', duration:120},
     {type:'exo', name:'Equilibre station debout sur un pied', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe — station debout sur un pied', duration:60},
@@ -1527,10 +1525,6 @@ function buildSessions(role) {
       {type:'exo', name:'Echange mur — pied gauche', detail:'Serie 2', duration:40},
       {type:'exo', name:'Mobilite hanche assise', detail:'Essuie-glace des genoux — 10 bascules chaque cote', duration:90},
       {type:'exo', name:'Travail GB hanche sans ballon', detail:'Position basse gardien — deplacements lateraux + ouverture hanche interieure 2 sec a chaque arret · 1 min', duration:60},
-      {type:'exo', name:'Pigeon au sol — cote droit', detail:'45 sec', duration:45},
-      {type:'exo', name:'Pigeon au sol — cote gauche', detail:'', duration:45},
-      {type:'exo', name:'Pigeon au sol — cote droit', detail:'Serie 2', duration:45},
-      {type:'exo', name:'Pigeon au sol — cote gauche', detail:'Serie 2', duration:45},
       {type:'exo', name:'Fente laterale — cote droit', detail:'Aller plus bas qu\'en S1 · 35 sec', duration:35},
       {type:'exo', name:'Fente laterale — cote gauche', detail:'', duration:35},
       {type:'exo', name:'Psoas-iliaque — jambe droite', detail:'Fente avant tenue · 30 sec', duration:30},
@@ -1578,7 +1572,7 @@ function buildSessions(role) {
     ...gainage(4, gb?GDyn_S3_GB:GDyn_S3, 45),
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:300},
   ]},
-  'S3-C': { name:'S3-C · Cardio + Circuit intensif + Finisher', duration:2793, steps:[
+  'S3-C': { name:'S3-C · Cardio + Circuit intensif + Finisher', duration:2693, steps:[
     {type:'exo', name:'Corde a sauter', detail:'Echauffement — 4 min progressif', duration:240},
     {type:'exo', name:'Activation', detail:'Squats x8 + pompes x6', duration:120},
     {type:'exo', name:'Equilibre station debout sur un pied', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe — station debout sur un pied', duration:60},
@@ -1596,8 +1590,6 @@ function buildSessions(role) {
       {type:'exo', name:'Echange mur — pied gauche', detail:'Serie 2', duration:45},
       {type:'exo', name:'Travail GB hanche avec ballon', detail:'Position basse gardien + deplacements + ballon · 1 min 30', duration:90},
       {type:'exo', name:'Mobilite hanche assise', detail:'Essuie-glace des genoux — 10 bascules chaque cote', duration:90},
-      {type:'exo', name:'Pigeon au sol — cote droit', detail:'50 sec', duration:50},
-      {type:'exo', name:'Pigeon au sol — cote gauche', detail:'', duration:50},
       {type:'exo', name:'Fente laterale — cote droit', detail:'Amplitude maximale · 40 sec', duration:40},
       {type:'exo', name:'Fente laterale — cote gauche', detail:'', duration:40},
       {type:'exo', name:'Psoas-iliaque — jambe droite', detail:'35 sec', duration:35},
@@ -1645,7 +1637,7 @@ function buildSessions(role) {
     ...cardioInter(9, 20, 20, ['Jumping jacks legers', 'Corde a sauter legere']),
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
   ]},
-  'S4-C': { name:'S4-C · Cardio + Renfo & Gainage (maintien)', duration:2080, steps:[
+  'S4-C': { name:'S4-C · Cardio + Renfo & Gainage (maintien)', duration:2020, steps:[
     {type:'exo', name:'Corde a sauter', detail:'Echauffement — 3 min', duration:180},
     {type:'exo', name:'Activation', detail:'Squats x6 + pompes x5', duration:100},
     {type:'exo', name:'Equilibre station debout sur un pied', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe — station debout sur un pied', duration:60},
@@ -1659,8 +1651,6 @@ function buildSessions(role) {
       {type:'exo', name:'Echange mur — pied droit', detail:'38 sec', duration:38},
       {type:'exo', name:'Echange mur — pied gauche', detail:'38 sec', duration:38},
       {type:'exo', name:'Mobilite hanche assise', detail:'Essuie-glace des genoux — 10 bascules chaque cote', duration:70},
-      {type:'exo', name:'Pigeon au sol — cote droit', detail:'30 sec', duration:30},
-      {type:'exo', name:'Pigeon au sol — cote gauche', detail:'30 sec', duration:30},
       {type:'info', name:'Roulade + remise debout + parade + chute x6 — S4 BILAN', detail:'Fluidite et enchainement — geste complet gardien', duration:5},
       {type:'exo', name:'Roulade → debout → parade → chute — cote droit', detail:'Relevement le plus rapide possible — chronometre-toi', duration:28},
       {type:'exo', name:'Roulade → debout → parade → chute — cote gauche', detail:'', duration:28},
