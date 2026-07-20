@@ -1106,7 +1106,7 @@ async function sbPushCompletion(sessionId, difficulty) {
   try {
     const body = { player_code: appState.playerCode, session_id: sessionId };
     if (difficulty !== undefined) body.difficulty = difficulty || null;
-    await fetch(SB_URL + '/rest/v1/completions', {
+    await fetch(SB_URL + '/rest/v1/completions?on_conflict=player_code,session_id', {
       method: 'POST',
       headers: { ...SB_HEADERS, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
       body: JSON.stringify(body),
