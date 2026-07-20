@@ -1266,7 +1266,7 @@ let pausedStepRemaining = 0, pausedGlobalRemaining = 0;
 function circuitWarmup(tours, exDur, restDur, exList) {
   const steps = [];
   for (let t = 1; t <= tours; t++) {
-    steps.push({type:'info', name:'Circuit cardio — Tour ' + t + '/' + tours, detail:'Enchaîner sans pause', duration:3});
+    steps.push({type:'info', name:'Circuit cardio — Tour ' + t + '/' + tours, detail:'Enchaîner sans pause', duration:6});
     exList.forEach((ex, i) => steps.push({type:'exo', name:ex, detail:'Tour ' + t + '/' + tours + ' · Ex ' + (i+1) + '/' + exList.length, duration:exDur}));
     if (t < tours) steps.push({type:'repos', name:'Repos entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
   }
@@ -1275,7 +1275,7 @@ function circuitWarmup(tours, exDur, restDur, exList) {
 function explo(series, exList, restDur) {
   const steps = [];
   for (let s = 1; s <= series; s++) {
-    steps.push({type:'info', name:'Explosivité — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : '', duration:3});
+    steps.push({type:'info', name:'Explosivité — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : '', duration:6});
     exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
     if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
   }
@@ -1284,7 +1284,7 @@ function explo(series, exList, restDur) {
 function gainage(tours, exList, restDur) {
   const steps = [];
   for (let t = 1; t <= tours; t++) {
-    steps.push({type:'info', name:'Gainage — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : '', duration:3});
+    steps.push({type:'info', name:'Gainage — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : '', duration:6});
     exList.forEach(([n,d]) => {
       if (n==='T') steps.push({type:'trans', name:'Transition', detail:'', duration:d});
       else steps.push({type:'exo', name:n, detail:'', duration:d});
@@ -1296,7 +1296,7 @@ function gainage(tours, exList, restDur) {
 function renfoGainage(series, exList, restDur) {
   const steps = [];
   for (let s = 1; s <= series; s++) {
-    steps.push({type:'info', name:'Renfo & Gainage — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : 'Renfo + Gainage alternés', duration:3});
+    steps.push({type:'info', name:'Renfo & Gainage — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : 'Renfo + Gainage alternés', duration:6});
     exList.forEach(([n,d,det]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
     if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
   }
@@ -1305,7 +1305,7 @@ function renfoGainage(series, exList, restDur) {
 function circuitIntense(tours, exList, restDur) {
   const steps = [];
   for (let t = 1; t <= tours; t++) {
-    steps.push({type:'info', name:'Circuit intensif — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : 'Le pic d\'intensite de la semaine', duration:3});
+    steps.push({type:'info', name:'Circuit intensif — Tour ' + t + '/' + tours, detail: t===tours ? 'Dernier tour !' : 'Le pic d\'intensite de la semaine', duration:6});
     exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
     if (t < tours) steps.push({type:'repos', name:'Récupération entre tours', detail:'Tour ' + (t+1) + ' dans...', duration:restDur});
   }
