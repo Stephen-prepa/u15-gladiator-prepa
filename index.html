@@ -467,11 +467,11 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
               <li><strong>Fente latérale — étirement adducteurs</strong> — 30 sec chaque côté</li>
               <li><strong>Rotation de hanche debout</strong> — 10 rotations ext + 10 int · chaque jambe</li>
             </ul></div>
-            <div class="bloc" data-role="gb"><div class="bloc-title">Roulade + remise debout + parade basse × 6 — S1 (sans chute)</div><ul>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Roulade + remise debout + parade basse — S1 (sans chute)</div><ul>
               <li><strong>1. Depuis debout</strong>, effectue une roulade avant contrôlée.</li>
               <li><strong>2. À la sortie de la roulade</strong>, remonte progressivement pour te retrouver debout, bien stabilisé — pieds ancrés, équilibre trouvé.</li>
               <li><strong>3. Une fois stabilisé</strong>, effectue la parade basse du côté choisi : ouverture de la hanche, pied en position de parade.</li>
-              <li><em>Geste lent en S1 — prendre le temps de trouver l'équilibre entre la roulade et la parade · 3 × côté droit + 3 × côté gauche · sur tapis ou herbe</em></li>
+              <li><em>Geste lent en S1 — prendre le temps de trouver l'équilibre entre la roulade et la parade · 1 min 30 côté droit + 1 min 30 côté gauche · sur tapis ou herbe</em></li>
             </ul></div>
             <div class="bloc"><div class="bloc-title">Cardio intermittent — finisher (6 min · 30/30 · ~100-105% VMA)</div><ul><li><strong>Montées de genoux rapides</strong> — 3 × 30 sec effort / 30 sec repos</li><li><strong>Navette courte 5m</strong> — 3 × 30 sec effort / 30 sec repos</li><li><em>⇄ En alternance à chaque répétition (1 genoux, 1 navette, 1 genoux…) — pas 3 fois de suite le même</em></li></ul></div>
             <div class="bloc"><div class="bloc-title">Retour au calme (4 min)</div><ul><li>Marche + étirements complets</li></ul></div>
@@ -1458,12 +1458,14 @@ const CI_S3_GB = [
 // ===================== SESSIONS =====================
 function buildSessions(role) {
   const gb = role === 'gb';
-  return {
+  const sessions = {
   'S1-A': { name:'S1-A · Footing de relance', duration:41*60, steps:[
     {type:'exo', name:'Echauffement', detail:'Marche rapide + montees de genoux + talons-fesses', duration:300},
-    ...(gb ? [] : [
-      {type:'exo', name:'Activation core', detail:'Equilibre + planche + bird dog + gainage lateral', duration:130},
-    ]),
+    {type:'exo', name:'Equilibre station debout sur un pied', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
+    {type:'exo', name:'Planche', detail:'Corps aligne', duration:20},
+    {type:'exo', name:'Bird dog', detail:'10 sec chaque cote', duration:20},
+    {type:'exo', name:'Gainage lateral droit', detail:'', duration:15},
+    {type:'exo', name:'Gainage lateral gauche', detail:'', duration:15},
     {type:'fond', name: gb ? 'Footing continu GB' : 'Footing continu', detail:'Allure conversationnelle — pouvoir parler sans s\'etouffer', duration: gb ? 1296 : 1610},
     ...(gb ? [
       {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S1 rythme lent · recup 20 sec entre variantes', duration:4},
@@ -1492,25 +1494,30 @@ function buildSessions(role) {
   'S1-C': { name:'S1-C · Cardio + Renfo & Gainage alternes', duration:2066, steps:[
     {type:'info', name:'Échauffement', detail:'', duration:4},
     {type:'exo', name:'Corde a sauter', detail:'Echauffement — 3 min rythme libre', duration:180},
-    {type:'exo', name:'Activation', detail:'Pas chasses + montees genoux + squats lents x6 + pompes x4', duration:240},
+    {type:'exo', name:'Pas chasses', detail:'', duration:60},
+    {type:'exo', name:'Montees de genoux', detail:'', duration:60},
+    {type:'exo', name:'Squats lents', detail:'x6', duration:60},
+    {type:'exo', name:'Pompes', detail:'x4', duration:60},
     ...renfoGainage(3, gb?RG_S1_GB:RG_S1, 90),
-    ...(gb ? [] : [
-      {type:'repos', name:'Transition — Cardio', detail:'', duration:20},
-      ...cardioInter(6, 30, 30, ['Montees de genoux rapides', 'Navette courte 5m']),
-    ]),
+    {type:'repos', name:'Transition — Cardio', detail:'', duration:20},
+    ...cardioInter(6, 30, 30, ['Montees de genoux rapides', 'Navette courte 5m']),
     ...(gb ? [
+      {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S1 rythme lent · recup 20 sec entre variantes', duration:4},
+      {type:'exo', name:'Variante 1 — Pas simple', detail:'1 pied par case, avancer · 2 passages', duration:40},
+      {type:'exo', name:'Variante 2 — Pas double', detail:'2 pieds dans chaque case · 2 passages', duration:40},
+      {type:'exo', name:'Variante 3 — Lateral 1 pied', detail:'Deplacement lateral, 1 pied par case · 2 passages', duration:40},
+      {type:'exo', name:'Variante 4 — Lateral 2 pieds', detail:'Deplacement lateral, 2 pieds par case · 2 passages', duration:40},
+      {type:'exo', name:'Variante 5 — Slalom exterieur', detail:'Pieds sortent alternativement a l\'exterieur · 2 passages', duration:40},
+      {type:'exo', name:'Variante 6 — Libre', detail:'Invente ta variante ou reprends la plus difficile · 2 passages', duration:40},
+      {type:'repos', name:'Transition', detail:'', duration:20},
       {type:'info', name:'Ouverture de hanche GB — S1', detail:'Mobilite specifique gardien', duration:4},
       {type:'exo', name:'Echange mur — pied droit', detail:'Envoyer le ballon contre le mur avec le plat du pied et controler le retour · 30 sec', duration:30},
       {type:'exo', name:'Echange mur — pied gauche', detail:'30 sec', duration:30},
       {type:'exo', name:'Mobilite hanche assise', detail:'Essuie-glace des genoux — chaque cote touche le sol, l\'un par sa face externe, l\'autre par sa face interne · 10 bascules chaque cote', duration:90},
       {type:'repos', name:'Transition — Roulade + parade', detail:'Sur tapis ou herbe', duration:20},
-      {type:'info', name:'Roulade + remise debout + parade basse x6 — S1', detail:'Sans chute · geste lent — focus ouverture hanche et placement du pied', duration:5},
-      {type:'exo', name:'Roulade → debout stabilise → parade — cote droit', detail:'Roulade avant → se relever bien stabilise → parade basse ouverture hanche', duration:22},
-      {type:'exo', name:'Roulade → debout stabilise → parade — cote gauche', detail:'', duration:22},
-      {type:'exo', name:'Roulade → debout stabilise → parade — cote droit', detail:'', duration:22},
-      {type:'exo', name:'Roulade → debout stabilise → parade — cote gauche', detail:'', duration:22},
-      {type:'exo', name:'Roulade → debout stabilise → parade — cote droit', detail:'', duration:22},
-      {type:'exo', name:'Roulade → debout stabilise → parade — cote gauche', detail:'', duration:22},
+      {type:'info', name:'Roulade + remise debout + parade basse — S1', detail:'Sans chute · geste lent — focus ouverture hanche et placement du pied', duration:5},
+      {type:'exo', name:'Roulade → debout stabilise → parade — cote droit', detail:'Roulade avant → se relever bien stabilise → parade basse ouverture hanche', duration:90},
+      {type:'exo', name:'Roulade → debout stabilise → parade — cote gauche', detail:'', duration:90},
     ] : []),
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements complets', duration:240},
   ]},
@@ -1704,6 +1711,12 @@ function buildSessions(role) {
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements — derniere seance avant le 17 aout !', duration:240},
   ]},
   };
+  // La duree totale de chaque seance est calculee automatiquement a partir des etapes reelles,
+  // pour rester toujours juste (joueur et GB peuvent avoir un contenu different, donc une duree differente).
+  Object.values(sessions).forEach(s => {
+    s.duration = s.steps.reduce((sum, step) => sum + step.duration, 0);
+  });
+  return sessions;
 }
 
 // ===================== SESSION ENGINE =====================
