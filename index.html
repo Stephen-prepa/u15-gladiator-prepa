@@ -380,7 +380,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <div class="seance-body">
           <button class="btn-demarrer" onclick="launchSession('S1-A')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">41:00</span></button>
           <div class="bloc-section">
-            <div class="bloc"><div class="bloc-title">Échauffement (5 min)</div><ul><li>Marche rapide puis trot très léger</li><li>Montées de genoux 30 sec · Talons-fesses 30 sec</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Échauffement (6 min)</div><ul><li><strong>Marche rapide</strong> — 2 min</li><li><strong>Montées de genoux</strong> — 1 min</li><li><strong>Talons-fesses</strong> — 1 min</li><li><strong>Pas chassés</strong> — 1 min</li><li><strong>Squats lents</strong> — 1 min</li></ul></div>
             <div class="bloc"><div class="bloc-title">Activation core (2 min 10)</div><ul><li><strong>Équilibre station debout sur un pied</strong> — 20 sec par jambe + 10 petits sauts sur chaque jambe</li><li><strong>Planche</strong> — 20 sec, corps aligné</li><li><strong>Bird dog</strong> — 20 sec, 10 sec chaque côté</li><li><strong>Gainage latéral</strong> — 15 sec chaque côté</li></ul></div>
             <div class="bloc"><div class="bloc-title">Fond (27 min)</div><ul><li><strong>27 min footing continu</strong> — allure conversationnelle, pouvoir parler sans s'étouffer</li></ul></div>
             <div class="bloc"><div class="bloc-title">Retour au calme (7 min)</div><ul><li>Marche 3 min · Étirements mollets, quadriceps, ischio, hanches 40 sec chaque</li></ul></div>
@@ -523,7 +523,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <button class="btn-demarrer" onclick="launchSession('S2-B')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">45:00</span></button>
           <div class="bloc-section">
             <div class="circuit-warmup"><div class="cw-title">🔥 Échauffement — Circuit cardio (10 min · 2 tours · 1 min/ex)</div><ul><li><strong>Corde à sauter</strong> — 1 min</li><li><strong>Montées de genoux</strong> — 1 min</li><li><strong>Pas chassés latéraux</strong> — 1 min</li><li><strong>Talons-fesses</strong> — 1 min</li><li><strong>Sauts pieds joints</strong> — 1 min</li><li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li></ul></div>
-            <div class="bloc" data-role="joueur"><div class="bloc-title">Explosivité — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés × 6</strong> — focus rebond au sol</li><li><strong>Fentes sautées × 8</strong> — 4 par jambe</li><li><strong>Démarrages explosifs × 5</strong> — varier les positions de départ</li><li><strong>Sauts groupés × 10</strong> — repères au sol</li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Explosivité — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés × 6</strong> <em>— descente lente + remontée en saut rapide + réception lente bien amortie avec les genoux</em></li><li><strong>Fentes sautées × 8</strong> <em>— descente lente + remontée en saut rapide + réception lente bien amortie avec les genoux · 4 par jambe</em></li><li><strong>Démarrages explosifs × 5</strong> <em>— aller/retour = 1 fois, le changement de direction et les 1ers appuis comptent</em></li><li><strong>Sauts groupés × 10</strong> — repères au sol</li></ul></div>
             <div class="bloc" data-role="gb"><div class="bloc-title">Explosivité GB — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés bras hauts × 6</strong> — focus rebond au sol</li><li><strong>Fentes latérales explosives × 8</strong> — 4 par côté</li><li><strong>Départs réactifs ligne de but × 5</strong> — varier les positions</li><li><strong>Sauts pieds joints largeur cage × 10</strong> — repères au sol</li></ul></div>
             <div class="bloc" data-role="joueur"><div class="bloc-title">Gainage dynamique — 3 tours · repos 45 sec</div><ul><li><strong>Planche + toucher épaule</strong> — 40 sec</li><li><strong>Bear crawl</strong> — 40 sec</li><li><strong>Mountain climbers lents</strong> — 40 sec</li><li><strong>Gainage latéral avec rotation</strong> — 30 sec chaque côté</li></ul></div>
             <div class="bloc" data-role="gb"><div class="bloc-title">Gainage dynamique GB — 3 tours · repos 45 sec</div><ul><li><strong>Planche extension bras alternée</strong> — 40 sec</li><li><strong>Bear crawl latéral</strong> — 40 sec</li><li><strong>Gainage latéral rotation bras tendu</strong> — 30 sec chaque côté</li></ul></div>
@@ -1315,14 +1315,15 @@ function circuitIntense(tours, exList, restDur) {
   }
   return steps;
 }
-function cardioInter(reps, effortDur, restDur, exNames) {
+function cardioInter(reps, effortDur, restDur, exNames, restName) {
   const names = (exNames && exNames.length) ? exNames : ['Sprint sur place'];
+  const rName = restName || 'Récupération';
   const steps = [];
   steps.push({type:'info', name:'Cardio intermittent', detail: reps + ' x ' + effortDur + '/' + restDur + ' sec', duration:3});
   for (let i = 1; i <= reps; i++) {
     const exName = names[(i - 1) % names.length];
     steps.push({type:'exo', name:exName, detail:'Effort ' + i + '/' + reps, duration:effortDur});
-    steps.push({type:'repos', name:'Récupération', detail:'', duration:restDur});
+    steps.push({type:'repos', name:rName, detail:'', duration:restDur});
   }
   return steps;
 }
@@ -1347,7 +1348,7 @@ const GDyn_S4 = [['Planche toucher epaule',40],['T',3],['Bear crawl',40],['T',3]
 
 // S1: x5/x6/x4 explo, S2: x6/x8/x5 + haies, S3: x8/x10/x6 + sauts lat, S4: x6/x8/x4
 const Explo_S1 = [['Squats sautes x5','Descente lente, montee explosive',38],['Fentes sautees x6','3 par jambe, switch rapide',35],['Demarrages explosifs x4','Signal sonore, sprint 5m',33]];
-const Explo_S2 = [['Squats sautes x6','Focus rebond au sol',40],['Fentes sautees x8','4 par jambe',38],['Demarrages explosifs x5','Varier les positions',36],['Sauts groupes x10','Reperes au sol',30]];
+const Explo_S2 = [['Squats sautes x6','Descente lente + remontee en saut rapide + reception lente bien amortie avec les genoux',20],['Fentes sautees x8','Descente lente + remontee en saut rapide + reception lente bien amortie avec les genoux — 4 par jambe',20],['Demarrages explosifs x5','Aller/retour = 1 fois — le changement de direction et les 1ers appuis sont ce qui compte',36],['Sauts groupes x10','Reperes au sol',30]];
 const Explo_S3 = [['Squats sautes x8','',42],['Fentes sautees x10','5 par jambe',42],['Demarrages explosifs x6','Positions variees',38],['Sauts lateraux x10','Pieds joints, le plus loin',32]];
 const Explo_S4 = [['Squats sautes x6','',38],['Fentes sautees x8','4 par jambe — maintien',36],['Demarrages explosifs x4','',33]];
 
@@ -1460,7 +1461,11 @@ function buildSessions(role) {
   const gb = role === 'gb';
   const sessions = {
   'S1-A': { name:'S1-A · Footing de relance', duration:41*60, steps:[
-    {type:'exo', name:'Echauffement', detail:'Marche rapide + montees de genoux + talons-fesses', duration:300},
+    {type:'exo', name:'Marche rapide', detail:'', duration:120},
+    {type:'exo', name:'Montees de genoux', detail:'', duration:60},
+    {type:'exo', name:'Talons-fesses', detail:'', duration:60},
+    {type:'exo', name:'Pas chasses', detail:'', duration:60},
+    {type:'exo', name:'Squats lents', detail:'', duration:60},
     {type:'exo', name:'Equilibre station debout sur un pied', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
     {type:'exo', name:'Planche', detail:'Corps aligne', duration:20},
     {type:'exo', name:'Bird dog', detail:'10 sec chaque cote', duration:20},
@@ -1524,14 +1529,19 @@ function buildSessions(role) {
   'S2-A': { name:'S2-A · Footing + accelerations', duration:47*60, steps:[
     {type:'exo', name:'Echauffement', detail:'Marche rapide + trot progressif', duration:300},
     ...(gb ? [] : [
-      {type:'exo', name:'Equilibre station debout sur un pied', detail:'20 sec par jambe + 10 petits sauts sur chaque jambe', duration:60},
+      {type:'info', name:'Activation Gainage', detail:'', duration:4},
+      {type:'exo', name:'Equilibre jambe droite', detail:'Station debout sur un pied', duration:20},
+      {type:'exo', name:'Equilibre jambe gauche', detail:'Station debout sur un pied', duration:20},
+      {type:'exo', name:'Sauts jambe droite', detail:'10 petits sauts', duration:10},
+      {type:'exo', name:'Sauts jambe gauche', detail:'10 petits sauts', duration:10},
       {type:'exo', name:'Planche', detail:'Corps aligne', duration:25},
       {type:'exo', name:'Bird dog', detail:'12 sec chaque cote', duration:25},
       {type:'exo', name:'Gainage lateral droit', detail:'', duration:20},
       {type:'exo', name:'Gainage lateral gauche', detail:'', duration:20},
     ]),
     {type:'fond', name:'Footing continu', detail: gb ? '13 min 36s allure reguliere' : '18,5 min allure reguliere', duration: gb ? 816 : 1110},
-    ...cardioInter(6, 20, 40, ['Accelerations']),
+    {type:'info', name:'Fin du footing', detail:'', duration:4},
+    ...cardioInter(6, 20, 40, ['Accelerations'], 'Trottine'),
     {type:'fond', name:'Footing leger', detail:'8 min pour terminer', duration:480},
     ...(gb ? [
       {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S2 rythme moyen · recup 20 sec entre variantes', duration:4},
@@ -1793,7 +1803,7 @@ function runStep() {
     playAudioOrSpeak(step.name);
     if (prepDelay) setTimeout(bip_start, prepDelay * 1000); else bip_start();
   }
-  else if (step.type === 'repos') { bip_rest(); playAudioOrSpeak('Récupération'); }
+  else if (step.type === 'repos') { bip_rest(); playAudioOrSpeak(step.name); }
   else if (step.type === 'retour') { bip_rest(); playAudioOrSpeak(step.name); }
   else if (step.type === 'fond') { playAudioOrSpeak(step.name); }
   else if (step.type === 'info') { playInfoAnnouncement(step.name); }
