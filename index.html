@@ -939,17 +939,17 @@ function beep(freq, dur, vol, delay) {
     o.type = 'sine'; o.frequency.value = freq;
     const t = audioCtx.currentTime + (delay || 0);
     g.gain.setValueAtTime(0.001, t);
-    g.gain.linearRampToValueAtTime(vol || 0.35, t + 0.01);
+    g.gain.linearRampToValueAtTime(vol || 0.8, t + 0.01);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.start(t); o.stop(t + dur + 0.05);
   } catch(e) {}
 }
-function bip_start()  { beep(880, 0.2, 0.4); }
-function bip_end()    { beep(880, 0.15, 0.3); beep(1047, 0.25, 0.4, 0.2); }
-function bip_rest()   { beep(440, 0.45, 0.3); }
-function bip_resume() { beep(660, 0.12, 0.3); beep(880, 0.2, 0.35, 0.18); }
-function bip_alert()  { beep(660, 0.1, 0.2); }
-function bip_finish() { beep(880, 0.18, 0.35); beep(1047, 0.18, 0.38, 0.25); beep(1319, 0.35, 0.4, 0.5); }
+function bip_start()  { beep(880, 0.2, 0.85); }
+function bip_end()    { beep(880, 0.15, 0.75); beep(1047, 0.25, 0.85, 0.2); }
+function bip_rest()   { beep(440, 0.45, 0.75); }
+function bip_resume() { beep(660, 0.12, 0.75); beep(880, 0.2, 0.85, 0.18); }
+function bip_alert()  { beep(660, 0.1, 0.6); }
+function bip_finish() { beep(880, 0.18, 0.85); beep(1047, 0.18, 0.9, 0.25); beep(1319, 0.35, 0.9, 0.5); }
 
 // ===================== IMAGES D'EXERCICES =====================
 const IMAGE_BASE = 'images/';
@@ -1090,6 +1090,14 @@ function speak(text) {
     u.volume = 1;
     window.speechSynthesis.speak(u);
   } catch(e) {}
+}
+function secondsToFrench(sec) {
+  if (!sec) return '';
+  if (sec % 60 === 0) {
+    const m = sec / 60;
+    return m + (m === 1 ? ' minute' : ' minutes');
+  }
+  return sec + ' secondes';
 }
 function toggleVoice() {
   voiceEnabled = !voiceEnabled;
@@ -1315,15 +1323,15 @@ function circuitIntense(tours, exList, restDur) {
   }
   return steps;
 }
-function cardioInter(reps, effortDur, restDur, exNames, restName) {
+function cardioInter(reps, effortDur, restDur, exNames, restName, announceDurations = true) {
   const names = (exNames && exNames.length) ? exNames : ['Sprint sur place'];
   const rName = restName || 'Récupération';
   const steps = [];
   steps.push({type:'info', name:'Cardio intermittent', detail: reps + ' x ' + effortDur + '/' + restDur + ' sec', duration:3});
   for (let i = 1; i <= reps; i++) {
     const exName = names[(i - 1) % names.length];
-    steps.push({type:'exo', name:exName, detail:'Effort ' + i + '/' + reps, duration:effortDur});
-    steps.push({type:'repos', name:rName, detail:'', duration:restDur});
+    steps.push({type:'exo', name:exName, detail:'Effort ' + i + '/' + reps, duration:effortDur, announceDuration: announceDurations ? effortDur : null});
+    steps.push({type:'repos', name:rName, detail:'', duration:restDur, announceDuration: announceDurations ? restDur : null});
   }
   return steps;
 }
@@ -1833,9 +1841,14 @@ function runStep() {
 
   if (step.type === 'exo') {
     playAudioOrSpeak(step.name);
+    if (step.announceDuration) setTimeout(() => speak(secondsToFrench(step.announceDuration)), 900);
     if (prepDelay) setTimeout(bip_start, prepDelay * 1000); else bip_start();
   }
-  else if (step.type === 'repos') { bip_rest(); playAudioOrSpeak(step.name); }
+  else if (step.type === 'repos') {
+    bip_rest();
+    playAudioOrSpeak(step.name);
+    if (step.announceDuration) setTimeout(() => speak(secondsToFrench(step.announceDuration)), 900);
+  }
   else if (step.type === 'retour') { bip_rest(); playAudioOrSpeak(step.name); }
   else if (step.type === 'fond') { playAudioOrSpeak(step.name); }
   else if (step.type === 'info') { playInfoAnnouncement(step.name); }
