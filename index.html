@@ -1323,13 +1323,13 @@ function circuitIntense(tours, exList, restDur) {
   }
   return steps;
 }
-function cardioInter(reps, effortDur, restDur, exNames, restName, announceDurations = true, introOnly = false) {
+function cardioInter(reps, effortDur, restDur, exNames, restName, announceDurations = true, introOnly = false, introKey = null) {
   const names = (exNames && exNames.length) ? exNames : ['Sprint sur place'];
   const rName = restName || 'Récupération';
   const steps = [];
   if (introOnly) {
     const introText = reps + ' × ' + effortDur + ' secondes ' + names[0].toLowerCase() + ', ' + restDur + ' secondes de ' + rName.toLowerCase() + ' entre chaque';
-    steps.push({type:'info', name: introText, duration:4});
+    steps.push({type:'info', name: introText, duration:4, audioKey: introKey});
   } else {
     steps.push({type:'info', name:'Cardio intermittent', detail: reps + ' x ' + effortDur + '/' + restDur + ' sec', duration:3});
   }
@@ -1555,7 +1555,7 @@ function buildSessions(role) {
     {type:'exo', name:'Gainage lateral gauche', detail:'', duration:20},
     {type:'fond', name:'Footing continu', detail: gb ? '13 min 36s allure reguliere' : '18,5 min allure reguliere', duration: gb ? 816 : 1110},
     {type:'info', name:'Fin du footing', detail:'', duration:4},
-    ...cardioInter(6, 20, 40, ['Accelerations'], 'Trottine', true, true),
+    ...cardioInter(6, 20, 40, ['Accelerations'], 'Trottine', true, true, 'intro-accelerations-trottine'),
     {type:'fond', name:'Footing leger', detail:'8 min pour terminer', duration:480},
     ...(gb ? [
       {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S2 rythme moyen · recup 20 sec entre variantes', duration:4},
@@ -1856,7 +1856,7 @@ function runStep() {
   }
   else if (step.type === 'retour') { bip_rest(); playAudioOrSpeak(step.name); }
   else if (step.type === 'fond') { playAudioOrSpeak(step.name); }
-  else if (step.type === 'info') { playInfoAnnouncement(step.name); }
+  else if (step.type === 'info') { step.audioKey ? playSequence([step.audioKey], step.name) : playInfoAnnouncement(step.name); }
   else if (step.type === 'trans') { bip_rest(); }
 
   currentImageKey = step.type === 'exo' ? imageKey(step.name) : '';
