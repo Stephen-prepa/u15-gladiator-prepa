@@ -1335,7 +1335,7 @@ function cardioInter(reps, effortDur, restDur, exNames, restName, announceDurati
   }
   for (let i = 1; i <= reps; i++) {
     const exName = names[(i - 1) % names.length];
-    steps.push({type:'exo', name:exName, detail:'Effort ' + i + '/' + reps, duration:effortDur, announceDuration: (!introOnly && announceDurations) ? effortDur : null});
+    steps.push({type:'exo', name:exName, detail:'Effort ' + i + '/' + reps, duration:effortDur, announceDuration: (!introOnly && announceDurations) ? effortDur : null, noDelay:true});
     steps.push({type:'repos', name:rName, detail:'', duration:restDur, announceDuration: (!introOnly && announceDurations) ? restDur : null});
   }
   return steps;
@@ -1840,7 +1840,7 @@ function runStep() {
   stepDuration = step.duration;
   // Pour un exercice : on annonce tout de suite, mais le vrai decompte ne demarre
   // que 3 sec plus tard (le temps d'entendre le nom et de se mettre en position).
-  const prepDelay = (step.type === 'exo' && !step.silent) ? 5 : 0;
+  const prepDelay = (step.type === 'exo' && !step.silent && !step.noDelay) ? 5 : 0;
   stepStartTime = Date.now() + prepDelay * 1000;
   stepRemaining = step.duration;
 
