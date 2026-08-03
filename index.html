@@ -1361,8 +1361,8 @@ const GDyn_S4 = [['Planche toucher epaule',40],['T',3],['Bear crawl',40],['T',3]
 
 // S1: x5/x6/x4 explo, S2: x6/x8/x5 + haies, S3: x8/x10/x6 + sauts lat, S4: x6/x8/x4
 const Explo_S1 = [['Squats sautes x5','Descente lente, montee explosive',38],['Fentes sautees x6','3 par jambe, switch rapide',35],['Demarrages explosifs x4','Signal sonore, sprint 5m',33]];
-const Explo_S2 = [['Squats sautes x6','Descente lente + remontee en saut rapide + reception lente bien amortie avec les genoux',20],['Fentes sautees x8','Descente lente + remontee en saut rapide + reception lente bien amortie avec les genoux — 4 par jambe',20],['Demarrages explosifs x5','Aller/retour = 1 fois — le changement de direction et les 1ers appuis sont ce qui compte',36],['Sauts groupes x10','Reperes au sol',30]];
-const Explo_S3 = [['Squats sautes x8','',42],['Fentes sautees x10','5 par jambe',42],['Demarrages explosifs x6','Positions variees',38],['Sauts lateraux x10','Pieds joints, le plus loin',32]];
+const Explo_S2 = [['Squats sautes x6','Descente lente + remontee en saut rapide + reception lente bien amortie avec les genoux',22],['Fentes sautees x8','Descente lente + remontee en saut rapide + reception lente bien amortie avec les genoux — 4 par jambe',22],['Demarrages explosifs x5','Aller/retour = 1 fois — le changement de direction et les 1ers appuis sont ce qui compte',40],['Sauts groupes x10','Reperes au sol',32]];
+const Explo_S3 = [['Squats sautes x8','',42],['Fentes sautees x10','5 par jambe',42],['Demarrages explosifs x6','Positions variees',42],['Sauts lateraux x10','Pieds joints, le plus loin',36]];
 const Explo_S4 = [['Squats sautes x6','',38],['Fentes sautees x8','4 par jambe — maintien',36],['Demarrages explosifs x4','',33]];
 
 // Renfo+Gainage alternés: [name, duration, detail]
@@ -1375,12 +1375,12 @@ const RG_S1 = [
   ['Hip thrust x12','35','Fessiers serres 1 sec'],
 ];
 const RG_S2 = [
-  ['Squats x10','42','Descente 3 sec, montee 2 sec'],['Planche 35 sec','35',''],
-  ['Pompes x8','30',''],['Dead bug 30 sec','30',''],
-  ['Fentes marchees x8','32','4 par jambe'],
-  ['Gainage lateral droit 25 sec','25',''],['Gainage lateral gauche 25 sec','25',''],
-  ['Y-T-W x10','32',''],['Bear Hold toucher epaule 25 sec','25',''],
-  ['Hip thrust x14','38',''],['Abdos x8','38','Montee 2 sec, descente 3 sec'],
+  ['Squats','45','Tempo lent : 3 sec descente, 2 sec montee'],['Planche','40',''],
+  ['Pompes','35','Rythme controle'],['Dead bug','35',''],
+  ['Fentes marchees','35','Tempo lent, alterner les jambes'],
+  ['Gainage lateral droit','30',''],['Gainage lateral gauche','30',''],
+  ['Y-T-W','35',''],['Bear Hold toucher epaule','30',''],
+  ['Hip thrust','40','Fessiers serres 1 sec en haut'],['Abdos','40','Montee 2 sec, descente 3 sec'],
 ];
 const RG_S3 = [
   ['Squats x10','42',''],['Planche 40 sec','40',''],
@@ -1405,13 +1405,13 @@ const RG_S4 = [
 
 // Circuit intensif S3-C — fusion renfo+gainage+explosivite en UN seul circuit (4 tours)
 const CI_S3 = [
-  ['Squats sautes x8','Descente lente, montee explosive',38],
-  ['Fentes alternees x10','5 par jambe',38],
-  ['Pompes x10','',34],
-  ['Mountain climbers x24','',36],
-  ['Hip thrust x14','Fessiers serres 1 sec',38],
-  ['Gainage lateral droit 25 sec','',25],
-  ['Gainage lateral gauche 25 sec','',25],
+  ['Squats sautes x8','Descente lente, montee explosive',42],
+  ['Fentes alternees x10','5 par jambe',42],
+  ['Pompes x10','',38],
+  ['Mountain climbers x24','',40],
+  ['Hip thrust x14','Fessiers serres 1 sec',42],
+  ['Gainage lateral droit','',30],
+  ['Gainage lateral gauche','',30],
 ];
 
 // ===================== EXERCISE CONFIGS — GARDIEN DE BUT =====================
@@ -1421,8 +1421,8 @@ const GDyn_S3_GB = [['Planche extension bras alternee',45],['T',3],['Bear crawl 
 const GDyn_S4_GB = [['Planche extension bras alternee',40],['T',3],['Bear crawl lateral',40],['T',3],['Gainage lateral bras tendu droit',30],['T',3],['Gainage lateral bras tendu gauche',30]];
 
 const Explo_S1_GB = [['Squats sautes bras hauts x5','Extension complete des bras en l\'air',38],['Fentes laterales explosives x6','3 par cote, appui-poussee',35],['Departs reactifs ligne de but x4','Signal sonore, 2-3m gauche/droite',33]];
-const Explo_S2_GB = [['Squats sautes bras hauts x6','Focus rebond au sol',40],['Fentes laterales explosives x8','4 par cote',38],['Departs reactifs ligne de but x5','Varier les positions',36],['Sauts pieds joints largeur cage x10','Reperes au sol',30]];
-const Explo_S3_GB = [['Squats sautes bras hauts x8','',42],['Fentes laterales explosives x10','5 par cote',42],['Departs reactifs ligne de but x6','Positions variees',38],['Sauts lateraux amplitude max x10','Pieds joints, le plus loin',32]];
+const Explo_S2_GB = [['Squats sautes bras hauts x6','Focus rebond au sol',44],['Fentes laterales explosives x8','4 par cote',42],['Departs reactifs ligne de but x5','Varier les positions',40],['Sauts pieds joints largeur cage x10','Reperes au sol',32]];
+const Explo_S3_GB = [['Squats sautes bras hauts x8','',46],['Fentes laterales explosives x10','5 par cote',46],['Departs reactifs ligne de but x6','Positions variees',42],['Sauts lateraux amplitude max x10','Pieds joints, le plus loin',36]];
 const Explo_S4_GB = [['Squats sautes bras hauts x6','',38],['Fentes laterales explosives x8','4 par cote — maintien',36],['Departs reactifs ligne de but x4','',33]];
 
 const RG_S1_GB = [
@@ -1434,12 +1434,12 @@ const RG_S1_GB = [
   ['Hip thrust station debout sur un pied x12','35','Alterne, fessiers serres 1 sec'],
 ];
 const RG_S2_GB = [
-  ['Squats sumo x10','42','Posture large'],['Planche extension bras 35 sec','35',''],
-  ['Pompes explosives x8','30',''],['Dead bug 30 sec','30',''],
-  ['Fentes laterales marchees x8','32','4 par cote'],
-  ['Gainage lateral bras tendu droit 25 sec','25',''],['Gainage lateral bras tendu gauche 25 sec','25',''],
-  ['Y-T-W + maintien 3 sec x10','32',''],['Bear Hold toucher epaule 25 sec','25',''],
-  ['Hip thrust station debout sur un pied x14','38','Alterne'],['Abdos x8','38','Montee 2 sec, descente 3 sec'],
+  ['Squats sumo','45','Posture large'],['Planche extension bras','40',''],
+  ['Pompes explosives','35',''],['Dead bug','35',''],
+  ['Fentes laterales marchees','35','Tempo lent, alterner les cotes'],
+  ['Gainage lateral bras tendu droit','30',''],['Gainage lateral bras tendu gauche','30',''],
+  ['Y-T-W + maintien','35',''],['Bear Hold toucher epaule','30',''],
+  ['Hip thrust station debout sur un pied','40','Alterne'],['Abdos','40','Montee 2 sec, descente 3 sec'],
 ];
 const RG_S3_GB = [
   ['Squats sumo x10','42',''],['Planche extension bras 40 sec','40',''],
@@ -1461,12 +1461,12 @@ const RG_S4_GB = [
 });
 
 const CI_S3_GB = [
-  ['Squats sautes bras hauts x8','Extension complete des bras',38],
-  ['Fentes laterales explosives x10','5 par cote',38],
-  ['Pompes explosives x10','',34],
-  ['Hip thrust station debout sur un pied x14','Alterne, fessiers serres 1 sec',38],
-  ['Gainage lateral bras tendu droit 25 sec','',25],
-  ['Gainage lateral bras tendu gauche 25 sec','',25],
+  ['Squats sautes bras hauts x8','Extension complete des bras',42],
+  ['Fentes laterales explosives x10','5 par cote',42],
+  ['Pompes explosives x10','',38],
+  ['Hip thrust station debout sur un pied x14','Alterne, fessiers serres 1 sec',42],
+  ['Gainage lateral bras tendu droit','',30],
+  ['Gainage lateral bras tendu gauche','',30],
 ];
 
 // ===================== SESSIONS =====================
@@ -1574,9 +1574,9 @@ function buildSessions(role) {
   'S2-B': { name:'S2-B · Circuit + Explo + Gainage', duration:45*60, steps:[
     ...circuitWarmup(2, 60, 60, CW_S2),
     {type:'repos', name:'Transition — Explosivite', detail:'', duration:30},
-    ...explo(4, gb?Explo_S2_GB:Explo_S2, 90),
+    ...explo(4, gb?Explo_S2_GB:Explo_S2, 80),
     {type:'repos', name:'Transition — Gainage', detail:'', duration:30},
-    ...gainage(3, gb?GDyn_S2_GB:GDyn_S2, 45),
+    ...gainage(4, gb?GDyn_S2_GB:GDyn_S2, 40),
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:240},
   ]},
   'S2-C': { name:'S2-C · Cardio + Renfo & Gainage alternes ↑', duration:2653, steps:[
@@ -1588,9 +1588,9 @@ function buildSessions(role) {
     {type:'exo', name:'Equilibre jambe gauche', detail:'Station debout sur un pied', duration:20},
     {type:'exo', name:'Sauts jambe droite', detail:'10 petits sauts', duration:10},
     {type:'exo', name:'Sauts jambe gauche', detail:'10 petits sauts', duration:10},
-    ...renfoGainage(3, gb?RG_S2_GB:RG_S2, 90),
+    ...renfoGainage(3, gb?RG_S2_GB:RG_S2, 80),
     {type:'repos', name:'Transition — Cardio', detail:'', duration:20},
-    ...cardioInterSplit(7, 25, 25, 120, ['Pas chasses lateraux', 'Talons-fesses rapides']),
+    ...cardioInterSplit(7, 30, 20, 120, ['Pas chasses lateraux', 'Talons-fesses rapides']),
     ...(gb ? [
       {type:'info', name:'Ouverture de hanche GB — S2', detail:'Mobilite specifique gardien', duration:4},
       {type:'exo', name:'Echange mur — pied droit', detail:'40 sec', duration:40},
@@ -1648,9 +1648,9 @@ function buildSessions(role) {
   'S3-B': { name:'S3-B · Circuit + Explo max + Gainage', duration:50*60, steps:[
     ...circuitWarmup(2, 60, 60, CW_S3),
     {type:'repos', name:'Transition — Explosivite', detail:'', duration:30},
-    ...explo(4, gb?Explo_S3_GB:Explo_S3, 90),
+    ...explo(4, gb?Explo_S3_GB:Explo_S3, 80),
     {type:'repos', name:'Transition — Gainage', detail:'', duration:30},
-    ...gainage(4, gb?GDyn_S3_GB:GDyn_S3, 45),
+    ...gainage(5, gb?GDyn_S3_GB:GDyn_S3, 35),
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements', duration:300},
   ]},
   'S3-C': { name:'S3-C · Cardio + Circuit intensif + Finisher', duration:2693, steps:[
@@ -1663,9 +1663,9 @@ function buildSessions(role) {
     {type:'exo', name:'Sauts jambe droite', detail:'10 petits sauts', duration:10},
     {type:'exo', name:'Sauts jambe gauche', detail:'10 petits sauts', duration:10},
     {type:'repos', name:'Transition — Circuit intensif', detail:'Le pic de la semaine !', duration:30},
-    ...circuitIntense(4, gb?CI_S3_GB:CI_S3, 90),
+    ...circuitIntense(4, gb?CI_S3_GB:CI_S3, 80),
     {type:'repos', name:'Transition — Cardio', detail:'Dernier effort', duration:30},
-    ...cardioInterSplit(9, 20, 20, 150, ['Montees de genoux rapides', 'Navette courte 5m', 'Pas chasses lateraux']),
+    ...cardioInterSplit(9, 25, 15, 150, ['Montees de genoux rapides', 'Navette courte 5m', 'Pas chasses lateraux']),
     ...(gb ? [
       {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S3 rythme rapide · recup 20 sec entre variantes', duration:4},
       {type:'exo', name:'Variante 1 — Pas simple', detail:'1 pied par case, avancer · 2 passages', duration:40},
