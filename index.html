@@ -1362,7 +1362,7 @@ const GDyn_S4 = [['Planche toucher epaule',40],['T',3],['Bear crawl',40],['T',3]
 // S1: x5/x6/x4 explo, S2: x6/x8/x5 + haies, S3: x8/x10/x6 + sauts lat, S4: x6/x8/x4
 const Explo_S1 = [['Squats sautes x5','Descente lente, montee explosive',38],['Fentes sautees x6','3 par jambe, switch rapide',35],['Demarrages explosifs x4','Signal sonore, sprint 5m',33]];
 const Explo_S2 = [['Squats sautes x6','Descente lente + remontee en saut rapide + reception lente bien amortie avec les genoux',22],['Fentes sautees x8','Descente lente + remontee en saut rapide + reception lente bien amortie avec les genoux — 4 par jambe',22],['Demarrages explosifs x5','Aller/retour = 1 fois — le changement de direction et les 1ers appuis sont ce qui compte',40],['Sauts groupes x10','Reperes au sol',32]];
-const Explo_S3 = [['Squats sautes x8','',42],['Fentes sautees x10','5 par jambe',42],['Demarrages explosifs x6','Positions variees',42],['Sauts lateraux x10','Pieds joints, le plus loin',36]];
+const Explo_S3 = [['Squats sautes x8','Descente lente en 3 sec, remontee explosive en 1 sec',42],['Fentes sautees x10','5 par jambe',42],['Demarrages explosifs x6','Positions variees',42],['Skater jumps legers','Pieds joints, le plus loin',36]];
 const Explo_S4 = [['Squats sautes x6','',38],['Fentes sautees x8','4 par jambe — maintien',36],['Demarrages explosifs x4','',33]];
 
 // Renfo+Gainage alternés: [name, duration, detail]
@@ -1555,7 +1555,7 @@ function buildSessions(role) {
     {type:'exo', name:'Gainage lateral gauche', detail:'', duration:20},
     {type:'fond', name:'Footing continu', detail: gb ? '13 min 36s allure reguliere' : '18,5 min allure reguliere', duration: gb ? 816 : 1110},
     {type:'info', name:'Fin du footing', detail:'', duration:4},
-    ...cardioInter(6, 20, 40, ['Accelerations'], 'Trottine', true, true, 'intro-accelerations-trottine'),
+    ...cardioInter(6, 20, 20, ['Accelerations'], 'Trottine', true, true, 'intro-accelerations-trottine'),
     {type:'fond', name:'Footing leger', detail:'8 min pour terminer', duration:480},
     ...(gb ? [
       {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S2 rythme moyen · recup 20 sec entre variantes', duration:4},
@@ -1588,7 +1588,7 @@ function buildSessions(role) {
     {type:'exo', name:'Equilibre jambe gauche', detail:'Station debout sur un pied', duration:20},
     {type:'exo', name:'Sauts jambe droite', detail:'10 petits sauts', duration:10},
     {type:'exo', name:'Sauts jambe gauche', detail:'10 petits sauts', duration:10},
-    ...renfoGainage(3, gb?RG_S2_GB:RG_S2, 80),
+    ...renfoGainage(4, gb?RG_S2_GB:RG_S2, 80),
     {type:'repos', name:'Transition — Cardio', detail:'', duration:20},
     ...cardioInterSplit(7, 30, 20, 120, ['Pas chasses lateraux', 'Talons-fesses rapides']),
     ...(gb ? [
@@ -1629,7 +1629,7 @@ function buildSessions(role) {
     {type:'exo', name:'Russian twist leger', detail:'Rotation lente et controlee', duration:20},
     {type:'fond', name:'Footing continu', detail: gb ? '17 min 46s allure reguliere' : '22 min allure reguliere', duration: gb ? 1066 : 1320},
     {type:'info', name:'Fin du footing', detail:'', duration:4},
-    ...cardioInter(8, 30, 60, ['Fractionne'], 'Trottine'),
+    ...cardioInter(8, 30, 20, ['Fractionne'], 'Trottine'),
     {type:'fond', name:'Footing leger', detail:'8 min pour terminer', duration:480},
     ...(gb ? [
       {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S3 rythme rapide · recup 20 sec entre variantes', duration:4},
