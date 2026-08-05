@@ -202,6 +202,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .login-input{width:100%;box-sizing:border-box;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:14px;color:#fff;font-size:18px;letter-spacing:2px;text-align:center;text-transform:uppercase;margin-bottom:10px;font-family:'Barlow Condensed',sans-serif;}
 .login-input::placeholder{color:var(--gris-clair);letter-spacing:1px;}
 .login-name-wrap{margin-bottom:4px;}
+.login-name-hint{font-size:13px;line-height:1.4;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:8px;text-align:left;}
 .login-btn{width:100%;background:var(--jaune);color:var(--noir);border:none;border-radius:6px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:6px;}
 .login-btn:disabled{opacity:0.5;}
 .login-error{color:#ff6b6b;font-size:13px;margin-top:12px;min-height:16px;}
@@ -865,6 +866,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     <div class="login-sub">Entre ton code pour accéder à ta préparation</div>
     <input type="text" id="login-code" class="login-input" placeholder="CODE" maxlength="20" autocapitalize="characters" autocomplete="off">
     <div id="login-name-wrap" class="login-name-wrap" style="display:none;">
+      <div id="login-name-hint" class="login-name-hint" style="display:none;"></div>
       <input type="text" id="login-name" class="login-input" placeholder="Ton prénom" maxlength="30" autocomplete="off">
     </div>
     <button class="login-btn" id="login-btn" onclick="submitLoginCode()">Valider</button>
@@ -1168,10 +1170,15 @@ async function sbPullCompletions(code) {
   } catch(e) {}
 }
 
+function normalizeName(s) {
+  return (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 async function submitLoginCode() {
   const codeInput = document.getElementById('login-code');
   const nameWrap = document.getElementById('login-name-wrap');
   const nameInput = document.getElementById('login-name');
+  const hintEl = document.getElementById('login-name-hint');
   const errEl = document.getElementById('login-error');
   const btn = document.getElementById('login-btn');
   const code = codeInput.value.trim().toUpperCase();
@@ -1187,14 +1194,48 @@ async function submitLoginCode() {
       return;
     }
     const myDeviceToken = getOrCreateDeviceToken();
-    if (code !== 'COACHTEST' && player.claimed_at && player.device_token && player.device_token !== myDeviceToken) {
-      errEl.textContent = 'Ce code est déjà utilisé sur un autre appareil. Demande à ton coach de le réinitialiser si besoin.';
-      btn.disabled = false; btn.textContent = 'Valider';
+    const locked = code !== 'COACHTEST' && player.claimed_at && player.device_token && player.device_token !== myDeviceToken;
+
+    if (locked && nameWrap.dataset.mode !== 'unlock') {
+      // Self-service unlock instead of a hard block: ask for the first name on file
+      nameWrap.style.display = 'block';
+      nameWrap.dataset.mode = 'unlock';
+      hintEl.style.display = 'block';
+      hintEl.textContent = "Ce code est déjà utilisé sur un autre appareil. Si c'est bien toi (nouveau téléphone, appli réinstallée...), confirme ton prénom pour le débloquer ici :";
+      btn.textContent = 'Redébloquer';
+      btn.disabled = false;
+      nameInput.value = '';
+      nameInput.focus();
+      return;
+    }
+    if (locked && nameWrap.dataset.mode === 'unlock') {
+      const entered = normalizeName(nameInput.value);
+      if (!entered || entered !== normalizeName(player.name)) {
+        errEl.textContent = 'Prénom incorrect — demande à ton coach de réinitialiser ce code.';
+        btn.disabled = false; btn.textContent = 'Redébloquer';
+        return;
+      }
+      await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
+        method: 'PATCH',
+        headers: { ...SB_HEADERS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_token: myDeviceToken }),
+      }).catch(() => {});
+      appState.playerName = player.name;
+      appState.playerCode = code;
+      nameWrap.dataset.mode = '';
+      hintEl.style.display = 'none';
+      saveState();
+      await sbPullCompletions(code);
+      document.getElementById('login-overlay').style.display = 'none';
+      refreshDoneBadges();
+      updateGlobalProgress();
+      showWhoAmI();
       return;
     }
     if (!player.claimed_at && nameWrap.style.display === 'none') {
       // First time with this code: ask for a first name
       nameWrap.style.display = 'block';
+      nameWrap.dataset.mode = 'claim';
       btn.textContent = 'Confirmer';
       btn.disabled = false;
       nameInput.focus();
@@ -1259,8 +1300,11 @@ function logoutPlayer() {
   refreshDoneBadges();
   updateGlobalProgress();
   document.getElementById('login-code').value = '';
-  document.getElementById('login-name-wrap').style.display = 'none';
+  const lnw = document.getElementById('login-name-wrap');
+  lnw.style.display = 'none';
+  lnw.dataset.mode = '';
   document.getElementById('login-name').value = '';
+  document.getElementById('login-name-hint').style.display = 'none';
   document.getElementById('login-error').textContent = '';
   document.getElementById('login-btn').textContent = 'Valider';
   document.getElementById('login-overlay').style.display = 'flex';
@@ -2364,6 +2408,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loginOverlay.style.display = 'flex';
     document.getElementById('login-code').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitLoginCode();
+    });
+    document.getElementById('login-code').addEventListener('input', () => {
+      const lnw = document.getElementById('login-name-wrap');
+      if (lnw.style.display !== 'none') {
+        lnw.style.display = 'none';
+        lnw.dataset.mode = '';
+        document.getElementById('login-name').value = '';
+        document.getElementById('login-name-hint').style.display = 'none';
+        document.getElementById('login-error').textContent = '';
+        document.getElementById('login-btn').textContent = 'Valider';
+      }
     });
     document.getElementById('login-name') && document.getElementById('login-name').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitLoginCode();
