@@ -328,7 +328,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   </div>
   <div class="planning-grid">
     <div class="planning-semaine">
-      <h3>Année 1 — Mise en route</h3>
+      <h3>Semaine 1 — Mise en route</h3>
       <div class="jours">
         <div class="jour fond-j" onclick="goToSeance('S1-A')"><div class="jl">Séance A</div><div class="jc">Fond ciblé<span class="gjb">41 min</span></div></div>
         <div class="jour explo-j" onclick="goToSeance('S1-B')"><div class="jl">Séance B</div><div class="jc">Circuit + Explo<span class="gjb">44 min</span></div></div>
@@ -373,7 +373,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
   <!-- S1 -->
   <div class="sg">
-    <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S1</span><span class="sg-title">Année 1 — Mise en route</span><span class="sg-chev">▼</span></div>
+    <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S1</span><span class="sg-title">Semaine 1 — Mise en route</span><span class="sg-chev">▼</span></div>
     <div class="sg-body">
 
       <div class="seance" id="seance-S1-A">
@@ -608,7 +608,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <div class="bloc-section">
             <div class="bloc"><div class="bloc-title">Échauffement (5 min)</div><ul><li>Marche rapide + trot progressif</li></ul></div>
             <div class="bloc"><div class="bloc-title">Activation (3 min 10)</div><ul><li><strong>Équilibre jambe droite</strong> — 20 sec</li><li><strong>Équilibre jambe gauche</strong> — 20 sec</li><li><strong>Sauts jambe droite</strong> — 10 petits sauts</li><li><strong>Sauts jambe gauche</strong> — 10 petits sauts</li><li><strong>Planche</strong> — 30 sec, corps aligné</li><li><strong>Bird dog</strong> — 30 sec, 15 sec chaque côté</li><li><strong>Gainage latéral</strong> — 25 sec chaque côté</li><li><strong>Russian twist léger</strong> — 20 sec, rotation lente et contrôlée</li></ul></div>
-            <div class="bloc"><div class="bloc-title">Fond (38 min)</div><ul><li><strong>22 min footing</strong> — allure régulière</li><li><strong>Fractionné 8 × 30 sec effort / 1 min trottine</strong> — allure nettement plus rapide, chaque phase annoncée</li><li><strong>8 min footing léger</strong> pour terminer</li></ul></div>
+            <div class="bloc"><div class="bloc-title">Fond (38 min)</div><ul><li><strong>22 min footing</strong> — allure régulière</li><li><strong>Fractionné 8 × 30 sec effort / 30 sec trottine</strong> — allure nettement plus rapide, chaque phase annoncée</li><li><strong>8 min footing léger</strong> pour terminer</li></ul></div>
             <div class="bloc"><div class="bloc-title">Retour au calme (7 min)</div><ul><li>Marche + étirements complets</li></ul></div>
             <div class="note-chaleur"><div class="ic">☀️</div><div class="tx">Séance longue — tôt le matin impérative. Alternative : corde 10 min + 22 min fractionné intérieur.</div></div>
             <div class="bloc" data-role="gb"><div class="bloc-title">🔁 Échelle de rythme GB — Échauffement (6 min · S3 rythme rapide)</div><ul>
@@ -1673,7 +1673,7 @@ function buildSessions(role) {
     {type:'exo', name:'Russian twist leger', detail:'Rotation lente et controlee', duration:20},
     {type:'fond', name:'Footing continu', detail: gb ? '17 min 46s allure reguliere' : '22 min allure reguliere', duration: gb ? 1066 : 1320},
     {type:'info', name:'Fin du footing', detail:'', duration:4},
-    ...cardioInter(8, 30, 20, ['Fractionne'], 'Trottine'),
+    ...cardioInter(8, 30, 30, ['Fractionne'], 'Trottine'),
     {type:'fond', name:'Footing leger', detail:'8 min pour terminer', duration:480},
     ...(gb ? [
       {type:'info', name:'Echelle de rythme GB', detail:'6 variantes · 2 passages · S3 rythme rapide · recup 20 sec entre variantes', duration:4},
