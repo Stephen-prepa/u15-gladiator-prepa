@@ -328,7 +328,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   </div>
   <div class="planning-grid">
     <div class="planning-semaine">
-      <h3>Semaine 1 — Mise en route</h3>
+      <h3>Année 1 — Mise en route</h3>
       <div class="jours">
         <div class="jour fond-j" onclick="goToSeance('S1-A')"><div class="jl">Séance A</div><div class="jc">Fond ciblé<span class="gjb">41 min</span></div></div>
         <div class="jour explo-j" onclick="goToSeance('S1-B')"><div class="jl">Séance B</div><div class="jc">Circuit + Explo<span class="gjb">44 min</span></div></div>
@@ -373,7 +373,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
   <!-- S1 -->
   <div class="sg">
-    <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S1</span><span class="sg-title">Semaine 1 — Mise en route</span><span class="sg-chev">▼</span></div>
+    <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S1</span><span class="sg-title">Année 1 — Mise en route</span><span class="sg-chev">▼</span></div>
     <div class="sg-body">
 
       <div class="seance" id="seance-S1-A">
@@ -637,8 +637,8 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <button class="btn-demarrer" onclick="launchSession('S3-B')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">50:00</span></button>
           <div class="bloc-section">
             <div class="circuit-warmup"><div class="cw-title">🔥 Échauffement — Circuit cardio (10 min · 2 tours · 1 min/ex)</div><ul><li><strong>Corde à sauter</strong> — 1 min</li><li><strong>Montées de genoux</strong> — 1 min</li><li><strong>Pas chassés latéraux</strong> — 1 min</li><li><strong>Talons-fesses</strong> — 1 min</li><li><strong>Squats sautés légers</strong> — 1 min</li><li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li></ul></div>
-            <div class="bloc" data-role="joueur"><div class="bloc-title">Explosivité — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés × 8</strong></li><li><strong>Fentes sautées × 10</strong> — 5 par jambe</li><li><strong>Démarrages explosifs × 6</strong> — positions variées</li><li><strong>Sauts latéraux × 10</strong> — pieds joints, le plus loin possible</li></ul></div>
-            <div class="bloc" data-role="gb"><div class="bloc-title">Explosivité GB — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés bras hauts × 8</strong></li><li><strong>Fentes latérales explosives × 10</strong> — 5 par côté</li><li><strong>Départs réactifs ligne de but × 6</strong> — positions variées</li><li><strong>Sauts latéraux amplitude max × 10</strong> — pieds joints, le plus loin possible</li></ul></div>
+            <div class="bloc" data-role="joueur"><div class="bloc-title">Explosivité — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés × 8</strong></li><li><strong>Fentes sautées × 10</strong> — 5 par jambe</li><li><strong>Démarrages explosifs × 6</strong> — positions variées</li><li><strong>Skater jumps légers</strong> — pieds joints, le plus loin possible</li></ul></div>
+            <div class="bloc" data-role="gb"><div class="bloc-title">Explosivité GB — 4 séries · récup 90 sec</div><ul><li><strong>Squats sautés bras hauts × 8</strong></li><li><strong>Fentes latérales explosives × 10</strong> — 5 par côté</li><li><strong>Départs réactifs ligne de but × 6</strong> — positions variées</li><li><strong>Skater jumps amplitude max</strong> — pieds joints, le plus loin possible</li></ul></div>
             <div class="bloc" data-role="joueur"><div class="bloc-title">Gainage dynamique — 4 tours · repos 45 sec</div><ul><li><strong>Planche + toucher épaule</strong> — 45 sec</li><li><strong>Bear crawl</strong> — 45 sec</li><li><strong>Mountain climbers lents</strong> — 45 sec</li><li><strong>Gainage latéral avec rotation</strong> — 35 sec chaque côté</li></ul></div>
             <div class="bloc" data-role="gb"><div class="bloc-title">Gainage dynamique GB — 4 tours · repos 45 sec</div><ul><li><strong>Planche extension bras alternée</strong> — 45 sec</li><li><strong>Bear crawl latéral</strong> — 45 sec</li><li><strong>Gainage latéral rotation bras tendu</strong> — 35 sec chaque côté</li></ul></div>
             <div class="bloc"><div class="bloc-title">Retour au calme (5 min)</div><ul><li>Marche + étirements complets</li></ul></div>
@@ -1466,7 +1466,7 @@ const GDyn_S4_GB = [['Planche extension bras alternee',40],['T',3],['Bear crawl 
 
 const Explo_S1_GB = [['Squats sautes bras hauts x5','Extension complete des bras en l\'air',38],['Fentes laterales explosives x6','3 par cote, appui-poussee',35],['Departs reactifs ligne de but x4','Signal sonore, 2-3m gauche/droite',33]];
 const Explo_S2_GB = [['Squats sautes bras hauts x6','Focus rebond au sol',44],['Fentes laterales explosives x8','4 par cote',42],['Departs reactifs ligne de but x5','Varier les positions',40],['Sauts pieds joints largeur cage x10','Reperes au sol',32]];
-const Explo_S3_GB = [['Squats sautes bras hauts x8','',46],['Fentes laterales explosives x10','5 par cote',46],['Departs reactifs ligne de but x6','Positions variees',42],['Sauts lateraux amplitude max x10','Pieds joints, le plus loin',36]];
+const Explo_S3_GB = [['Squats sautes bras hauts x8','',46],['Fentes laterales explosives x10','5 par cote',46],['Departs reactifs ligne de but x6','Positions variees',42],['Skater jumps amplitude max','Pieds joints, le plus loin',36]];
 const Explo_S4_GB = [['Squats sautes bras hauts x6','',38],['Fentes laterales explosives x8','4 par cote — maintien',36],['Departs reactifs ligne de but x4','',33]];
 
 const RG_S1_GB = [
