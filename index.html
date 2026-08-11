@@ -1149,23 +1149,64 @@ function getOrCreateDeviceToken() {
   return appState.deviceToken;
 }
 async function sbPushCompletion(sessionId, difficulty) {
-  if (!appState.playerCode) return;
+  if (!appState.playerCode) return true;
   try {
     const body = { player_code: appState.playerCode, session_id: sessionId };
     if (difficulty !== undefined) body.difficulty = difficulty || null;
-    await fetch(SB_URL + '/rest/v1/completions?on_conflict=player_code,session_id', {
+    const res = await fetch(SB_URL + '/rest/v1/completions?on_conflict=player_code,session_id', {
       method: 'POST',
       headers: { ...SB_HEADERS, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
       body: JSON.stringify(body),
     });
-  } catch(e) {}
+    if (!res.ok) { queuePendingSync(sessionId, difficulty); return false; }
+    markSynced(sessionId);
+    return true;
+  } catch(e) { queuePendingSync(sessionId, difficulty); return false; }
+}
+function queuePendingSync(sessionId, difficulty) {
+  const key = pk('pendingSync');
+  const q = appState[key] || {};
+  q[sessionId] = difficulty !== undefined ? difficulty : (q[sessionId] || null);
+  appState[key] = q;
+  saveState();
+}
+function markSynced(sessionId) {
+  const key = pk('pendingSync');
+  if (appState[key] && appState[key][sessionId] !== undefined) {
+    delete appState[key][sessionId];
+    saveState();
+  }
+}
+async function flushPendingSync() {
+  if (!appState.playerCode || !navigator.onLine) return;
+  // 1) Rejoue les envois qui avaient echoue
+  const key = pk('pendingSync');
+  const q = appState[key] || {};
+  for (const sessionId of Object.keys(q)) {
+    await sbPushCompletion(sessionId, q[sessionId] === null ? undefined : q[sessionId]);
+  }
+  // 2) Filet de securite : toute seance marquee faite localement mais jamais confirmee synchronisee
+  const donePrefix = pk('done_');
+  const syncedKey = pk('confirmedSynced');
+  const confirmed = appState[syncedKey] || {};
+  for (const k of Object.keys(appState)) {
+    if (!k.startsWith(donePrefix)) continue;
+    const sessionId = k.slice(donePrefix.length);
+    if (!confirmed[sessionId]) {
+      const ok = await sbPushCompletion(sessionId);
+      if (ok) { confirmed[sessionId] = true; appState[syncedKey] = confirmed; saveState(); }
+    }
+  }
 }
 async function sbPullCompletions(code) {
   try {
     const res = await fetch(SB_URL + '/rest/v1/completions?player_code=eq.' + encodeURIComponent(code) + '&select=session_id', { headers: SB_HEADERS });
     if (!res.ok) return;
     const rows = await res.json();
-    rows.forEach(r => { appState[pk('done_' + r.session_id)] = true; });
+    const syncedKey = pk('confirmedSynced');
+    const confirmed = appState[syncedKey] || {};
+    rows.forEach(r => { appState[pk('done_' + r.session_id)] = true; confirmed[r.session_id] = true; });
+    appState[syncedKey] = confirmed;
     saveState();
   } catch(e) {}
 }
@@ -2401,6 +2442,7 @@ if ('serviceWorker' in navigator) {
     window.location.reload();
   });
 }
+window.addEventListener('online', () => { flushPendingSync(); });
 
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -2419,6 +2461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sbPullCompletions(appState.playerCode).then(() => {
       refreshDoneBadges();
       updateGlobalProgress();
+      flushPendingSync();
     });
   } else {
     loginOverlay.style.display = 'flex';
