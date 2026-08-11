@@ -1225,6 +1225,7 @@ async function submitLoginCode() {
       nameWrap.dataset.mode = '';
       hintEl.style.display = 'none';
       saveState();
+      sbSyncRole(appState.role || 'joueur');
       await sbPullCompletions(code);
       document.getElementById('login-overlay').style.display = 'none';
       refreshDoneBadges();
@@ -1259,6 +1260,7 @@ async function submitLoginCode() {
     }
     appState.playerCode = code;
     saveState();
+    sbSyncRole(appState.role || 'joueur');
     await sbPullCompletions(code);
     document.getElementById('login-overlay').style.display = 'none';
     refreshDoneBadges();
@@ -2212,7 +2214,7 @@ async function loadCoachData() {
   wrap.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gris-texte);">Chargement...</div>';
   try {
     const [pRes, cRes] = await Promise.all([
-      fetch(SB_URL + '/rest/v1/players?select=code,name,claimed_at,device_token&order=name', { headers: SB_HEADERS }),
+      fetch(SB_URL + '/rest/v1/players?select=code,name,claimed_at,device_token,role&order=name', { headers: SB_HEADERS }),
       fetch(SB_URL + '/rest/v1/completions?select=player_code,session_id,completed_at,difficulty', { headers: SB_HEADERS }),
     ]);
     const players = await pRes.json();
@@ -2233,6 +2235,7 @@ async function loadCoachData() {
       code: p.code,
       name: p.name,
       claimed: !!p.claimed_at,
+      role: p.role || 'joueur',
       done: doneByCode[p.code] || 0,
       lastActivity: lastByCode[p.code] || null,
       sessions: sessionsByCode[p.code] || [],
@@ -2251,12 +2254,14 @@ function renderCoachCards() {
   const totalDone = coachPlayers.reduce((s, p) => s + p.done, 0);
   const avgPct = claimed.length ? Math.round(claimed.reduce((s, p) => s + p.done / COACH_TOTAL_SESSIONS, 0) / claimed.length * 100) : 0;
   const notStarted = claimed.filter(p => p.done === 0).length;
+  const gbCount = claimed.filter(p => p.role === 'gb').length;
 
   document.getElementById('coach-cards').innerHTML = `
     <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--jaune);">${claimed.length}/${coachPlayers.length}</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Codes réclamés</div></div>
     <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--jaune);">${totalDone}</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Séances complétées</div></div>
     <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--jaune);">${avgPct}%</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Progression moyenne</div></div>
     <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--jaune);">${notStarted}</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Inscrits sans séance</div></div>
+    <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:26px;font-weight:800;color:#5dade2;">${gbCount}</div><div style="font-size:11px;color:var(--gris-texte);margin-top:4px;text-transform:uppercase;">Gardiens</div></div>
     <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;text-align:center;grid-column:1/-1;">
       <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;text-transform:uppercase;">Ressenti des séances notées</div>
       <div style="display:flex;justify-content:center;gap:22px;font-size:14px;font-weight:700;color:var(--gris-clair);">
@@ -2288,7 +2293,7 @@ function renderCoachTable() {
       return `<span style="display:inline-block;padding:4px 9px;margin:2px;border-radius:6px;font-size:11px;font-weight:700;font-family:monospace;${done ? 'background:rgba(46,204,113,0.15);color:#2ecc71;' : 'background:rgba(255,255,255,0.05);color:var(--gris-texte);'}">${done ? '✓ ' : ''}${sid}${emoji}</span>`;
     }).join('');
     return `<tr onclick="toggleCoachDetail('${rowId}')" style="cursor:pointer;">
-      <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-weight:700;color:var(--blanc);">${p.name || '<em style="color:#8a97ad;font-weight:400;">Non réclamé</em>'}</td>
+      <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-weight:700;color:var(--blanc);">${p.name || '<em style="color:#8a97ad;font-weight:400;">Non réclamé</em>'}${p.role === 'gb' ? ' <span style="display:inline-block;padding:1px 6px;margin-left:4px;border-radius:10px;font-size:9px;font-weight:800;background:rgba(52,152,219,0.18);color:#5dade2;vertical-align:middle;">GB</span>' : ''}</td>
       <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-family:monospace;color:var(--gris-texte);font-size:11px;">${p.code}</td>
       <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;${p.claimed ? 'background:rgba(46,204,113,0.15);color:#2ecc71;' : 'background:rgba(255,255,255,0.08);color:var(--gris-texte);'}">${p.claimed ? 'Verrouillé' : 'Libre'}</span></td>
       <td style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,0.05);min-width:110px;">
@@ -2327,6 +2332,17 @@ function setRole(role) {
   appState.role = role;
   saveState();
   applyRole();
+  sbSyncRole(role);
+}
+async function sbSyncRole(role) {
+  if (!appState.playerCode) return;
+  try {
+    await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(appState.playerCode), {
+      method: 'PATCH',
+      headers: { ...SB_HEADERS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role }),
+    });
+  } catch (e) { /* pas grave, se resynchronisera au prochain changement de role */ }
 }
 function applyRole() {
   const role = appState.role || 'joueur';
