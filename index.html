@@ -253,6 +253,35 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 </head>
 <body>
 
+<!-- ECRAN D'ACCUEIL -->
+<div id="screen-home" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+  <div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gris-texte);margin-bottom:6px;">Clermont Salagou HBC · U15</div>
+  <h1 style="font-size:26px;font-weight:900;color:var(--blanc);margin-bottom:36px;">Bienvenue</h1>
+
+  <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;">
+    <button onclick="enterApp('planning')" style="display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:var(--gris-fonce);cursor:pointer;">
+      <span style="font-size:28px;">🏋️</span>
+      <span>
+        <span style="display:block;font-size:15px;font-weight:800;color:var(--blanc);">Prépa estivale</span>
+        <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Séances, progression, conseils</span>
+      </span>
+    </button>
+    <button id="home-btn-coachs" onclick="enterApp('coachs2')" style="display:none;align-items:center;gap:14px;text-align:left;width:100%;padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:var(--gris-fonce);cursor:pointer;">
+      <span style="font-size:28px;">👥</span>
+      <span>
+        <span style="display:block;font-size:15px;font-weight:800;color:var(--blanc);">Coachs</span>
+        <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Présences, statistiques, évaluations</span>
+      </span>
+    </button>
+  </div>
+</div>
+
+<div id="screen-app" style="display:none;">
+
+<div style="padding:10px 16px 0;">
+  <button onclick="goHome()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;">← Accueil</button>
+</div>
+
 <div class="header">
   <div class="club">Clermont Salagou HBC · U15</div>
   <h1>PRÉPA<br><span>ESTIVALE</span></h1>
@@ -315,7 +344,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   <button class="tab" onclick="switchTab('seances',this)">Les séances</button>
   <button class="tab" onclick="switchTab('conseils',this)">Conseils</button>
   <button class="tab" id="tab-coach" onclick="switchTab('coach',this)" style="display:none;">🔒 Coach</button>
-  <button class="tab" id="tab-coachs2" onclick="switchTab('coachs2',this)" style="display:none;">👥 Coachs</button>
 </div>
 
 <div class="content">
@@ -904,6 +932,8 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 </div>
 
 </div><!-- end content -->
+
+</div><!-- end screen-app -->
 
 
 <!-- LOGIN GATE -->
@@ -2306,15 +2336,32 @@ function isCoachSpaceUnlocked() {
   return new Date() >= COACH_SPACE_ACTIVATION || isCoachSpacePreview();
 }
 
+function goHome() {
+  document.getElementById('screen-app').style.display = 'none';
+  document.getElementById('screen-home').style.display = 'flex';
+  document.getElementById('login-overlay').style.display = 'none';
+}
+function enterApp(tabName) {
+  document.getElementById('screen-home').style.display = 'none';
+  document.getElementById('screen-app').style.display = 'block';
+  const el = document.getElementById('tab-' + tabName) ||
+    Array.from(document.querySelectorAll('.tabs button')).find(b => b.getAttribute('onclick') === `switchTab('${tabName}',this)`);
+  switchTab(tabName, el);
+  if (tabName !== 'coachs2' && !appState.playerCode) {
+    document.getElementById('login-overlay').style.display = 'flex';
+  }
+}
+
 function updateCoachs2TabVisibility() {
-  const tab = document.getElementById('tab-coachs2');
-  if (!tab) return;
+  const homeBtn = document.getElementById('home-btn-coachs');
+  if (!homeBtn) return;
   if (isCoachSpaceUnlocked()) {
-    tab.style.display = 'inline-block';
+    homeBtn.style.display = 'flex';
   } else {
-    tab.style.display = 'none';
-    const panel = document.getElementById('panel-coachs2');
-    if (panel && panel.classList.contains('active')) switchTab('planning');
+    homeBtn.style.display = 'none';
+    if (document.getElementById('panel-coachs2') && document.getElementById('panel-coachs2').classList.contains('active')) {
+      goHome();
+    }
   }
 }
 
@@ -2891,34 +2938,36 @@ document.addEventListener('DOMContentLoaded', () => {
   if (first) { first.nextElementSibling.classList.add('open'); first.querySelector('.sg-chev').classList.add('open'); }
 
   const loginOverlay = document.getElementById('login-overlay');
+  loginOverlay.style.display = 'none';
+  if (!isCoachSpaceUnlocked()) {
+    // Avant le 17 aout : comportement d'origine, on saute l'accueil et on entre direct dans la prepa
+    enterApp('planning');
+  }
   if (appState.playerCode) {
-    loginOverlay.style.display = 'none';
     showWhoAmI();
     sbPullCompletions(appState.playerCode).then(() => {
       refreshDoneBadges();
       updateGlobalProgress();
       flushPendingSync();
     });
-  } else {
-    loginOverlay.style.display = 'flex';
-    document.getElementById('login-code').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') submitLoginCode();
-    });
-    document.getElementById('login-code').addEventListener('input', () => {
-      const lnw = document.getElementById('login-name-wrap');
-      if (lnw.style.display !== 'none') {
-        lnw.style.display = 'none';
-        lnw.dataset.mode = '';
-        document.getElementById('login-name').value = '';
-        document.getElementById('login-name-hint').style.display = 'none';
-        document.getElementById('login-error').textContent = '';
-        document.getElementById('login-btn').textContent = 'Valider';
-      }
-    });
+  }
+  document.getElementById('login-code').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitLoginCode();
+  });
+  document.getElementById('login-code').addEventListener('input', () => {
+    const lnw = document.getElementById('login-name-wrap');
+    if (lnw.style.display !== 'none') {
+      lnw.style.display = 'none';
+      lnw.dataset.mode = '';
+      document.getElementById('login-name').value = '';
+      document.getElementById('login-name-hint').style.display = 'none';
+      document.getElementById('login-error').textContent = '';
+      document.getElementById('login-btn').textContent = 'Valider';
+    }
+  });
     document.getElementById('login-name') && document.getElementById('login-name').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitLoginCode();
     });
-  }
 });
 </script>
 </body>
