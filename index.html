@@ -315,6 +315,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   <button class="tab" onclick="switchTab('seances',this)">Les séances</button>
   <button class="tab" onclick="switchTab('conseils',this)">Conseils</button>
   <button class="tab" id="tab-coach" onclick="switchTab('coach',this)" style="display:none;">🔒 Coach</button>
+  <button class="tab" id="tab-coachs2" onclick="switchTab('coachs2',this)" style="display:none;">👥 Coachs</button>
 </div>
 
 <div class="content">
@@ -852,6 +853,53 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
       style="width:100%;background:var(--gris-fonce);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--blanc);font-size:14px;margin-bottom:14px;">
 
     <div id="coach-table-wrap"><div style="text-align:center;padding:40px;color:var(--gris-texte);">Chargement...</div></div>
+  </div>
+</div>
+
+<!-- ESPACE COACHS (Supabase Auth — actif a partir du 17/08, ou via ?coach=preview) -->
+<div class="tab-panel" id="panel-coachs2">
+  <div style="padding:16px;max-width:420px;margin:0 auto;">
+
+    <div id="coachs2-login" style="display:none;">
+      <h2 style="font-size:18px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Espace coachs</h2>
+      <div style="font-size:12px;color:var(--gris-texte);margin-bottom:18px;">Évaluations, objectifs, présences — accès aux 4 coachs</div>
+      <div id="coachs2-namepick" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
+      <input type="password" id="coachs2-password" class="login-input" placeholder="Mot de passe" autocomplete="off" style="width:100%;box-sizing:border-box;margin-bottom:10px;">
+      <button id="coachs2-login-btn" onclick="coachAuthLogin()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Se connecter</button>
+      <div id="coachs2-login-error" style="color:#e74c3c;font-size:13px;margin-top:10px;min-height:16px;"></div>
+    </div>
+
+    <div id="coachs2-app" style="display:none;">
+      <h2 style="font-size:18px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Bonjour <span id="coachs2-name"></span> 👋</h2>
+      <div style="font-size:12px;color:var(--gris-texte);margin-bottom:14px;">Objectifs et évaluations arrivent bientôt ici.</div>
+
+      <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-bottom:16px;">
+        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">📋 Présences</h3>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <button onclick="presenceShiftDay(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
+          <input type="date" id="presence-date" class="login-input" style="flex:1;margin:0;" onchange="presenceDateChanged()">
+          <button onclick="presenceShiftDay(1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">→</button>
+        </div>
+        <div id="presence-daywarn" style="font-size:12px;color:#e74c3c;margin-bottom:10px;display:none;">Ce n'est pas un jour d'entraînement prévu (Lun/Mer/Ven jusqu'au 31/08, puis Lun/Mer). Tu peux quand même enregistrer si c'est une séance exceptionnelle.</div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
+          <button onclick="presenceMarkAll('present')" style="background:none;border:1px solid rgba(46,204,113,0.4);color:#2ecc71;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;">Tout présent</button>
+        </div>
+        <div id="presence-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+        <button onclick="presenceSave()" id="presence-save-btn" style="width:100%;margin-top:12px;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
+        <div id="presence-save-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
+      </div>
+
+      <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin:0;">📊 Statistiques</h3>
+          <button onclick="statsLoad()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">↻ Actualiser</button>
+        </div>
+        <div id="stats-wrap"><div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Charge après le premier enregistrement de présences.</div></div>
+      </div>
+
+      <button onclick="coachAuthLogout()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;">Se déconnecter</button>
+    </div>
+
   </div>
 </div>
 
@@ -2232,7 +2280,391 @@ function initInstallBanner() {
   // Android/Chrome case is handled by the beforeinstallprompt listener above
 }
 
-// ===================== TABLEAU DE BORD COACH (visible uniquement pour COACHTEST) =====================
+// ===================== ESPACE COACHS (Supabase Auth) =====================
+const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
+const COACH_LOGINS = [
+  { login: 'stephen', name: 'Stephen' },
+  { login: 'sandrine', name: 'Sandrine' },
+  { login: 'arthur', name: 'Arthur' },
+  { login: 'nicolas', name: 'Nicolas' },
+];
+const CSK = 'hbccs_coach_session'; // localStorage key, distinct from player appState
+let coachSession = null;
+let coachAuthSelectedLogin = null;
+
+function loadCoachSession() {
+  try { coachSession = JSON.parse(localStorage.getItem(CSK) || 'null'); } catch(e) { coachSession = null; }
+}
+function saveCoachSession() {
+  try { localStorage.setItem(CSK, JSON.stringify(coachSession)); } catch(e) {}
+}
+
+function isCoachSpacePreview() {
+  return new URLSearchParams(window.location.search).get('coach') === 'preview';
+}
+function isCoachSpaceUnlocked() {
+  return new Date() >= COACH_SPACE_ACTIVATION || isCoachSpacePreview();
+}
+
+function updateCoachs2TabVisibility() {
+  const tab = document.getElementById('tab-coachs2');
+  if (!tab) return;
+  if (isCoachSpaceUnlocked()) {
+    tab.style.display = 'inline-block';
+  } else {
+    tab.style.display = 'none';
+    const panel = document.getElementById('panel-coachs2');
+    if (panel && panel.classList.contains('active')) switchTab('planning');
+  }
+}
+
+function renderCoachNamePicker() {
+  const wrap = document.getElementById('coachs2-namepick');
+  wrap.innerHTML = COACH_LOGINS.map(c =>
+    `<button type="button" data-login="${c.login}" onclick="pickCoachLogin('${c.login}')"
+      style="padding:8px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:var(--gris-fonce);color:var(--gris-clair);font-size:13px;cursor:pointer;">${c.name}</button>`
+  ).join('');
+  pickCoachLogin(COACH_LOGINS[0].login);
+}
+function pickCoachLogin(login) {
+  coachAuthSelectedLogin = login;
+  document.querySelectorAll('#coachs2-namepick button').forEach(b => {
+    const active = b.dataset.login === login;
+    b.style.background = active ? 'var(--jaune)' : 'var(--gris-fonce)';
+    b.style.color = active ? '#1a1a1a' : 'var(--gris-clair)';
+    b.style.fontWeight = active ? '800' : '400';
+  });
+  document.getElementById('coachs2-login-error').textContent = '';
+}
+
+function renderCoachs2View() {
+  const isIn = !!(coachSession && coachSession.access_token);
+  document.getElementById('coachs2-login').style.display = isIn ? 'none' : 'block';
+  document.getElementById('coachs2-app').style.display = isIn ? 'block' : 'none';
+  if (isIn) {
+    document.getElementById('coachs2-name').textContent = coachSession.name || '';
+    presenceInit();
+    statsLoad();
+  } else {
+    renderCoachNamePicker();
+  }
+}
+
+// ---------- Presences ----------
+const PRESENCE_STATUSES = [
+  { key: 'present', label: 'Présent', color: '#2ecc71' },
+  { key: 'absent', label: 'Absent', color: '#e74c3c' },
+  { key: 'excuse', label: 'Excusé', color: '#f39c12' },
+  { key: 'retard', label: 'Retard', color: '#3498db' },
+];
+let presenceRoster = []; // [{code, name}]
+let presenceMarks = {};  // { code: status }
+let presenceInited = false;
+
+function dateStr(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function isTrainingDay(d) {
+  const day = d.getDay(); // 0=dim ... 1=lun, 3=mer, 5=ven
+  const cutoff = new Date('2026-08-31T23:59:59');
+  if (d <= cutoff) return day === 1 || day === 3 || day === 5;
+  return day === 1 || day === 3;
+}
+function nextTrainingDayOnOrAfter(d) {
+  const copy = new Date(d);
+  for (let i = 0; i < 14; i++) {
+    if (isTrainingDay(copy)) return copy;
+    copy.setDate(copy.getDate() + 1);
+  }
+  return d;
+}
+
+function presenceInit() {
+  if (presenceInited) return;
+  presenceInited = true;
+  const start = new Date('2026-08-17T00:00:00');
+  const today = new Date();
+  const base = today < start ? start : today;
+  const d = isTrainingDay(base) ? base : nextTrainingDayOnOrAfter(base);
+  document.getElementById('presence-date').value = dateStr(d);
+  presenceLoadRoster();
+}
+function presenceShiftDay(delta) {
+  const input = document.getElementById('presence-date');
+  const d = new Date(input.value + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  input.value = dateStr(d);
+  presenceDateChanged();
+}
+function presenceDateChanged() {
+  const input = document.getElementById('presence-date');
+  const d = new Date(input.value + 'T00:00:00');
+  document.getElementById('presence-daywarn').style.display = isTrainingDay(d) ? 'none' : 'block';
+  presenceLoadExisting();
+}
+
+async function presenceLoadRoster() {
+  document.getElementById('presence-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Chargement...</div>';
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    const rows = await res.json();
+    presenceRoster = rows.filter(p => p.code !== 'COACHTEST' && p.name);
+  } catch (e) { presenceRoster = []; }
+  presenceDateChanged();
+}
+
+async function presenceLoadExisting() {
+  const input = document.getElementById('presence-date');
+  presenceMarks = {};
+  try {
+    const sess = await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/presences?select=player_code,status&session_date=eq.' + input.value, {
+      headers: coachAuthHeaders(),
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      rows.forEach(r => { presenceMarks[r.player_code] = r.status; });
+    }
+  } catch (e) {}
+  presenceRenderList();
+}
+
+function presenceRenderList() {
+  const wrap = document.getElementById('presence-list');
+  if (!presenceRoster.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Aucun joueur avec un code réclamé.</div>';
+    return;
+  }
+  wrap.innerHTML = presenceRoster.map(p => {
+    const current = presenceMarks[p.code] || null;
+    const btns = PRESENCE_STATUSES.map(s => {
+      const active = current === s.key;
+      return `<button type="button" onclick="presenceSetMark('${p.code}','${s.key}')"
+        style="flex:1;padding:6px 4px;border-radius:6px;border:1px solid ${active ? s.color : 'rgba(255,255,255,0.12)'};background:${active ? s.color : 'transparent'};color:${active ? '#1a1a1a' : 'var(--gris-clair)'};font-size:11px;font-weight:${active ? '800':'400'};cursor:pointer;">${s.label}</button>`;
+    }).join('');
+    return `<div style="background:var(--gris-fonce);border-radius:8px;padding:8px 10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--blanc);margin-bottom:6px;">${p.name}</div>
+      <div style="display:flex;gap:6px;">${btns}</div>
+    </div>`;
+  }).join('');
+}
+function presenceSetMark(code, status) {
+  presenceMarks[code] = presenceMarks[code] === status ? null : status;
+  if (presenceMarks[code] === null) delete presenceMarks[code];
+  presenceRenderList();
+}
+function presenceMarkAll(status) {
+  presenceRoster.forEach(p => { presenceMarks[p.code] = status; });
+  presenceRenderList();
+}
+
+async function presenceSave() {
+  const input = document.getElementById('presence-date');
+  const msgEl = document.getElementById('presence-save-msg');
+  const btn = document.getElementById('presence-save-btn');
+  const entries = Object.keys(presenceMarks);
+  if (!entries.length) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Marque au moins un joueur avant d\'enregistrer.'; return; }
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
+  try {
+    await ensureCoachSession();
+    const rows = entries.map(code => ({
+      player_code: code,
+      session_date: input.value,
+      status: presenceMarks[code],
+      created_by: coachSession ? coachSession.id : null,
+    }));
+    const res = await fetch(SB_URL + '/rest/v1/presences?on_conflict=player_code,session_date', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify(rows),
+    });
+    if (!res.ok) throw new Error('save failed');
+    msgEl.style.color = '#2ecc71';
+    msgEl.textContent = 'Présences enregistrées ✓';
+    statsLoad();
+  } catch (e) {
+    msgEl.style.color = '#e74c3c';
+    msgEl.textContent = 'Erreur — vérifie ta connexion et réessaie.';
+  }
+  btn.disabled = false; btn.textContent = 'Enregistrer';
+}
+
+// ---------- Statistiques (SVG natif, pas de dependance externe) ----------
+async function statsLoad() {
+  const wrap = document.getElementById('stats-wrap');
+  wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
+  try {
+    await ensureCoachSession();
+    const [presRes, playersRes] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/presences?select=player_code,status,session_date&order=session_date', { headers: coachAuthHeaders() }),
+      fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null', { headers: SB_HEADERS }),
+    ]);
+    if (!presRes.ok) throw new Error('load failed');
+    const pres = await presRes.json();
+    const players = await playersRes.json();
+    const nameByCode = {};
+    players.forEach(p => { nameByCode[p.code] = p.name; });
+
+    if (!pres.length) {
+      wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Aucune présence enregistrée pour le moment.</div>';
+      return;
+    }
+
+    // Par joueur : taux de presence
+    const byPlayer = {};
+    pres.forEach(r => {
+      if (!byPlayer[r.player_code]) byPlayer[r.player_code] = { total: 0, present: 0 };
+      byPlayer[r.player_code].total++;
+      if (r.status === 'present' || r.status === 'retard') byPlayer[r.player_code].present++;
+    });
+    const playerRows = Object.keys(byPlayer)
+      .map(code => ({ code, name: nameByCode[code] || code, ...byPlayer[code], rate: Math.round(byPlayer[code].present / byPlayer[code].total * 100) }))
+      .sort((a, b) => b.rate - a.rate);
+
+    // Par date : taux global
+    const byDate = {};
+    pres.forEach(r => {
+      if (!byDate[r.session_date]) byDate[r.session_date] = { total: 0, present: 0 };
+      byDate[r.session_date].total++;
+      if (r.status === 'present' || r.status === 'retard') byDate[r.session_date].present++;
+    });
+    const dateRows = Object.keys(byDate).sort().map(d => ({
+      date: d, rate: Math.round(byDate[d].present / byDate[d].total * 100),
+    }));
+
+    const globalRate = Math.round(pres.filter(r => r.status === 'present' || r.status === 'retard').length / pres.length * 100);
+
+    wrap.innerHTML = `
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <div style="flex:1;background:var(--noir);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:22px;font-weight:800;color:var(--jaune);">${globalRate}%</div><div style="font-size:10px;color:var(--gris-texte);text-transform:uppercase;">Assiduité globale</div></div>
+        <div style="flex:1;background:var(--noir);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:22px;font-weight:800;color:var(--jaune);">${dateRows.length}</div><div style="font-size:10px;color:var(--gris-texte);text-transform:uppercase;">Séances pointées</div></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Taux de présence par joueur</div>
+      ${svgBarChartHorizontal(playerRows.map(p => ({ label: p.name, value: p.rate })))}
+      <div style="font-size:11px;font-weight:700;color:var(--gris-texte);text-transform:uppercase;margin:16px 0 8px;">Évolution de l'assiduité globale</div>
+      ${svgLineChart(dateRows.map(d => ({ label: d.date.slice(5), value: d.rate })))}
+    `;
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:20px;color:#e74c3c;font-size:12px;">Erreur de chargement des statistiques.</div>';
+  }
+}
+
+function svgBarChartHorizontal(data) {
+  if (!data.length) return '<div style="color:var(--gris-texte);font-size:12px;">Pas de données.</div>';
+  const rowH = 26, w = 300, h = data.length * rowH + 10;
+  const bars = data.map((d, i) => {
+    const y = i * rowH + 4;
+    const barW = Math.max(2, d.value / 100 * 190);
+    const color = d.value >= 80 ? '#2ecc71' : d.value >= 50 ? '#f39c12' : '#e74c3c';
+    return `<text x="0" y="${y+13}" font-size="11" fill="#c9d1e0">${escapeSvgText(d.label)}</text>
+      <rect x="100" y="${y}" width="190" height="16" rx="4" fill="rgba(255,255,255,0.06)"></rect>
+      <rect x="100" y="${y}" width="${barW}" height="16" rx="4" fill="${color}"></rect>
+      <text x="${100+190+6}" y="${y+13}" font-size="11" fill="#8a97ad">${d.value}%</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 340 ${h}" width="100%" style="max-width:340px;display:block;margin:0 auto;font-family:inherit;">${bars}</svg>`;
+}
+function svgLineChart(data) {
+  if (data.length < 2) return '<div style="color:var(--gris-texte);font-size:12px;">Pas assez de données pour une courbe (au moins 2 séances).</div>';
+  const w = 300, h = 120, pad = 20;
+  const stepX = (w - pad*2) / (data.length - 1);
+  const pts = data.map((d, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (100 - d.value) / 100 * (h - pad*2);
+    return { x, y, label: d.label, value: d.value };
+  });
+  const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+  const circles = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--jaune)"></circle>`).join('');
+  const labels = pts.filter((_, i) => i === 0 || i === pts.length-1 || i % Math.ceil(pts.length/5) === 0)
+    .map(p => `<text x="${p.x.toFixed(1)}" y="${h-4}" font-size="9" fill="#8a97ad" text-anchor="middle">${escapeSvgText(p.label)}</text>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:340px;display:block;margin:0 auto;">
+    <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h-pad}" stroke="rgba(255,255,255,0.1)"></line>
+    <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="rgba(255,255,255,0.1)"></line>
+    <path d="${pathD}" fill="none" stroke="var(--jaune)" stroke-width="2"></path>
+    ${circles}${labels}
+  </svg>`;
+}
+function escapeSvgText(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function coachAuthLogin() {
+  const pwInput = document.getElementById('coachs2-password');
+  const errEl = document.getElementById('coachs2-login-error');
+  const btn = document.getElementById('coachs2-login-btn');
+  const login = coachAuthSelectedLogin || COACH_LOGINS[0].login;
+  const pw = pwInput.value;
+  if (!pw) { errEl.textContent = 'Entre ton mot de passe.'; return; }
+  btn.disabled = true; btn.textContent = 'Connexion...';
+  try {
+    const res = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: login + '@hbccs.local', password: pw }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.access_token) {
+      errEl.textContent = 'Mot de passe incorrect.';
+      btn.disabled = false; btn.textContent = 'Se connecter';
+      return;
+    }
+    const coachName = (COACH_LOGINS.find(c => c.login === login) || {}).name || login;
+    coachSession = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+      login, name: coachName,
+      id: data.user && data.user.id,
+    };
+    saveCoachSession();
+    pwInput.value = '';
+    btn.disabled = false; btn.textContent = 'Se connecter';
+    renderCoachs2View();
+  } catch (e) {
+    errEl.textContent = 'Connexion impossible — vérifie ta connexion internet.';
+    btn.disabled = false; btn.textContent = 'Se connecter';
+  }
+}
+
+async function coachAuthLogout() {
+  if (coachSession && coachSession.access_token) {
+    fetch(SB_URL + '/auth/v1/logout', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, Authorization: 'Bearer ' + coachSession.access_token },
+    }).catch(() => {});
+  }
+  coachSession = null;
+  saveCoachSession();
+  presenceInited = false;
+  renderCoachs2View();
+}
+
+// Rafraichit le token si besoin ; a appeler avant toute requete vers les tables coach only
+async function ensureCoachSession() {
+  if (!coachSession || !coachSession.refresh_token) return null;
+  if (coachSession.expires_at - Date.now() > 60000) return coachSession;
+  try {
+    const res = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: coachSession.refresh_token }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.access_token) { coachSession = null; saveCoachSession(); return null; }
+    coachSession.access_token = data.access_token;
+    coachSession.refresh_token = data.refresh_token;
+    coachSession.expires_at = Date.now() + (data.expires_in || 3600) * 1000;
+    if (data.user && data.user.id) coachSession.id = data.user.id;
+    saveCoachSession();
+    return coachSession;
+  } catch (e) { return coachSession; }
+}
+// En-tetes a utiliser pour toute requete REST vers les tables coach only (evaluations, objectifs, presences)
+function coachAuthHeaders() {
+  return { apikey: SB_KEY, Authorization: 'Bearer ' + (coachSession ? coachSession.access_token : SB_KEY) };
+}
+
+
 const COACH_TOTAL_SESSIONS = 12;
 let coachPlayers = [];
 let coachDiffCounts = { facile: 0, correct: 0, dur: 0 };
@@ -2451,6 +2883,10 @@ document.addEventListener('DOMContentLoaded', () => {
   injectExerciseImageIcons();
   updateGlobalProgress();
   refreshDoneBadges();
+  loadCoachSession();
+  updateCoachs2TabVisibility();
+  renderCoachs2View();
+  ensureCoachSession();
   const first = document.querySelector('.sg-header');
   if (first) { first.nextElementSibling.classList.add('open'); first.querySelector('.sg-chev').classList.add('open'); }
 
