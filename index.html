@@ -255,6 +255,14 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   .coachs2-wrap{max-width:900px;}
   .coachs2-grid{grid-template-columns:1fr 1fr;}
 }
+@media (min-width:1100px){
+  .coachs2-wrap{max-width:1200px;padding:24px;}
+  .coachs2-grid{gap:24px;}
+}
+.coachs2-subtabs{display:flex;gap:8px;margin-bottom:12px;}
+@media (min-width:700px){ .coachs2-subtabs{display:none;} }
+.cs-box.cs-hide{display:none;}
+@media (min-width:700px){ .cs-box.cs-hide{display:block;} }
 </style>
 </head>
 <body>
@@ -907,8 +915,13 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
       <h2 style="font-size:18px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Bonjour <span id="coachs2-name"></span> 👋</h2>
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:14px;">Objectifs et évaluations arrivent bientôt ici.</div>
 
+      <div class="coachs2-subtabs">
+        <button type="button" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:12px;cursor:pointer;">📋 Présences</button>
+        <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">📊 Statistiques</button>
+      </div>
+
       <div class="coachs2-grid">
-      <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;">
+      <div class="cs-box" id="cs-box-presence" style="background:var(--gris-fonce);border-radius:10px;padding:14px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">📋 Présences</h3>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <button onclick="presenceShiftDay(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
@@ -924,7 +937,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <div id="presence-save-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
       </div>
 
-      <div style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div class="cs-box" id="cs-box-stats" style="background:var(--gris-fonce);border-radius:10px;padding:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin:0;">📊 Statistiques</h3>
           <button onclick="statsLoad()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">↻ Actualiser</button>
@@ -2394,12 +2407,25 @@ function pickCoachLogin(login) {
   document.getElementById('coachs2-login-error').textContent = '';
 }
 
+function coachSubtabSwitch(name) {
+  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats' };
+  Object.keys(boxes).forEach(key => {
+    document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
+    const btn = document.getElementById('cs-subtab-' + key);
+    const active = key === name;
+    btn.style.border = active ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
+    btn.style.background = active ? 'rgba(255,215,0,0.12)' : 'transparent';
+    btn.style.color = active ? 'var(--jaune)' : 'var(--gris-clair)';
+    btn.style.fontWeight = active ? '800' : '400';
+  });
+}
 function renderCoachs2View() {
   const isIn = !!(coachSession && coachSession.access_token);
   document.getElementById('coachs2-login').style.display = isIn ? 'none' : 'block';
   document.getElementById('coachs2-app').style.display = isIn ? 'block' : 'none';
   if (isIn) {
     document.getElementById('coachs2-name').textContent = coachSession.name || '';
+    coachSubtabSwitch('presence');
     presenceInit();
     statsLoad();
   } else {
