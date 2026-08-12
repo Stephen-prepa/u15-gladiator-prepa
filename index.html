@@ -282,7 +282,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   <button onclick="goHome()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;">← Accueil</button>
 </div>
 
-<div class="header">
+<div id="prepa-chrome"><div class="header">
   <div class="club">Clermont Salagou HBC · U15</div>
   <h1>PRÉPA<br><span>ESTIVALE</span></h1>
   <div class="subtitle">Programme de reconditionnement physique autonome</div>
@@ -337,7 +337,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 <div class="chaleur-banner">
   <div class="ic">☀️</div>
   <div class="tx"><strong>Règle absolue :</strong> toute séance avant 10h ou après 18h30. 500 ml d'eau avant chaque séance.</div>
-</div>
+</div></div><!-- end prepa-chrome -->
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab('planning',this)">Vue d'ensemble</button>
@@ -2344,6 +2344,8 @@ function goHome() {
 function enterApp(tabName) {
   document.getElementById('screen-home').style.display = 'none';
   document.getElementById('screen-app').style.display = 'block';
+  document.getElementById('prepa-chrome').style.display = (tabName === 'coachs2') ? 'none' : 'block';
+  document.querySelector('.tabs').style.display = (tabName === 'coachs2') ? 'none' : 'flex';
   const el = document.getElementById('tab-' + tabName) ||
     Array.from(document.querySelectorAll('.tabs button')).find(b => b.getAttribute('onclick') === `switchTab('${tabName}',this)`);
   switchTab(tabName, el);
@@ -2538,6 +2540,10 @@ async function presenceSave() {
 }
 
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
+let statsPlayerRows = [];
+let statsGlobalCounts = { present: 0, absent: 0, excuse: 0, retard: 0 };
+let statsSelectedCode = null;
+
 async function statsLoad() {
   const wrap = document.getElementById('stats-wrap');
   wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
@@ -2558,78 +2564,113 @@ async function statsLoad() {
       return;
     }
 
-    // Par joueur : taux de presence
     const byPlayer = {};
+    const globalCounts = { present: 0, absent: 0, excuse: 0, retard: 0 };
     pres.forEach(r => {
-      if (!byPlayer[r.player_code]) byPlayer[r.player_code] = { total: 0, present: 0 };
-      byPlayer[r.player_code].total++;
-      if (r.status === 'present' || r.status === 'retard') byPlayer[r.player_code].present++;
+      if (!byPlayer[r.player_code]) byPlayer[r.player_code] = { present: 0, absent: 0, excuse: 0, retard: 0 };
+      if (byPlayer[r.player_code][r.status] !== undefined) byPlayer[r.player_code][r.status]++;
+      if (globalCounts[r.status] !== undefined) globalCounts[r.status]++;
     });
-    const playerRows = Object.keys(byPlayer)
-      .map(code => ({ code, name: nameByCode[code] || code, ...byPlayer[code], rate: Math.round(byPlayer[code].present / byPlayer[code].total * 100) }))
-      .sort((a, b) => b.rate - a.rate);
-
-    // Par date : taux global
-    const byDate = {};
-    pres.forEach(r => {
-      if (!byDate[r.session_date]) byDate[r.session_date] = { total: 0, present: 0 };
-      byDate[r.session_date].total++;
-      if (r.status === 'present' || r.status === 'retard') byDate[r.session_date].present++;
-    });
-    const dateRows = Object.keys(byDate).sort().map(d => ({
-      date: d, rate: Math.round(byDate[d].present / byDate[d].total * 100),
-    }));
-
-    const globalRate = Math.round(pres.filter(r => r.status === 'present' || r.status === 'retard').length / pres.length * 100);
+    statsPlayerRows = Object.keys(byPlayer)
+      .map(code => ({ code, name: nameByCode[code] || code, ...byPlayer[code], total: Object.values(byPlayer[code]).reduce((a,b)=>a+b,0) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    statsGlobalCounts = globalCounts;
+    if (!statsSelectedCode || !statsPlayerRows.find(p => p.code === statsSelectedCode)) {
+      statsSelectedCode = statsPlayerRows[0].code;
+    }
 
     wrap.innerHTML = `
-      <div style="display:flex;gap:10px;margin-bottom:16px;">
-        <div style="flex:1;background:var(--noir);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:22px;font-weight:800;color:var(--jaune);">${globalRate}%</div><div style="font-size:10px;color:var(--gris-texte);text-transform:uppercase;">Assiduité globale</div></div>
-        <div style="flex:1;background:var(--noir);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:22px;font-weight:800;color:var(--jaune);">${dateRows.length}</div><div style="font-size:10px;color:var(--gris-texte);text-transform:uppercase;">Séances pointées</div></div>
+      <div style="display:flex;gap:12px;">
+        <div style="width:110px;flex-shrink:0;max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;" id="stats-namelist"></div>
+        <div style="flex:1;min-width:0;">
+          <div id="stats-playername" style="font-size:13px;font-weight:800;color:var(--blanc);margin-bottom:8px;"></div>
+          <div id="stats-indiv-chart"></div>
+        </div>
       </div>
-      <div style="font-size:11px;font-weight:700;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Taux de présence par joueur</div>
-      ${svgBarChartHorizontal(playerRows.map(p => ({ label: p.name, value: p.rate })))}
-      <div style="font-size:11px;font-weight:700;color:var(--gris-texte);text-transform:uppercase;margin:16px 0 8px;">Évolution de l'assiduité globale</div>
-      ${svgLineChart(dateRows.map(d => ({ label: d.date.slice(5), value: d.rate })))}
+      <div style="border-top:1px solid rgba(255,255,255,0.08);margin:16px 0 12px;"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;text-align:center;">Vue globale — tous joueurs</div>
+      <div id="stats-pie"></div>
     `;
+    statsRenderNameList();
+    statsRenderIndivChart();
+    statsRenderPie();
   } catch (e) {
     wrap.innerHTML = '<div style="text-align:center;padding:20px;color:#e74c3c;font-size:12px;">Erreur de chargement des statistiques.</div>';
   }
 }
 
-function svgBarChartHorizontal(data) {
-  if (!data.length) return '<div style="color:var(--gris-texte);font-size:12px;">Pas de données.</div>';
-  const rowH = 26, w = 300, h = data.length * rowH + 10;
-  const bars = data.map((d, i) => {
-    const y = i * rowH + 4;
-    const barW = Math.max(2, d.value / 100 * 190);
-    const color = d.value >= 80 ? '#2ecc71' : d.value >= 50 ? '#f39c12' : '#e74c3c';
-    return `<text x="0" y="${y+13}" font-size="11" fill="#c9d1e0">${escapeSvgText(d.label)}</text>
-      <rect x="100" y="${y}" width="190" height="16" rx="4" fill="rgba(255,255,255,0.06)"></rect>
-      <rect x="100" y="${y}" width="${barW}" height="16" rx="4" fill="${color}"></rect>
-      <text x="${100+190+6}" y="${y+13}" font-size="11" fill="#8a97ad">${d.value}%</text>`;
+function statsRenderNameList() {
+  const wrap = document.getElementById('stats-namelist');
+  wrap.innerHTML = statsPlayerRows.map(p => {
+    const active = p.code === statsSelectedCode;
+    return `<button type="button" onclick="statsSelectPlayer('${p.code}')"
+      style="text-align:left;padding:8px 10px;border-radius:8px;border:1px solid ${active ? 'var(--jaune)' : 'rgba(255,255,255,0.1)'};background:${active ? 'rgba(255,215,0,0.12)' : 'var(--noir)'};color:${active ? 'var(--jaune)' : 'var(--gris-clair)'};font-size:12px;font-weight:${active?'800':'400'};cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</button>`;
   }).join('');
-  return `<svg viewBox="0 0 340 ${h}" width="100%" style="max-width:340px;display:block;margin:0 auto;font-family:inherit;">${bars}</svg>`;
 }
-function svgLineChart(data) {
-  if (data.length < 2) return '<div style="color:var(--gris-texte);font-size:12px;">Pas assez de données pour une courbe (au moins 2 séances).</div>';
-  const w = 300, h = 120, pad = 20;
-  const stepX = (w - pad*2) / (data.length - 1);
-  const pts = data.map((d, i) => {
-    const x = pad + i * stepX;
-    const y = pad + (100 - d.value) / 100 * (h - pad*2);
-    return { x, y, label: d.label, value: d.value };
-  });
-  const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
-  const circles = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--jaune)"></circle>`).join('');
-  const labels = pts.filter((_, i) => i === 0 || i === pts.length-1 || i % Math.ceil(pts.length/5) === 0)
-    .map(p => `<text x="${p.x.toFixed(1)}" y="${h-4}" font-size="9" fill="#8a97ad" text-anchor="middle">${escapeSvgText(p.label)}</text>`).join('');
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:340px;display:block;margin:0 auto;">
-    <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h-pad}" stroke="rgba(255,255,255,0.1)"></line>
-    <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="rgba(255,255,255,0.1)"></line>
-    <path d="${pathD}" fill="none" stroke="var(--jaune)" stroke-width="2"></path>
-    ${circles}${labels}
+function statsSelectPlayer(code) {
+  statsSelectedCode = code;
+  statsRenderNameList();
+  statsRenderIndivChart();
+}
+function statsRenderIndivChart() {
+  const p = statsPlayerRows.find(r => r.code === statsSelectedCode);
+  document.getElementById('stats-playername').textContent = p ? p.name : '';
+  const data = [
+    { label: 'Présent', value: p ? p.present : 0, color: '#2ecc71' },
+    { label: 'Absent', value: p ? p.absent : 0, color: '#e74c3c' },
+    { label: 'Excusé', value: p ? p.excuse : 0, color: '#f39c12' },
+    { label: 'Retard', value: p ? p.retard : 0, color: '#3498db' },
+  ];
+  document.getElementById('stats-indiv-chart').innerHTML = svgBarChartVertical(data);
+}
+function statsRenderPie() {
+  const data = [
+    { label: 'Présent', value: statsGlobalCounts.present, color: '#2ecc71' },
+    { label: 'Absent', value: statsGlobalCounts.absent, color: '#e74c3c' },
+    { label: 'Excusé', value: statsGlobalCounts.excuse, color: '#f39c12' },
+    { label: 'Retard', value: statsGlobalCounts.retard, color: '#3498db' },
+  ];
+  document.getElementById('stats-pie').innerHTML = svgPieChart(data);
+}
+
+function svgBarChartVertical(data) {
+  const max = Math.max(1, ...data.map(d => d.value));
+  const w = 220, h = 160, barW = 34, gap = 20, baseY = h - 22;
+  const bars = data.map((d, i) => {
+    const x = 14 + i * (barW + gap);
+    const barH = Math.round(d.value / max * (h - 50));
+    const y = baseY - barH;
+    return `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="4" fill="${d.color}"></rect>
+      <text x="${x + barW/2}" y="${y - 6}" font-size="12" font-weight="700" fill="#e8ecf3" text-anchor="middle">${d.value}</text>
+      <text x="${x + barW/2}" y="${h - 6}" font-size="9" fill="#8a97ad" text-anchor="middle">${d.label}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:260px;display:block;">
+    <line x1="10" y1="${baseY}" x2="${w-10}" y2="${baseY}" stroke="rgba(255,255,255,0.15)"></line>
+    ${bars}
   </svg>`;
+}
+function svgPieChart(data) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const size = 180, r = 76, cx = size/2, cy = size/2;
+  if (!total) return '<div style="text-align:center;color:var(--gris-texte);font-size:12px;">Pas de données.</div>';
+  let angleStart = -Math.PI / 2;
+  const slices = data.filter(d => d.value > 0).map(d => {
+    const frac = d.value / total;
+    const angleEnd = angleStart + frac * Math.PI * 2;
+    const x1 = cx + r * Math.cos(angleStart), y1 = cy + r * Math.sin(angleStart);
+    const x2 = cx + r * Math.cos(angleEnd), y2 = cy + r * Math.sin(angleEnd);
+    const largeArc = (angleEnd - angleStart) > Math.PI ? 1 : 0;
+    const path = `M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${largeArc} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
+    angleStart = angleEnd;
+    return `<path d="${path}" fill="${d.color}" stroke="var(--noir)" stroke-width="2"></path>`;
+  }).join('');
+  const legend = data.map(d => `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gris-clair);">
+    <span style="width:10px;height:10px;border-radius:3px;background:${d.color};display:inline-block;"></span>${d.label} — ${d.value} (${total ? Math.round(d.value/total*100) : 0}%)
+  </div>`).join('');
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+    <svg viewBox="0 0 ${size} ${size}" width="180" height="180">${slices}</svg>
+    <div style="display:flex;flex-direction:column;gap:5px;">${legend}</div>
+  </div>`;
 }
 function escapeSvgText(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
