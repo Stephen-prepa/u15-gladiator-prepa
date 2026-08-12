@@ -931,7 +931,17 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
       <div class="coachs2-grid">
       <div class="cs-box" id="cs-box-presence" style="background:var(--gris-fonce);border-radius:10px;padding:14px;">
-        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">📋 Présences</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin:0;">📋 Présences</h3>
+          <button onclick="playerAddToggleForm()" style="background:none;border:1px solid var(--jaune);color:var(--jaune);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">+ Joueur</button>
+        </div>
+
+        <div id="player-add-form" style="display:none;background:var(--noir);border-radius:8px;padding:10px;margin-bottom:14px;">
+          <input type="text" id="player-add-name" class="login-input" placeholder="Prénom Nom du joueur" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
+          <button id="player-add-btn" onclick="playerAddManual()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;">Ajouter</button>
+          <div id="player-add-msg" style="font-size:11px;text-align:center;margin-top:6px;min-height:14px;"></div>
+        </div>
+
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <button onclick="presenceShiftDay(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
           <input type="date" id="presence-date" class="login-input" style="flex:1;margin:0;" onchange="presenceDateChanged()">
@@ -2639,6 +2649,45 @@ function presenceDateChanged() {
   const d = new Date(input.value + 'T00:00:00');
   document.getElementById('presence-daywarn').style.display = isTrainingDay(d) ? 'none' : 'block';
   presenceLoadExisting();
+}
+
+// ---------- Ajout manuel de joueur (coach) ----------
+function genPlayerCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let s = '';
+  for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+function playerAddToggleForm() {
+  const form = document.getElementById('player-add-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') document.getElementById('player-add-name').focus();
+}
+async function playerAddManual() {
+  const input = document.getElementById('player-add-name');
+  const name = input.value.trim();
+  const msgEl = document.getElementById('player-add-msg');
+  const btn = document.getElementById('player-add-btn');
+  if (!name) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Entre un nom.'; return; }
+  btn.disabled = true; btn.textContent = 'Ajout...';
+  msgEl.textContent = '';
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/players', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify({ code: genPlayerCode(), name, claimed_at: new Date().toISOString(), role: 'joueur' }),
+    });
+    if (!res.ok) throw new Error('add failed');
+    input.value = '';
+    document.getElementById('player-add-form').style.display = 'none';
+    presenceLoadRoster();
+    statsLoad();
+  } catch (e) {
+    msgEl.style.color = '#e74c3c';
+    msgEl.textContent = "Erreur — impossible d'ajouter le joueur.";
+  }
+  btn.disabled = false; btn.textContent = 'Ajouter';
 }
 
 async function presenceLoadRoster() {
