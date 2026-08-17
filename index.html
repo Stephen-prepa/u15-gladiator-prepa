@@ -927,6 +927,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <button type="button" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:12px;cursor:pointer;">📋 Présences</button>
         <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">📊 Statistiques</button>
         <button type="button" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">🗓️ Programme</button>
+        <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">📝 Séance</button>
       </div>
 
       <div class="coachs2-grid">
@@ -978,6 +979,24 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         </div>
 
         <div id="programme-list"><div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div></div>
+      </div>
+
+      <div class="cs-box" id="cs-box-seance" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
+        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">📝 Résumé de séance</h3>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Module simple en attendant mieux — une note libre par séance.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <button onclick="seanceShiftDay(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
+          <input type="date" id="seance-date" class="login-input" style="flex:1;margin:0;" onchange="seanceDateChanged()">
+          <button onclick="seanceShiftDay(1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">→</button>
+        </div>
+        <textarea id="seance-content" rows="6" placeholder="Contenu travaillé, thème, remarques..." style="width:100%;box-sizing:border-box;background:var(--noir);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--blanc);font-size:13px;font-family:inherit;resize:vertical;margin-bottom:10px;"></textarea>
+        <button onclick="seanceSave()" id="seance-save-btn" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
+        <div id="seance-save-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
+
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:12px;font-weight:800;color:var(--blanc);margin-bottom:8px;">Dernières séances</div>
+          <div id="seance-recent" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;"></div>
+        </div>
       </div>
 
       <button onclick="coachAuthLogout()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;">Se déconnecter</button>
@@ -2442,7 +2461,7 @@ function pickCoachLogin(login) {
 }
 
 function coachSubtabSwitch(name) {
-  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme' };
+  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
     const btn = document.getElementById('cs-subtab-' + key);
@@ -2592,6 +2611,7 @@ function renderCoachs2View() {
     presenceInit();
     statsLoad();
     programmeLoad();
+    seanceInit();
   } else {
     renderCoachNamePicker();
   }
@@ -2774,6 +2794,102 @@ async function presenceSave() {
     msgEl.textContent = 'Erreur — vérifie ta connexion et réessaie.';
   }
   btn.disabled = false; btn.textContent = 'Enregistrer';
+}
+
+// ---------- Résumé de séance (module simple, en attendant mieux) ----------
+let seanceInited = false;
+function seanceInit() {
+  if (seanceInited) return;
+  seanceInited = true;
+  const start = new Date('2026-08-17T00:00:00');
+  const today = new Date();
+  const base = today < start ? start : today;
+  const d = isTrainingDay(base) ? base : nextTrainingDayOnOrAfter(base);
+  document.getElementById('seance-date').value = dateStr(d);
+  seanceDateChanged();
+  seanceLoadRecent();
+}
+function seanceShiftDay(delta) {
+  const input = document.getElementById('seance-date');
+  const d = new Date(input.value + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  input.value = dateStr(d);
+  seanceDateChanged();
+}
+async function seanceDateChanged() {
+  const input = document.getElementById('seance-date');
+  const contentEl = document.getElementById('seance-content');
+  const msgEl = document.getElementById('seance-save-msg');
+  msgEl.textContent = '';
+  contentEl.value = '';
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/session_notes?select=content&session_date=eq.' + input.value, {
+      headers: coachAuthHeaders(),
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows.length) contentEl.value = rows[0].content || '';
+    }
+  } catch (e) {}
+}
+async function seanceSave() {
+  const input = document.getElementById('seance-date');
+  const contentEl = document.getElementById('seance-content');
+  const msgEl = document.getElementById('seance-save-msg');
+  const btn = document.getElementById('seance-save-btn');
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
+  try {
+    const sess = await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/session_notes?on_conflict=session_date', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify([{
+        session_date: input.value,
+        content: contentEl.value,
+        updated_by: coachSession ? coachSession.id : null,
+        updated_at: new Date().toISOString(),
+      }]),
+    });
+    if (!res.ok) throw new Error('save failed');
+    msgEl.style.color = '#2ecc71';
+    msgEl.textContent = 'Résumé enregistré ✓';
+    seanceLoadRecent();
+  } catch (e) {
+    msgEl.style.color = '#e74c3c';
+    msgEl.textContent = 'Erreur — vérifie ta connexion et réessaie.';
+  }
+  btn.disabled = false; btn.textContent = 'Enregistrer';
+}
+async function seanceLoadRecent() {
+  const wrap = document.getElementById('seance-recent');
+  wrap.innerHTML = '<div style="text-align:center;padding:10px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/session_notes?select=session_date,content&order=session_date.desc&limit=10', {
+      headers: coachAuthHeaders(),
+    });
+    const rows = res.ok ? await res.json() : [];
+    if (!rows.length) {
+      wrap.innerHTML = '<div style="text-align:center;padding:10px;color:var(--gris-texte);font-size:12px;">Aucune séance enregistrée.</div>';
+      return;
+    }
+    wrap.innerHTML = rows.map(r => {
+      const preview = (r.content || '').trim();
+      const short = preview.length > 80 ? preview.slice(0, 80) + '…' : (preview || '(vide)');
+      return `<button type="button" onclick="seanceGoToDate('${r.session_date}')" style="text-align:left;background:var(--noir);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--gris-clair);">
+        <div style="font-size:11px;font-weight:800;color:var(--jaune);margin-bottom:2px;">${r.session_date}</div>
+        <div style="font-size:12px;">${escapeSvgText(short)}</div>
+      </button>`;
+    }).join('');
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
+  }
+}
+function seanceGoToDate(dateVal) {
+  document.getElementById('seance-date').value = dateVal;
+  seanceDateChanged();
+  coachSubtabSwitch('seance');
 }
 
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
@@ -2961,6 +3077,7 @@ async function coachAuthLogout() {
   coachSession = null;
   saveCoachSession();
   presenceInited = false;
+  seanceInited = false;
   renderCoachs2View();
 }
 
