@@ -2750,7 +2750,10 @@ function presenceRenderList() {
         style="flex:1;padding:6px 4px;border-radius:6px;border:1px solid ${active ? s.color : 'rgba(255,255,255,0.12)'};background:${active ? s.color : 'transparent'};color:${active ? '#1a1a1a' : 'var(--gris-clair)'};font-size:11px;font-weight:${active ? '800':'400'};cursor:pointer;">${s.label}</button>`;
     }).join('');
     return `<div style="background:var(--gris-fonce);border-radius:8px;padding:8px 10px;">
-      <div style="font-size:13px;font-weight:700;color:var(--blanc);margin-bottom:6px;">${p.name}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:var(--blanc);">${p.name}</div>
+        <button type="button" onclick="playerDeleteConfirm('${p.code}', '${p.name.replace(/'/g, "\\'")}')" title="Supprimer ce joueur" style="background:none;border:1px solid rgba(231,76,60,0.4);color:#e74c3c;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">✕</button>
+      </div>
       <div style="display:flex;gap:6px;">${btns}</div>
     </div>`;
   }).join('');
@@ -2763,6 +2766,23 @@ function presenceSetMark(code, status) {
 function presenceMarkAll(status) {
   presenceRoster.forEach(p => { presenceMarks[p.code] = status; });
   presenceRenderList();
+}
+async function playerDeleteConfirm(code, name) {
+  const ok = window.confirm(`Supprimer ${name} ?\n\nCeci efface aussi définitivement son historique de présences, sa prépa physique et ses évaluations. Action irréversible.`);
+  if (!ok) return;
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
+      method: 'DELETE',
+      headers: coachAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('delete failed');
+    delete presenceMarks[code];
+    presenceLoadRoster();
+    statsLoad();
+  } catch (e) {
+    alert("Erreur — impossible de supprimer ce joueur.");
+  }
 }
 
 async function presenceSave() {
