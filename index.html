@@ -295,6 +295,36 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Présences, statistiques, évaluations</span>
       </span>
     </button>
+    <button onclick="enterClubSpace()" style="display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:var(--gris-fonce);cursor:pointer;">
+      <span style="font-size:28px;">📊</span>
+      <span>
+        <span style="display:block;font-size:15px;font-weight:800;color:var(--blanc);">Espace Joueurs</span>
+        <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Présence de l'équipe, objectifs collectifs</span>
+      </span>
+    </button>
+  </div>
+</div>
+
+<div id="screen-club" style="display:none;min-height:100vh;padding:20px;box-sizing:border-box;">
+  <div style="max-width:640px;margin:0 auto;">
+    <button onclick="goHomeFromClub()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;margin-bottom:18px;">← Retour</button>
+    <h2 style="font-size:20px;font-weight:900;color:var(--blanc);margin-bottom:4px;">📊 Espace Joueurs</h2>
+    <div style="font-size:12px;color:var(--gris-texte);margin-bottom:20px;">Vue d'ensemble de l'équipe — pas de données individuelles.</div>
+
+    <div style="background:var(--gris-fonce);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">Présence de l'équipe</h3>
+      <div id="club-stats-pie"><div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div></div>
+    </div>
+
+    <div style="background:var(--gris-fonce);border-radius:10px;padding:16px;">
+      <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">🗓️ Programme — objectifs collectifs</h3>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;">
+        <button onclick="clubProgressShiftMonth(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
+        <div id="club-progress-month-label" style="font-size:13px;font-weight:800;color:var(--jaune);min-width:120px;text-align:center;text-transform:capitalize;"></div>
+        <button onclick="clubProgressShiftMonth(1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">→</button>
+      </div>
+      <div id="club-programme-list"><div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div></div>
+    </div>
   </div>
 </div>
 
@@ -976,6 +1006,12 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <input type="text" id="prog-add-categorie" class="login-input" placeholder="Catégorie (ex: Défense, Attaque, Physique)" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
           <input type="text" id="prog-add-titre" class="login-input" placeholder="Intitulé de l'objectif" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
           <button onclick="programmeAddObjectif(null)" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;">Ajouter</button>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;">
+          <button onclick="progressShiftMonth(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
+          <div id="progress-month-label" style="font-size:13px;font-weight:800;color:var(--jaune);min-width:120px;text-align:center;text-transform:capitalize;"></div>
+          <button onclick="progressShiftMonth(1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">→</button>
         </div>
 
         <div id="programme-list"><div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div></div>
@@ -2415,6 +2451,95 @@ function goHome() {
   document.getElementById('screen-home').style.display = 'flex';
   document.getElementById('login-overlay').style.display = 'none';
 }
+function enterClubSpace() {
+  document.getElementById('screen-home').style.display = 'none';
+  document.getElementById('screen-club').style.display = 'block';
+  clubStatsLoad();
+  clubProgrammeLoad();
+}
+function goHomeFromClub() {
+  document.getElementById('screen-club').style.display = 'none';
+  document.getElementById('screen-home').style.display = 'flex';
+}
+async function clubStatsLoad() {
+  const wrap = document.getElementById('club-stats-pie');
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/presence_stats_global?select=status,total', { headers: SB_HEADERS });
+    if (!res.ok) throw new Error('load failed');
+    const rows = await res.json();
+    const counts = { present: 0, absent: 0, excuse: 0, retard: 0 };
+    rows.forEach(r => { if (counts[r.status] !== undefined) counts[r.status] = r.total; });
+    const total = counts.present + counts.absent + counts.excuse + counts.retard;
+    if (!total) {
+      wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Aucune présence enregistrée pour le moment.</div>';
+      return;
+    }
+    const data = [
+      { label: 'Présent', value: counts.present, color: '#2ecc71' },
+      { label: 'Absent', value: counts.absent, color: '#e74c3c' },
+      { label: 'Excusé', value: counts.excuse, color: '#f39c12' },
+      { label: 'Retard', value: counts.retard, color: '#3498db' },
+    ];
+    wrap.innerHTML = svgPieChart(data);
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:16px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
+  }
+}
+let clubProgressMonth = null;
+function clubProgressShiftMonth(delta) {
+  const d = new Date(clubProgressMonth + 'T00:00:00');
+  d.setMonth(d.getMonth() + delta, 1);
+  clubProgressMonth = d.toISOString().slice(0, 10);
+  clubProgrammeLoad();
+}
+async function clubProgrammeLoad() {
+  if (!clubProgressMonth) clubProgressMonth = new Date().toISOString().slice(0, 8) + '01';
+  document.getElementById('club-progress-month-label').textContent = progressMonthLabel(clubProgressMonth);
+  const wrap = document.getElementById('club-programme-list');
+  try {
+    const [itemsRes, avgRes] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/programme_saison?select=*&order=categorie,ordre,created_at', { headers: SB_HEADERS }),
+      fetch(SB_URL + '/rest/v1/objectif_progress_avg?select=objectif_id,moyenne&mois=eq.' + clubProgressMonth, { headers: SB_HEADERS }),
+    ]);
+    if (!itemsRes.ok) throw new Error('load failed');
+    const rows = await itemsRes.json();
+    const avgRows = avgRes.ok ? await avgRes.json() : [];
+    const avgById = {}; avgRows.forEach(r => { avgById[r.objectif_id] = r; });
+    if (!rows.length) {
+      wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Aucun objectif publié pour le moment.</div>';
+      return;
+    }
+    const byCat = {};
+    rows.filter(r => !r.parent_id).forEach(r => {
+      if (!byCat[r.categorie]) byCat[r.categorie] = [];
+      byCat[r.categorie].push(r);
+    });
+    wrap.innerHTML = Object.keys(byCat).sort().map(cat => {
+      const items = byCat[cat].map(item => {
+        const children = rows.filter(r => r.parent_id === item.id);
+        const childHtml = children.map(c => {
+          const cAvg = avgById[c.id];
+          return `<div style="padding:6px 0 6px 16px;">
+            <div style="font-size:12px;color:var(--gris-clair);">· ${escapeSvgText(c.titre)}</div>
+            ${gaugeHtml(c.id, cAvg ? cAvg.moyenne : 0, false)}
+          </div>`;
+        }).join('');
+        const iAvg = avgById[item.id];
+        return `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:13px;color:var(--blanc);font-weight:700;">${escapeSvgText(item.titre)}</div>
+          ${gaugeHtml(item.id, iAvg ? iAvg.moyenne : 0, false)}
+          ${childHtml}
+        </div>`;
+      }).join('');
+      return `<div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:800;color:var(--jaune);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${escapeSvgText(cat)}</div>
+        ${items}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:16px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
+  }
+}
 function enterApp(tabName) {
   document.getElementById('screen-home').style.display = 'none';
   document.getElementById('screen-app').style.display = 'block';
@@ -2473,13 +2598,43 @@ function coachSubtabSwitch(name) {
   });
 }
 
-// ---------- Programme de saison ----------
-const PROG_STATUTS = [
-  { key: 'non_acquis', label: 'Non acquis', color: '#e74c3c' },
-  { key: 'en_cours', label: 'En cours', color: '#f39c12' },
-  { key: 'acquis', label: 'Acquis', color: '#2ecc71' },
-];
+// ---------- Programme de saison (jauge mensuelle par coach) ----------
 let programmeItems = [];
+let progressMonth = null; // 'YYYY-MM-01'
+let progressOwnByObjectif = {}; // objectif_id -> valeur (0-100) du coach courant pour progressMonth
+let progressAvgByObjectif = {}; // objectif_id -> { moyenne, nb_evaluations }
+
+function progressMonthLabel(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+}
+function progressShiftMonth(delta) {
+  const d = new Date(progressMonth + 'T00:00:00');
+  d.setMonth(d.getMonth() + delta, 1);
+  progressMonth = d.toISOString().slice(0, 10);
+  programmeLoad();
+}
+function gaugeHtml(objectifId, value, editable) {
+  const val = Math.round(value || 0);
+  const fillStyle = 'position:absolute;top:-4px;left:calc(' + val + '% - 2px);width:4px;height:16px;background:var(--jaune);border-radius:2px;pointer-events:none;';
+  const track = `<div style="position:relative;height:8px;border-radius:4px;background:linear-gradient(to right, #8a97ad 0%, #8a97ad 33%, #f39c12 33%, #f39c12 66%, #2ecc71 66%, #2ecc71 100%);opacity:0.4;">
+      <div style="${fillStyle}"></div>
+    </div>`;
+  const slider = editable
+    ? `<input type="range" min="0" max="100" step="5" value="${val}"
+        oninput="progressSliderPreview('${objectifId}', this.value)"
+        onchange="progressSliderSave('${objectifId}', this.value)"
+        style="width:100%;margin:4px 0;accent-color:var(--jaune);">`
+    : '';
+  return `<div style="margin-top:6px;">
+    ${track}
+    ${slider}
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--gris-texte);margin-top:2px;">
+      <span>Non acquis</span><span>En cours</span><span>Acquis</span>
+    </div>
+    <div id="gauge-val-${objectifId}" style="text-align:right;font-size:11px;font-weight:800;color:var(--jaune);margin-top:2px;">${val}%</div>
+  </div>`;
+}
 
 function programmeToggleAddForm() {
   const form = document.getElementById('programme-add-form');
@@ -2487,13 +2642,28 @@ function programmeToggleAddForm() {
 }
 
 async function programmeLoad() {
+  if (!progressMonth) progressMonth = new Date().toISOString().slice(0, 8) + '01';
+  document.getElementById('progress-month-label').textContent = progressMonthLabel(progressMonth);
   const wrap = document.getElementById('programme-list');
   wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
   try {
     await ensureCoachSession();
-    const res = await fetch(SB_URL + '/rest/v1/programme_saison?select=*&order=categorie,ordre,created_at', { headers: coachAuthHeaders() });
-    if (!res.ok) throw new Error('load failed');
-    programmeItems = await res.json();
+    const myId = coachSession ? coachSession.id : null;
+    const [itemsRes, ownRes, avgRes] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/programme_saison?select=*&order=categorie,ordre,created_at', { headers: coachAuthHeaders() }),
+      fetch(SB_URL + '/rest/v1/objectif_progress?select=objectif_id,mois,valeur&coach_id=eq.' + myId + '&mois=lte.' + progressMonth + '&order=mois.desc', { headers: coachAuthHeaders() }),
+      fetch(SB_URL + '/rest/v1/objectif_progress_avg?select=objectif_id,moyenne&mois=eq.' + progressMonth, { headers: coachAuthHeaders() }),
+    ]);
+    if (!itemsRes.ok) throw new Error('load failed');
+    programmeItems = await itemsRes.json();
+    const own = ownRes.ok ? await ownRes.json() : [];
+    const avg = avgRes.ok ? await avgRes.json() : [];
+    // pour chaque objectif : valeur du mois courant si elle existe, sinon dernière valeur connue (report automatique)
+    progressOwnByObjectif = {};
+    own.forEach(r => {
+      if (progressOwnByObjectif[r.objectif_id] === undefined) progressOwnByObjectif[r.objectif_id] = r.valeur;
+    });
+    progressAvgByObjectif = {}; avg.forEach(r => { progressAvgByObjectif[r.objectif_id] = r; });
     programmeRender();
   } catch (e) {
     wrap.innerHTML = '<div style="text-align:center;padding:16px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
@@ -2520,18 +2690,22 @@ function programmeRender() {
 }
 
 function programmeRowHtml(item, depth) {
-  const st = PROG_STATUTS.find(s => s.key === item.statut) || PROG_STATUTS[0];
   const children = programmeItems.filter(i => i.parent_id === item.id);
   const childRows = children.map(c => programmeRowHtml(c, depth + 1)).join('');
+  const myVal = progressOwnByObjectif[item.id] || 0;
+  const avgInfo = progressAvgByObjectif[item.id];
+  const avgLabel = avgInfo ? `moyenne équipe : ${avgInfo.moyenne}%` : 'pas encore évalué';
   return `
-    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;margin-left:${depth * 18}px;">
-      <button type="button" onclick="programmeCycleStatut('${item.id}')"
-        style="flex-shrink:0;padding:4px 8px;border-radius:12px;border:1px solid ${st.color};background:${st.color}22;color:${st.color};font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;">${st.label}</button>
-      <span style="flex:1;font-size:13px;color:var(--gris-clair);">${escapeSvgText(item.titre)}</span>
-      ${depth === 0 ? `<button type="button" onclick="programmeShowSubForm('${item.id}')" title="Ajouter un sous-objectif" style="background:none;border:none;color:var(--gris-texte);font-size:14px;cursor:pointer;padding:2px 6px;">＋</button>` : ''}
-      <button type="button" onclick="programmeDelete('${item.id}')" title="Supprimer" style="background:none;border:none;color:var(--gris-texte);font-size:13px;cursor:pointer;padding:2px 6px;">✕</button>
+    <div style="padding:8px 0;margin-left:${depth * 18}px;border-bottom:1px solid rgba(255,255,255,0.06);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="flex:1;font-size:13px;color:var(--gris-clair);">${escapeSvgText(item.titre)}</span>
+        ${depth === 0 ? `<button type="button" onclick="programmeShowSubForm('${item.id}')" title="Ajouter un sous-objectif" style="background:none;border:none;color:var(--gris-texte);font-size:14px;cursor:pointer;padding:2px 6px;">＋</button>` : ''}
+        <button type="button" onclick="programmeDelete('${item.id}')" title="Supprimer" style="background:none;border:none;color:var(--gris-texte);font-size:13px;cursor:pointer;padding:2px 6px;">✕</button>
+      </div>
+      <div style="font-size:10px;color:var(--gris-texte);margin-top:2px;">${avgLabel}</div>
+      ${gaugeHtml(item.id, myVal, true)}
     </div>
-    <div id="prog-subform-${item.id}" style="display:none;margin-left:${(depth+1) * 18}px;margin-bottom:6px;display:none;">
+    <div id="prog-subform-${item.id}" style="display:none;margin-left:${(depth + 1) * 18}px;margin-bottom:6px;">
       <div style="display:flex;gap:6px;">
         <input type="text" id="prog-subinput-${item.id}" class="login-input" placeholder="Sous-objectif" style="flex:1;margin:0;">
         <button onclick="programmeAddObjectif('${item.id}')" style="padding:0 12px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;">OK</button>
@@ -2575,25 +2749,33 @@ async function programmeAddObjectif(parentId) {
   } catch (e) { alert('Erreur — impossible d\'ajouter l\'objectif.'); }
 }
 
-async function programmeCycleStatut(id) {
-  const item = programmeItems.find(i => i.id === id);
-  if (!item) return;
-  const idx = PROG_STATUTS.findIndex(s => s.key === item.statut);
-  const next = PROG_STATUTS[(idx + 1) % PROG_STATUTS.length].key;
-  item.statut = next; // optimiste
-  programmeRender();
+function progressSliderPreview(objectifId, value) {
+  const el = document.getElementById('gauge-val-' + objectifId);
+  if (el) el.textContent = value + '%';
+}
+async function progressSliderSave(objectifId, value) {
   try {
     await ensureCoachSession();
-    await fetch(SB_URL + '/rest/v1/programme_saison?id=eq.' + id, {
-      method: 'PATCH',
-      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ statut: next, updated_by: coachSession ? coachSession.id : null, updated_at: new Date().toISOString() }),
+    const myId = coachSession ? coachSession.id : null;
+    if (!myId) return;
+    await fetch(SB_URL + '/rest/v1/objectif_progress?on_conflict=objectif_id,mois,coach_id', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify([{ objectif_id: objectifId, mois: progressMonth, coach_id: myId, valeur: parseInt(value, 10), updated_at: new Date().toISOString() }]),
     });
+    progressOwnByObjectif[objectifId] = parseInt(value, 10);
+    // recharge juste la moyenne pour cet objectif
+    const avgRes = await fetch(SB_URL + '/rest/v1/objectif_progress_avg?select=objectif_id,moyenne&mois=eq.' + progressMonth + '&objectif_id=eq.' + objectifId, { headers: coachAuthHeaders() });
+    if (avgRes.ok) {
+      const rows = await avgRes.json();
+      if (rows.length) progressAvgByObjectif[objectifId] = rows[0];
+      programmeRender();
+    }
   } catch (e) {}
 }
 
 async function programmeDelete(id) {
-  if (!confirm('Supprimer cet objectif (et ses sous-objectifs) ?')) return;
+  if (!confirm('Supprimer cet objectif (et ses sous-objectifs, et toutes les évaluations associées) ?')) return;
   try {
     await ensureCoachSession();
     await fetch(SB_URL + '/rest/v1/programme_saison?id=eq.' + id, { method: 'DELETE', headers: coachAuthHeaders() });
