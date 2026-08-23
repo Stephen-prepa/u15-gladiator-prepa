@@ -73,6 +73,26 @@
 .ticket .perf::before{left:-5px;} .ticket .perf::after{right:-5px;}
 .ticket .opp{font-size:11px;font-weight:700;color:var(--gris-clair);margin-top:9px;}
 .ticket .time{font-family:'Barlow Condensed',sans-serif;font-size:10.5px;font-weight:700;color:var(--jaune);margin-top:2px;}
+
+/* ---- Accueil : responsive PC / tablette / iPhone ---- */
+.home-wrap{width:100%;max-width:420px;margin:0 auto;text-align:left;}
+.home-buttons{width:100%;max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
+.home-btn{display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:18px;border-radius:14px;
+  border:1px solid rgba(255,255,255,0.1);background:var(--gris-fonce);cursor:pointer;}
+@media (min-width:700px){
+  .home-wrap{max-width:640px;}
+  .home-buttons{max-width:640px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .home-btn{flex-direction:column;text-align:center;gap:8px;padding:22px 14px;}
+  .hero-scroll > *{flex-basis:200px;}
+}
+@media (min-width:1100px){
+  .home-wrap{max-width:900px;}
+  .home-buttons{max-width:900px;}
+}
+@media (min-width:1400px){
+  .home-wrap{max-width:1100px;}
+  .home-buttons{max-width:1100px;}
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{background:var(--noir);color:var(--blanc);font-family:'Barlow',sans-serif;font-size:15px;line-height:1.5;min-height:100vh;}
 .header{background:var(--gris-fonce);border-bottom:3px solid var(--jaune);padding:20px 16px 16px;text-align:center;position:relative;overflow:hidden;}
@@ -331,7 +351,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   <div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gris-texte);margin-bottom:6px;">Clermont Salagou HBC · U15</div>
   <h1 style="font-size:26px;font-weight:900;color:var(--blanc);margin-bottom:20px;">Bienvenue</h1>
 
-  <div style="width:100%;max-width:420px;text-align:left;">
+  <div class="home-wrap">
     <div id="home-fictional-notice" style="display:none;font-size:10px;color:var(--gris-texte);background:rgba(255,255,255,0.05);border-radius:6px;padding:5px 9px;margin-bottom:8px;text-align:center;">📅 Calendrier FFHB pas encore publié — exemples ci-dessous, à titre d'aperçu.</div>
     <div id="home-hero-scroll" class="hero-scroll">
       <div class="home-hero-empty">Chargement des matchs...</div>
@@ -348,22 +368,22 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     </div>
   </div>
 
-  <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;">
-    <button onclick="enterApp('planning')" style="display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:var(--gris-fonce);cursor:pointer;">
+  <div class="home-buttons" style="margin-top:20px;">
+    <button class="home-btn" onclick="enterApp('planning')">
       <span style="font-size:28px;">🏋️</span>
       <span>
         <span style="display:block;font-size:15px;font-weight:800;color:var(--blanc);">Prépa estivale</span>
         <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Séances, progression, conseils</span>
       </span>
     </button>
-    <button id="home-btn-coachs" onclick="enterApp('coachs2')" style="display:none;align-items:center;gap:14px;text-align:left;width:100%;padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:var(--gris-fonce);cursor:pointer;">
+    <button id="home-btn-coachs" class="home-btn" onclick="enterApp('coachs2')" style="display:none;">
       <span style="font-size:28px;">👥</span>
       <span>
         <span style="display:block;font-size:15px;font-weight:800;color:var(--blanc);">Coachs</span>
         <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Présences, statistiques, évaluations</span>
       </span>
     </button>
-    <button onclick="enterClubSpace()" style="display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:var(--gris-fonce);cursor:pointer;">
+    <button class="home-btn" onclick="enterClubSpace()">
       <span style="font-size:28px;">📊</span>
       <span>
         <span style="display:block;font-size:15px;font-weight:800;color:var(--blanc);">Espace Joueurs</span>
