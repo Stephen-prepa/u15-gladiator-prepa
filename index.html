@@ -368,7 +368,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
 <!-- ECRAN D'ACCUEIL -->
 <div id="screen-home" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px;text-align:center;">
-  <div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gris-texte);margin-bottom:6px;">Clermont Salagou HBC · U15</div>
+  <div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gris-texte);margin-bottom:6px;">Handball Club Clermont Salagou · U15</div>
   <h1 style="font-size:26px;font-weight:900;color:var(--blanc);margin-bottom:20px;">Bienvenue</h1>
 
   <div class="home-wrap">
@@ -443,7 +443,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 </div>
 
 <div id="prepa-chrome"><div class="header">
-  <div class="club">Clermont Salagou HBC · U15</div>
+  <div class="club">Handball Club Clermont Salagou · U15</div>
   <h1>PRÉPA<br><span>ESTIVALE</span></h1>
   <div class="subtitle">Programme de reconditionnement physique autonome</div>
   <div class="reprise">▶ Reprise le 17 août</div>
@@ -1165,7 +1165,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 <div class="login-overlay" id="login-overlay">
   <div class="login-box">
     <div class="login-logo">🤾</div>
-    <div class="login-title">Clermont Salagou HBC · U15</div>
+    <div class="login-title">Handball Club Clermont Salagou · U15</div>
     <div class="login-sub">Entre ton code pour accéder à ta préparation</div>
     <input type="text" id="login-code" class="login-input" placeholder="CODE" maxlength="20" autocapitalize="characters" autocomplete="off">
     <div id="login-name-wrap" class="login-name-wrap" style="display:none;">
@@ -2624,10 +2624,12 @@ async function homeLoadMatches() {
 
     document.getElementById('home-fictional-notice').style.display = isFictional ? 'block' : 'none';
 
-    // Hero : le prochain match de chaque équipe
+    // Hero : le prochain match de chaque équipe (si une équipe n'a rien de programmé, on affiche l'autre à la place — toujours 2 cartes)
     const heroWrap = document.getElementById('home-hero-scroll');
     const heroByEquipe = {};
     upcoming.forEach(m => { if (!heroByEquipe[m.equipe]) heroByEquipe[m.equipe] = m; });
+    if (!heroByEquipe['2'] && heroByEquipe['1']) heroByEquipe['2'] = heroByEquipe['1'];
+    if (!heroByEquipe['1'] && heroByEquipe['2']) heroByEquipe['1'] = heroByEquipe['2'];
     const heroEntries = Object.keys(heroByEquipe).sort();
     if (!heroEntries.length) {
       heroWrap.innerHTML = '<div class="home-hero-empty">Aucun match programmé pour le moment.</div>';
@@ -2635,9 +2637,9 @@ async function homeLoadMatches() {
       heroWrap.innerHTML = heroEntries.map(eq => {
         const m = heroByEquipe[eq];
         const info = homeParseOpponent(m.titre);
-        const t2 = String(eq) === '2';
+        const t2 = String(m.equipe) === '2';
         return `<div class="home-hero${t2 ? ' home-hero-t2' : ''}">
-          <span class="kind">Équipe ${eq} · Match</span>
+          <span class="kind">Équipe ${m.equipe} · Match</span>
           <div class="home-hero-vs">
             <div class="crest us">CS</div><span class="sep">–</span><div class="crest them">${escapeSvgText(homeCrest(info.opp))}</div>
           </div>
