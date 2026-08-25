@@ -2624,18 +2624,23 @@ async function homeLoadMatches() {
 
     document.getElementById('home-fictional-notice').style.display = isFictional ? 'block' : 'none';
 
-    // Hero : le prochain match de chaque équipe (si une équipe n'a rien de programmé, on affiche l'autre à la place — toujours 2 cartes)
+    // Hero : le prochain match de chaque équipe. Si une équipe n'a rien, on complète avec le match suivant
+    // (peu importe l'équipe) plutôt que de répéter le même — toujours 2 cartes, jamais de doublon.
     const heroWrap = document.getElementById('home-hero-scroll');
-    const heroByEquipe = {};
-    upcoming.forEach(m => { if (!heroByEquipe[m.equipe]) heroByEquipe[m.equipe] = m; });
-    if (!heroByEquipe['2'] && heroByEquipe['1']) heroByEquipe['2'] = heroByEquipe['1'];
-    if (!heroByEquipe['1'] && heroByEquipe['2']) heroByEquipe['1'] = heroByEquipe['2'];
-    const heroEntries = Object.keys(heroByEquipe).sort();
-    if (!heroEntries.length) {
+    const heroList = [];
+    ['1', '2'].forEach(eq => {
+      const m = upcoming.find(u => String(u.equipe) === eq);
+      if (m) heroList.push(m);
+    });
+    for (const m of upcoming) {
+      if (heroList.length >= 2) break;
+      if (!heroList.some(h => h.id === m.id)) heroList.push(m);
+    }
+    heroList.sort((a, b) => new Date(a.debut) - new Date(b.debut));
+    if (!heroList.length) {
       heroWrap.innerHTML = '<div class="home-hero-empty">Aucun match programmé pour le moment.</div>';
     } else {
-      heroWrap.innerHTML = heroEntries.map(eq => {
-        const m = heroByEquipe[eq];
+      heroWrap.innerHTML = heroList.map(m => {
         const info = homeParseOpponent(m.titre);
         const t2 = String(m.equipe) === '2';
         return `<div class="home-hero${t2 ? ' home-hero-t2' : ''}">
@@ -2669,7 +2674,7 @@ async function homeLoadMatches() {
     // Agenda : tout le reste des échéances à venir (hors celles déjà mises en avant dans le hero)
     const agendaWrap = document.getElementById('home-agenda-wrap');
     const agendaScroll = document.getElementById('home-agenda-scroll');
-    const heroIds = new Set(heroEntries.map(eq => heroByEquipe[eq].id));
+    const heroIds = new Set(heroList.map(m => m.id));
     const agendaItems = upcoming.filter(m => !heroIds.has(m.id));
     if (agendaItems.length) {
       agendaWrap.style.display = 'block';
