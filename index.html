@@ -362,6 +362,8 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   background-repeat:no-repeat, no-repeat;
 }
 #screen-home > *{position:relative;z-index:1;}
+#home-refresh-btn.spinning{animation:home-spin 0.7s linear infinite;}
+@keyframes home-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -369,7 +371,10 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 <!-- ECRAN D'ACCUEIL -->
 <div id="screen-home" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px;text-align:center;">
   <div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gris-texte);margin-bottom:6px;">Handball Club Clermont Salagou · U15</div>
-  <h1 style="font-size:26px;font-weight:900;color:var(--blanc);margin-bottom:20px;">Bienvenue</h1>
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px;">
+    <h1 style="font-size:26px;font-weight:900;color:var(--blanc);margin:0;">Bienvenue</h1>
+    <button id="home-refresh-btn" onclick="homeRefreshTap()" title="Actualiser" style="background:none;border:1px solid rgba(255,255,255,0.2);color:var(--gris-clair);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">↻</button>
+  </div>
 
   <div class="home-wrap">
     <div id="home-fictional-notice" style="display:none;font-size:10px;color:var(--gris-texte);background:rgba(255,255,255,0.05);border-radius:6px;padding:5px 9px;margin-bottom:8px;text-align:center;">📅 Calendrier FFHB pas encore publié — exemples ci-dessous, à titre d'aperçu.</div>
@@ -2607,6 +2612,16 @@ async function homeSyncAndLoad() {
     fetch(FUNCTIONS_URL, { headers: { Authorization: 'Bearer ' + SB_KEY, apikey: SB_KEY } }).catch(() => {});
   } catch (e) {}
   homeLoadMatches();
+}
+
+async function homeRefreshTap() {
+  const btn = document.getElementById('home-refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  try {
+    await fetch(FUNCTIONS_URL, { headers: { Authorization: 'Bearer ' + SB_KEY, apikey: SB_KEY } });
+  } catch (e) {}
+  await homeLoadMatches();
+  if (btn) setTimeout(() => btn.classList.remove('spinning'), 400);
 }
 
 async function homeLoadMatches() {
