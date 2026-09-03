@@ -1089,6 +1089,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">📊 Statistiques</button>
         <button type="button" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">🗓️ Programme</button>
         <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">📝 Séance</button>
+        <button type="button" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">🎽 Compos</button>
       </div>
 
       <div class="coachs2-grid">
@@ -1172,6 +1173,30 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <div style="font-size:12px;font-weight:800;color:var(--blanc);margin-bottom:8px;">Dernières séances</div>
           <div id="seance-recent" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;"></div>
         </div>
+      </div>
+
+      <div class="cs-box" id="cs-box-composition" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
+        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🎽 Compositions du week-end</h3>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Envoie chaque joueur dans une équipe pour cette date. Rien à valider — c'est enregistré à chaque tap.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <button onclick="compositionShiftDay(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
+          <input type="date" id="composition-date" class="login-input" style="flex:1;margin:0;" onchange="compositionDateChanged()">
+          <button onclick="compositionShiftDay(1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">→</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div style="background:var(--noir);border-radius:8px;padding:10px;">
+            <div style="font-size:11px;font-weight:800;color:var(--jaune);margin-bottom:6px;">Équipe 1</div>
+            <div id="composition-team1-list" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--gris-clair);"></div>
+          </div>
+          <div style="background:var(--noir);border-radius:8px;padding:10px;">
+            <div style="font-size:11px;font-weight:800;color:#5dade2;margin-bottom:6px;">Équipe 2</div>
+            <div id="composition-team2-list" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--gris-clair);"></div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Effectif complet</div>
+        <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
       </div>
 
       <button onclick="coachAuthLogout()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;">Se déconnecter</button>
@@ -2869,7 +2894,7 @@ function pickCoachLogin(login) {
 }
 
 function coachSubtabSwitch(name) {
-  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance' };
+  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
     const btn = document.getElementById('cs-subtab-' + key);
@@ -2881,7 +2906,104 @@ function coachSubtabSwitch(name) {
   });
 }
 
-// ---------- Programme de saison (jauge mensuelle par coach) ----------
+// ---------- Compositions du week-end (coach) ----------
+let compositionInited = false;
+let compositionRoster = [];
+let compositionAssign = {}; // player_code -> 1 | 2
+
+function nextWeekendDayOnOrAfter(d) {
+  const copy = new Date(d);
+  while (copy.getDay() !== 6 && copy.getDay() !== 0) copy.setDate(copy.getDate() + 1);
+  return copy;
+}
+function compositionInit() {
+  if (compositionInited) return;
+  compositionInited = true;
+  const today = new Date();
+  const d = (today.getDay() === 6 || today.getDay() === 0) ? today : nextWeekendDayOnOrAfter(today);
+  document.getElementById('composition-date').value = dateStr(d);
+  compositionLoadRoster();
+}
+function compositionShiftDay(delta) {
+  const input = document.getElementById('composition-date');
+  const d = new Date(input.value + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  input.value = dateStr(d);
+  compositionDateChanged();
+}
+async function compositionLoadRoster() {
+  document.getElementById('composition-roster-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Chargement...</div>';
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    const rows = await res.json();
+    compositionRoster = rows.filter(p => p.code !== 'COACHTEST' && p.name);
+  } catch (e) { compositionRoster = []; }
+  compositionDateChanged();
+}
+async function compositionDateChanged() {
+  const input = document.getElementById('composition-date');
+  compositionAssign = {};
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/match_lineup?select=player_code,equipe&session_date=eq.' + input.value, {
+      headers: coachAuthHeaders(),
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      rows.forEach(r => { compositionAssign[r.player_code] = r.equipe; });
+    }
+  } catch (e) {}
+  compositionRender();
+}
+function compositionRender() {
+  const rosterWrap = document.getElementById('composition-roster-list');
+  const t1Wrap = document.getElementById('composition-team1-list');
+  const t2Wrap = document.getElementById('composition-team2-list');
+
+  const t1 = compositionRoster.filter(p => compositionAssign[p.code] === 1);
+  const t2 = compositionRoster.filter(p => compositionAssign[p.code] === 2);
+  t1Wrap.innerHTML = t1.length ? t1.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
+  t2Wrap.innerHTML = t2.length ? t2.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
+
+  if (!compositionRoster.length) {
+    rosterWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Aucun joueur dans l\'effectif.</div>';
+    return;
+  }
+  rosterWrap.innerHTML = compositionRoster.map(p => {
+    const cur = compositionAssign[p.code] || 0;
+    const btn = (val, label, color) => {
+      const active = cur === val;
+      return `<button type="button" onclick="compositionSetTeam('${p.code}', ${val})" style="flex:1;padding:6px 0;border-radius:6px;border:1px solid ${active ? color : 'rgba(255,255,255,0.15)'};background:${active ? color + '22' : 'transparent'};color:${active ? color : 'var(--gris-texte)'};font-weight:${active ? '800' : '400'};font-size:11px;cursor:pointer;">${label}</button>`;
+    };
+    return `<div style="background:var(--noir);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
+      <span style="flex:1;font-size:13px;color:var(--blanc);">${escapeSvgText(p.name)}</span>
+      ${btn(0, 'Aucune', '#8a97ad')}
+      ${btn(1, 'Éq.1', '#F5C400')}
+      ${btn(2, 'Éq.2', '#3498db')}
+    </div>`;
+  }).join('');
+}
+async function compositionSetTeam(code, equipe) {
+  compositionAssign[code] = equipe || undefined;
+  compositionRender();
+  const input = document.getElementById('composition-date');
+  try {
+    await ensureCoachSession();
+    if (!equipe) {
+      await fetch(SB_URL + '/rest/v1/match_lineup?session_date=eq.' + input.value + '&player_code=eq.' + encodeURIComponent(code), {
+        method: 'DELETE', headers: coachAuthHeaders(),
+      });
+    } else {
+      await fetch(SB_URL + '/rest/v1/match_lineup?on_conflict=session_date,player_code', {
+        method: 'POST',
+        headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify([{ session_date: input.value, player_code: code, equipe, created_by: coachSession ? coachSession.id : null }]),
+      });
+    }
+  } catch (e) {}
+}
+
+
 let programmeItems = [];
 let progressMonth = null; // 'YYYY-MM-01'
 let progressOwnByObjectif = {}; // objectif_id -> valeur (0-100) du coach courant pour progressMonth
@@ -3084,6 +3206,7 @@ function renderCoachs2View() {
     programmeLoad();
     seanceInit();
     scoresTodoLoad();
+    compositionInit();
   } else {
     renderCoachNamePicker();
   }
@@ -3618,6 +3741,7 @@ async function coachAuthLogout() {
   saveCoachSession();
   presenceInited = false;
   seanceInited = false;
+  compositionInited = false;
   renderCoachs2View();
 }
 
