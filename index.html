@@ -1186,14 +1186,21 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
           <div style="background:var(--noir);border-radius:8px;padding:10px;">
-            <div style="font-size:11px;font-weight:800;color:var(--jaune);margin-bottom:6px;">Équipe 1</div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:800;color:var(--jaune);">Équipe 1</span>
+              <span id="composition-team1-count" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:var(--jaune);">0</span>
+            </div>
             <div id="composition-team1-list" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--gris-clair);"></div>
           </div>
           <div style="background:var(--noir);border-radius:8px;padding:10px;">
-            <div style="font-size:11px;font-weight:800;color:#5dade2;margin-bottom:6px;">Équipe 2</div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:800;color:#5dade2;">Équipe 2</span>
+              <span id="composition-team2-count" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:#5dade2;">0</span>
+            </div>
             <div id="composition-team2-list" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--gris-clair);"></div>
           </div>
         </div>
+        <div id="composition-unassigned-count" style="font-size:11px;color:var(--gris-texte);text-align:center;margin:-6px 0 14px;"></div>
 
         <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Effectif complet</div>
         <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
@@ -2795,11 +2802,11 @@ let clubProgressMonth = null;
 function clubProgressShiftMonth(delta) {
   const d = new Date(clubProgressMonth + 'T00:00:00');
   d.setMonth(d.getMonth() + delta, 1);
-  clubProgressMonth = d.toISOString().slice(0, 10);
+  clubProgressMonth = monthFirstStr(d);
   clubProgrammeLoad();
 }
 async function clubProgrammeLoad() {
-  if (!clubProgressMonth) clubProgressMonth = new Date().toISOString().slice(0, 8) + '01';
+  if (!clubProgressMonth) clubProgressMonth = monthFirstStr(new Date());
   document.getElementById('club-progress-month-label').textContent = progressMonthLabel(clubProgressMonth);
   const wrap = document.getElementById('club-programme-list');
   try {
@@ -2962,8 +2969,12 @@ function compositionRender() {
 
   const t1 = compositionRoster.filter(p => compositionAssign[p.code] === 1);
   const t2 = compositionRoster.filter(p => compositionAssign[p.code] === 2);
+  const unassigned = compositionRoster.length - t1.length - t2.length;
   t1Wrap.innerHTML = t1.length ? t1.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
   t2Wrap.innerHTML = t2.length ? t2.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
+  document.getElementById('composition-team1-count').textContent = t1.length;
+  document.getElementById('composition-team2-count').textContent = t2.length;
+  document.getElementById('composition-unassigned-count').textContent = unassigned > 0 ? unassigned + ' joueur' + (unassigned > 1 ? 's' : '') + ' pas encore assigné' + (unassigned > 1 ? 's' : '') : '';
 
   if (!compositionRoster.length) {
     rosterWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Aucun joueur dans l\'effectif.</div>';
@@ -3005,6 +3016,9 @@ async function compositionSetTeam(code, equipe) {
 
 
 let programmeItems = [];
+function monthFirstStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-01';
+}
 let progressMonth = null; // 'YYYY-MM-01'
 let progressOwnByObjectif = {}; // objectif_id -> valeur (0-100) du coach courant pour progressMonth
 let progressAvgByObjectif = {}; // objectif_id -> { moyenne, nb_evaluations }
@@ -3016,7 +3030,7 @@ function progressMonthLabel(iso) {
 function progressShiftMonth(delta) {
   const d = new Date(progressMonth + 'T00:00:00');
   d.setMonth(d.getMonth() + delta, 1);
-  progressMonth = d.toISOString().slice(0, 10);
+  progressMonth = monthFirstStr(d);
   programmeLoad();
 }
 function gaugeHtml(objectifId, value, editable) {
@@ -3047,7 +3061,7 @@ function programmeToggleAddForm() {
 }
 
 async function programmeLoad() {
-  if (!progressMonth) progressMonth = new Date().toISOString().slice(0, 8) + '01';
+  if (!progressMonth) progressMonth = monthFirstStr(new Date());
   document.getElementById('progress-month-label').textContent = progressMonthLabel(progressMonth);
   const wrap = document.getElementById('programme-list');
   wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
