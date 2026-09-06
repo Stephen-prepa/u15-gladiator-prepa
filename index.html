@@ -1204,6 +1204,11 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Effectif complet</div>
         <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+          <button onclick="convocGenerate()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;cursor:pointer;">📋 Générer le(s) message(s) de convocation</button>
+          <div id="convoc-output"></div>
+        </div>
       </div>
 
       <button onclick="coachAuthLogout()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;">Se déconnecter</button>
@@ -3012,6 +3017,76 @@ async function compositionSetTeam(code, equipe) {
       });
     }
   } catch (e) {}
+}
+
+async function convocGenerate() {
+  const out = document.getElementById('convoc-output');
+  out.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Génération...</div>';
+  const dateVal = document.getElementById('composition-date').value;
+  const dayStart = dateVal + 'T00:00:00';
+  const dayEnd = dateVal + 'T23:59:59';
+  const blocks = [];
+  try {
+    await ensureCoachSession();
+    for (const eq of [1, 2]) {
+      const names = compositionRoster.filter(p => compositionAssign[p.code] === eq).map(p => p.name).sort((a, b) => a.localeCompare(b, 'fr'));
+      if (!names.length) continue;
+      const mRes = await fetch(SB_URL + '/rest/v1/matches?select=*&equipe=eq.' + eq + '&debut=gte.' + dayStart + '&debut=lte.' + dayEnd + '&order=debut&limit=1', { headers: coachAuthHeaders() });
+      const mRows = mRes.ok ? await mRes.json() : [];
+      const m = mRows[0];
+      const d = new Date(dateVal + 'T00:00:00');
+      const dateLabel = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+      let heureMatch = '', opp = 'l\'adversaire', lieu = 'à préciser', heureRdv = '';
+      if (m) {
+        const info = homeParseOpponent(m.titre);
+        opp = info.opp;
+        const dm = new Date(m.debut);
+        heureMatch = String(dm.getHours()).padStart(2, '0') + 'h' + (dm.getMinutes() ? String(dm.getMinutes()).padStart(2, '0') : '00');
+        lieu = m.lieu || (info.home ? 'Clermont-l\'Hérault (à confirmer)' : opp + ' (à confirmer)');
+        const rdv = new Date(dm.getTime() - 60 * 60000);
+        heureRdv = String(rdv.getHours()).padStart(2, '0') + 'h' + (rdv.getMinutes() ? String(rdv.getMinutes()).padStart(2, '0') : '00');
+      }
+      const text = `🔵 *Match — ${dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)} face à ${opp}* 💪🏾
+
+Les joueurs convoqués :
+
+*${names.join(', ')}*
+
+Lieu: *${lieu}*
+Heure RDV: *${heureRdv || '(à compléter)'}*
+Heure Match: *${heureMatch || '(à compléter)'}*
+
+Besoins: *(à compléter)*
+
+*Vamos!!!*`;
+      blocks.push({ eq, text });
+    }
+    if (!blocks.length) {
+      out.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Aucun joueur assigné à une équipe pour cette date.</div>';
+      return;
+    }
+    out.innerHTML = blocks.map(b => `
+      <div style="margin-top:12px;">
+        <div style="font-size:11px;font-weight:800;color:${b.eq === 1 ? 'var(--jaune)' : '#5dade2'};margin-bottom:6px;">Équipe ${b.eq}</div>
+        <textarea id="convoc-text-${b.eq}" rows="12" style="width:100%;box-sizing:border-box;background:var(--noir);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;color:var(--blanc);font-size:12.5px;font-family:inherit;resize:vertical;">${b.text}</textarea>
+        <button onclick="convocCopy(${b.eq})" style="width:100%;margin-top:6px;padding:8px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;">Copier le message Équipe ${b.eq}</button>
+        <div id="convoc-copied-${b.eq}" style="text-align:center;font-size:11px;color:#2ecc71;margin-top:4px;height:14px;"></div>
+      </div>
+    `).join('');
+  } catch (e) {
+    out.innerHTML = '<div style="text-align:center;padding:12px;color:#e74c3c;font-size:12px;">Erreur de génération.</div>';
+  }
+}
+function convocCopy(eq) {
+  const ta = document.getElementById('convoc-text-' + eq);
+  ta.select();
+  navigator.clipboard && navigator.clipboard.writeText(ta.value).then(() => {
+    const msg = document.getElementById('convoc-copied-' + eq);
+    msg.textContent = 'Copié ✓';
+    setTimeout(() => { msg.textContent = ''; }, 2000);
+  }).catch(() => {
+    document.execCommand('copy');
+  });
 }
 
 
