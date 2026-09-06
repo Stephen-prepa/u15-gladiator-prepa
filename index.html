@@ -1114,7 +1114,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
           <button onclick="presenceMarkAll('present')" style="background:none;border:1px solid rgba(46,204,113,0.4);color:#2ecc71;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;">Tout présent</button>
         </div>
-        <div id="presence-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+        <div id="presence-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
         <button onclick="presenceSave()" id="presence-save-btn" style="width:100%;margin-top:12px;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
         <div id="presence-save-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
       </div>
@@ -1171,7 +1171,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
           <div style="font-size:12px;font-weight:800;color:var(--blanc);margin-bottom:8px;">Dernières séances</div>
-          <div id="seance-recent" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;"></div>
+          <div id="seance-recent" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
         </div>
       </div>
 
@@ -1203,7 +1203,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <div id="composition-unassigned-count" style="font-size:11px;color:var(--gris-texte);text-align:center;margin:-6px 0 14px;"></div>
 
         <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Effectif complet</div>
-        <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+        <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
 
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
           <button onclick="convocGenerate()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;cursor:pointer;">📋 Générer le(s) message(s) de convocation</button>
@@ -3686,7 +3686,7 @@ async function statsLoad() {
 
     wrap.innerHTML = `
       <div style="display:flex;gap:12px;">
-        <div style="width:110px;flex-shrink:0;max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;" id="stats-namelist"></div>
+        <div style="width:110px;flex-shrink:0;max-height:340px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:flex;flex-direction:column;gap:4px;" id="stats-namelist"></div>
         <div style="flex:1;min-width:0;">
           <div id="stats-playername" style="font-size:13px;font-weight:800;color:var(--blanc);margin-bottom:8px;"></div>
           <div id="stats-indiv-chart"></div>
