@@ -3037,6 +3037,7 @@ async function convocGenerate() {
       const d = new Date(dateVal + 'T00:00:00');
       const dateLabel = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
       let heureMatch = '', opp = 'l\'adversaire', lieu = 'à préciser', heureRdv = '';
+      let besoins = '(à compléter)';
       if (m) {
         const info = homeParseOpponent(m.titre);
         opp = info.opp;
@@ -3045,6 +3046,9 @@ async function convocGenerate() {
         lieu = m.lieu || (info.home ? 'Clermont-l\'Hérault (à confirmer)' : opp + ' (à confirmer)');
         const rdv = new Date(dm.getTime() - 60 * 60000);
         heureRdv = String(rdv.getHours()).padStart(2, '0') + 'h' + (rdv.getMinutes() ? String(rdv.getMinutes()).padStart(2, '0') : '00');
+        besoins = info.home
+          ? 'Parents table de marque, police de terrain et goûter/apéro d\'après-match à proposer et partager avec l\'équipe adverse'
+          : 'Parents à la table de marque';
       }
       const text = `🔵 *Match — ${dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)} face à ${opp}* 💪🏾
 
@@ -3056,7 +3060,7 @@ Lieu: *${lieu}*
 Heure RDV: *${heureRdv || '(à compléter)'}*
 Heure Match: *${heureMatch || '(à compléter)'}*
 
-Besoins: *(à compléter)*
+Besoins: *${besoins}*
 
 *Vamos!!!*`;
       blocks.push({ eq, text });
