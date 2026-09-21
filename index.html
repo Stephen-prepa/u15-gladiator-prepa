@@ -1200,7 +1200,15 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
             <div id="composition-team2-list" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--gris-clair);"></div>
           </div>
         </div>
-        <div id="composition-unassigned-count" style="font-size:11px;color:var(--gris-texte);text-align:center;margin:-6px 0 14px;"></div>
+        <div id="composition-unassigned-count" style="font-size:11px;color:var(--gris-texte);text-align:center;margin:-6px 0 10px;"></div>
+
+        <div style="background:var(--noir);border-radius:8px;padding:10px;margin-bottom:14px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:11px;font-weight:800;color:#e74c3c;">🚫 Absences signalées</span>
+            <span id="composition-absent-count" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:#e74c3c;">0</span>
+          </div>
+          <div id="composition-absent-list" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--gris-clair);"></div>
+        </div>
 
         <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Effectif complet</div>
         <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
@@ -2655,12 +2663,14 @@ function homeCountdown(iso) {
   return 'J-' + diffDays;
 }
 function homeParseOpponent(titre) {
-  // titre FFHB typique: "HBC CLERMONT SALAGOU - ADVERSAIRE" ou l'inverse
+  // titre FFHB : soit "HBC CLERMONT SALAGOU - ADVERSAIRE" (manuel), soit "A vs B" / "A VS B" (officiel FFHB)
   if (!titre) return { opp: 'Adversaire', home: true };
-  const parts = titre.split(/\s*-\s*/);
+  let parts = titre.split(/\s+vs\s+/i);
+  if (parts.length < 2) parts = titre.split(/\s*-\s*/);
   if (parts.length < 2) return { opp: titre, home: true };
   const isUsFirst = /CLERMONT/i.test(parts[0]);
-  return { opp: (isUsFirst ? parts[1] : parts[0]).trim(), home: isUsFirst };
+  const opp = (isUsFirst ? parts[1] : parts[0]).trim();
+  return { opp: opp || 'Adversaire', home: isUsFirst };
 }
 
 async function homeSyncAndLoad() {
@@ -2736,7 +2746,8 @@ async function homeLoadMatches() {
       resScroll.innerHTML = past.slice(-8).reverse().map(m => {
         const info = homeParseOpponent(m.titre);
         const win = m.score_nous > m.score_eux;
-        return `<div class="home-rchip ${win ? 'w' : 'l'}"><span class="dot">${win ? 'V' : 'D'}</span><span class="lbl">${escapeSvgText(info.opp)}</span><span class="sc">${m.score_nous}–${m.score_eux}</span></div>`;
+        const scoreDisplay = info.home ? `${m.score_nous}–${m.score_eux}` : `${m.score_eux}–${m.score_nous}`;
+        return `<div class="home-rchip ${win ? 'w' : 'l'}"><span class="dot">${win ? 'V' : 'D'}</span><span class="lbl">${escapeSvgText(info.opp)}</span><span class="sc">${scoreDisplay}</span></div>`;
       }).join('');
     } else {
       resWrap.style.display = 'none';
@@ -2971,14 +2982,20 @@ function compositionRender() {
   const rosterWrap = document.getElementById('composition-roster-list');
   const t1Wrap = document.getElementById('composition-team1-list');
   const t2Wrap = document.getElementById('composition-team2-list');
+  const absWrap = document.getElementById('composition-absent-list');
 
   const t1 = compositionRoster.filter(p => compositionAssign[p.code] === 1);
   const t2 = compositionRoster.filter(p => compositionAssign[p.code] === 2);
-  const unassigned = compositionRoster.length - t1.length - t2.length;
+  const abs = compositionRoster.filter(p => compositionAssign[p.code] === -1);
+  const unassigned = compositionRoster.length - t1.length - t2.length - abs.length;
   t1Wrap.innerHTML = t1.length ? t1.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
   t2Wrap.innerHTML = t2.length ? t2.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
   document.getElementById('composition-team1-count').textContent = t1.length;
   document.getElementById('composition-team2-count').textContent = t2.length;
+  if (absWrap) {
+    absWrap.innerHTML = abs.length ? abs.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucune absence signalée</div>';
+    document.getElementById('composition-absent-count').textContent = abs.length;
+  }
   document.getElementById('composition-unassigned-count').textContent = unassigned > 0 ? unassigned + ' joueur' + (unassigned > 1 ? 's' : '') + ' pas encore assigné' + (unassigned > 1 ? 's' : '') : '';
 
   if (!compositionRoster.length) {
@@ -2992,10 +3009,11 @@ function compositionRender() {
       return `<button type="button" onclick="compositionSetTeam('${p.code}', ${val})" style="flex:1;padding:6px 0;border-radius:6px;border:1px solid ${active ? color : 'rgba(255,255,255,0.15)'};background:${active ? color + '22' : 'transparent'};color:${active ? color : 'var(--gris-texte)'};font-weight:${active ? '800' : '400'};font-size:11px;cursor:pointer;">${label}</button>`;
     };
     return `<div style="background:var(--noir);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
-      <span style="flex:1;font-size:13px;color:var(--blanc);">${escapeSvgText(p.name)}</span>
+      <span style="flex:1;font-size:13px;color:${cur === -1 ? 'var(--gris-texte)' : 'var(--blanc)'};${cur === -1 ? 'text-decoration:line-through;' : ''}">${escapeSvgText(p.name)}</span>
       ${btn(0, 'Aucune', '#8a97ad')}
       ${btn(1, 'Éq.1', '#F5C400')}
       ${btn(2, 'Éq.2', '#3498db')}
+      ${btn(-1, 'Absent', '#e74c3c')}
     </div>`;
   }).join('');
 }
