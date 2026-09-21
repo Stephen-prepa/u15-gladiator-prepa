@@ -1101,6 +1101,16 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div id="player-add-form" style="display:none;background:var(--noir);border-radius:8px;padding:10px;margin-bottom:14px;">
           <input type="text" id="player-add-name" class="login-input" placeholder="Prénom Nom du joueur" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
+          <select id="player-add-poste" class="login-input" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
+            <option value="">Poste — à définir</option>
+            <option value="GB">GB — Gardien</option>
+            <option value="ARG">ARG — Arrière G.</option>
+            <option value="DC">DC — Demi-centre</option>
+            <option value="ARD">ARD — Arrière D.</option>
+            <option value="ALG">ALG — Ailier G.</option>
+            <option value="ALD">ALD — Ailier D.</option>
+            <option value="PVT">PVT — Pivot</option>
+          </select>
           <button id="player-add-btn" onclick="playerAddManual()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;">Ajouter</button>
           <div id="player-add-msg" style="font-size:11px;text-align:center;margin-top:6px;min-height:14px;"></div>
         </div>
@@ -3091,11 +3101,21 @@ function postesOpenEditor() {
 }
 function postesRenderEditor() {
   const wrap = document.getElementById('postes-editor-list');
-  wrap.innerHTML = compositionRoster.map(p => {
+  const sorted = [...compositionRoster].sort((a, b) => {
+    const missA = !(a.postes && a.postes[0]), missB = !(b.postes && b.postes[0]);
+    if (missA !== missB) return missA ? -1 : 1;
+    return a.name.localeCompare(b.name, 'fr');
+  });
+  const nbMissing = sorted.filter(p => !(p.postes && p.postes[0])).length;
+  const header = nbMissing
+    ? `<div style="font-size:11px;color:#e74c3c;margin-bottom:8px;">⚠️ ${nbMissing} joueur${nbMissing > 1 ? 's' : ''} sans poste défini — affiché${nbMissing > 1 ? 's' : ''} en premier</div>`
+    : `<div style="font-size:11px;color:#2ecc71;margin-bottom:8px;">✓ Tout l'effectif a un poste défini</div>`;
+  wrap.innerHTML = header + sorted.map(p => {
     const current = (p.postes && p.postes[0]) || '';
+    const missing = !current;
     const opts = POSTES.map(code => `<option value="${code}" ${current === code ? 'selected' : ''}>${code} — ${POSTE_LABELS[code]}</option>`).join('');
-    return `<div style="display:flex;align-items:center;gap:8px;background:var(--noir);border-radius:8px;padding:6px 10px;">
-      <span style="flex:1;min-width:0;font-size:clamp(11px,3vw,14px);color:var(--blanc);overflow-wrap:break-word;">${escapeSvgText(p.name)}</span>
+    return `<div style="display:flex;align-items:center;gap:8px;background:var(--noir);border-radius:8px;padding:6px 10px;border:1px solid ${missing ? 'rgba(231,76,60,0.4)' : 'transparent'};">
+      <span style="flex:1;min-width:0;font-size:clamp(11px,3vw,14px);color:${missing ? '#e74c3c' : 'var(--blanc)'};overflow-wrap:break-word;">${escapeSvgText(p.name)}</span>
       <select onchange="postesSetDefault('${p.code}', this.value)" style="flex-shrink:0;max-width:44%;background:var(--gris-fonce);color:var(--blanc);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:5px 4px;font-size:clamp(10px,2.6vw,12px);">
         <option value="">—</option>
         ${opts}
@@ -3475,6 +3495,8 @@ function playerAddToggleForm() {
 async function playerAddManual() {
   const input = document.getElementById('player-add-name');
   const name = input.value.trim();
+  const posteInput = document.getElementById('player-add-poste');
+  const poste = posteInput.value;
   const msgEl = document.getElementById('player-add-msg');
   const btn = document.getElementById('player-add-btn');
   if (!name) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Entre un nom.'; return; }
@@ -3485,10 +3507,11 @@ async function playerAddManual() {
     const res = await fetch(SB_URL + '/rest/v1/players', {
       method: 'POST',
       headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' },
-      body: JSON.stringify({ code: genPlayerCode(), name, claimed_at: new Date().toISOString(), role: 'joueur' }),
+      body: JSON.stringify({ code: genPlayerCode(), name, claimed_at: new Date().toISOString(), role: 'joueur', postes: poste ? [poste] : [] }),
     });
     if (!res.ok) throw new Error('add failed');
     input.value = '';
+    posteInput.value = '';
     document.getElementById('player-add-form').style.display = 'none';
     presenceLoadRoster();
     statsLoad();
