@@ -338,7 +338,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   .coachs2-wrap{max-width:1500px;padding:32px;}
   .coachs2-grid{gap:32px;}
 }
-.coachs2-subtabs{display:flex;gap:8px;margin-bottom:12px;}
+.coachs2-subtabs{display:flex;gap:6px;margin-bottom:12px;}
 @media (min-width:700px){ .coachs2-subtabs{display:none;} }
 .cs-box.cs-hide{display:none;}
 @media (min-width:700px){ .cs-box.cs-hide{display:block;} }
@@ -1085,11 +1085,11 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:14px;">Objectifs et évaluations arrivent bientôt ici.</div>
 
       <div class="coachs2-subtabs">
-        <button type="button" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:12px;cursor:pointer;">📋 Présences</button>
-        <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">📊 Statistiques</button>
-        <button type="button" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">🗓️ Programme</button>
-        <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">📝 Séance</button>
-        <button type="button" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">🎽 Compos</button>
+        <button type="button" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">📋 Prés.</button>
+        <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">📊 Stats</button>
+        <button type="button" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">🗓️ Prog.</button>
+        <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">📝 Séance</button>
+        <button type="button" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">🎽 Compos</button>
       </div>
 
       <div class="coachs2-grid">
