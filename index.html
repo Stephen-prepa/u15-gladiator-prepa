@@ -3108,18 +3108,19 @@ function postesRenderEditor() {
   });
   const nbMissing = sorted.filter(p => !(p.postes && p.postes[0])).length;
   const header = nbMissing
-    ? `<div style="font-size:11px;color:#e74c3c;margin-bottom:8px;">⚠️ ${nbMissing} joueur${nbMissing > 1 ? 's' : ''} sans poste défini — affiché${nbMissing > 1 ? 's' : ''} en premier</div>`
-    : `<div style="font-size:11px;color:#2ecc71;margin-bottom:8px;">✓ Tout l'effectif a un poste défini</div>`;
+    ? `<div id="postes-editor-header" style="font-size:11px;color:#e74c3c;margin-bottom:8px;">⚠️ ${nbMissing} joueur${nbMissing > 1 ? 's' : ''} sans poste défini — affiché${nbMissing > 1 ? 's' : ''} en premier</div>`
+    : `<div id="postes-editor-header" style="font-size:11px;color:#2ecc71;margin-bottom:8px;">✓ Tout l'effectif a un poste défini</div>`;
   wrap.innerHTML = header + sorted.map(p => {
     const current = (p.postes && p.postes[0]) || '';
     const missing = !current;
     const opts = POSTES.map(code => `<option value="${code}" ${current === code ? 'selected' : ''}>${code} — ${POSTE_LABELS[code]}</option>`).join('');
-    return `<div style="display:flex;align-items:center;gap:8px;background:var(--noir);border-radius:8px;padding:6px 10px;border:1px solid ${missing ? 'rgba(231,76,60,0.4)' : 'transparent'};">
+    return `<div id="postes-row-${p.code}" style="display:flex;align-items:center;gap:8px;background:var(--noir);border-radius:8px;padding:6px 10px;border:1px solid ${missing ? 'rgba(231,76,60,0.4)' : 'transparent'};transition:border-color 0.3s, background 0.3s;">
       <span style="flex:1;min-width:0;font-size:clamp(11px,3vw,14px);color:${missing ? '#e74c3c' : 'var(--blanc)'};overflow-wrap:break-word;">${escapeSvgText(p.name)}</span>
-      <select onchange="postesSetDefault('${p.code}', this.value)" style="flex-shrink:0;max-width:44%;background:var(--gris-fonce);color:var(--blanc);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:5px 4px;font-size:clamp(10px,2.6vw,12px);">
+      <select onchange="postesSetDefault('${p.code}', this.value)" style="flex-shrink:0;max-width:36%;background:var(--gris-fonce);color:var(--blanc);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:5px 4px;font-size:clamp(10px,2.6vw,12px);">
         <option value="">—</option>
         ${opts}
       </select>
+      <span id="postes-check-${p.code}" style="flex-shrink:0;width:16px;font-size:14px;color:#2ecc71;"></span>
     </div>`;
   }).join('');
 }
@@ -3127,15 +3128,27 @@ async function postesSetDefault(code, poste) {
   const p = compositionRoster.find(r => r.code === code);
   const current = p ? (p.postes || []) : [];
   const next = poste ? [poste, ...current.filter(x => x !== poste)].slice(0, 2) : current.slice(1);
+  const row = document.getElementById('postes-row-' + code);
+  const check = document.getElementById('postes-check-' + code);
   try {
     await ensureCoachSession();
-    await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
+    const res = await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
       method: 'PATCH',
       headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ postes: next }),
     });
+    if (!res.ok) throw new Error('save failed');
     if (p) p.postes = next;
+    if (check) {
+      check.textContent = '✓';
+      setTimeout(() => { check.textContent = ''; }, 1800);
+    }
+    if (row) {
+      row.style.borderColor = 'rgba(46,204,113,0.5)';
+      setTimeout(() => { row.style.borderColor = poste ? 'transparent' : 'rgba(231,76,60,0.4)'; }, 1200);
+    }
   } catch (e) {
+    if (check) check.textContent = '';
     alert('Erreur — poste non enregistré, réessaie.');
   }
 }
