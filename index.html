@@ -320,7 +320,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .so-pause-card h2{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--blanc);margin-bottom:8px;}
 .so-pause-card p{font-size:13px;color:var(--gris-texte);margin-bottom:20px;}
 .so-pause-card button{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:14px 28px;border:none;border-radius:6px;cursor:pointer;background:var(--jaune);color:var(--noir);}
-.coachs2-wrap{padding:16px;max-width:420px;margin:0 auto;}
+.coachs2-wrap{padding:16px;max-width:420px;margin:0 auto;overflow-x:hidden;}
 .coachs2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start;}
 @media (min-width:700px){
   .coachs2-wrap{max-width:900px;}
@@ -3006,14 +3006,16 @@ function compositionRender() {
     const cur = compositionAssign[p.code] || 0;
     const btn = (val, label, color) => {
       const active = cur === val;
-      return `<button type="button" onclick="compositionSetTeam('${p.code}', ${val})" style="flex:1;padding:6px 0;border-radius:6px;border:1px solid ${active ? color : 'rgba(255,255,255,0.15)'};background:${active ? color + '22' : 'transparent'};color:${active ? color : 'var(--gris-texte)'};font-weight:${active ? '800' : '400'};font-size:11px;cursor:pointer;">${label}</button>`;
+      return `<button type="button" onclick="compositionSetTeam('${p.code}', ${val})" style="min-width:0;padding:6px 2px;border-radius:6px;border:1px solid ${active ? color : 'rgba(255,255,255,0.15)'};background:${active ? color + '22' : 'transparent'};color:${active ? color : 'var(--gris-texte)'};font-weight:${active ? '800' : '400'};font-size:10.5px;cursor:pointer;">${label}</button>`;
     };
-    return `<div style="background:var(--noir);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
-      <span style="flex:1;font-size:13px;color:${cur === -1 ? 'var(--gris-texte)' : 'var(--blanc)'};${cur === -1 ? 'text-decoration:line-through;' : ''}">${escapeSvgText(p.name)}</span>
-      ${btn(0, 'Aucune', '#8a97ad')}
-      ${btn(1, 'Éq.1', '#F5C400')}
-      ${btn(2, 'Éq.2', '#3498db')}
-      ${btn(-1, 'Absent', '#e74c3c')}
+    return `<div style="background:var(--noir);border-radius:8px;padding:8px 10px;">
+      <div style="font-size:13px;margin-bottom:6px;color:${cur === -1 ? 'var(--gris-texte)' : 'var(--blanc)'};${cur === -1 ? 'text-decoration:line-through;' : ''}">${escapeSvgText(p.name)}</div>
+      <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:6px;">
+        ${btn(0, 'Aucune', '#8a97ad')}
+        ${btn(1, 'Éq.1', '#F5C400')}
+        ${btn(2, 'Éq.2', '#3498db')}
+        ${btn(-1, 'Absent', '#e74c3c')}
+      </div>
     </div>`;
   }).join('');
 }
@@ -3453,7 +3455,7 @@ function presenceRenderList() {
     const btns = PRESENCE_STATUSES.map(s => {
       const active = current === s.key;
       return `<button type="button" onclick="presenceSetMark('${p.code}','${s.key}')"
-        style="flex:1;padding:6px 4px;border-radius:6px;border:1px solid ${active ? s.color : 'rgba(255,255,255,0.12)'};background:${active ? s.color : 'transparent'};color:${active ? '#1a1a1a' : 'var(--gris-clair)'};font-size:11px;font-weight:${active ? '800':'400'};cursor:pointer;">${s.label}</button>`;
+        style="flex:1;min-width:0;padding:6px 4px;border-radius:6px;border:1px solid ${active ? s.color : 'rgba(255,255,255,0.12)'};background:${active ? s.color : 'transparent'};color:${active ? '#1a1a1a' : 'var(--gris-clair)'};font-size:11px;font-weight:${active ? '800':'400'};cursor:pointer;">${s.label}</button>`;
     }).join('');
     return `<div style="background:var(--gris-fonce);border-radius:8px;padding:8px 10px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
