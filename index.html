@@ -3647,7 +3647,7 @@ let teamsNb = 2;
 let teamsPresentPlayers = []; // [{code, name, postes: [..]}]
 let teamsChosenPoste = {}; // code -> poste choisi pour ce match
 
-function teamsOpenBuilder() {
+async function teamsOpenBuilder() {
   const box = document.getElementById('teams-builder');
   const present = presenceRoster.filter(p => presenceMarks[p.code] === 'present');
   if (!present.length) {
@@ -3658,9 +3658,21 @@ function teamsOpenBuilder() {
   if (box.style.display === 'none') return;
   teamsPresentPlayers = present;
   teamsChosenPoste = {};
+  // toujours relire les postes depuis la base (peuvent avoir été modifiés dans Compos depuis le chargement de la page)
+  let freshPostes = {};
+  try {
+    await ensureCoachSession();
+    const codes = present.map(p => p.code);
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,postes&code=in.(' + codes.map(c => encodeURIComponent(c)).join(',') + ')', { headers: coachAuthHeaders() });
+    if (res.ok) {
+      const rows = await res.json();
+      rows.forEach(r => { freshPostes[r.code] = r.postes || []; });
+    }
+  } catch (e) {}
   present.forEach(p => {
-    const defaults = (presenceRoster.find(r => r.code === p.code) || {}).postes || [];
+    const defaults = freshPostes[p.code] || p.postes || [];
     teamsChosenPoste[p.code] = defaults[0] || '';
+    p.postes = defaults; // met aussi à jour le cache local pour la suite
   });
   teamsRenderPostePicker();
 }
