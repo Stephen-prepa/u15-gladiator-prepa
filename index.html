@@ -1231,6 +1231,14 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
 
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+          <button onclick="postesOpenEditor()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--gris-moyen);color:var(--blanc);font-weight:800;font-size:13px;cursor:pointer;">🎯 Définir les postes de l'effectif</button>
+          <div id="postes-editor" style="display:none;margin-top:12px;">
+            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Poste principal de chacun (modifiable à tout moment, ici ou pendant une séance).</div>
+            <div id="postes-editor-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
           <button onclick="convocGenerate()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;cursor:pointer;">📋 Générer le(s) message(s) de convocation</button>
           <div id="convoc-output"></div>
         </div>
@@ -2974,7 +2982,7 @@ function compositionShiftDay(delta) {
 async function compositionLoadRoster() {
   document.getElementById('composition-roster-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Chargement...</div>';
   try {
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
     const rows = await res.json();
     compositionRoster = rows.filter(p => p.code !== 'COACHTEST' && p.name);
   } catch (e) { compositionRoster = []; }
@@ -3073,6 +3081,43 @@ async function compositionSetTeam(code, equipe) {
       });
     }
   } catch (e) {}
+}
+
+function postesOpenEditor() {
+  const box = document.getElementById('postes-editor');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'none') return;
+  postesRenderEditor();
+}
+function postesRenderEditor() {
+  const wrap = document.getElementById('postes-editor-list');
+  wrap.innerHTML = compositionRoster.map(p => {
+    const current = (p.postes && p.postes[0]) || '';
+    const opts = POSTES.map(code => `<option value="${code}" ${current === code ? 'selected' : ''}>${code} — ${POSTE_LABELS[code]}</option>`).join('');
+    return `<div style="display:flex;align-items:center;gap:8px;background:var(--noir);border-radius:8px;padding:6px 10px;">
+      <span style="flex:1;min-width:0;font-size:clamp(11px,3vw,14px);color:var(--blanc);overflow-wrap:break-word;">${escapeSvgText(p.name)}</span>
+      <select onchange="postesSetDefault('${p.code}', this.value)" style="flex-shrink:0;max-width:44%;background:var(--gris-fonce);color:var(--blanc);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:5px 4px;font-size:clamp(10px,2.6vw,12px);">
+        <option value="">—</option>
+        ${opts}
+      </select>
+    </div>`;
+  }).join('');
+}
+async function postesSetDefault(code, poste) {
+  const p = compositionRoster.find(r => r.code === code);
+  const current = p ? (p.postes || []) : [];
+  const next = poste ? [poste, ...current.filter(x => x !== poste)].slice(0, 2) : current.slice(1);
+  try {
+    await ensureCoachSession();
+    await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
+      method: 'PATCH',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postes: next }),
+    });
+    if (p) p.postes = next;
+  } catch (e) {
+    alert('Erreur — poste non enregistré, réessaie.');
+  }
 }
 
 async function convocGenerate() {
