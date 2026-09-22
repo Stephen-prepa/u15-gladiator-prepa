@@ -1092,17 +1092,17 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <button type="button" id="cs-subtab-outils" onclick="coachSubtabSwitch('outils')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
           <span style="font-size:18px;line-height:1;">🛠️</span><span style="font-size:9.5px;line-height:1;">Outils</span>
         </button>
-        <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">📊</span><span style="font-size:9.5px;line-height:1;">Stats</span>
+        <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
+          <span style="font-size:18px;line-height:1;">📝</span><span style="font-size:9.5px;line-height:1;">Séance</span>
         </button>
         <button type="button" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
           <span style="font-size:18px;line-height:1;">🗓️</span><span style="font-size:9.5px;line-height:1;">Programme</span>
         </button>
-        <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">📝</span><span style="font-size:9.5px;line-height:1;">Séance</span>
-        </button>
         <button type="button" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
           <span style="font-size:18px;line-height:1;">🎽</span><span style="font-size:9.5px;line-height:1;">Compos</span>
+        </button>
+        <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
+          <span style="font-size:18px;line-height:1;">📊</span><span style="font-size:9.5px;line-height:1;">Stats</span>
         </button>
       </div>
 
@@ -3645,7 +3645,7 @@ async function presenceSave() {
   btn.disabled = false; btn.textContent = 'Enregistrer';
 }
 // ---------- Postes (référentiel commun) ----------
-const POSTES = ['GB', 'ARG', 'DC', 'ARD', 'ALG', 'ALD', 'PVT'];
+const POSTES = ['GB', 'ALG', 'ARG', 'DC', 'PVT', 'ARD', 'ALD'];
 const POSTE_LABELS = { GB: 'Gardien', ARG: 'Arrière G.', DC: 'Demi-centre', ARD: 'Arrière D.', ALG: 'Ailier G.', ALD: 'Ailier D.', PVT: 'Pivot' };
 
 // ---------- Outils entraînement : clavier de composition d'équipes ----------
@@ -3655,7 +3655,8 @@ let outilsPool = [];  // joueurs pas encore assignés
 const OUTILS_THRESHOLD = { 2: 10, 3: 7 };
 
 function outilsInit() {
-  outilsRenderPool();
+  if (!outilsTeams.length) outilsReset();
+  else outilsRenderPool();
 }
 function outilsSetNb(n) {
   outilsNb = n;
