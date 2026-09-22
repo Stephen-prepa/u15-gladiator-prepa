@@ -1089,6 +1089,9 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <button type="button" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;cursor:pointer;">
           <span style="font-size:18px;line-height:1;">📋</span><span style="font-size:9.5px;line-height:1;">Présences</span>
         </button>
+        <button type="button" id="cs-subtab-outils" onclick="coachSubtabSwitch('outils')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
+          <span style="font-size:18px;line-height:1;">🛠️</span><span style="font-size:9.5px;line-height:1;">Outils</span>
+        </button>
         <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
           <span style="font-size:18px;line-height:1;">📊</span><span style="font-size:9.5px;line-height:1;">Stats</span>
         </button>
@@ -1100,9 +1103,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         </button>
         <button type="button" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
           <span style="font-size:18px;line-height:1;">🎽</span><span style="font-size:9.5px;line-height:1;">Compos</span>
-        </button>
-        <button type="button" id="cs-subtab-outils" onclick="coachSubtabSwitch('outils')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">🛠️</span><span style="font-size:9.5px;line-height:1;">Outils</span>
         </button>
       </div>
 
@@ -3688,13 +3688,29 @@ function outilsRenderPool() {
     wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Aucun joueur disponible — marque les présents dans l\'onglet Présences, puis reviens ici.</div>';
     return;
   }
-  wrap.innerHTML = outilsPool.map(p => {
-    const poste = (p.postes && p.postes[0]) || '—';
-    return `<button type="button" onclick="outilsPick('${p.code}')" style="background:var(--noir);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;">
+  const sorted = [...outilsPool].sort((a, b) => {
+    const pa = (a.postes && a.postes[0]) || '';
+    const pb = (b.postes && b.postes[0]) || '';
+    const ia = pa ? POSTES.indexOf(pa) : POSTES.length;
+    const ib = pb ? POSTES.indexOf(pb) : POSTES.length;
+    if (ia !== ib) return ia - ib;
+    return a.name.localeCompare(b.name, 'fr');
+  });
+  let lastPoste = null;
+  const parts = [];
+  sorted.forEach(p => {
+    const poste = (p.postes && p.postes[0]) || '';
+    if (poste !== lastPoste) {
+      lastPoste = poste;
+      const label = poste ? poste + ' — ' + POSTE_LABELS[poste] : 'Sans poste défini';
+      parts.push(`<div style="grid-column:1/-1;font-size:9.5px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin:6px 0 2px;">${label}</div>`);
+    }
+    parts.push(`<button type="button" onclick="outilsPick('${p.code}')" style="background:var(--noir);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;">
       <div style="font-size:clamp(11px,3vw,13px);color:var(--blanc);font-weight:700;overflow-wrap:break-word;">${escapeSvgText(p.name)}</div>
-      <div style="font-size:10px;color:var(--jaune);margin-top:2px;">${poste}</div>
-    </button>`;
-  }).join('');
+      <div style="font-size:10px;color:var(--jaune);margin-top:2px;">${poste || '—'}</div>
+    </button>`);
+  });
+  wrap.innerHTML = parts.join('');
 }
 function outilsRenderTeams() {
   const wrap = document.getElementById('outils-teams');
