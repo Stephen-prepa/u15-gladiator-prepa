@@ -3139,10 +3139,12 @@ async function postesSetDefault(code, poste) {
     await ensureCoachSession();
     const res = await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
       method: 'PATCH',
-      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' },
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' },
       body: JSON.stringify({ postes: next }),
     });
     if (!res.ok) throw new Error('save failed');
+    const updated = await res.json();
+    if (!updated.length) throw new Error('no row updated — RLS ?');
     if (p) p.postes = next;
     if (check) {
       check.textContent = '✓';
