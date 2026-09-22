@@ -1248,6 +1248,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <span style="font-size:12px;color:var(--gris-texte);">Nombre d'équipes :</span>
           <button type="button" id="outils-nb-2" onclick="outilsSetNb(2)" style="padding:6px 14px;border-radius:6px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:12px;cursor:pointer;">2 (10-12)</button>
           <button type="button" id="outils-nb-3" onclick="outilsSetNb(3)" style="padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">3 (7-8)</button>
+          <button type="button" id="outils-nb-4" onclick="outilsSetNb(4)" style="padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">4 (5-6)</button>
         </div>
         <button onclick="outilsReset()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11.5px;cursor:pointer;margin-bottom:12px;">↻ Réinitialiser avec les présents actuels</button>
 
@@ -3653,7 +3654,7 @@ let outilsNb = 2;
 let outilsTeams = []; // [[{code,name,postes}], ...]
 let outilsPool = [];  // joueurs pas encore assignés
 let outilsCurrentTeam = 0; // équipe active pour les prochains taps (choisie manuellement)
-const OUTILS_THRESHOLD = { 2: 10, 3: 7 };
+const OUTILS_THRESHOLD = { 2: 10, 3: 7, 4: 5 };
 
 function outilsInit() {
   if (!outilsTeams.length) outilsReset();
@@ -3661,12 +3662,13 @@ function outilsInit() {
 }
 function outilsSetNb(n) {
   outilsNb = n;
-  document.getElementById('outils-nb-2').style.border = n === 2 ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
-  document.getElementById('outils-nb-2').style.background = n === 2 ? 'rgba(255,215,0,0.12)' : 'transparent';
-  document.getElementById('outils-nb-2').style.color = n === 2 ? 'var(--jaune)' : 'var(--gris-clair)';
-  document.getElementById('outils-nb-3').style.border = n === 3 ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
-  document.getElementById('outils-nb-3').style.background = n === 3 ? 'rgba(255,215,0,0.12)' : 'transparent';
-  document.getElementById('outils-nb-3').style.color = n === 3 ? 'var(--jaune)' : 'var(--gris-clair)';
+  [2, 3, 4].forEach(v => {
+    const btn = document.getElementById('outils-nb-' + v);
+    if (!btn) return;
+    btn.style.border = n === v ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
+    btn.style.background = n === v ? 'rgba(255,215,0,0.12)' : 'transparent';
+    btn.style.color = n === v ? 'var(--jaune)' : 'var(--gris-clair)';
+  });
   outilsReset();
 }
 function outilsReset() {
@@ -3715,20 +3717,16 @@ function outilsRenderPool() {
 }
 function outilsRenderTeams() {
   const wrap = document.getElementById('outils-teams');
-  const teamColors = ['#F5C400', '#3498db', '#2ecc71'];
+  const teamColors = ['#F5C400', '#3498db', '#2ecc71', '#e67e22'];
   const threshold = OUTILS_THRESHOLD[outilsNb];
-  wrap.innerHTML = `
-    <div style="display:flex;gap:6px;margin-bottom:10px;">
-      ${outilsTeams.map((t, i) => `<button type="button" onclick="outilsSetCurrentTeam(${i})" style="flex:1;padding:6px 4px;border-radius:8px;border:1px solid ${i === outilsCurrentTeam ? teamColors[i] : 'rgba(255,255,255,0.15)'};background:${i === outilsCurrentTeam ? teamColors[i] + '22' : 'transparent'};color:${i === outilsCurrentTeam ? teamColors[i] : 'var(--gris-texte)'};font-weight:${i === outilsCurrentTeam ? '800' : '400'};font-size:11px;cursor:pointer;">Équipe ${i + 1}${i === outilsCurrentTeam ? ' ✓' : ''}</button>`).join('')}
-    </div>
-  ` + outilsTeams.map((team, i) => `
-    <div style="background:var(--noir);border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid ${i === outilsCurrentTeam ? teamColors[i] : 'rgba(255,255,255,0.08)'};">
+  wrap.innerHTML = outilsTeams.map((team, i) => `
+    <div onclick="outilsSetCurrentTeam(${i})" style="cursor:pointer;background:var(--noir);border-radius:10px;padding:10px;margin-bottom:8px;border:2px solid ${i === outilsCurrentTeam ? teamColors[i] : 'rgba(255,255,255,0.08)'};">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;color:${teamColors[i]};">Équipe ${i + 1}</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;color:${teamColors[i]};">Équipe ${i + 1}${i === outilsCurrentTeam ? ' · active' : ''}</span>
         <span style="font-size:11px;color:var(--gris-texte);">${team.length}/${threshold}${team.length > threshold ? ' (+' + (team.length - threshold) + ')' : ''}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">
-        ${team.length ? team.map(p => `<button type="button" onclick="outilsUnpick('${p.code}')" style="background:${teamColors[i]}22;border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;">${escapeSvgText(p.name)} ${(p.postes && p.postes[0]) ? '· ' + p.postes[0] : ''}</button>`).join('') : '<span style="font-size:11px;color:var(--gris-texte);">Vide pour l\'instant</span>'}
+        ${team.length ? team.map(p => `<button type="button" onclick="event.stopPropagation(); outilsUnpick('${p.code}')" style="background:${teamColors[i]}22;border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;">${escapeSvgText(p.name)} ${(p.postes && p.postes[0]) ? '· ' + p.postes[0] : ''}</button>`).join('') : '<span style="font-size:11px;color:var(--gris-texte);">Vide pour l\'instant — tape ici pour la rendre active</span>'}
       </div>
     </div>
   `).join('');
