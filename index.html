@@ -1085,11 +1085,14 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:14px;">Objectifs et évaluations arrivent bientôt ici.</div>
 
       <div class="coachs2-subtabs">
-        <button type="button" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">📋 Prés.</button>
-        <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">📊 Stats</button>
-        <button type="button" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">🗓️ Prog.</button>
-        <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">📝 Séance</button>
-        <button type="button" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')" style="flex:1;min-width:0;padding:clamp(5px,1.8vw,9px) clamp(2px,1vw,10px);border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:clamp(9.5px,2.8vw,13px);cursor:pointer;">🎽 Compos</button>
+        <select id="coachs2-subtab-select" onchange="coachSubtabSwitch(this.value)" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--jaune);background:var(--gris-fonce);color:var(--jaune);font-weight:800;font-size:14px;cursor:pointer;-webkit-appearance:none;appearance:none;">
+          <option value="presence">📋 Présences</option>
+          <option value="stats">📊 Statistiques</option>
+          <option value="programme">🗓️ Programme</option>
+          <option value="seance">📝 Séance</option>
+          <option value="composition">🎽 Compositions</option>
+          <option value="outils">🛠️ Outils entraînement</option>
+        </select>
       </div>
 
       <div class="coachs2-grid">
@@ -1101,16 +1104,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div id="player-add-form" style="display:none;background:var(--noir);border-radius:8px;padding:10px;margin-bottom:14px;">
           <input type="text" id="player-add-name" class="login-input" placeholder="Prénom Nom du joueur" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
-          <select id="player-add-poste" class="login-input" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
-            <option value="">Poste — à définir</option>
-            <option value="GB">GB — Gardien</option>
-            <option value="ARG">ARG — Arrière G.</option>
-            <option value="DC">DC — Demi-centre</option>
-            <option value="ARD">ARD — Arrière D.</option>
-            <option value="ALG">ALG — Ailier G.</option>
-            <option value="ALD">ALD — Ailier D.</option>
-            <option value="PVT">PVT — Pivot</option>
-          </select>
           <button id="player-add-btn" onclick="playerAddManual()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;">Ajouter</button>
           <div id="player-add-msg" style="font-size:11px;text-align:center;margin-top:6px;min-height:14px;"></div>
         </div>
@@ -1126,21 +1119,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         </div>
         <div id="presence-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
         <button onclick="presenceSave()" id="presence-save-btn" style="width:100%;margin-top:12px;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
-
-        <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
-          <button onclick="teamsOpenBuilder()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--gris-moyen);color:var(--blanc);font-weight:800;font-size:13px;cursor:pointer;">⚔️ Créer les équipes du match</button>
-          <div id="teams-builder" style="display:none;margin-top:12px;">
-            <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
-              <span style="font-size:12px;color:var(--gris-texte);">Nombre d'équipes :</span>
-              <button type="button" id="teams-nb-2" onclick="teamsSetNb(2)" style="padding:6px 14px;border-radius:6px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:12px;cursor:pointer;">2</button>
-              <button type="button" id="teams-nb-3" onclick="teamsSetNb(3)" style="padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">3</button>
-            </div>
-            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Poste de chaque présent pour ce match (modifiable — ça met aussi à jour son poste par défaut) :</div>
-            <div id="teams-poste-picker" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
-            <button onclick="teamsGenerate()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;cursor:pointer;">Générer les équipes</button>
-            <div id="teams-result" style="margin-top:14px;"></div>
-          </div>
-        </div>
         <div id="presence-save-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
       </div>
 
@@ -1252,6 +1230,23 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <button onclick="convocGenerate()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;cursor:pointer;">📋 Générer le(s) message(s) de convocation</button>
           <div id="convoc-output"></div>
         </div>
+      </div>
+
+      <div class="cs-box" id="cs-box-outils" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
+        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🛠️ Outils entraînement</h3>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Compose les équipes du match de fin de séance à partir des présents du jour (onglet Présences).</div>
+
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+          <span style="font-size:12px;color:var(--gris-texte);">Nombre d'équipes :</span>
+          <button type="button" id="outils-nb-2" onclick="outilsSetNb(2)" style="padding:6px 14px;border-radius:6px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:12px;cursor:pointer;">2 (10-12)</button>
+          <button type="button" id="outils-nb-3" onclick="outilsSetNb(3)" style="padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12px;cursor:pointer;">3 (7-8)</button>
+        </div>
+        <button onclick="outilsReset()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11.5px;cursor:pointer;margin-bottom:12px;">↻ Réinitialiser avec les présents actuels</button>
+
+        <div id="outils-teams" style="margin-bottom:12px;"></div>
+
+        <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Tape un joueur pour l'ajouter à l'équipe en cours</div>
+        <div id="outils-pool" style="display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:8px;"></div>
       </div>
 
       <button onclick="coachAuthLogout()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;">Se déconnecter</button>
@@ -2952,16 +2947,13 @@ function pickCoachLogin(login) {
 }
 
 function coachSubtabSwitch(name) {
-  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition' };
+  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
-    const btn = document.getElementById('cs-subtab-' + key);
-    const active = key === name;
-    btn.style.border = active ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
-    btn.style.background = active ? 'rgba(255,215,0,0.12)' : 'transparent';
-    btn.style.color = active ? 'var(--jaune)' : 'var(--gris-clair)';
-    btn.style.fontWeight = active ? '800' : '400';
   });
+  const select = document.getElementById('coachs2-subtab-select');
+  if (select && select.value !== name) select.value = name;
+  if (name === 'outils') outilsInit();
 }
 
 // ---------- Compositions du week-end (coach) ----------
@@ -3508,8 +3500,6 @@ function playerAddToggleForm() {
 async function playerAddManual() {
   const input = document.getElementById('player-add-name');
   const name = input.value.trim();
-  const posteInput = document.getElementById('player-add-poste');
-  const poste = posteInput.value;
   const msgEl = document.getElementById('player-add-msg');
   const btn = document.getElementById('player-add-btn');
   if (!name) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Entre un nom.'; return; }
@@ -3520,11 +3510,10 @@ async function playerAddManual() {
     const res = await fetch(SB_URL + '/rest/v1/players', {
       method: 'POST',
       headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' },
-      body: JSON.stringify({ code: genPlayerCode(), name, claimed_at: new Date().toISOString(), role: 'joueur', postes: poste ? [poste] : [] }),
+      body: JSON.stringify({ code: genPlayerCode(), name, claimed_at: new Date().toISOString(), role: 'joueur', postes: [] }),
     });
     if (!res.ok) throw new Error('add failed');
     input.value = '';
-    posteInput.value = '';
     document.getElementById('player-add-form').style.display = 'none';
     presenceLoadRoster();
     statsLoad();
@@ -3640,134 +3629,98 @@ async function presenceSave() {
   }
   btn.disabled = false; btn.textContent = 'Enregistrer';
 }
-// ---------- Équipes du match de fin de séance (postes) ----------
+// ---------- Postes (référentiel commun) ----------
 const POSTES = ['GB', 'ARG', 'DC', 'ARD', 'ALG', 'ALD', 'PVT'];
 const POSTE_LABELS = { GB: 'Gardien', ARG: 'Arrière G.', DC: 'Demi-centre', ARD: 'Arrière D.', ALG: 'Ailier G.', ALD: 'Ailier D.', PVT: 'Pivot' };
-let teamsNb = 2;
-let teamsPresentPlayers = []; // [{code, name, postes: [..]}]
-let teamsChosenPoste = {}; // code -> poste choisi pour ce match
 
-async function teamsOpenBuilder() {
-  const box = document.getElementById('teams-builder');
+// ---------- Outils entraînement : clavier de composition d'équipes ----------
+let outilsNb = 2;
+let outilsTeams = []; // [[{code,name,postes}], ...]
+let outilsPool = [];  // joueurs pas encore assignés
+const OUTILS_THRESHOLD = { 2: 10, 3: 7 };
+
+function outilsInit() {
+  outilsRenderPool();
+}
+function outilsSetNb(n) {
+  outilsNb = n;
+  document.getElementById('outils-nb-2').style.border = n === 2 ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
+  document.getElementById('outils-nb-2').style.background = n === 2 ? 'rgba(255,215,0,0.12)' : 'transparent';
+  document.getElementById('outils-nb-2').style.color = n === 2 ? 'var(--jaune)' : 'var(--gris-clair)';
+  document.getElementById('outils-nb-3').style.border = n === 3 ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
+  document.getElementById('outils-nb-3').style.background = n === 3 ? 'rgba(255,215,0,0.12)' : 'transparent';
+  document.getElementById('outils-nb-3').style.color = n === 3 ? 'var(--jaune)' : 'var(--gris-clair)';
+  outilsReset();
+}
+function outilsReset() {
   const present = presenceRoster.filter(p => presenceMarks[p.code] === 'present');
-  if (!present.length) {
-    alert('Marque d\'abord au moins un joueur "Présent" pour aujourd\'hui.');
+  outilsPool = present.map(p => ({ code: p.code, name: p.name, postes: p.postes || [] }));
+  outilsTeams = Array.from({ length: outilsNb }, () => []);
+  outilsRenderPool();
+  outilsRenderTeams();
+}
+function outilsCurrentTeamIndex() {
+  const threshold = OUTILS_THRESHOLD[outilsNb];
+  for (let i = 0; i < outilsNb; i++) {
+    if (outilsTeams[i].length < threshold || i === outilsNb - 1) return i;
+  }
+  return outilsNb - 1;
+}
+function outilsRenderPool() {
+  const wrap = document.getElementById('outils-pool');
+  if (!wrap) return;
+  if (!outilsPool.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Aucun joueur disponible — marque les présents dans l\'onglet Présences, puis reviens ici.</div>';
     return;
   }
-  box.style.display = box.style.display === 'none' ? 'block' : 'none';
-  if (box.style.display === 'none') return;
-  teamsPresentPlayers = present;
-  teamsChosenPoste = {};
-  // toujours relire les postes depuis la base (peuvent avoir été modifiés dans Compos depuis le chargement de la page)
-  let freshPostes = {};
-  try {
-    await ensureCoachSession();
-    const codes = present.map(p => p.code);
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,postes&code=in.(' + codes.map(c => encodeURIComponent(c)).join(',') + ')', { headers: coachAuthHeaders() });
-    if (res.ok) {
-      const rows = await res.json();
-      rows.forEach(r => { freshPostes[r.code] = r.postes || []; });
-    }
-  } catch (e) {}
-  present.forEach(p => {
-    const defaults = freshPostes[p.code] || p.postes || [];
-    teamsChosenPoste[p.code] = defaults[0] || '';
-    p.postes = defaults; // met aussi à jour le cache local pour la suite
-  });
-  teamsRenderPostePicker();
-}
-function teamsSetNb(n) {
-  teamsNb = n;
-  document.getElementById('teams-nb-2').style.border = n === 2 ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
-  document.getElementById('teams-nb-2').style.background = n === 2 ? 'rgba(255,215,0,0.12)' : 'transparent';
-  document.getElementById('teams-nb-2').style.color = n === 2 ? 'var(--jaune)' : 'var(--gris-clair)';
-  document.getElementById('teams-nb-3').style.border = n === 3 ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
-  document.getElementById('teams-nb-3').style.background = n === 3 ? 'rgba(255,215,0,0.12)' : 'transparent';
-  document.getElementById('teams-nb-3').style.color = n === 3 ? 'var(--jaune)' : 'var(--gris-clair)';
-}
-function teamsRenderPostePicker() {
-  const wrap = document.getElementById('teams-poste-picker');
-  wrap.innerHTML = teamsPresentPlayers.map(p => {
-    const opts = POSTES.map(code => `<option value="${code}" ${teamsChosenPoste[p.code] === code ? 'selected' : ''}>${code} — ${POSTE_LABELS[code]}</option>`).join('');
-    return `<div style="display:flex;align-items:center;gap:8px;background:var(--noir);border-radius:8px;padding:6px 10px;">
-      <span style="flex:1;min-width:0;font-size:clamp(11px,3vw,14px);color:var(--blanc);overflow-wrap:break-word;">${escapeSvgText(p.name)}</span>
-      <select onchange="teamsChosenPoste['${p.code}']=this.value" style="flex-shrink:0;max-width:44%;background:var(--gris-fonce);color:var(--blanc);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:5px 4px;font-size:clamp(10px,2.6vw,12px);">
-        <option value="">—</option>
-        ${opts}
-      </select>
-    </div>`;
+  wrap.innerHTML = outilsPool.map(p => {
+    const poste = (p.postes && p.postes[0]) || '—';
+    return `<button type="button" onclick="outilsPick('${p.code}')" style="background:var(--noir);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;">
+      <div style="font-size:clamp(11px,3vw,13px);color:var(--blanc);font-weight:700;overflow-wrap:break-word;">${escapeSvgText(p.name)}</div>
+      <div style="font-size:10px;color:var(--jaune);margin-top:2px;">${poste}</div>
+    </button>`;
   }).join('');
 }
-async function teamsSaveDefaultPostes() {
-  try {
-    await ensureCoachSession();
-    for (const p of teamsPresentPlayers) {
-      const poste = teamsChosenPoste[p.code];
-      if (!poste) continue;
-      const full = presenceRoster.find(r => r.code === p.code);
-      const current = full ? (full.postes || []) : [];
-      if (current[0] === poste) continue;
-      const next = [poste, ...current.filter(x => x !== poste)].slice(0, 2);
-      await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(p.code), {
-        method: 'PATCH',
-        headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postes: next }),
-      });
-      if (full) full.postes = next;
-    }
-  } catch (e) {}
-}
-function teamsGenerate() {
-  const missing = teamsPresentPlayers.filter(p => !teamsChosenPoste[p.code]);
-  if (missing.length) {
-    alert('Choisis un poste pour : ' + missing.map(p => p.name).join(', '));
-    return;
-  }
-  teamsSaveDefaultPostes();
-  const teams = Array.from({ length: teamsNb }, () => ({}));
-  POSTES.forEach(poste => {
-    const players = teamsPresentPlayers.filter(p => teamsChosenPoste[p.code] === poste);
-    players.forEach((p, i) => {
-      const teamIdx = i % teamsNb;
-      if (!teams[teamIdx][poste]) teams[teamIdx][poste] = [];
-      teams[teamIdx][poste].push(p);
-    });
-  });
-  teamsRenderResult(teams);
-}
-function teamsRenderResult(teams) {
-  const wrap = document.getElementById('teams-result');
+function outilsRenderTeams() {
+  const wrap = document.getElementById('outils-teams');
   const teamColors = ['#F5C400', '#3498db', '#2ecc71'];
-  wrap.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(${teamsNb}, minmax(0, 1fr));gap:6px;margin-bottom:8px;">
-      ${teams.map((t, i) => `<div style="min-width:0;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(11px,3vw,15px);color:${teamColors[i]};">Équipe ${i + 1}</div>`).join('')}
+  const threshold = OUTILS_THRESHOLD[outilsNb];
+  const curIdx = outilsCurrentTeamIndex();
+  wrap.innerHTML = outilsTeams.map((team, i) => `
+    <div style="background:var(--noir);border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid ${i === curIdx ? teamColors[i] : 'rgba(255,255,255,0.08)'};">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;color:${teamColors[i]};">Équipe ${i + 1}${i === curIdx ? ' · en cours' : ''}</span>
+        <span style="font-size:11px;color:var(--gris-texte);">${team.length}${i < outilsNb - 1 ? '/' + threshold : ''}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${team.length ? team.map(p => `<button type="button" onclick="outilsUnpick('${p.code}')" style="background:${teamColors[i]}22;border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;">${escapeSvgText(p.name)} ${(p.postes && p.postes[0]) ? '· ' + p.postes[0] : ''}</button>`).join('') : '<span style="font-size:11px;color:var(--gris-texte);">Vide pour l\'instant</span>'}
+      </div>
     </div>
-    ${POSTES.map(poste => {
-      const rows = teams.map((t, i) => {
-        const players = t[poste] || [];
-        return `<div style="min-width:0;display:flex;flex-direction:column;gap:3px;">${players.map(p => `<button type="button" onclick="teamsMovePlayer('${p.code}','${poste}')" style="min-width:0;width:100%;box-sizing:border-box;background:var(--noir);border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 5px;font-size:clamp(9.5px,2.6vw,12px);color:var(--gris-clair);cursor:pointer;text-align:left;overflow-wrap:break-word;">${escapeSvgText(p.name)}</button>`).join('') || '<div style="font-size:10px;color:var(--gris-texte);text-align:center;">—</div>'}</div>`;
-      }).join('');
-      return `<div style="margin-bottom:8px;">
-        <div style="font-size:clamp(8.5px,2.2vw,10.5px);font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:3px;">${poste} · ${POSTE_LABELS[poste]}</div>
-        <div style="display:grid;grid-template-columns:repeat(${teamsNb}, minmax(0, 1fr));gap:6px;">${rows}</div>
-      </div>`;
-    }).join('')}
-    <div style="font-size:10px;color:var(--gris-texte);text-align:center;margin-top:6px;">Tape sur un joueur pour le faire passer à l'équipe suivante.</div>
-  `;
-  teamsCurrentTeams = teams;
+  `).join('');
 }
-let teamsCurrentTeams = [];
-function teamsMovePlayer(code, poste) {
-  let fromIdx = -1;
-  teamsCurrentTeams.forEach((t, i) => { if ((t[poste] || []).some(p => p.code === code)) fromIdx = i; });
-  if (fromIdx === -1) return;
-  const player = teamsCurrentTeams[fromIdx][poste].find(p => p.code === code);
-  teamsCurrentTeams[fromIdx][poste] = teamsCurrentTeams[fromIdx][poste].filter(p => p.code !== code);
-  const toIdx = (fromIdx + 1) % teamsNb;
-  if (!teamsCurrentTeams[toIdx][poste]) teamsCurrentTeams[toIdx][poste] = [];
-  teamsCurrentTeams[toIdx][poste].push(player);
-  teamsRenderResult(teamsCurrentTeams);
+function outilsPick(code) {
+  const idx = outilsPool.findIndex(p => p.code === code);
+  if (idx === -1) return;
+  const player = outilsPool.splice(idx, 1)[0];
+  const teamIdx = outilsCurrentTeamIndex();
+  outilsTeams[teamIdx].push(player);
+  outilsRenderPool();
+  outilsRenderTeams();
 }
+function outilsUnpick(code) {
+  let found = null;
+  outilsTeams.forEach(team => {
+    const idx = team.findIndex(p => p.code === code);
+    if (idx !== -1) found = team.splice(idx, 1)[0];
+  });
+  if (found) {
+    outilsPool.push(found);
+    outilsPool.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+    outilsRenderPool();
+    outilsRenderTeams();
+  }
+}
+
 
 
 // ---------- Scores à saisir (coach) ----------
