@@ -338,7 +338,8 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   .coachs2-wrap{max-width:1500px;padding:32px;}
   .coachs2-grid{gap:32px;}
 }
-.coachs2-subtabs{display:flex;gap:6px;margin-bottom:12px;}
+.coachs2-subtabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.coachs2-subtabs::-webkit-scrollbar{display:none;}
 @media (min-width:700px){ .coachs2-subtabs{display:none;} }
 .cs-box.cs-hide{display:none;}
 @media (min-width:700px){ .cs-box.cs-hide{display:block;} }
@@ -1085,14 +1086,12 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:14px;">Objectifs et évaluations arrivent bientôt ici.</div>
 
       <div class="coachs2-subtabs">
-        <select id="coachs2-subtab-select" onchange="coachSubtabSwitch(this.value)" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--jaune);background:var(--gris-fonce);color:var(--jaune);font-weight:800;font-size:14px;cursor:pointer;-webkit-appearance:none;appearance:none;">
-          <option value="presence">📋 Présences</option>
-          <option value="stats">📊 Statistiques</option>
-          <option value="programme">🗓️ Programme</option>
-          <option value="seance">📝 Séance</option>
-          <option value="composition">🎽 Compositions</option>
-          <option value="outils">🛠️ Outils entraînement</option>
-        </select>
+        <button type="button" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:12.5px;cursor:pointer;">📋 Présences</button>
+        <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12.5px;cursor:pointer;">📊 Statistiques</button>
+        <button type="button" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12.5px;cursor:pointer;">🗓️ Programme</button>
+        <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12.5px;cursor:pointer;">📝 Séance</button>
+        <button type="button" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12.5px;cursor:pointer;">🎽 Compositions</button>
+        <button type="button" id="cs-subtab-outils" onclick="coachSubtabSwitch('outils')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:12.5px;cursor:pointer;">🛠️ Outils entraînement</button>
       </div>
 
       <div class="coachs2-grid">
@@ -1106,6 +1105,11 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <input type="text" id="player-add-name" class="login-input" placeholder="Prénom Nom du joueur" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
           <button id="player-add-btn" onclick="playerAddManual()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;">Ajouter</button>
           <div id="player-add-msg" style="font-size:11px;text-align:center;margin-top:6px;min-height:14px;"></div>
+        </div>
+
+        <button onclick="postesOpenEditor()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:800;font-size:12px;cursor:pointer;margin-bottom:14px;">🎯 Définir les postes de l'effectif</button>
+        <div id="postes-editor" style="display:none;margin-bottom:14px;">
+          <div id="postes-editor-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
         </div>
 
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
@@ -1217,14 +1221,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Effectif complet</div>
         <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
-
-        <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
-          <button onclick="postesOpenEditor()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--gris-moyen);color:var(--blanc);font-weight:800;font-size:13px;cursor:pointer;">🎯 Définir les postes de l'effectif</button>
-          <div id="postes-editor" style="display:none;margin-top:12px;">
-            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Poste principal de chacun (modifiable à tout moment, ici ou pendant une séance).</div>
-            <div id="postes-editor-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
-          </div>
-        </div>
 
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
           <button onclick="convocGenerate()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;cursor:pointer;">📋 Générer le(s) message(s) de convocation</button>
@@ -2950,9 +2946,14 @@ function coachSubtabSwitch(name) {
   const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
+    const btn = document.getElementById('cs-subtab-' + key);
+    if (!btn) return;
+    const active = key === name;
+    btn.style.border = active ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
+    btn.style.background = active ? 'rgba(255,215,0,0.12)' : 'transparent';
+    btn.style.color = active ? 'var(--jaune)' : 'var(--gris-clair)';
+    btn.style.fontWeight = active ? '800' : '400';
   });
-  const select = document.getElementById('coachs2-subtab-select');
-  if (select && select.value !== name) select.value = name;
   if (name === 'outils') outilsInit();
 }
 
@@ -3093,7 +3094,7 @@ function postesOpenEditor() {
 }
 function postesRenderEditor() {
   const wrap = document.getElementById('postes-editor-list');
-  const sorted = [...compositionRoster].sort((a, b) => {
+  const sorted = [...presenceRoster].sort((a, b) => {
     const missA = !(a.postes && a.postes[0]), missB = !(b.postes && b.postes[0]);
     if (missA !== missB) return missA ? -1 : 1;
     return a.name.localeCompare(b.name, 'fr');
@@ -3117,7 +3118,7 @@ function postesRenderEditor() {
   }).join('');
 }
 async function postesSetDefault(code, poste) {
-  const p = compositionRoster.find(r => r.code === code);
+  const p = presenceRoster.find(r => r.code === code);
   const current = p ? (p.postes || []) : [];
   const next = poste ? [poste, ...current.filter(x => x !== poste)].slice(0, 2) : current.slice(1);
   const row = document.getElementById('postes-row-' + code);
