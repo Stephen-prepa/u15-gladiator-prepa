@@ -3652,6 +3652,7 @@ const POSTE_LABELS = { GB: 'Gardien', ARG: 'Arrière G.', DC: 'Demi-centre', ARD
 let outilsNb = 2;
 let outilsTeams = []; // [[{code,name,postes}], ...]
 let outilsPool = [];  // joueurs pas encore assignés
+let outilsCurrentTeam = 0; // équipe active pour les prochains taps (choisie manuellement)
 const OUTILS_THRESHOLD = { 2: 10, 3: 7 };
 
 function outilsInit() {
@@ -3672,15 +3673,14 @@ function outilsReset() {
   const present = presenceRoster.filter(p => presenceMarks[p.code] === 'present');
   outilsPool = present.map(p => ({ code: p.code, name: p.name, postes: p.postes || [] }));
   outilsTeams = Array.from({ length: outilsNb }, () => []);
+  outilsCurrentTeam = 0;
   outilsRenderPool();
   outilsRenderTeams();
+  outilsSyncToSeance();
 }
-function outilsCurrentTeamIndex() {
-  const threshold = OUTILS_THRESHOLD[outilsNb];
-  for (let i = 0; i < outilsNb; i++) {
-    if (outilsTeams[i].length < threshold || i === outilsNb - 1) return i;
-  }
-  return outilsNb - 1;
+function outilsSetCurrentTeam(i) {
+  outilsCurrentTeam = i;
+  outilsRenderTeams();
 }
 function outilsRenderPool() {
   const wrap = document.getElementById('outils-pool');
@@ -3717,12 +3717,15 @@ function outilsRenderTeams() {
   const wrap = document.getElementById('outils-teams');
   const teamColors = ['#F5C400', '#3498db', '#2ecc71'];
   const threshold = OUTILS_THRESHOLD[outilsNb];
-  const curIdx = outilsCurrentTeamIndex();
-  wrap.innerHTML = outilsTeams.map((team, i) => `
-    <div style="background:var(--noir);border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid ${i === curIdx ? teamColors[i] : 'rgba(255,255,255,0.08)'};">
+  wrap.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      ${outilsTeams.map((t, i) => `<button type="button" onclick="outilsSetCurrentTeam(${i})" style="flex:1;padding:6px 4px;border-radius:8px;border:1px solid ${i === outilsCurrentTeam ? teamColors[i] : 'rgba(255,255,255,0.15)'};background:${i === outilsCurrentTeam ? teamColors[i] + '22' : 'transparent'};color:${i === outilsCurrentTeam ? teamColors[i] : 'var(--gris-texte)'};font-weight:${i === outilsCurrentTeam ? '800' : '400'};font-size:11px;cursor:pointer;">Équipe ${i + 1}${i === outilsCurrentTeam ? ' ✓' : ''}</button>`).join('')}
+    </div>
+  ` + outilsTeams.map((team, i) => `
+    <div style="background:var(--noir);border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid ${i === outilsCurrentTeam ? teamColors[i] : 'rgba(255,255,255,0.08)'};">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
-        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;color:${teamColors[i]};">Équipe ${i + 1}${i === curIdx ? ' · en cours' : ''}</span>
-        <span style="font-size:11px;color:var(--gris-texte);">${team.length}${i < outilsNb - 1 ? '/' + threshold : ''}</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;color:${teamColors[i]};">Équipe ${i + 1}</span>
+        <span style="font-size:11px;color:var(--gris-texte);">${team.length}/${threshold}${team.length > threshold ? ' (+' + (team.length - threshold) + ')' : ''}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">
         ${team.length ? team.map(p => `<button type="button" onclick="outilsUnpick('${p.code}')" style="background:${teamColors[i]}22;border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;">${escapeSvgText(p.name)} ${(p.postes && p.postes[0]) ? '· ' + p.postes[0] : ''}</button>`).join('') : '<span style="font-size:11px;color:var(--gris-texte);">Vide pour l\'instant</span>'}
@@ -3734,10 +3737,15 @@ function outilsPick(code) {
   const idx = outilsPool.findIndex(p => p.code === code);
   if (idx === -1) return;
   const player = outilsPool.splice(idx, 1)[0];
-  const teamIdx = outilsCurrentTeamIndex();
-  outilsTeams[teamIdx].push(player);
+  outilsTeams[outilsCurrentTeam].push(player);
+  // aide automatique : passe à l'équipe suivante une fois le seuil atteint, reste modifiable à tout moment via les boutons Équipe
+  const threshold = OUTILS_THRESHOLD[outilsNb];
+  if (outilsTeams[outilsCurrentTeam].length >= threshold && outilsCurrentTeam < outilsNb - 1) {
+    outilsCurrentTeam++;
+  }
   outilsRenderPool();
   outilsRenderTeams();
+  outilsSyncToSeance();
 }
 function outilsUnpick(code) {
   let found = null;
@@ -3750,7 +3758,52 @@ function outilsUnpick(code) {
     outilsPool.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
     outilsRenderPool();
     outilsRenderTeams();
+    outilsSyncToSeance();
   }
+}
+
+// ---------- Synchronisation de la composition vers le résumé de séance ----------
+const OUTILS_SEANCE_DELIM = '\n\n---\n';
+function outilsBuildSummary() {
+  const nonEmpty = outilsTeams.some(t => t.length);
+  if (!nonEmpty) return '';
+  const lines = ['🎽 Composition du match de fin de séance :'];
+  outilsTeams.forEach((team, i) => {
+    const names = team.map(p => p.name + (p.postes && p.postes[0] ? ' (' + p.postes[0] + ')' : '')).join(', ');
+    lines.push(`Équipe ${i + 1} : ${names || '—'}`);
+  });
+  return lines.join('\n');
+}
+async function outilsSyncToSeance() {
+  const dateInput = document.getElementById('presence-date');
+  if (!dateInput || !dateInput.value) return;
+  const summary = outilsBuildSummary();
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/session_notes?select=content&session_date=eq.' + dateInput.value, { headers: coachAuthHeaders() });
+    let existingFreeText = '';
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows.length && rows[0].content) {
+        const parts = rows[0].content.split(OUTILS_SEANCE_DELIM);
+        existingFreeText = parts.length > 1 ? parts.slice(1).join(OUTILS_SEANCE_DELIM) : (parts[0].startsWith('🎽 Composition') ? '' : parts[0]);
+      }
+    }
+    const newContent = summary ? summary + OUTILS_SEANCE_DELIM + existingFreeText : existingFreeText;
+    await fetch(SB_URL + '/rest/v1/session_notes?on_conflict=session_date', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify([{
+        session_date: dateInput.value,
+        content: newContent,
+        updated_by: coachSession ? coachSession.id : null,
+        updated_at: new Date().toISOString(),
+      }]),
+    });
+    if (typeof seanceDateChanged === 'function' && document.getElementById('seance-date') && document.getElementById('seance-date').value === dateInput.value) {
+      seanceDateChanged();
+    }
+  } catch (e) {}
 }
 
 
