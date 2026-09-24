@@ -1238,7 +1238,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <div id="composition-roster-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
 
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
-          <button onclick="convocGenerate()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;cursor:pointer;">📋 Générer le(s) message(s) de convocation</button>
+          <button id="convoc-btn" onclick="convocGenerate()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;cursor:pointer;">📋 Générer le(s) message(s) de convocation</button>
           <div id="convoc-output"></div>
         </div>
       </div>
@@ -2671,6 +2671,15 @@ const COACH_LOGINS = [
   { login: 'nicolas', name: 'Nicolas' },
 ];
 const CSK = 'hbccs_coach_session'; // localStorage key, distinct from player appState
+const CDK = 'hbccs_coach_device_token';
+function getOrCreateCoachDeviceToken() {
+  let t = localStorage.getItem(CDK);
+  if (!t) {
+    t = 'cdev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12);
+    localStorage.setItem(CDK, t);
+  }
+  return t;
+}
 let coachSession = null;
 let coachAuthSelectedLogin = null;
 
@@ -2709,7 +2718,7 @@ function homeFictionalMatches() {
 function nameWithNumero(p, html) {
   if (!p.numero) return html ? escapeSvgText(p.name) : p.name;
   const label = p.name + ' #' + p.numero;
-  return html ? `${escapeSvgText(p.name)} <span style="color:var(--jaune);font-weight:800;">#${p.numero}</span>` : label;
+  return html ? `${escapeSvgText(p.name)} <span style="color:var(--jaune);font-weight:800;font-size:0.9em;">#${p.numero}</span>` : label;
 }
 function homeCrest(name) {
   return (name || '?').trim().slice(0, 2).toUpperCase();
@@ -2980,6 +2989,7 @@ function pickCoachLogin(login) {
 }
 
 function coachSubtabSwitch(name) {
+  if (name === 'evaluations' && coachSession && coachSession.name === 'Sandrine') name = 'presence';
   const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils', evaluations: 'cs-box-evaluations' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
@@ -3197,7 +3207,7 @@ async function convocGenerate() {
     await ensureCoachSession();
     for (const eq of [1, 2]) {
       const players = compositionRoster.filter(p => compositionAssign[p.code] === eq).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
-      const names = players.map(p => p.name + (p.numero ? ' (N°' + p.numero + ')' : ''));
+      const names = players.map(p => p.name + (p.numero ? ' (#' + p.numero + ')' : ''));
       if (!names.length) continue;
       const mRes = await fetch(SB_URL + '/rest/v1/matches?select=*&equipe=eq.' + eq + '&debut=gte.' + dayStart + '&debut=lte.' + dayEnd + '&order=debut&limit=1', { headers: coachAuthHeaders() });
       const mRows = mRes.ok ? await mRes.json() : [];
@@ -3468,9 +3478,19 @@ function renderCoachs2View() {
     seanceInit();
     scoresTodoLoad();
     compositionInit();
+    applyCoachPermissions();
   } else {
     renderCoachNamePicker();
   }
+}
+
+// Restrictions d'accès par coach (client-side — cohérent avec le reste de la gestion des rôles dans cette appli).
+function applyCoachPermissions() {
+  const restricted = coachSession && coachSession.name === 'Sandrine';
+  const evalTab = document.getElementById('cs-subtab-evaluations');
+  if (evalTab) evalTab.style.display = restricted ? 'none' : '';
+  const convocBtn = document.getElementById('convoc-btn');
+  if (convocBtn) convocBtn.style.display = restricted ? 'none' : '';
 }
 
 // ---------- Presences ----------
@@ -3735,7 +3755,7 @@ function outilsRenderPool() {
       parts.push(`<div style="grid-column:1/-1;font-size:9.5px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin:6px 0 2px;">${label}</div>`);
     }
     parts.push(`<button type="button" onclick="outilsPick('${p.code}')" style="background:var(--noir);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;">
-      <div style="font-size:clamp(11px,3vw,13px);color:var(--blanc);font-weight:700;overflow-wrap:break-word;">${escapeSvgText(p.name)}${p.numero ? ' #' + p.numero : ''}</div>
+      <div style="font-size:clamp(11px,3vw,13px);color:var(--blanc);font-weight:700;overflow-wrap:break-word;">${escapeSvgText(p.name)}${p.numero ? ' <span style="font-size:0.9em;">#' + p.numero + '</span>' : ''}</div>
       <div style="font-size:10px;color:var(--jaune);margin-top:2px;">${poste || '—'}</div>
     </button>`);
   });
@@ -3752,7 +3772,7 @@ function outilsRenderTeams() {
         <span style="font-size:11px;color:var(--gris-texte);">${team.length}/${threshold}${team.length > threshold ? ' (+' + (team.length - threshold) + ')' : ''}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">
-        ${team.length ? team.map(p => `<button type="button" onclick="event.stopPropagation(); outilsUnpick('${p.code}')" style="background:${teamColors[i]}22;border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;">${escapeSvgText(p.name)}${p.numero ? ' #' + p.numero : ''} ${(p.postes && p.postes[0]) ? '· ' + p.postes[0] : ''}</button>`).join('') : '<span style="font-size:11px;color:var(--gris-texte);">Vide pour l\'instant — tape ici pour la rendre active</span>'}
+        ${team.length ? team.map(p => `<button type="button" onclick="event.stopPropagation(); outilsUnpick('${p.code}')" style="background:${teamColors[i]}22;border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;">${escapeSvgText(p.name)}${p.numero ? ' <span style="font-size:0.9em;">#' + p.numero + '</span>' : ''} ${(p.postes && p.postes[0]) ? '· ' + p.postes[0] : ''}</button>`).join('') : '<span style="font-size:11px;color:var(--gris-texte);">Vide pour l\'instant — tape ici pour la rendre active</span>'}
       </div>
     </div>
   `).join('');
@@ -4141,6 +4161,31 @@ async function coachAuthLogin() {
       login, name: coachName,
       id: data.user && data.user.id,
     };
+
+    // Verrou un seul appareil actif (même principe que côté joueurs) : si ce compte est déjà
+    // utilisé sur un autre appareil, on demande confirmation avant de prendre le relais ici.
+    const myDeviceToken = getOrCreateCoachDeviceToken();
+    try {
+      const cRes = await fetch(SB_URL + '/rest/v1/coaches?id=eq.' + encodeURIComponent(coachSession.id) + '&select=device_token', {
+        headers: { apikey: SB_KEY, Authorization: 'Bearer ' + coachSession.access_token },
+      });
+      const cRows = cRes.ok ? await cRes.json() : [];
+      const existingToken = cRows.length ? cRows[0].device_token : null;
+      if (existingToken && existingToken !== myDeviceToken) {
+        const ok = window.confirm("Ce compte est déjà utilisé sur un autre appareil. Continuer ici déconnectera l'autre appareil dès son prochain chargement.\n\nContinuer ?");
+        if (!ok) {
+          coachSession = null;
+          btn.disabled = false; btn.textContent = 'Se connecter';
+          return;
+        }
+      }
+      await fetch(SB_URL + '/rest/v1/coaches?id=eq.' + encodeURIComponent(coachSession.id), {
+        method: 'PATCH',
+        headers: { apikey: SB_KEY, Authorization: 'Bearer ' + coachSession.access_token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_token: myDeviceToken }),
+      });
+    } catch (e) {}
+
     saveCoachSession();
     pwInput.value = '';
     btn.disabled = false; btn.textContent = 'Se connecter';
@@ -4185,6 +4230,26 @@ async function ensureCoachSession() {
     saveCoachSession();
     return coachSession;
   } catch (e) { return coachSession; }
+}
+// Vérifie une fois par ouverture d'appli que cet appareil est toujours celui enregistré pour ce coach
+// (verrou un seul appareil actif). Si un autre appareil a pris le relais depuis, déconnexion propre.
+async function checkCoachDeviceStillActive() {
+  if (!coachSession || !coachSession.id) return;
+  try {
+    const myDeviceToken = getOrCreateCoachDeviceToken();
+    const res = await fetch(SB_URL + '/rest/v1/coaches?id=eq.' + encodeURIComponent(coachSession.id) + '&select=device_token', {
+      headers: coachAuthHeaders(),
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    const serverToken = rows.length ? rows[0].device_token : null;
+    if (serverToken && serverToken !== myDeviceToken) {
+      coachSession = null;
+      saveCoachSession();
+      renderCoachs2View();
+      alert('Ce compte a été utilisé sur un autre appareil — tu as été déconnecté ici. Reconnecte-toi si besoin.');
+    }
+  } catch (e) {}
 }
 // En-tetes a utiliser pour toute requete REST vers les tables coach only (evaluations, objectifs, presences)
 function coachAuthHeaders() {
@@ -4383,7 +4448,7 @@ function evaluationsRenderPicker() {
   wrap.innerHTML = evalRoster.map(p => {
     const active = p.code === evalCurrentPlayer;
     return `<button type="button" onclick="evaluationsSelectPlayer('${p.code}')"
-      style="flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid ${active ? 'var(--jaune)' : 'rgba(255,255,255,0.15)'};background:${active ? 'rgba(255,215,0,0.12)' : 'transparent'};color:${active ? 'var(--jaune)' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:12.5px;white-space:nowrap;cursor:pointer;">${escapeSvgText(p.name)}${p.numero ? ' #' + p.numero : ''}</button>`;
+      style="flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid ${active ? 'var(--jaune)' : 'rgba(255,255,255,0.15)'};background:${active ? 'rgba(255,215,0,0.12)' : 'transparent'};color:${active ? 'var(--jaune)' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:12.5px;white-space:nowrap;cursor:pointer;">${escapeSvgText(p.name)}${p.numero ? ' <span style="font-size:0.9em;">#' + p.numero + '</span>' : ''}</button>`;
   }).join('');
 }
 
@@ -4750,6 +4815,7 @@ document.addEventListener('DOMContentLoaded', () => {
   homeSyncAndLoad();
   renderCoachs2View();
   ensureCoachSession();
+  checkCoachDeviceStillActive();
   const first = document.querySelector('.sg-header');
   if (first) { first.nextElementSibling.classList.add('open'); first.querySelector('.sg-chev').classList.add('open'); }
 
