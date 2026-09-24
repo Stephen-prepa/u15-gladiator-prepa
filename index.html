@@ -4501,23 +4501,46 @@ function evaluationsItemCard(it) {
   </div>`;
 }
 
+let evalOpenSection = 'filiere'; // 'filiere' | 'intrinseque' | null
+function evaluationsToggleSection(section) {
+  evalOpenSection = evalOpenSection === section ? null : section;
+  evaluationsRenderItems();
+}
 function evaluationsRenderItems() {
   const wrap = document.getElementById('eval-items-list');
   if (!wrap) return;
   if (!evalCurrentPlayer) { wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Choisis un joueur ci-dessus.</div>'; return; }
-  const groups = [
+
+  const filiereGroups = [
     { label: '🛡️ Fil rouge filière', items: EVAL_ITEMS.filter(i => i.kind === 'hah'), accent: 'var(--jaune)' },
     { label: 'Prérequis — Technique', items: EVAL_ITEMS.filter(i => i.domain === 'Technique'), accent: 'var(--bleu-light)' },
     { label: 'Prérequis — Tactique', items: EVAL_ITEMS.filter(i => i.domain === 'Tactique'), accent: 'var(--bleu-light)' },
     { label: 'Prérequis — Physique / Motricité', items: EVAL_ITEMS.filter(i => i.domain === 'Physique / Motricité'), accent: 'var(--vert)' },
     { label: 'Prérequis — Mental / Comportemental', items: EVAL_ITEMS.filter(i => i.domain === 'Mental / Comportemental'), accent: '#9b59b6' },
     { label: '★ Compétences accélératrices', items: EVAL_ITEMS.filter(i => i.kind === 'accel'), accent: 'var(--jaune)' },
-    { label: '🧬 Qualités intrinsèques (brouillon, à valider ensemble)', items: EVAL_ITEMS.filter(i => i.kind === 'intrinsic'), accent: '#e67e22' },
   ];
-  wrap.innerHTML = groups.filter(g => g.items.length).map((g, gi) => `
-    <div style="font-size:10.5px;font-weight:800;color:${g.accent};text-transform:uppercase;letter-spacing:0.5px;margin:${gi === 0 ? '0' : '8px'} 0 2px;">${g.label}</div>
-    ${g.items.map(it => evaluationsItemCard(it)).join('')}
-  `).join('');
+  const intrinsicItems = EVAL_ITEMS.filter(i => i.kind === 'intrinsic');
+
+  const sectionHeader = (key, label, accent, count) => {
+    const open = evalOpenSection === key;
+    return `<button type="button" onclick="evaluationsToggleSection('${key}')" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:${open ? accent + '18' : 'var(--noir)'};border:1px solid ${open ? accent : 'rgba(255,255,255,0.1)'};border-radius:10px;padding:12px 14px;cursor:pointer;margin-top:10px;">
+      <span style="font-size:13px;font-weight:800;color:${open ? accent : 'var(--blanc)'};">${label}</span>
+      <span style="font-size:10.5px;color:var(--gris-texte);">${count} item${count > 1 ? 's' : ''} ${open ? '▲' : '▼'}</span>
+    </button>`;
+  };
+
+  let html = sectionHeader('filiere', '📘 Profil filière', 'var(--jaune)', filiereGroups.reduce((n, g) => n + g.items.length, 0));
+  if (evalOpenSection === 'filiere') {
+    html += `<div style="padding-top:8px;">` + filiereGroups.filter(g => g.items.length).map((g, gi) => `
+      <div style="font-size:10.5px;font-weight:800;color:${g.accent};text-transform:uppercase;letter-spacing:0.5px;margin:${gi === 0 ? '0' : '8px'} 0 2px;">${g.label}</div>
+      ${g.items.map(it => evaluationsItemCard(it)).join('')}
+    `).join('') + `</div>`;
+  }
+  html += sectionHeader('intrinseque', '🧬 Intrinsèque', '#e67e22', intrinsicItems.length);
+  if (evalOpenSection === 'intrinseque') {
+    html += `<div style="padding-top:8px;">${intrinsicItems.map(it => evaluationsItemCard(it)).join('')}</div>`;
+  }
+  wrap.innerHTML = html;
 }
 
 function evaluationsRenderAverages() {
