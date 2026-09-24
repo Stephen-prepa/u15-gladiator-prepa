@@ -1267,7 +1267,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div id="eval-player-picker" style="display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;"></div>
 
-        <div id="eval-averages" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;"></div>
+        <div id="eval-averages" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:14px;"></div>
 
         <div id="eval-items-list" style="display:flex;flex-direction:column;gap:10px;">
           <div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Chargement...</div>
@@ -2706,6 +2706,11 @@ function homeFictionalMatches() {
   ];
 }
 
+function nameWithNumero(p, html) {
+  if (!p.numero) return html ? escapeSvgText(p.name) : p.name;
+  const label = p.name + ' #' + p.numero;
+  return html ? `${escapeSvgText(p.name)} <span style="color:var(--jaune);font-weight:800;">#${p.numero}</span>` : label;
+}
 function homeCrest(name) {
   return (name || '?').trim().slice(0, 2).toUpperCase();
 }
@@ -3018,7 +3023,7 @@ function compositionShiftDay(delta) {
 async function compositionLoadRoster() {
   document.getElementById('composition-roster-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Chargement...</div>';
   try {
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes,numero&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
     const rows = await res.json();
     compositionRoster = rows.filter(p => p.code !== 'COACHTEST' && p.name);
   } catch (e) { compositionRoster = []; }
@@ -3068,12 +3073,12 @@ function compositionRender() {
   const t2 = compositionRoster.filter(p => compositionAssign[p.code] === 2);
   const abs = compositionRoster.filter(p => compositionAssign[p.code] === -1);
   const unassigned = compositionRoster.length - t1.length - t2.length - abs.length;
-  t1Wrap.innerHTML = t1.length ? t1.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
-  t2Wrap.innerHTML = t2.length ? t2.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
+  t1Wrap.innerHTML = t1.length ? t1.map(p => `<div>• ${nameWithNumero(p, true)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
+  t2Wrap.innerHTML = t2.length ? t2.map(p => `<div>• ${nameWithNumero(p, true)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucun joueur</div>';
   document.getElementById('composition-team1-count').textContent = t1.length;
   document.getElementById('composition-team2-count').textContent = t2.length;
   if (absWrap) {
-    absWrap.innerHTML = abs.length ? abs.map(p => `<div>• ${escapeSvgText(p.name)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucune absence signalée</div>';
+    absWrap.innerHTML = abs.length ? abs.map(p => `<div>• ${nameWithNumero(p, true)}</div>`).join('') : '<div style="color:var(--gris-texte);">Aucune absence signalée</div>';
     document.getElementById('composition-absent-count').textContent = abs.length;
   }
   document.getElementById('composition-unassigned-count').textContent = unassigned > 0 ? unassigned + ' joueur' + (unassigned > 1 ? 's' : '') + ' pas encore assigné' + (unassigned > 1 ? 's' : '') : '';
@@ -3089,7 +3094,7 @@ function compositionRender() {
       return `<button type="button" onclick="compositionSetTeam('${p.code}', ${val})" style="min-width:0;padding:6px 2px;border-radius:6px;border:1px solid ${active ? color : 'rgba(255,255,255,0.15)'};background:${active ? color + '22' : 'transparent'};color:${active ? color : 'var(--gris-texte)'};font-weight:${active ? '800' : '400'};font-size:10.5px;cursor:pointer;">${label}</button>`;
     };
     return `<div style="background:var(--noir);border-radius:8px;padding:8px 10px;">
-      <div style="font-size:13px;margin-bottom:6px;color:${cur === -1 ? 'var(--gris-texte)' : 'var(--blanc)'};${cur === -1 ? 'text-decoration:line-through;' : ''}">${escapeSvgText(p.name)}</div>
+      <div style="font-size:13px;margin-bottom:6px;color:${cur === -1 ? 'var(--gris-texte)' : 'var(--blanc)'};${cur === -1 ? 'text-decoration:line-through;' : ''}">${nameWithNumero(p, true)}</div>
       <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:6px;">
         ${btn(0, 'Aucune', '#8a97ad')}
         ${btn(1, 'Éq.1', '#F5C400')}
@@ -3191,7 +3196,8 @@ async function convocGenerate() {
   try {
     await ensureCoachSession();
     for (const eq of [1, 2]) {
-      const names = compositionRoster.filter(p => compositionAssign[p.code] === eq).map(p => p.name).sort((a, b) => a.localeCompare(b, 'fr'));
+      const players = compositionRoster.filter(p => compositionAssign[p.code] === eq).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+      const names = players.map(p => p.name + (p.numero ? ' (N°' + p.numero + ')' : ''));
       if (!names.length) continue;
       const mRes = await fetch(SB_URL + '/rest/v1/matches?select=*&equipe=eq.' + eq + '&debut=gte.' + dayStart + '&debut=lte.' + dayEnd + '&order=debut&limit=1', { headers: coachAuthHeaders() });
       const mRows = mRes.ok ? await mRes.json() : [];
@@ -3563,7 +3569,7 @@ async function playerAddManual() {
 async function presenceLoadRoster() {
   document.getElementById('presence-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Chargement...</div>';
   try {
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes,numero&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
     const rows = await res.json();
     presenceRoster = rows.filter(p => p.code !== 'COACHTEST' && p.name);
   } catch (e) { presenceRoster = []; }
@@ -3601,7 +3607,7 @@ function presenceRenderList() {
     }).join('');
     return `<div style="background:var(--gris-fonce);border-radius:8px;padding:8px 10px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div style="font-size:13px;font-weight:700;color:var(--blanc);">${p.name}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--blanc);">${nameWithNumero(p, true)}</div>
         <button type="button" onclick="playerDeleteConfirm('${p.code}', '${p.name.replace(/'/g, "\\'")}')" title="Supprimer ce joueur" style="background:none;border:1px solid rgba(231,76,60,0.4);color:#e74c3c;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">✕</button>
       </div>
       <div style="display:flex;gap:6px;">${btns}</div>
@@ -3729,7 +3735,7 @@ function outilsRenderPool() {
       parts.push(`<div style="grid-column:1/-1;font-size:9.5px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin:6px 0 2px;">${label}</div>`);
     }
     parts.push(`<button type="button" onclick="outilsPick('${p.code}')" style="background:var(--noir);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;">
-      <div style="font-size:clamp(11px,3vw,13px);color:var(--blanc);font-weight:700;overflow-wrap:break-word;">${escapeSvgText(p.name)}</div>
+      <div style="font-size:clamp(11px,3vw,13px);color:var(--blanc);font-weight:700;overflow-wrap:break-word;">${escapeSvgText(p.name)}${p.numero ? ' #' + p.numero : ''}</div>
       <div style="font-size:10px;color:var(--jaune);margin-top:2px;">${poste || '—'}</div>
     </button>`);
   });
@@ -3746,7 +3752,7 @@ function outilsRenderTeams() {
         <span style="font-size:11px;color:var(--gris-texte);">${team.length}/${threshold}${team.length > threshold ? ' (+' + (team.length - threshold) + ')' : ''}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">
-        ${team.length ? team.map(p => `<button type="button" onclick="event.stopPropagation(); outilsUnpick('${p.code}')" style="background:${teamColors[i]}22;border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;">${escapeSvgText(p.name)} ${(p.postes && p.postes[0]) ? '· ' + p.postes[0] : ''}</button>`).join('') : '<span style="font-size:11px;color:var(--gris-texte);">Vide pour l\'instant — tape ici pour la rendre active</span>'}
+        ${team.length ? team.map(p => `<button type="button" onclick="event.stopPropagation(); outilsUnpick('${p.code}')" style="background:${teamColors[i]}22;border:1px solid ${teamColors[i]}55;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;">${escapeSvgText(p.name)}${p.numero ? ' #' + p.numero : ''} ${(p.postes && p.postes[0]) ? '· ' + p.postes[0] : ''}</button>`).join('') : '<span style="font-size:11px;color:var(--gris-texte);">Vide pour l\'instant — tape ici pour la rendre active</span>'}
       </div>
     </div>
   `).join('');
@@ -4185,36 +4191,163 @@ function coachAuthHeaders() {
   return { apikey: SB_KEY, Authorization: 'Bearer ' + (coachSession ? coachSession.access_token : SB_KEY) };
 }
 
-// ---------- Évaluations (référentiel filière — prérequis, accélérateurs, fil rouge Homme à Homme) ----------
+// ---------- Évaluations (référentiel filière — prérequis, accélérateurs, fil rouge Homme à Homme, qualités intrinsèques) ----------
 // Base HBCCS : Référentiel_Competences_Filiere_HBCCS (Word/PPTX) + Grille_Evaluation_Filiere_HBCCS (Excel).
 // Cette appli n'accueille que la catégorie U15 (portée de "Prépa Estivale U15") ; comp_code/domain/category
 // sont stockés en base pour rester compatibles si le référentiel est un jour étendu aux autres catégories.
+// Chaque item a une échelle `scale` de 6 descriptions (index 0 à 5) pour ancrer la notation.
 const EVAL_CATEGORY = 'U15';
 const EVAL_ITEMS = [
   { code: 'HAH', domain: 'Fil rouge', kind: 'hah',
     comp: "Défense Homme à Homme — L'Homme à Homme s'intensifie : le 0:6 « à intention »",
-    indicateur: 'Le joueur tient un marquage individuel strict sur une séquence de jeu complète, sans rupture.' },
+    indicateur: 'Le joueur tient un marquage individuel strict sur une séquence de jeu complète, sans rupture.',
+    scale: [
+      'Non noté',
+      "Perd son adversaire dès qu'il y a un écran ou un changement de rythme.",
+      'Tient son adversaire par intermittence, décroche sur la durée.',
+      'Tient un marquage individuel strict sur une séquence de jeu complète, sans rupture.',
+      'Tient ce marquage sur l\'ensemble d\'une mi-temps, gère les écrans sans aide.',
+      "Tient ce marquage sur un match complet et aide ponctuellement un partenaire en difficulté.",
+    ] },
   { code: 'T1', domain: 'Technique', kind: 'prereq',
     comp: 'Tir en suspension maîtrisé',
-    indicateur: 'Tir en suspension maîtrisé dans les deux couloirs, dribble utile et intentionnel (pas systématique).' },
+    indicateur: 'Tir en suspension maîtrisé dans les deux couloirs, dribble utile et intentionnel (pas systématique).',
+    scale: [
+      'Non noté',
+      'Tir en suspension non maîtrisé, dribble systématique et non réfléchi.',
+      'Tir correct dans un seul couloir, dribble encore trop systématique.',
+      'Tir en suspension maîtrisé dans les deux couloirs, dribble utile et intentionnel.',
+      'Idem avec une bonne variation de rythme et d\'angle de tir.',
+      'Maîtrise complète, capable d\'adapter son geste sous opposition rapprochée.',
+    ] },
   { code: 'TA1', domain: 'Tactique', kind: 'prereq',
     comp: 'Situations à 2-3 et identification du système',
-    indicateur: 'Lit et enchaîne des situations à 2-3 joueurs, tient un dispositif défensif (3-3, 1-5 ou 0-6 par ordre de priorité) et sait identifier quel système utiliser.' },
+    indicateur: 'Lit et enchaîne des situations à 2-3 joueurs, tient un dispositif défensif (3-3, 1-5 ou 0-6 par ordre de priorité) et sait identifier quel système utiliser.',
+    scale: [
+      'Non noté',
+      'Ne lit pas les situations à 2-3, perdu dans le dispositif défensif.',
+      'Lit certaines situations à 2-3 mais n\'enchaîne pas, dispositif défensif approximatif.',
+      'Lit et enchaîne des situations à 2-3, tient un dispositif défensif, identifie le système.',
+      'Idem avec anticipation, propose des solutions avant la consigne du coach.',
+      'Maîtrise et transmet la lecture à ses partenaires en cours de jeu.',
+    ] },
   { code: 'TA2', domain: 'Tactique', kind: 'prereq',
     comp: 'Jeu avec pivot (prémices) et enclenchements simples',
-    indicateur: 'Débute le jeu avec pivot, exécute des enclenchements simples (rotation, croisé, yugo), engagement/désengagement et replacement.' },
+    indicateur: 'Débute le jeu avec pivot, exécute des enclenchements simples (rotation, croisé, yugo), engagement/désengagement et replacement.',
+    scale: [
+      'Non noté',
+      'Ignore le pivot, n\'exécute pas d\'enclenchement.',
+      'Utilise le pivot occasionnellement, enclenchements hésitants.',
+      'Débute le jeu avec pivot, exécute des enclenchements simples, engagement/désengagement et replacement.',
+      'Enclenchements fluides et régulièrement réussis.',
+      'Initie et varie les enclenchements selon la lecture défensive adverse.',
+    ] },
   { code: 'P1', domain: 'Physique / Motricité', kind: 'prereq',
     comp: "Gestion de l'effort et explosivité",
-    indicateur: "Gère l'effort sur la durée d'un match, débute un renforcement musculaire adapté, explosif sur les premières foulées." },
+    indicateur: "Gère l'effort sur la durée d'un match, débute un renforcement musculaire adapté, explosif sur les premières foulées.",
+    scale: [
+      'Non noté',
+      'Décline physiquement dès la première période, pas d\'explosivité.',
+      'Tient un quart-temps correctement puis décline.',
+      'Gère l\'effort sur la durée d\'un match, débute un renforcement musculaire adapté, explosif sur les premières foulées.',
+      'Maintient son niveau physique sur l\'ensemble du match.',
+      'Monte en intensité en fin de match, référence physique de l\'équipe.',
+    ] },
   { code: 'M1', domain: 'Mental / Comportemental', kind: 'prereq',
     comp: "Tenue d'un niveau d'exigence répété",
-    indicateur: "Reste engagé et concentré sur la durée d'une saison exigeante, gère l'adversité (le club évolue volontairement au-dessus du niveau immédiat)." },
+    indicateur: "Reste engagé et concentré sur la durée d'une saison exigeante, gère l'adversité (le club évolue volontairement au-dessus du niveau immédiat).",
+    scale: [
+      'Non noté',
+      'Décroche dès les premières difficultés de la saison.',
+      'Tient quelques séances ou matchs puis relâche son engagement.',
+      'Reste engagé et concentré sur la durée d\'une saison exigeante, gère l\'adversité.',
+      'Idem et entraîne le groupe par son exemplarité.',
+      'Référence du groupe sur la durée, aucune baisse de régime constatée sur la saison.',
+    ] },
   { code: 'A1', domain: 'Accélérateur', kind: 'accel',
     comp: 'Autonomie décisionnelle avancée',
-    indicateur: "Autonomie dans les systèmes offensifs et défensifs, lecture du jeu en temps réel, capacité à s'adapter aux consignes en cours de match — attendus normalement U17." },
+    indicateur: "Autonomie dans les systèmes offensifs et défensifs, lecture du jeu en temps réel, capacité à s'adapter aux consignes en cours de match — attendus normalement U17.",
+    scale: [
+      'Non noté',
+      'Dépendant des consignes en continu, aucune lecture autonome.',
+      'Autonomie sur des séquences courtes et simples uniquement.',
+      'Autonomie dans les systèmes offensifs et défensifs, lecture du jeu en temps réel, s\'adapte aux consignes en cours de match.',
+      'Idem avec anticipation des ajustements avant même la consigne.',
+      'Autonomie de niveau U17 confirmée sur l\'ensemble d\'un match.',
+    ] },
   { code: 'A2', domain: 'Accélérateur', kind: 'accel',
     comp: 'Critères transversaux de passerelle (grille filière HBCCS)',
-    indicateur: "Vitesse d'appuis, résistance au contact, endurance déjà au niveau supérieur ; assiduité, engagement, maturité et respect des consignes jugés exemplaires par le coach." },
+    indicateur: "Vitesse d'appuis, résistance au contact, endurance déjà au niveau supérieur ; assiduité, engagement, maturité et respect des consignes jugés exemplaires par le coach.",
+    scale: [
+      'Non noté',
+      'En retrait sur ces critères par rapport au groupe.',
+      'Dans la moyenne du groupe sur ces critères.',
+      'Vitesse d\'appuis, résistance au contact, endurance déjà au niveau supérieur ; assiduité, engagement, maturité et respect des consignes exemplaires.',
+      'Idem, repéré spontanément par plusieurs coachs comme prêt à passer un cap.',
+      'Considéré prêt pour une passerelle immédiate vers la catégorie supérieure.',
+    ] },
+  // Qualités intrinsèques du joueur — complémentaires aux items ci-dessus (maîtrise de systèmes précis du projet de jeu actuel).
+  // Ici : profil transférable du joueur, indépendamment du système en place. Brouillon à valider avec Stephen.
+  { code: 'INT-PD', domain: 'Qualités intrinsèques', kind: 'intrinsic',
+    comp: 'Perceptivo-décisionnel',
+    scale: [
+      'Non noté',
+      "Joue sans tenir compte de l'environnement.",
+      'Prend des informations une fois sur deux.',
+      'Réussit les situations claires et identifiables.',
+      'Réussit les situations avec des difficultés spatio-temporelles.',
+      'Réussit à réadapter son premier choix en fonction de l\'environnement.',
+    ] },
+  { code: 'INT-QP', domain: 'Qualités intrinsèques', kind: 'intrinsic',
+    comp: 'Qualité physique',
+    scale: [
+      'Non noté',
+      'Subit physiquement les duels et en retard sur la course.',
+      'Correct sur le physique ou la course.',
+      'Moyen sur le physique et la course.',
+      'Très bon sur le physique OU la course.',
+      'Très bon sur le physique ET la course.',
+    ] },
+  { code: 'INT-HM', domain: 'Qualités intrinsèques', kind: 'intrinsic',
+    comp: 'Habileté motrice',
+    scale: [
+      'Non noté',
+      'Très en difficulté en coordination et dissociation.',
+      'Correct en coordination ou dissociation.',
+      'Moyen en coordination ou dissociation.',
+      'Très coordonné OU très dissocié.',
+      'Très coordonné ET très dissocié.',
+    ] },
+  { code: 'INT-MO', domain: 'Qualités intrinsèques', kind: 'intrinsic',
+    comp: 'Morpho',
+    scale: [
+      'Non noté',
+      'À compléter avec Stephen — échelle pas encore précisée.',
+      'À compléter avec Stephen — échelle pas encore précisée.',
+      'À compléter avec Stephen — échelle pas encore précisée.',
+      'À compléter avec Stephen — échelle pas encore précisée.',
+      'À compléter avec Stephen — échelle pas encore précisée.',
+    ] },
+  { code: 'INT-MC', domain: 'Qualités intrinsèques', kind: 'intrinsic',
+    comp: 'Mental / Combativité',
+    scale: [
+      'Non noté',
+      "S'efface dans la difficulté.",
+      'Mobilisé et persévérant lorsque le score est favorable.',
+      "Reste mobilisé mais ne recommence pas après une situation d'échec.",
+      'Persévère et reste mobilisé après un échec.',
+      'Persévère et reste mobilisé après plusieurs échecs.',
+    ] },
+  { code: 'INT-ENT', domain: 'Qualités intrinsèques', kind: 'intrinsic',
+    comp: 'Entraînabilité',
+    scale: [
+      'Non noté',
+      'Réfractaire / distrait.',
+      'Passif / inconstant.',
+      'Volontaire / appliqué.',
+      'Acteur de sa progression.',
+      'Moteur / exemplaire.',
+    ] },
 ];
 const EVAL_DOMAIN_ORDER = ['Technique', 'Tactique', 'Physique / Motricité', 'Mental / Comportemental'];
 const EVAL_DOMAIN_SHORT = { 'Technique': 'Tech.', 'Tactique': 'Tact.', 'Physique / Motricité': 'Phys.', 'Mental / Comportemental': 'Ment.' };
@@ -4238,7 +4371,7 @@ async function evaluationsInit() {
 
 async function evaluationsLoadRoster() {
   try {
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,numero&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
     evalRoster = res.ok ? await res.json() : [];
   } catch (e) { evalRoster = []; }
 }
@@ -4250,7 +4383,7 @@ function evaluationsRenderPicker() {
   wrap.innerHTML = evalRoster.map(p => {
     const active = p.code === evalCurrentPlayer;
     return `<button type="button" onclick="evaluationsSelectPlayer('${p.code}')"
-      style="flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid ${active ? 'var(--jaune)' : 'rgba(255,255,255,0.15)'};background:${active ? 'rgba(255,215,0,0.12)' : 'transparent'};color:${active ? 'var(--jaune)' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:12.5px;white-space:nowrap;cursor:pointer;">${escapeSvgText(p.name)}</button>`;
+      style="flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid ${active ? 'var(--jaune)' : 'rgba(255,255,255,0.15)'};background:${active ? 'rgba(255,215,0,0.12)' : 'transparent'};color:${active ? 'var(--jaune)' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:12.5px;white-space:nowrap;cursor:pointer;">${escapeSvgText(p.name)}${p.numero ? ' #' + p.numero : ''}</button>`;
   }).join('');
 }
 
@@ -4291,12 +4424,13 @@ function evaluationsItemCard(it) {
     return `<button type="button" onclick="evaluationsSetScore('${it.code}',${v})"
       style="flex:1;min-width:0;padding:8px 0;border-radius:6px;border:1px solid ${active ? color : 'rgba(255,255,255,0.15)'};background:${active ? color : 'transparent'};color:${active ? '#0A1628' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:13px;cursor:pointer;">${v}</button>`;
   }).join('');
+  const scaleText = it.scale && current !== null && current !== undefined ? it.scale[current] : (it.indicateur || (it.scale ? it.scale[3] : ''));
   return `<div style="background:${isHah ? 'rgba(245,196,0,0.08)' : 'var(--noir)'};border:1px solid ${isHah ? 'var(--jaune)' : 'rgba(255,255,255,0.08)'};border-radius:10px;padding:10px 12px;">
     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px;">
       <div style="font-size:12.5px;font-weight:700;color:var(--blanc);">${escapeSvgText(it.comp)}</div>
       <div style="font-size:9.5px;font-weight:800;color:var(--gris-texte);flex:0 0 auto;">${it.code}</div>
     </div>
-    <div style="font-size:10.5px;color:var(--gris-texte);margin-bottom:8px;line-height:1.35;">${escapeSvgText(it.indicateur)}</div>
+    <div style="font-size:10.5px;color:var(--gris-texte);margin-bottom:8px;line-height:1.35;">${escapeSvgText(scaleText)}</div>
     <div style="display:flex;gap:5px;">${btns}</div>
     ${others.length ? `<div style="font-size:9.5px;color:var(--gris-texte);margin-top:6px;">Autres coachs : ${others.map(o => escapeSvgText(o.name) + ' ' + o.score).join(' · ')}</div>` : ''}
   </div>`;
@@ -4313,6 +4447,7 @@ function evaluationsRenderItems() {
     { label: 'Prérequis — Physique / Motricité', items: EVAL_ITEMS.filter(i => i.domain === 'Physique / Motricité'), accent: 'var(--vert)' },
     { label: 'Prérequis — Mental / Comportemental', items: EVAL_ITEMS.filter(i => i.domain === 'Mental / Comportemental'), accent: '#9b59b6' },
     { label: '★ Compétences accélératrices', items: EVAL_ITEMS.filter(i => i.kind === 'accel'), accent: 'var(--jaune)' },
+    { label: '🧬 Qualités intrinsèques (brouillon, à valider ensemble)', items: EVAL_ITEMS.filter(i => i.kind === 'intrinsic'), accent: '#e67e22' },
   ];
   wrap.innerHTML = groups.filter(g => g.items.length).map((g, gi) => `
     <div style="font-size:10.5px;font-weight:800;color:${g.accent};text-transform:uppercase;letter-spacing:0.5px;margin:${gi === 0 ? '0' : '8px'} 0 2px;">${g.label}</div>
@@ -4341,6 +4476,11 @@ function evaluationsRenderAverages() {
   cells.push(`<div style="background:var(--jaune);border-radius:8px;padding:8px 4px;text-align:center;">
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#1a1a1a;">${overall === null ? '—' : overall.toFixed(1)}</div>
     <div style="font-size:8.5px;color:#1a1a1a;text-transform:uppercase;font-weight:800;">Général</div>
+  </div>`);
+  const intrinsicAvg = avgFor(EVAL_ITEMS.filter(i => i.kind === 'intrinsic').map(i => i.code));
+  cells.push(`<div style="background:var(--noir);border:1px solid #e67e22;border-radius:8px;padding:8px 4px;text-align:center;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:${intrinsicAvg === null ? 'var(--gris-texte)' : '#e67e22'};">${intrinsicAvg === null ? '—' : intrinsicAvg.toFixed(1)}</div>
+    <div style="font-size:8.5px;color:#e67e22;text-transform:uppercase;">Intr.</div>
   </div>`);
   wrap.innerHTML = cells.join('');
 }
