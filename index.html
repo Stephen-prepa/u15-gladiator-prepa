@@ -1104,6 +1104,9 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
           <span style="font-size:18px;line-height:1;">📊</span><span style="font-size:9.5px;line-height:1;">Stats</span>
         </button>
+        <button type="button" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
+          <span style="font-size:18px;line-height:1;">🎯</span><span style="font-size:9.5px;line-height:1;">Évals</span>
+        </button>
       </div>
 
       <div class="coachs2-grid">
@@ -1256,6 +1259,22 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Tape un joueur pour l'ajouter à l'équipe en cours</div>
         <div id="outils-pool" style="display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:8px;"></div>
+      </div>
+
+      <div class="cs-box" id="cs-box-evaluations" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
+        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🎯 Évaluations — référentiel filière U15</h3>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:14px;">Prérequis, accélérateurs et fil rouge défense Homme à Homme — note en un tap, enregistré aussitôt.</div>
+
+        <div id="eval-player-picker" style="display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;"></div>
+
+        <div id="eval-averages" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;"></div>
+
+        <div id="eval-items-list" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Chargement...</div>
+        </div>
+
+        <div id="eval-save-msg" style="font-size:12px;text-align:center;margin-top:10px;min-height:16px;font-weight:700;"></div>
+        <div style="font-size:10px;color:var(--gris-texte);margin-top:6px;text-align:center;">Un tap = enregistrement immédiat · retaper la même note l'efface. Détail complet des exercices : document de synthèse filière.</div>
       </div>
 
       <button onclick="coachAuthLogout()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;">Se déconnecter</button>
@@ -2956,7 +2975,7 @@ function pickCoachLogin(login) {
 }
 
 function coachSubtabSwitch(name) {
-  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils' };
+  const boxes = { presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils', evaluations: 'cs-box-evaluations' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
     const btn = document.getElementById('cs-subtab-' + key);
@@ -2968,6 +2987,7 @@ function coachSubtabSwitch(name) {
     btn.style.fontWeight = active ? '800' : '400';
   });
   if (name === 'outils') outilsInit();
+  if (name === 'evaluations') evaluationsInit();
 }
 
 // ---------- Compositions du week-end (coach) ----------
@@ -4163,6 +4183,207 @@ async function ensureCoachSession() {
 // En-tetes a utiliser pour toute requete REST vers les tables coach only (evaluations, objectifs, presences)
 function coachAuthHeaders() {
   return { apikey: SB_KEY, Authorization: 'Bearer ' + (coachSession ? coachSession.access_token : SB_KEY) };
+}
+
+// ---------- Évaluations (référentiel filière — prérequis, accélérateurs, fil rouge Homme à Homme) ----------
+// Base HBCCS : Référentiel_Competences_Filiere_HBCCS (Word/PPTX) + Grille_Evaluation_Filiere_HBCCS (Excel).
+// Cette appli n'accueille que la catégorie U15 (portée de "Prépa Estivale U15") ; comp_code/domain/category
+// sont stockés en base pour rester compatibles si le référentiel est un jour étendu aux autres catégories.
+const EVAL_CATEGORY = 'U15';
+const EVAL_ITEMS = [
+  { code: 'HAH', domain: 'Fil rouge', kind: 'hah',
+    comp: "Défense Homme à Homme — L'Homme à Homme s'intensifie : le 0:6 « à intention »",
+    indicateur: 'Le joueur tient un marquage individuel strict sur une séquence de jeu complète, sans rupture.' },
+  { code: 'T1', domain: 'Technique', kind: 'prereq',
+    comp: 'Tir en suspension maîtrisé',
+    indicateur: 'Tir en suspension maîtrisé dans les deux couloirs, dribble utile et intentionnel (pas systématique).' },
+  { code: 'TA1', domain: 'Tactique', kind: 'prereq',
+    comp: 'Situations à 2-3 et identification du système',
+    indicateur: 'Lit et enchaîne des situations à 2-3 joueurs, tient un dispositif défensif (3-3, 1-5 ou 0-6 par ordre de priorité) et sait identifier quel système utiliser.' },
+  { code: 'TA2', domain: 'Tactique', kind: 'prereq',
+    comp: 'Jeu avec pivot (prémices) et enclenchements simples',
+    indicateur: 'Débute le jeu avec pivot, exécute des enclenchements simples (rotation, croisé, yugo), engagement/désengagement et replacement.' },
+  { code: 'P1', domain: 'Physique / Motricité', kind: 'prereq',
+    comp: "Gestion de l'effort et explosivité",
+    indicateur: "Gère l'effort sur la durée d'un match, débute un renforcement musculaire adapté, explosif sur les premières foulées." },
+  { code: 'M1', domain: 'Mental / Comportemental', kind: 'prereq',
+    comp: "Tenue d'un niveau d'exigence répété",
+    indicateur: "Reste engagé et concentré sur la durée d'une saison exigeante, gère l'adversité (le club évolue volontairement au-dessus du niveau immédiat)." },
+  { code: 'A1', domain: 'Accélérateur', kind: 'accel',
+    comp: 'Autonomie décisionnelle avancée',
+    indicateur: "Autonomie dans les systèmes offensifs et défensifs, lecture du jeu en temps réel, capacité à s'adapter aux consignes en cours de match — attendus normalement U17." },
+  { code: 'A2', domain: 'Accélérateur', kind: 'accel',
+    comp: 'Critères transversaux de passerelle (grille filière HBCCS)',
+    indicateur: "Vitesse d'appuis, résistance au contact, endurance déjà au niveau supérieur ; assiduité, engagement, maturité et respect des consignes jugés exemplaires par le coach." },
+];
+const EVAL_DOMAIN_ORDER = ['Technique', 'Tactique', 'Physique / Motricité', 'Mental / Comportemental'];
+const EVAL_DOMAIN_SHORT = { 'Technique': 'Tech.', 'Tactique': 'Tact.', 'Physique / Motricité': 'Phys.', 'Mental / Comportemental': 'Ment.' };
+const EVAL_SCORE_COLOR = ['#C0392B', '#E67E22', '#F5C400', '#A8C93B', '#6FBF73', '#2ECC71'];
+
+let evalRoster = [];       // [{code, name}]
+let evalCurrentPlayer = null;
+let evalScores = {};       // comp_code -> { mine: number|null, others: [{name, score}] }
+let evalRosterLoaded = false;
+
+async function evaluationsInit() {
+  if (!evalRosterLoaded) { await evaluationsLoadRoster(); evalRosterLoaded = true; }
+  if (!evalCurrentPlayer && evalRoster.length) evalCurrentPlayer = evalRoster[0].code;
+  evaluationsRenderPicker();
+  if (evalCurrentPlayer) await evaluationsSelectPlayer(evalCurrentPlayer);
+  else {
+    document.getElementById('eval-items-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Aucun joueur avec un code réclamé.</div>';
+    document.getElementById('eval-averages').innerHTML = '';
+  }
+}
+
+async function evaluationsLoadRoster() {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    evalRoster = res.ok ? await res.json() : [];
+  } catch (e) { evalRoster = []; }
+}
+
+function evaluationsRenderPicker() {
+  const wrap = document.getElementById('eval-player-picker');
+  if (!wrap) return;
+  if (!evalRoster.length) { wrap.innerHTML = '<div style="font-size:12px;color:var(--gris-texte);">Aucun joueur avec un code réclamé.</div>'; return; }
+  wrap.innerHTML = evalRoster.map(p => {
+    const active = p.code === evalCurrentPlayer;
+    return `<button type="button" onclick="evaluationsSelectPlayer('${p.code}')"
+      style="flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid ${active ? 'var(--jaune)' : 'rgba(255,255,255,0.15)'};background:${active ? 'rgba(255,215,0,0.12)' : 'transparent'};color:${active ? 'var(--jaune)' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:12.5px;white-space:nowrap;cursor:pointer;">${escapeSvgText(p.name)}</button>`;
+  }).join('');
+}
+
+async function evaluationsSelectPlayer(code) {
+  evalCurrentPlayer = code;
+  evaluationsRenderPicker();
+  const listEl = document.getElementById('eval-items-list');
+  if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
+  await evaluationsLoadScores(code);
+  evaluationsRenderItems();
+  evaluationsRenderAverages();
+}
+
+async function evaluationsLoadScores(code) {
+  evalScores = {};
+  try {
+    await ensureCoachSession();
+    const myId = coachSession ? coachSession.id : null;
+    const res = await fetch(SB_URL + '/rest/v1/evaluations?player_code=eq.' + encodeURIComponent(code) + '&category=eq.' + EVAL_CATEGORY + '&select=comp_code,score,coach_id,coaches(display_name)', {
+      headers: coachAuthHeaders(),
+    });
+    const rows = res.ok ? await res.json() : [];
+    rows.forEach(r => {
+      if (!evalScores[r.comp_code]) evalScores[r.comp_code] = { mine: null, others: [] };
+      if (r.coach_id === myId) evalScores[r.comp_code].mine = r.score;
+      else evalScores[r.comp_code].others.push({ name: (r.coaches && r.coaches.display_name) || '?', score: r.score });
+    });
+  } catch (e) {}
+}
+
+function evaluationsItemCard(it) {
+  const rec = evalScores[it.code];
+  const current = rec ? rec.mine : null;
+  const others = rec ? rec.others : [];
+  const isHah = it.kind === 'hah';
+  const btns = EVAL_SCORE_COLOR.map((color, v) => {
+    const active = current === v;
+    return `<button type="button" onclick="evaluationsSetScore('${it.code}',${v})"
+      style="flex:1;min-width:0;padding:8px 0;border-radius:6px;border:1px solid ${active ? color : 'rgba(255,255,255,0.15)'};background:${active ? color : 'transparent'};color:${active ? '#0A1628' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:13px;cursor:pointer;">${v}</button>`;
+  }).join('');
+  return `<div style="background:${isHah ? 'rgba(245,196,0,0.08)' : 'var(--noir)'};border:1px solid ${isHah ? 'var(--jaune)' : 'rgba(255,255,255,0.08)'};border-radius:10px;padding:10px 12px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px;">
+      <div style="font-size:12.5px;font-weight:700;color:var(--blanc);">${escapeSvgText(it.comp)}</div>
+      <div style="font-size:9.5px;font-weight:800;color:var(--gris-texte);flex:0 0 auto;">${it.code}</div>
+    </div>
+    <div style="font-size:10.5px;color:var(--gris-texte);margin-bottom:8px;line-height:1.35;">${escapeSvgText(it.indicateur)}</div>
+    <div style="display:flex;gap:5px;">${btns}</div>
+    ${others.length ? `<div style="font-size:9.5px;color:var(--gris-texte);margin-top:6px;">Autres coachs : ${others.map(o => escapeSvgText(o.name) + ' ' + o.score).join(' · ')}</div>` : ''}
+  </div>`;
+}
+
+function evaluationsRenderItems() {
+  const wrap = document.getElementById('eval-items-list');
+  if (!wrap) return;
+  if (!evalCurrentPlayer) { wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Choisis un joueur ci-dessus.</div>'; return; }
+  const groups = [
+    { label: '🛡️ Fil rouge filière', items: EVAL_ITEMS.filter(i => i.kind === 'hah'), accent: 'var(--jaune)' },
+    { label: 'Prérequis — Technique', items: EVAL_ITEMS.filter(i => i.domain === 'Technique'), accent: 'var(--bleu-light)' },
+    { label: 'Prérequis — Tactique', items: EVAL_ITEMS.filter(i => i.domain === 'Tactique'), accent: 'var(--bleu-light)' },
+    { label: 'Prérequis — Physique / Motricité', items: EVAL_ITEMS.filter(i => i.domain === 'Physique / Motricité'), accent: 'var(--vert)' },
+    { label: 'Prérequis — Mental / Comportemental', items: EVAL_ITEMS.filter(i => i.domain === 'Mental / Comportemental'), accent: '#9b59b6' },
+    { label: '★ Compétences accélératrices', items: EVAL_ITEMS.filter(i => i.kind === 'accel'), accent: 'var(--jaune)' },
+  ];
+  wrap.innerHTML = groups.filter(g => g.items.length).map((g, gi) => `
+    <div style="font-size:10.5px;font-weight:800;color:${g.accent};text-transform:uppercase;letter-spacing:0.5px;margin:${gi === 0 ? '0' : '8px'} 0 2px;">${g.label}</div>
+    ${g.items.map(it => evaluationsItemCard(it)).join('')}
+  `).join('');
+}
+
+function evaluationsRenderAverages() {
+  const wrap = document.getElementById('eval-averages');
+  if (!wrap) return;
+  if (!evalCurrentPlayer) { wrap.innerHTML = ''; return; }
+  const avgFor = (codes) => {
+    const vals = codes.map(c => evalScores[c] && evalScores[c].mine).filter(v => v !== null && v !== undefined);
+    if (!vals.length) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  };
+  const cells = EVAL_DOMAIN_ORDER.map(d => {
+    const codes = EVAL_ITEMS.filter(i => i.domain === d).map(i => i.code);
+    const a = avgFor(codes);
+    return `<div style="background:var(--noir);border-radius:8px;padding:8px 4px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:${a === null ? 'var(--gris-texte)' : 'var(--jaune)'};">${a === null ? '—' : a.toFixed(1)}</div>
+      <div style="font-size:8.5px;color:var(--gris-texte);text-transform:uppercase;">${EVAL_DOMAIN_SHORT[d]}</div>
+    </div>`;
+  });
+  const overall = avgFor(EVAL_ITEMS.filter(i => i.kind === 'prereq').map(i => i.code));
+  cells.push(`<div style="background:var(--jaune);border-radius:8px;padding:8px 4px;text-align:center;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#1a1a1a;">${overall === null ? '—' : overall.toFixed(1)}</div>
+    <div style="font-size:8.5px;color:#1a1a1a;text-transform:uppercase;font-weight:800;">Général</div>
+  </div>`);
+  wrap.innerHTML = cells.join('');
+}
+
+async function evaluationsSetScore(compCode, score) {
+  if (!evalCurrentPlayer) return;
+  const item = EVAL_ITEMS.find(i => i.code === compCode);
+  if (!item) return;
+  const rec = evalScores[compCode] || (evalScores[compCode] = { mine: null, others: [] });
+  const prev = rec.mine;
+  const next = prev === score ? null : score; // retaper la même note l'efface (même logique que les présences)
+  rec.mine = next;
+  evaluationsRenderItems();
+  evaluationsRenderAverages();
+
+  const msgEl = document.getElementById('eval-save-msg');
+  if (msgEl) { msgEl.style.color = 'var(--gris-texte)'; msgEl.textContent = 'Enregistrement...'; }
+  try {
+    await ensureCoachSession();
+    const myId = coachSession ? coachSession.id : null;
+    if (next === null) {
+      await fetch(SB_URL + '/rest/v1/evaluations?player_code=eq.' + encodeURIComponent(evalCurrentPlayer) + '&comp_code=eq.' + encodeURIComponent(compCode) + '&coach_id=eq.' + encodeURIComponent(myId || ''), {
+        method: 'DELETE', headers: coachAuthHeaders(),
+      });
+    } else {
+      const res = await fetch(SB_URL + '/rest/v1/evaluations?on_conflict=player_code,comp_code,coach_id', {
+        method: 'POST',
+        headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify([{
+          player_code: evalCurrentPlayer, category: EVAL_CATEGORY, domain: item.domain, comp_code: compCode,
+          axe: item.comp, score: next, coach_id: myId, updated_at: new Date().toISOString(),
+        }]),
+      });
+      if (!res.ok) throw new Error('save failed');
+    }
+    if (msgEl) {
+      msgEl.style.color = '#2ecc71';
+      msgEl.textContent = 'Enregistré ✓';
+      setTimeout(() => { if (msgEl.textContent === 'Enregistré ✓') msgEl.textContent = ''; }, 1500);
+    }
+  } catch (e) {
+    if (msgEl) { msgEl.style.color = '#e74c3c'; msgEl.textContent = "Erreur d'enregistrement — vérifie ta connexion et réessaie."; }
+  }
 }
 
 
