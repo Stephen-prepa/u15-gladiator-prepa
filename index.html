@@ -1245,20 +1245,30 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
       <div class="cs-box" id="cs-box-outils" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🛠️ Outils entraînement</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Compose les équipes du match de fin de séance à partir des présents du jour (onglet Présences).</div>
-
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:6px;">Compose les équipes du match de fin de séance à partir des présents de la date choisie dans l'onglet Présences.</div>
+        <div id="outils-date-label" style="font-size:12px;font-weight:800;color:var(--jaune);margin-bottom:12px;"></div>
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
           <span style="font-size:12px;color:var(--gris-texte);">Nombre d'équipes :</span>
           <button type="button" id="outils-nb-2" onclick="outilsSetNb(2)" style="padding:6px 10px;white-space:nowrap;border-radius:6px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;font-size:10.5px;cursor:pointer;">2 (10-12)</button>
           <button type="button" id="outils-nb-3" onclick="outilsSetNb(3)" style="padding:6px 10px;white-space:nowrap;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:10.5px;cursor:pointer;">3 (7-8)</button>
           <button type="button" id="outils-nb-4" onclick="outilsSetNb(4)" style="padding:6px 10px;white-space:nowrap;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;font-size:10.5px;cursor:pointer;">4 (5-6)</button>
         </div>
-        <button onclick="outilsReset()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11.5px;cursor:pointer;margin-bottom:12px;">↻ Réinitialiser avec les présents actuels</button>
+        <button onclick="outilsReset()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11.5px;cursor:pointer;margin-bottom:8px;">↻ Réinitialiser avec les présents actuels</button>
+        <button id="outils-auto-btn" onclick="outilsAutoCompose()" style="width:100%;padding:9px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;margin-bottom:12px;">🎯 Générer équilibré (poste + niveau)</button>
 
         <div id="outils-teams" style="margin-bottom:12px;"></div>
 
         <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Tape un joueur pour l'ajouter à l'équipe en cours</div>
         <div id="outils-pool" style="display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:8px;"></div>
+
+        <div id="outils-scoreboard-section" style="display:none;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+          <h4 style="font-size:13px;font-weight:800;color:var(--blanc);margin-bottom:8px;">⚽ Match en cours</h4>
+          <div id="outils-pair-picker" style="margin-bottom:10px;"></div>
+          <div id="outils-scoreboard" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"></div>
+          <button onclick="outilsUndoLastGoal()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11.5px;cursor:pointer;margin-bottom:12px;">↩️ Annuler la dernière action</button>
+          <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:6px;">🥅 Meilleurs buteurs du jour</div>
+          <div id="outils-topscorers"></div>
+        </div>
       </div>
 
       <div class="cs-box" id="cs-box-evaluations" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
@@ -3132,6 +3142,7 @@ async function compositionSetTeam(code, equipe) {
       });
     }
   } catch (e) {}
+  playerLineupLevelsCache = null;
 }
 
 function postesOpenEditor() {
@@ -3706,13 +3717,70 @@ let outilsNb = 2;
 let outilsTeams = []; // [[{code,name,postes}], ...]
 let outilsPool = [];  // joueurs pas encore assignés
 let outilsCurrentTeam = 0; // équipe active pour les prochains taps (choisie manuellement)
+let outilsInited = false;
+let outilsLoadedDate = null;
 const OUTILS_THRESHOLD = { 2: 10, 3: 7, 4: 5 };
 
-function outilsInit() {
-  if (!outilsTeams.length) outilsReset();
-  else outilsRenderPool();
+function outilsCurrentDate() {
+  const el = document.getElementById('presence-date');
+  return el && el.value ? el.value : dateStr(new Date());
 }
-function outilsSetNb(n) {
+
+async function outilsInit() {
+  const dateVal = outilsCurrentDate();
+  if (outilsInited && outilsLoadedDate === dateVal) { outilsRenderPool(); outilsRenderTeams(); return; }
+  outilsInited = true;
+  await outilsLoadFromDb();
+}
+
+// Recharge la composition déjà enregistrée pour la date en cours (si elle existe), sinon repart des présents.
+async function outilsLoadFromDb() {
+  const present = presenceRoster.filter(p => presenceMarks[p.code] === 'present');
+  const byCode = {}; present.forEach(p => { byCode[p.code] = p; });
+  const dateVal = outilsCurrentDate();
+  outilsLoadedDate = dateVal;
+  const labelEl = document.getElementById('outils-date-label');
+  if (labelEl) {
+    const d = new Date(dateVal + 'T00:00:00');
+    const isToday = dateVal === dateStr(new Date());
+    labelEl.textContent = '📅 ' + d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + (isToday ? " (aujourd'hui)" : '');
+  }
+  let rows = [];
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/outils_composition?select=player_code,team_index&session_date=eq.' + dateVal, { headers: coachAuthHeaders() });
+    if (res.ok) rows = await res.json();
+  } catch (e) {}
+
+  if (rows.length) {
+    const maxIdx = Math.max(...rows.map(r => r.team_index));
+    outilsNb = Math.min(4, Math.max(2, maxIdx + 1));
+    outilsTeams = Array.from({ length: outilsNb }, () => []);
+    const assigned = new Set();
+    rows.forEach(r => {
+      const p = byCode[r.player_code];
+      if (p && outilsTeams[r.team_index]) { outilsTeams[r.team_index].push(p); assigned.add(r.player_code); }
+    });
+    outilsPool = present.filter(p => !assigned.has(p.code));
+  } else {
+    outilsTeams = Array.from({ length: outilsNb }, () => []);
+    outilsPool = present.slice();
+  }
+  outilsCurrentTeam = 0;
+  [2, 3, 4].forEach(v => {
+    const btn = document.getElementById('outils-nb-' + v);
+    if (!btn) return;
+    const on = outilsNb === v;
+    btn.style.border = on ? '1px solid var(--jaune)' : '1px solid rgba(255,255,255,0.15)';
+    btn.style.background = on ? 'rgba(255,215,0,0.12)' : 'transparent';
+    btn.style.color = on ? 'var(--jaune)' : 'var(--gris-clair)';
+  });
+  outilsRenderPool();
+  await outilsLoadGoals();
+  outilsRenderTeams();
+}
+
+async function outilsSetNb(n) {
   outilsNb = n;
   [2, 3, 4].forEach(v => {
     const btn = document.getElementById('outils-nb-' + v);
@@ -3721,17 +3789,112 @@ function outilsSetNb(n) {
     btn.style.background = n === v ? 'rgba(255,215,0,0.12)' : 'transparent';
     btn.style.color = n === v ? 'var(--jaune)' : 'var(--gris-clair)';
   });
+  await outilsClearDb(); // le nombre d'équipes change : les anciennes affectations n'ont plus de sens
   outilsReset();
 }
-function outilsReset() {
+async function outilsClearDb() {
+  try {
+    await ensureCoachSession();
+    await fetch(SB_URL + '/rest/v1/outils_composition?session_date=eq.' + outilsCurrentDate(), {
+      method: 'DELETE', headers: coachAuthHeaders(),
+    });
+  } catch (e) {}
+}
+async function outilsReset() {
   const present = presenceRoster.filter(p => presenceMarks[p.code] === 'present');
   outilsPool = present.map(p => ({ code: p.code, name: p.name, postes: p.postes || [] }));
   outilsTeams = Array.from({ length: outilsNb }, () => []);
   outilsCurrentTeam = 0;
+  await outilsClearDb();
   outilsRenderPool();
   outilsRenderTeams();
   outilsSyncToSeance();
 }
+
+// Calcule, pour chaque joueur ayant déjà été affecté à une équipe le week-end (table match_lineup),
+// un "niveau" 0-1 basé sur sa fréquence en Équipe 1 vs Équipe 2 (1 = toujours Éq.1, 0 = toujours Éq.2).
+// Les joueurs sans historique reçoivent 0.5 (neutre), pour ne pas fausser un équilibrage.
+let playerLineupLevelsCache = null;
+async function getPlayerLineupLevels(forceRefresh) {
+  if (playerLineupLevelsCache && !forceRefresh) return playerLineupLevelsCache;
+  try {
+    await ensureCoachSession();
+    const [lineupRes, playersRes] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/match_lineup?select=player_code,equipe&equipe=in.(1,2)', { headers: coachAuthHeaders() }),
+      fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null', { headers: SB_HEADERS }),
+    ]);
+    const lineupRows = lineupRes.ok ? await lineupRes.json() : [];
+    const players = playersRes.ok ? await playersRes.json() : [];
+    const nameByCode = {}; players.forEach(p => { nameByCode[p.code] = p.name; });
+    const counts = {};
+    lineupRows.forEach(r => {
+      if (!counts[r.player_code]) counts[r.player_code] = { team1: 0, team2: 0 };
+      if (r.equipe === 1) counts[r.player_code].team1++;
+      else if (r.equipe === 2) counts[r.player_code].team2++;
+    });
+    playerLineupLevelsCache = players.map(p => {
+      const c = counts[p.code] || { team1: 0, team2: 0 };
+      const total = c.team1 + c.team2;
+      return { code: p.code, name: p.name, team1: c.team1, team2: c.team2, total, ratio: total > 0 ? c.team1 / total : 0.5 };
+    });
+    return playerLineupLevelsCache;
+  } catch (e) {
+    return [];
+  }
+}
+
+// Génère automatiquement des équipes équilibrées : regroupe les présents par poste, et au sein
+// de chaque poste les répartit en "serpentin" entre les équipes selon leur niveau habituel
+// (fréquence Équipe 1 / Équipe 2 le week-end, table match_lineup). Le serpentin continue d'un
+// poste à l'autre pour lisser aussi l'équilibre global, pas seulement poste par poste.
+async function outilsAutoCompose() {
+  const btn = document.getElementById('outils-auto-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Calcul en cours...'; }
+  try {
+    const present = presenceRoster.filter(p => presenceMarks[p.code] === 'present');
+    if (!present.length) {
+      alert('Marque d\'abord des joueurs "Présent" dans l\'onglet Présences.');
+      return;
+    }
+    const levels = await getPlayerLineupLevels();
+    const levelByCode = {}; levels.forEach(l => { levelByCode[l.code] = l.ratio; });
+    const pool = present.map(p => ({ code: p.code, name: p.name, postes: p.postes || [], level: levelByCode[p.code] !== undefined ? levelByCode[p.code] : 0.5 }));
+
+    const groups = {};
+    POSTES.forEach(code => { groups[code] = []; });
+    groups[''] = [];
+    pool.forEach(p => {
+      const poste = (p.postes && p.postes[0]) || '';
+      (groups[poste] || groups['']).push(p);
+    });
+    Object.keys(groups).forEach(k => groups[k].sort((a, b) => b.level - a.level || a.name.localeCompare(b.name, 'fr')));
+
+    const teams = Array.from({ length: outilsNb }, () => []);
+    let teamPtr = 0, direction = 1;
+    [...POSTES, ''].forEach(posteKey => {
+      groups[posteKey].forEach(p => {
+        teams[teamPtr].push(p);
+        teamPtr += direction;
+        if (teamPtr >= outilsNb) { teamPtr = outilsNb - 1; direction = -1; }
+        else if (teamPtr < 0) { teamPtr = 0; direction = 1; }
+      });
+    });
+
+    outilsTeams = teams;
+    outilsPool = [];
+    outilsCurrentTeam = 0;
+    await outilsClearDb();
+    for (let i = 0; i < teams.length; i++) {
+      for (const p of teams[i]) await outilsSaveAssignment(p.code, i);
+    }
+    outilsRenderPool();
+    outilsRenderTeams();
+    outilsSyncToSeance();
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🎯 Générer équilibré (poste + niveau)'; }
+  }
+}
+
 function outilsSetCurrentTeam(i) {
   outilsCurrentTeam = i;
   outilsRenderTeams();
@@ -3740,7 +3903,10 @@ function outilsRenderPool() {
   const wrap = document.getElementById('outils-pool');
   if (!wrap) return;
   if (!outilsPool.length) {
-    wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Aucun joueur disponible — marque les présents dans l\'onglet Présences, puis reviens ici.</div>';
+    const anyAssigned = outilsTeams.some(t => t.length);
+    wrap.innerHTML = anyAssigned
+      ? '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Tous les présents sont déjà assignés à une équipe ✓</div>'
+      : '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Aucun joueur disponible — marque les présents dans l\'onglet Présences, puis reviens ici.</div>';
     return;
   }
   const sorted = [...outilsPool].sort((a, b) => {
@@ -3769,7 +3935,7 @@ function outilsRenderPool() {
 }
 function outilsRenderTeams() {
   const wrap = document.getElementById('outils-teams');
-  const teamColors = ['#F5C400', '#3498db', '#2ecc71', '#e67e22'];
+  const teamColors = ['#F5C400', '#e67e22', '#3498db', '#2ecc71'];
   const threshold = OUTILS_THRESHOLD[outilsNb];
   wrap.innerHTML = outilsTeams.map((team, i) => `
     <div onclick="outilsSetCurrentTeam(${i})" style="cursor:pointer;background:var(--noir);border-radius:10px;padding:10px;margin-bottom:8px;border:2px solid ${i === outilsCurrentTeam ? teamColors[i] : 'rgba(255,255,255,0.08)'};">
@@ -3782,6 +3948,168 @@ function outilsRenderTeams() {
       </div>
     </div>
   `).join('');
+  outilsUpdateScoreboardVisibility();
+}
+
+// ---------- Tableau de score en direct + buteurs + sanctions (oppositions de fin de séance) ----------
+let outilsGoals = []; // [{id, team_index, player_code, points}] pour la date en cours
+let outilsPair = [0, 1]; // indices des 2 équipes actuellement sur le terrain (mode 3-4 équipes)
+
+function outilsUpdateScoreboardVisibility() {
+  const section = document.getElementById('outils-scoreboard-section');
+  if (!section) return;
+  const nonEmptyTeams = outilsTeams.filter(t => t.length).length;
+  section.style.display = nonEmptyTeams >= 2 ? 'block' : 'none';
+  if (nonEmptyTeams >= 2) {
+    if (outilsPair[0] >= outilsTeams.length || outilsPair[1] >= outilsTeams.length || outilsPair[0] === outilsPair[1]) {
+      outilsPair = [0, 1];
+    }
+    outilsRenderPairPicker();
+    outilsRenderScoreboard();
+    outilsRenderTopScorers();
+  }
+}
+async function outilsLoadGoals() {
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/outils_goals?select=id,team_index,player_code,points&session_date=eq.' + outilsCurrentDate() + '&order=created_at', { headers: coachAuthHeaders() });
+    outilsGoals = res.ok ? await res.json() : [];
+  } catch (e) { outilsGoals = []; }
+}
+function outilsRenderPairPicker() {
+  const wrap = document.getElementById('outils-pair-picker');
+  if (!wrap) return;
+  if (outilsTeams.length <= 2) { wrap.innerHTML = ''; return; }
+  const teamColors = ['#F5C400', '#e67e22', '#3498db', '#2ecc71'];
+  wrap.innerHTML = `<div style="font-size:11px;color:var(--gris-texte);margin-bottom:6px;">Sur le terrain :</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      ${outilsTeams.map((t, i) => {
+        const on = outilsPair.includes(i);
+        return `<button type="button" onclick="outilsToggleOnCourt(${i})" style="padding:6px 10px;border-radius:6px;border:1px solid ${on ? teamColors[i] : 'rgba(255,255,255,0.15)'};background:${on ? teamColors[i] + '22' : 'transparent'};color:${on ? teamColors[i] : 'var(--gris-texte)'};font-weight:${on ? '800' : '400'};font-size:11px;cursor:pointer;">Équipe ${i + 1}${!t.length ? ' (vide)' : ''}</button>`;
+      }).join('')}
+    </div>`;
+}
+function outilsToggleOnCourt(i) {
+  if (outilsPair.includes(i)) return; // déjà sur le terrain, rien à faire
+  // fait entrer l'équipe i à la place de la plus ancienne des 2 déjà sur le terrain (rotation simple)
+  outilsPair = [outilsPair[1], i];
+  outilsRenderPairPicker();
+  outilsRenderScoreboard();
+}
+function outilsGoalCount(teamIndex) {
+  return outilsGoals.filter(g => g.team_index === teamIndex).reduce((sum, g) => sum + (g.points != null ? g.points : 1), 0);
+}
+function outilsRenderScoreboard() {
+  const wrap = document.getElementById('outils-scoreboard');
+  if (!wrap) return;
+  const teamColors = ['#F5C400', '#e67e22', '#3498db', '#2ecc71'];
+  const pair = outilsTeams.length <= 2 ? [0, 1].filter(i => i < outilsTeams.length) : outilsPair;
+  wrap.innerHTML = pair.map(i => {
+    const team = outilsTeams[i] || [];
+    const score = outilsGoalCount(i);
+    const players = [...team].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+    return `<div style="background:var(--noir);border-radius:10px;padding:10px;border:1px solid ${teamColors[i]}55;">
+      <div style="text-align:center;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:800;color:${teamColors[i]};">Équipe ${i + 1}</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--blanc);line-height:1;">${score}</div>
+        <div style="display:flex;gap:6px;justify-content:center;margin-top:4px;">
+          <button type="button" onclick="outilsAddGoal(${i}, null)" style="padding:5px 12px;border:none;border-radius:6px;background:${teamColors[i]};color:#0A1628;font-weight:800;font-size:11px;cursor:pointer;">+1 but</button>
+          <button type="button" onclick="outilsAddPenalty(${i})" style="padding:5px 12px;border:1px solid #e74c3c;border-radius:6px;background:transparent;color:#e74c3c;font-weight:800;font-size:11px;cursor:pointer;">−1 sanction</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        ${players.length ? players.map(p => {
+          const nb = outilsGoals.filter(g => g.team_index === i && g.player_code === p.code && (g.points != null ? g.points : 1) > 0).length;
+          return `<button type="button" onclick="outilsAddGoal(${i}, '${p.code}')" style="display:flex;align-items:center;justify-content:space-between;background:${teamColors[i]}14;border:1px solid ${teamColors[i]}33;border-radius:6px;padding:5px 8px;font-size:11px;color:var(--gris-clair);cursor:pointer;text-align:left;">
+            <span>${escapeSvgText(p.name)}${p.numero ? ' <span style="font-size:0.9em;">#' + p.numero + '</span>' : ''}</span>
+            <span style="font-weight:800;color:${teamColors[i]};flex-shrink:0;margin-left:6px;">${nb > 0 ? nb : ''}</span>
+          </button>`;
+        }).join('') : '<div style="font-size:10px;color:var(--gris-texte);text-align:center;">Équipe vide</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function outilsAddGoal(teamIndex, playerCode) {
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/outils_goals', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify({ session_date: outilsCurrentDate(), team_index: teamIndex, player_code: playerCode, points: 1, created_by: coachSession ? coachSession.id : null }),
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows.length) outilsGoals.push(rows[0]);
+    }
+    outilsRenderScoreboard();
+    outilsRenderTopScorers();
+  } catch (e) {}
+}
+// Retire un point à une équipe (sanction / régulation), sans l'attribuer à un joueur en particulier
+// — n'entre donc jamais dans le compteur de buts personnel d'un joueur.
+async function outilsAddPenalty(teamIndex) {
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/outils_goals', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify({ session_date: outilsCurrentDate(), team_index: teamIndex, player_code: null, points: -1, created_by: coachSession ? coachSession.id : null }),
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows.length) outilsGoals.push(rows[0]);
+    }
+    outilsRenderScoreboard();
+  } catch (e) {}
+}
+async function outilsUndoLastGoal() {
+  if (!outilsGoals.length) return;
+  const last = outilsGoals[outilsGoals.length - 1];
+  try {
+    await ensureCoachSession();
+    await fetch(SB_URL + '/rest/v1/outils_goals?id=eq.' + last.id, { method: 'DELETE', headers: coachAuthHeaders() });
+    outilsGoals.pop();
+    outilsRenderScoreboard();
+    outilsRenderTopScorers();
+  } catch (e) {}
+}
+function outilsRenderTopScorers() {
+  const wrap = document.getElementById('outils-topscorers');
+  if (!wrap) return;
+  const byPlayer = {};
+  outilsGoals.forEach(g => {
+    if (!g.player_code) return;
+    if ((g.points != null ? g.points : 1) <= 0) return; // les sanctions ne comptent jamais dans les buts d'un joueur
+    byPlayer[g.player_code] = (byPlayer[g.player_code] || 0) + 1;
+  });
+  const nameByCode = {};
+  outilsTeams.forEach(team => team.forEach(p => { nameByCode[p.code] = p.name; }));
+  const rows = Object.keys(byPlayer).map(code => ({ code, name: nameByCode[code] || code, nb: byPlayer[code] })).sort((a, b) => b.nb - a.nb || a.name.localeCompare(b.name, 'fr'));
+  wrap.innerHTML = rows.length
+    ? rows.map((r, i) => `<div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--noir);border-radius:6px;margin-bottom:4px;font-size:12px;">
+        <span style="color:var(--gris-clair);">${i + 1}. ${escapeSvgText(r.name)}</span>
+        <span style="font-weight:800;color:var(--jaune);">${r.nb} but${r.nb > 1 ? 's' : ''}</span>
+      </div>`).join('')
+    : '<div style="font-size:11px;color:var(--gris-texte);text-align:center;">Aucun but attribué pour l\'instant.</div>';
+}
+
+async function outilsSaveAssignment(code, teamIndex) {
+  try {
+    await ensureCoachSession();
+    await fetch(SB_URL + '/rest/v1/outils_composition?on_conflict=session_date,player_code', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify([{ session_date: outilsCurrentDate(), player_code: code, team_index: teamIndex, created_by: coachSession ? coachSession.id : null }]),
+    });
+  } catch (e) {}
+}
+async function outilsRemoveAssignment(code) {
+  try {
+    await ensureCoachSession();
+    await fetch(SB_URL + '/rest/v1/outils_composition?session_date=eq.' + outilsCurrentDate() + '&player_code=eq.' + encodeURIComponent(code), {
+      method: 'DELETE', headers: coachAuthHeaders(),
+    });
+  } catch (e) {}
 }
 function outilsPick(code) {
   const idx = outilsPool.findIndex(p => p.code === code);
@@ -3795,6 +4123,7 @@ function outilsPick(code) {
   }
   outilsRenderPool();
   outilsRenderTeams();
+  outilsSaveAssignment(player.code, outilsTeams.findIndex(t => t.includes(player)));
   outilsSyncToSeance();
 }
 function outilsUnpick(code) {
@@ -3808,6 +4137,7 @@ function outilsUnpick(code) {
     outilsPool.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
     outilsRenderPool();
     outilsRenderTeams();
+    outilsRemoveAssignment(found.code);
     outilsSyncToSeance();
   }
 }
@@ -4053,12 +4383,47 @@ async function statsLoad() {
       <div style="border-top:1px solid rgba(255,255,255,0.08);margin:16px 0 12px;"></div>
       <div style="font-size:11px;font-weight:700;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;text-align:center;">Vue globale — tous joueurs</div>
       <div id="stats-pie"></div>
+      <div style="border-top:1px solid rgba(255,255,255,0.08);margin:16px 0 12px;"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">🎽 Tendance compositions week-end</div>
+      <div style="font-size:10px;color:var(--gris-texte);margin-bottom:10px;">D'après l'historique de l'onglet Compos — indique quels joueurs reviennent le plus souvent en Équipe 1 ou Équipe 2.</div>
+      <div id="stats-lineup-trend"></div>
     `;
     statsRenderNameList();
     statsRenderIndivChart();
     statsRenderPie();
+    statsRenderLineupTrend();
   } catch (e) {
     wrap.innerHTML = '<div style="text-align:center;padding:20px;color:#e74c3c;font-size:12px;">Erreur de chargement des statistiques.</div>';
+  }
+}
+
+async function statsRenderLineupTrend() {
+  const wrap = document.getElementById('stats-lineup-trend');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="text-align:center;padding:10px;color:var(--gris-texte);font-size:11px;">Chargement...</div>';
+  try {
+    const levels = await getPlayerLineupLevels();
+    const withHistory = levels.filter(p => p.total > 0);
+    if (!withHistory.length) {
+      wrap.innerHTML = '<div style="text-align:center;padding:10px;color:var(--gris-texte);font-size:11px;">Pas encore assez de compositions enregistrées.</div>';
+      return;
+    }
+    withHistory.sort((a, b) => b.ratio - a.ratio || a.name.localeCompare(b.name, 'fr'));
+    wrap.innerHTML = withHistory.map(p => {
+      const pct1 = Math.round(p.ratio * 100);
+      return `<div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gris-clair);margin-bottom:2px;">
+          <span>${escapeSvgText(p.name)}</span>
+          <span style="color:var(--gris-texte);">${p.team1}× Éq.1 · ${p.team2}× Éq.2</span>
+        </div>
+        <div style="height:6px;border-radius:3px;overflow:hidden;display:flex;">
+          <div style="width:${pct1}%;background:#F5C400;"></div>
+          <div style="width:${100 - pct1}%;background:#3498db;"></div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;font-size:11px;">Erreur de chargement.</div>';
   }
 }
 
