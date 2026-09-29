@@ -352,8 +352,18 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   .coachs2-wrap{max-width:1500px;padding:32px;}
   .coachs2-grid{gap:32px;}
 }
-.coachs2-subtabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-.coachs2-subtabs::-webkit-scrollbar{display:none;}
+.coachs2-subtabs{display:flex;gap:6px;}
+.coachs2-subtabs-top{margin-bottom:12px;}
+.cs-tab{flex:1 1 0;min-width:0;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;padding:0 2px;}
+.cs-tab-icon{font-size:18px;line-height:1;}
+.cs-tab-label{font-size:9.5px;line-height:1;white-space:nowrap;}
+/* Barre du bas : fixe, toujours visible au scroll (mobile uniquement) */
+.coachs2-subtabs-bottom{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(10,22,40,0.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(255,255,255,0.12);}
+@media (max-width:699px){ .coachs2-wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom));} }
 @media (min-width:700px){ .coachs2-subtabs{display:none;} }
 .cs-box.cs-hide{display:none;}
 @media (min-width:700px){ .cs-box.cs-hide{display:block;} }
@@ -1099,33 +1109,35 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
       <h2 style="font-size:18px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Bonjour <span id="coachs2-name"></span> 👋</h2>
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:14px;">Objectifs et évaluations arrivent bientôt ici.</div>
 
-      <div class="coachs2-subtabs">
-        <button type="button" id="cs-subtab-dashboard" onclick="coachSubtabSwitch('dashboard')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid var(--jaune);background:rgba(255,215,0,0.12);color:var(--jaune);font-weight:800;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">🏠</span><span style="font-size:9.5px;line-height:1;">Accueil</span>
+      <div class="coachs2-subtabs coachs2-subtabs-top">
+        <button type="button" class="cs-tab" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')">
+          <span class="cs-tab-icon">📊</span><span class="cs-tab-label">Stats</span>
         </button>
-        <button type="button" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">📋</span><span style="font-size:9.5px;line-height:1;">Présences</span>
+        <button type="button" class="cs-tab" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')">
+          <span class="cs-tab-icon">🗓️</span><span class="cs-tab-label">Programme</span>
         </button>
-        <button type="button" id="cs-subtab-outils" onclick="coachSubtabSwitch('outils')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">🧩</span><span style="font-size:9.5px;line-height:1;">Équipes</span>
+        <button type="button" class="cs-tab" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')">
+          <span class="cs-tab-icon">🎽</span><span class="cs-tab-label">Compos</span>
         </button>
-        <button type="button" id="cs-subtab-match" onclick="coachSubtabSwitch('match')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">⚽</span><span style="font-size:9.5px;line-height:1;">Match</span>
+        <button type="button" class="cs-tab" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')">
+          <span class="cs-tab-icon">🎯</span><span class="cs-tab-label">Évals</span>
         </button>
-        <button type="button" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">📝</span><span style="font-size:9.5px;line-height:1;">Séance</span>
+      </div>
+      <div class="coachs2-subtabs coachs2-subtabs-bottom">
+        <button type="button" class="cs-tab" id="cs-subtab-dashboard" onclick="coachSubtabSwitch('dashboard')">
+          <span class="cs-tab-icon">🏠</span><span class="cs-tab-label">Accueil</span>
         </button>
-        <button type="button" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">🗓️</span><span style="font-size:9.5px;line-height:1;">Programme</span>
+        <button type="button" class="cs-tab" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')">
+          <span class="cs-tab-icon">📋</span><span class="cs-tab-label">Présences</span>
         </button>
-        <button type="button" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">🎽</span><span style="font-size:9.5px;line-height:1;">Compos</span>
+        <button type="button" class="cs-tab" id="cs-subtab-outils" onclick="coachSubtabSwitch('outils')">
+          <span class="cs-tab-icon">🧩</span><span class="cs-tab-label">Équipes</span>
         </button>
-        <button type="button" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">📊</span><span style="font-size:9.5px;line-height:1;">Stats</span>
+        <button type="button" class="cs-tab" id="cs-subtab-match" onclick="coachSubtabSwitch('match')">
+          <span class="cs-tab-icon">⚽</span><span class="cs-tab-label">Match</span>
         </button>
-        <button type="button" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')" style="flex:0 0 auto;width:72px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);font-weight:400;cursor:pointer;">
-          <span style="font-size:18px;line-height:1;">🎯</span><span style="font-size:9.5px;line-height:1;">Évals</span>
+        <button type="button" class="cs-tab" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')">
+          <span class="cs-tab-icon">📝</span><span class="cs-tab-label">Séance</span>
         </button>
       </div>
 
