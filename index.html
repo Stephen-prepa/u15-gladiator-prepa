@@ -360,10 +360,10 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .cs-tab-label{font-size:9.5px;line-height:1;white-space:nowrap;}
 /* Barre du bas : fixe, toujours visible au scroll (mobile uniquement) */
 .coachs2-subtabs-bottom{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;
-  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  padding:8px 10px calc(22px + env(safe-area-inset-bottom));
   background:rgba(10,22,40,0.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   border-top:1px solid rgba(255,255,255,0.12);}
-@media (max-width:699px){ .coachs2-wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom));} }
+@media (max-width:699px){ .coachs2-wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom));} }
 @media (min-width:700px){ .coachs2-subtabs{display:none;} }
 .cs-box.cs-hide{display:none;}
 @media (min-width:700px){ .cs-box.cs-hide{display:block;} }
@@ -1110,20 +1110,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:14px;">Objectifs et évaluations arrivent bientôt ici.</div>
 
       <div class="coachs2-subtabs coachs2-subtabs-top">
-        <button type="button" class="cs-tab" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')">
-          <span class="cs-tab-icon">📊</span><span class="cs-tab-label">Stats</span>
-        </button>
-        <button type="button" class="cs-tab" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')">
-          <span class="cs-tab-icon">🗓️</span><span class="cs-tab-label">Programme</span>
-        </button>
-        <button type="button" class="cs-tab" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')">
-          <span class="cs-tab-icon">🎽</span><span class="cs-tab-label">Compos</span>
-        </button>
-        <button type="button" class="cs-tab" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')">
-          <span class="cs-tab-icon">🎯</span><span class="cs-tab-label">Évals</span>
-        </button>
-      </div>
-      <div class="coachs2-subtabs coachs2-subtabs-bottom">
         <button type="button" class="cs-tab" id="cs-subtab-dashboard" onclick="coachSubtabSwitch('dashboard')">
           <span class="cs-tab-icon">🏠</span><span class="cs-tab-label">Accueil</span>
         </button>
@@ -1136,8 +1122,22 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <button type="button" class="cs-tab" id="cs-subtab-match" onclick="coachSubtabSwitch('match')">
           <span class="cs-tab-icon">⚽</span><span class="cs-tab-label">Match</span>
         </button>
+        <button type="button" class="cs-tab" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')">
+          <span class="cs-tab-icon">🎽</span><span class="cs-tab-label">Compos</span>
+        </button>
+      </div>
+      <div class="coachs2-subtabs coachs2-subtabs-bottom">
+        <button type="button" class="cs-tab" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')">
+          <span class="cs-tab-icon">📊</span><span class="cs-tab-label">Stats</span>
+        </button>
+        <button type="button" class="cs-tab" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')">
+          <span class="cs-tab-icon">🗓️</span><span class="cs-tab-label">Programme</span>
+        </button>
         <button type="button" class="cs-tab" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')">
           <span class="cs-tab-icon">📝</span><span class="cs-tab-label">Séance</span>
+        </button>
+        <button type="button" class="cs-tab" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')">
+          <span class="cs-tab-icon">🎯</span><span class="cs-tab-label">Évals</span>
         </button>
       </div>
 
