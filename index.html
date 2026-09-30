@@ -436,6 +436,52 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     </div>
   </div>
 
+  <!-- SÉANCE MAISON EXCEPTIONNELLE — visible uniquement le jour cible (voir showHomeSessionIfToday), directement sur l'accueil -->
+  <div class="seance" id="seance-SM1" data-only-date="2026-09-30" style="display:none;margin-top:16px;text-align:left;width:100%;max-width:420px;">
+    <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">🌧️ Aujourd'hui</span><span class="sname"><span data-role="joueur">Séance maison — Renfo complet &amp; Cardio (intempéries)</span><span data-role="gb">Séance maison — Renfo complet &amp; Cardio (intempéries)</span></span><span class="sdur">50 min</span><span class="schev">▼</span></div>
+    <div class="seance-body">
+      <button class="btn-demarrer" onclick="launchHomeSessionSM1()"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">50:31</span></button>
+      <div class="bloc-section">
+        <div class="note-chaleur"><div class="ic">🌧️</div><div class="tx">Pas d'entraînement au gymnase aujourd'hui (intempéries) — fais cette séance chez toi à la place. Aucun matériel obligatoire : si tu as une corde à sauter ou des élastiques tu peux les utiliser sur les exercices concernés, sinon fais les versions au poids du corps indiquées. Séance complète — vous êtes prêts, on y va !</div></div>
+        <div class="bloc"><div class="bloc-title">🔥 Échauffement cardio (8 min · 2 tours · 40 sec/ex)</div><ul>
+          <li><strong>Montées de genoux</strong> — 40 sec</li>
+          <li><strong>Pas chassés latéraux</strong> — 40 sec</li>
+          <li><strong>Talons-fesses</strong> — 40 sec</li>
+          <li><strong>Sauts pieds joints</strong> — 40 sec</li>
+          <li><strong>Squats sautés légers</strong> — 40 sec</li>
+          <li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">💪 Renforcement — Membre inférieur (≈10 min · 3 séries · repos 75 sec)</div><ul>
+          <li><strong>Squats sautés × 10</strong> — descente lente 3 sec, montée explosive</li>
+          <li><strong>Fentes sautées × 10</strong> — 5 par jambe</li>
+          <li><strong>Squats sumo × 12</strong> — posture large, descente lente</li>
+          <li><strong>Hip thrust × 16</strong> — fessiers serrés 1 sec en haut</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">💪 Renforcement — Membre supérieur (≈9 min · 3 séries · repos 70 sec)</div><ul>
+          <li><strong>Pompes × 10</strong> — coudes à 45°, corps aligné</li>
+          <li><strong>Dips × 12</strong> — sur une chaise ou un canapé bas</li>
+          <li><strong>Pompes mains larges × 8</strong> — variante explosive si possible</li>
+          <li><strong>Y-T-W × 10</strong> — renfo épaule / coiffe, maintien 2 sec</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">🧘 Gainage (≈10 min · 3 séries · repos 65 sec)</div><ul>
+          <li><strong>Planche</strong> — 40 sec, corps aligné, respiration contrôlée</li>
+          <li><strong>Gainage latéral</strong> — 25 sec chaque côté</li>
+          <li><strong>Dead bug</strong> — 30 sec, bas du dos collé au sol</li>
+          <li><strong>Mountain climbers × 24</strong> — rythme soutenu</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">🏃 Cardio — finisher (≈7 min · 10 × 25 sec effort / 15 sec repos)</div><ul>
+          <li><strong>Squat jumps légers</strong></li>
+          <li><strong>Skater jumps légers</strong></li>
+          <li><strong>High knees dynamiques</strong></li>
+          <li><strong>Jumping jacks légers</strong></li>
+          <li><em>⇄ En alternance à chaque répétition — pas les uns après les autres</em></li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">Retour au calme (5 min)</div><ul><li>Marche + étirements complets</li></ul></div>
+      </div>
+      <div class="seance-done-badge" id="done-SM1">✓ Séance terminée</div>
+    </div>
+  </div>
+
   <div class="home-buttons" style="margin-top:20px;">
     <button class="home-btn" onclick="enterApp('planning')">
       <span style="font-size:28px;">🏋️</span>
@@ -606,52 +652,6 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   <div class="role-toggle">
     <button class="role-btn" id="role-btn-joueur" onclick="setRole('joueur')">Joueur de champ</button>
     <button class="role-btn" id="role-btn-gb" onclick="setRole('gb')">Gardien</button>
-  </div>
-
-  <!-- SÉANCE MAISON EXCEPTIONNELLE — visible uniquement le jour cible (voir showHomeSessionIfToday) -->
-  <div class="seance" id="seance-SM1" data-only-date="2026-09-30" style="display:none;">
-    <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">🌧️ Aujourd'hui</span><span class="sname"><span data-role="joueur">Séance maison — Renfo complet &amp; Cardio (intempéries)</span><span data-role="gb">Séance maison — Renfo complet &amp; Cardio (intempéries)</span></span><span class="sdur">50 min</span><span class="schev">▼</span></div>
-    <div class="seance-body">
-      <button class="btn-demarrer" onclick="launchSession('SM1')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">50:31</span></button>
-      <div class="bloc-section">
-        <div class="note-chaleur"><div class="ic">🌧️</div><div class="tx">Pas d'entraînement au gymnase aujourd'hui (intempéries) — fais cette séance chez toi à la place. Aucun matériel obligatoire : si tu as une corde à sauter ou des élastiques tu peux les utiliser sur les exercices concernés, sinon fais les versions au poids du corps indiquées. Séance complète — vous êtes prêts, on y va !</div></div>
-        <div class="bloc"><div class="bloc-title">🔥 Échauffement cardio (8 min · 2 tours · 40 sec/ex)</div><ul>
-          <li><strong>Montées de genoux</strong> — 40 sec</li>
-          <li><strong>Pas chassés latéraux</strong> — 40 sec</li>
-          <li><strong>Talons-fesses</strong> — 40 sec</li>
-          <li><strong>Sauts pieds joints</strong> — 40 sec</li>
-          <li><strong>Squats sautés légers</strong> — 40 sec</li>
-          <li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li>
-        </ul></div>
-        <div class="bloc"><div class="bloc-title">💪 Renforcement — Membre inférieur (≈10 min · 3 séries · repos 75 sec)</div><ul>
-          <li><strong>Squats sautés × 10</strong> — descente lente 3 sec, montée explosive</li>
-          <li><strong>Fentes sautées × 10</strong> — 5 par jambe</li>
-          <li><strong>Squats sumo × 12</strong> — posture large, descente lente</li>
-          <li><strong>Hip thrust × 16</strong> — fessiers serrés 1 sec en haut</li>
-        </ul></div>
-        <div class="bloc"><div class="bloc-title">💪 Renforcement — Membre supérieur (≈9 min · 3 séries · repos 70 sec)</div><ul>
-          <li><strong>Pompes × 10</strong> — coudes à 45°, corps aligné</li>
-          <li><strong>Dips × 12</strong> — sur une chaise ou un canapé bas</li>
-          <li><strong>Pompes mains larges × 8</strong> — variante explosive si possible</li>
-          <li><strong>Y-T-W × 10</strong> — renfo épaule / coiffe, maintien 2 sec</li>
-        </ul></div>
-        <div class="bloc"><div class="bloc-title">🧘 Gainage (≈10 min · 3 séries · repos 65 sec)</div><ul>
-          <li><strong>Planche</strong> — 40 sec, corps aligné, respiration contrôlée</li>
-          <li><strong>Gainage latéral</strong> — 25 sec chaque côté</li>
-          <li><strong>Dead bug</strong> — 30 sec, bas du dos collé au sol</li>
-          <li><strong>Mountain climbers × 24</strong> — rythme soutenu</li>
-        </ul></div>
-        <div class="bloc"><div class="bloc-title">🏃 Cardio — finisher (≈7 min · 10 × 25 sec effort / 15 sec repos)</div><ul>
-          <li><strong>Squat jumps légers</strong></li>
-          <li><strong>Skater jumps légers</strong></li>
-          <li><strong>High knees dynamiques</strong></li>
-          <li><strong>Jumping jacks légers</strong></li>
-          <li><em>⇄ En alternance à chaque répétition — pas les uns après les autres</em></li>
-        </ul></div>
-        <div class="bloc"><div class="bloc-title">Retour au calme (5 min)</div><ul><li>Marche + étirements complets</li></ul></div>
-      </div>
-      <div class="seance-done-badge" id="done-SM1">✓ Séance terminée</div>
-    </div>
   </div>
 
   <!-- S1 -->
@@ -1191,6 +1191,13 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:2px;">🏠 Bonjour <span id="dash-coach-name"></span> 👋</h3>
         <div class="section-title" style="margin-top:14px;">À faire aujourd'hui</div>
         <div id="dash-todo-list"></div>
+        <div id="dash-sm1-box" style="display:none;margin-top:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="section-title" style="margin:0;">🌧️ Séance maison — suivi du jour</div>
+            <button onclick="homeSessionTrackingLoad()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">↻</button>
+          </div>
+          <div id="dash-sm1-wrap" style="margin-top:8px;"></div>
+        </div>
       </div>
 
       <div class="coachs2-grid">
@@ -1811,6 +1818,7 @@ async function submitLoginCode() {
       refreshDoneBadges();
       updateGlobalProgress();
       showWhoAmI();
+      handlePendingHomeLaunch();
       return;
     }
     if (!player.claimed_at && nameWrap.style.display === 'none') {
@@ -1846,6 +1854,7 @@ async function submitLoginCode() {
     refreshDoneBadges();
     updateGlobalProgress();
     showWhoAmI();
+    handlePendingHomeLaunch();
   } catch(e) {
     errEl.textContent = 'Connexion impossible — réessaie (vérifie ta connexion internet).';
     btn.disabled = false; btn.textContent = 'Valider';
@@ -2466,6 +2475,23 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+// Lance une séance depuis l'écran d'accueil (avant login) : impose la connexion
+// par code joueur d'abord, pour que la séance soit bien rattachée et suivie côté coach.
+let pendingHomeLaunch = null;
+function launchHomeSessionSM1() {
+  if (!appState.playerCode) {
+    pendingHomeLaunch = 'SM1';
+    document.getElementById('login-overlay').style.display = 'flex';
+    return;
+  }
+  launchSession('SM1');
+}
+function handlePendingHomeLaunch() {
+  if (!pendingHomeLaunch) return;
+  const sid = pendingHomeLaunch;
+  pendingHomeLaunch = null;
+  launchSession(sid);
+}
 function launchSession(sid) {
   unlockAudio();
   acquireWakeLock();
@@ -4506,9 +4532,50 @@ async function outilsSyncToSeance() {
 
 // ---------- Scores à saisir (coach) ----------
 // ---------- Tableau de bord d'accueil coach ----------
+// ===================== SUIVI COACH — SÉANCE MAISON EXCEPTIONNELLE =====================
+async function homeSessionTrackingLoad() {
+  const box = document.getElementById('dash-sm1-box');
+  const wrap = document.getElementById('dash-sm1-wrap');
+  if (!box || !wrap) return;
+  const smEl = document.getElementById('seance-SM1');
+  const targetDate = smEl ? smEl.dataset.onlyDate : null;
+  const now = new Date();
+  const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  if (!targetDate || todayStr !== targetDate) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  wrap.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/completions?session_id=eq.SM1&select=player_code,difficulty,completed_at&order=completed_at.desc', { headers: SB_HEADERS });
+    const rows = res.ok ? await res.json() : [];
+    if (!rows.length) {
+      wrap.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Personne n\'a encore fait la séance.</div>';
+      return;
+    }
+    const codesParam = rows.map(r => encodeURIComponent(r.player_code)).join(',');
+    const pRes = await fetch(SB_URL + '/rest/v1/players?code=in.(' + codesParam + ')&select=code,name', { headers: SB_HEADERS });
+    const players = pRes.ok ? await pRes.json() : [];
+    const nameByCode = {};
+    players.forEach(p => { nameByCode[p.code] = p.name; });
+    const DIFF_EMOJI = { facile: '😊', correct: '😐', dur: '🥵' };
+    wrap.innerHTML = `<div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">${rows.length} joueur${rows.length > 1 ? 's' : ''} — séance terminée</div>` +
+      rows.map(r => {
+        const name = nameByCode[r.player_code] || r.player_code;
+        const t = new Date(r.completed_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const emoji = r.difficulty && DIFF_EMOJI[r.difficulty] ? ' ' + DIFF_EMOJI[r.difficulty] : '';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;">
+          <span style="color:var(--blanc);font-weight:700;">${escapeSvgText(name)}${emoji}</span>
+          <span style="color:var(--gris-texte);">${t}</span>
+        </div>`;
+      }).join('');
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:12px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
+  }
+}
+
 async function dashboardLoad() {
   const nameEl = document.getElementById('dash-coach-name');
   if (nameEl) nameEl.textContent = coachSession ? coachSession.name : '';
+  homeSessionTrackingLoad();
   const wrap = document.getElementById('dash-todo-list');
   if (!wrap) return;
   wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
