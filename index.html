@@ -608,6 +608,52 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     <button class="role-btn" id="role-btn-gb" onclick="setRole('gb')">Gardien</button>
   </div>
 
+  <!-- SÉANCE MAISON EXCEPTIONNELLE — visible uniquement le jour cible (voir showHomeSessionIfToday) -->
+  <div class="seance" id="seance-SM1" data-only-date="2026-09-30" style="display:none;">
+    <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">🌧️ Aujourd'hui</span><span class="sname"><span data-role="joueur">Séance maison — Renfo complet &amp; Cardio (intempéries)</span><span data-role="gb">Séance maison — Renfo complet &amp; Cardio (intempéries)</span></span><span class="sdur">50 min</span><span class="schev">▼</span></div>
+    <div class="seance-body">
+      <button class="btn-demarrer" onclick="launchSession('SM1')"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">50:31</span></button>
+      <div class="bloc-section">
+        <div class="note-chaleur"><div class="ic">🌧️</div><div class="tx">Pas d'entraînement au gymnase aujourd'hui (intempéries) — fais cette séance chez toi à la place. Aucun matériel obligatoire : si tu as une corde à sauter ou des élastiques tu peux les utiliser sur les exercices concernés, sinon fais les versions au poids du corps indiquées. Séance complète — vous êtes prêts, on y va !</div></div>
+        <div class="bloc"><div class="bloc-title">🔥 Échauffement cardio (8 min · 2 tours · 40 sec/ex)</div><ul>
+          <li><strong>Montées de genoux</strong> — 40 sec</li>
+          <li><strong>Pas chassés latéraux</strong> — 40 sec</li>
+          <li><strong>Talons-fesses</strong> — 40 sec</li>
+          <li><strong>Sauts pieds joints</strong> — 40 sec</li>
+          <li><strong>Squats sautés légers</strong> — 40 sec</li>
+          <li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">💪 Renforcement — Membre inférieur (≈10 min · 3 séries · repos 75 sec)</div><ul>
+          <li><strong>Squats sautés × 10</strong> — descente lente 3 sec, montée explosive</li>
+          <li><strong>Fentes sautées × 10</strong> — 5 par jambe</li>
+          <li><strong>Squats sumo × 12</strong> — posture large, descente lente</li>
+          <li><strong>Hip thrust × 16</strong> — fessiers serrés 1 sec en haut</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">💪 Renforcement — Membre supérieur (≈9 min · 3 séries · repos 70 sec)</div><ul>
+          <li><strong>Pompes × 10</strong> — coudes à 45°, corps aligné</li>
+          <li><strong>Dips × 12</strong> — sur une chaise ou un canapé bas</li>
+          <li><strong>Pompes mains larges × 8</strong> — variante explosive si possible</li>
+          <li><strong>Y-T-W × 10</strong> — renfo épaule / coiffe, maintien 2 sec</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">🧘 Gainage (≈10 min · 3 séries · repos 65 sec)</div><ul>
+          <li><strong>Planche</strong> — 40 sec, corps aligné, respiration contrôlée</li>
+          <li><strong>Gainage latéral</strong> — 25 sec chaque côté</li>
+          <li><strong>Dead bug</strong> — 30 sec, bas du dos collé au sol</li>
+          <li><strong>Mountain climbers × 24</strong> — rythme soutenu</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">🏃 Cardio — finisher (≈7 min · 10 × 25 sec effort / 15 sec repos)</div><ul>
+          <li><strong>Squat jumps légers</strong></li>
+          <li><strong>Skater jumps légers</strong></li>
+          <li><strong>High knees dynamiques</strong></li>
+          <li><strong>Jumping jacks légers</strong></li>
+          <li><em>⇄ En alternance à chaque répétition — pas les uns après les autres</em></li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">Retour au calme (5 min)</div><ul><li>Marche + étirements complets</li></ul></div>
+      </div>
+      <div class="seance-done-badge" id="done-SM1">✓ Séance terminée</div>
+    </div>
+  </div>
+
   <!-- S1 -->
   <div class="sg">
     <div class="sg-header" onclick="toggleSG(this)"><span class="sg-num">S1</span><span class="sg-title">Semaine 1 — Mise en route</span><span class="sg-chev">▼</span></div>
@@ -2049,10 +2095,56 @@ const CI_S3_GB = [
   ['Gainage lateral bras tendu gauche','',30],
 ];
 
+// ===================== SÉANCE MAISON EXCEPTIONNELLE (intempéries) =====================
+// Sans matériel obligatoire — corde à sauter / élastique en option seulement.
+// 4 volets : échauffement cardio, renfo membre inférieur, renfo membre supérieur, gainage, finisher cardio.
+function customBlock(label, series, exList, restDur) {
+  const steps = [];
+  for (let s = 1; s <= series; s++) {
+    steps.push({type:'info', name: label + ' — Série ' + s + '/' + series, detail: s===series ? 'Dernière série !' : '', duration:4});
+    exList.forEach(([n,det,d]) => steps.push({type:'exo', name:n, detail:det||'', duration:d}));
+    if (s < series) steps.push({type:'repos', name:'Récupération', detail:'Série ' + (s+1) + ' dans...', duration:restDur});
+  }
+  return steps;
+}
+const CW_HOME5 = ['Montees de genoux','Pas chasses lateraux','Talons-fesses','Sauts pieds joints','Squats sautes legers'];
+const LOWER_HOME = [
+  ['Squats sautes x10','Descente lente 3 sec, montee explosive',40],
+  ['Fentes sautees x10','5 par jambe',40],
+  ['Squats sumo x12','Posture large, descente lente',38],
+  ['Hip thrust x16','Fessiers serres 1 sec en haut',38],
+];
+const UPPER_HOME = [
+  ['Pompes x10','Coudes a 45, corps aligne',36],
+  ['Dips x12','Sur chaise ou canape bas',34],
+  ['Pompes mains larges x8','Variante explosive si possible',34],
+  ['Y-T-W x10','Renfo epaule / coiffe, maintien 2 sec',30],
+];
+const CORE_HOME = [
+  ['Planche 40 sec','Corps aligne, respiration controlee',40],
+  ['Gainage lateral droit 25 sec','',25],
+  ['Gainage lateral gauche 25 sec','',25],
+  ['Dead bug 30 sec','Bas du dos colle au sol',30],
+  ['Mountain climbers x24','Rythme soutenu',30],
+];
+
 // ===================== SESSIONS =====================
 function buildSessions(role) {
   const gb = role === 'gb';
   const sessions = {
+  'SM1': { name:'Séance maison — Renfo complet & Cardio (intempéries)', duration:0, steps:[
+    {type:'info', name:'Échauffement', detail:'', duration:4},
+    ...circuitWarmup(2, 40, 60, CW_HOME5),
+    {type:'repos', name:'Transition — Renfo membre inférieur', detail:'Prepare-toi', duration:20},
+    ...customBlock('Renfo — Membre inférieur', 3, LOWER_HOME, 75),
+    {type:'repos', name:'Transition — Renfo membre supérieur', detail:'Prepare-toi', duration:20},
+    ...customBlock('Renfo — Membre supérieur', 3, UPPER_HOME, 70),
+    {type:'repos', name:'Transition — Gainage', detail:'Prepare-toi', duration:20},
+    ...customBlock('Gainage', 3, CORE_HOME, 65),
+    {type:'repos', name:'Transition — Cardio', detail:'Dernier effort', duration:20},
+    ...cardioInter(10, 25, 15, ['Squat jumps legers', 'Skater jumps legers', 'High knees dynamiques', 'Jumping jacks legers']),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements complets', duration:300},
+  ]},
   'S1-A': { name:'S1-A · Footing de relance', duration:41*60, steps:[
     {type:'exo', name:'Marche rapide', detail:'', duration:120},
     {type:'exo', name:'Montees de genoux', detail:'', duration:60},
@@ -5438,6 +5530,16 @@ function toggleSeance(h) {
   b.classList.toggle('open'); c.classList.toggle('open');
 }
 
+// ===================== SÉANCE MAISON EXCEPTIONNELLE — visibilité du jour =====================
+function showHomeSessionIfToday() {
+  const el = document.getElementById('seance-SM1');
+  if (!el) return;
+  const target = el.dataset.onlyDate; // format 'YYYY-MM-DD'
+  const now = new Date();
+  const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  el.style.display = (todayStr === target) ? '' : 'none';
+}
+
 // ===================== GLOBAL PROGRESS =====================
 function updateGlobalProgress() {
   const prefix = pk('done_');
@@ -5467,6 +5569,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyRole();
   initInstallBanner();
   injectExerciseImageIcons();
+  showHomeSessionIfToday();
   updateGlobalProgress();
   refreshDoneBadges();
   loadCoachSession();
