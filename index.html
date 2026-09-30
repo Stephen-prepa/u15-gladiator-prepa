@@ -497,7 +497,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Présences, statistiques, évaluations</span>
       </span>
     </button>
-    <button class="home-btn" onclick="enterClubSpace()">
+    <button id="home-btn-ej" class="home-btn" onclick="enterClubSpaceGated()">
       <span style="font-size:28px;">📊</span>
       <span>
         <span style="display:block;font-size:15px;font-weight:800;color:var(--blanc);">Espace Joueurs</span>
@@ -1185,6 +1185,9 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <button type="button" class="cs-tab" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')">
           <span class="cs-tab-icon">🎯</span><span class="cs-tab-label">Évals</span>
         </button>
+        <button type="button" class="cs-tab" id="cs-subtab-reglages" onclick="coachSubtabSwitch('reglages')">
+          <span class="cs-tab-icon">⚙️</span><span class="cs-tab-label">Réglages</span>
+        </button>
       </div>
 
       <div class="cs-box" id="cs-box-dashboard" style="background:var(--gris-fonce);border-radius:10px;padding:14px;">
@@ -1209,6 +1212,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
         <div id="player-add-form" style="display:none;background:var(--noir);border-radius:8px;padding:10px;margin-bottom:14px;">
           <input type="text" id="player-add-name" class="login-input" placeholder="Prénom Nom du joueur" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
+          <input type="text" id="player-add-code" class="login-input" placeholder="Code personnalisé (optionnel — sinon généré)" maxlength="20" autocapitalize="characters" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
           <button id="player-add-btn" onclick="playerAddManual()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:12px;cursor:pointer;">Ajouter</button>
           <div id="player-add-msg" style="font-size:11px;text-align:center;margin-top:6px;min-height:14px;"></div>
         </div>
@@ -1393,7 +1397,32 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
         <div style="font-size:10px;color:var(--gris-texte);margin-top:6px;text-align:center;">Un tap = enregistrement immédiat · retaper la même note l'efface. Détail complet des exercices : document de synthèse filière.</div>
       </div>
 
-      <button onclick="coachAuthLogout()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;">Se déconnecter</button>
+      <div class="cs-box" id="cs-box-reglages" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
+        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">⚙️ Réglages</h3>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:14px;">Accès et codes — s'appliquent immédiatement pour tous, sans mise à jour de l'appli.</div>
+
+        <div id="dash-ej-settings-box">
+          <div class="section-title" style="margin:0 0 8px;">🏠 Espace Joueurs</div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gris-clair);margin-bottom:10px;cursor:pointer;">
+            <input type="checkbox" id="ej-settings-visible" style="width:18px;height:18px;">
+            Visible sur l'accueil
+          </label>
+          <input type="text" id="ej-settings-code" class="login-input" placeholder="Code d'accès (vide = aucun code)" style="width:100%;box-sizing:border-box;margin-bottom:8px;text-transform:none;letter-spacing:normal;font-size:14px;">
+          <button onclick="ejSettingsSave()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
+          <div id="ej-settings-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
+        </div>
+
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+          <div class="section-title" style="margin:0 0 8px;">🔑 Codes joueurs</div>
+          <button onclick="codesOpenEditor()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:800;font-size:12px;cursor:pointer;margin-bottom:14px;">🔑 Gérer les codes joueurs</button>
+          <div id="codes-editor" style="display:none;">
+            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">🔓 Débloquer = le joueur pourra se reconnecter avec son code sur un autre appareil sans confirmer son prénom. ♻️ Réinitialiser = efface le prénom, le code redevient neuf (l'historique déjà enregistré est conservé).</div>
+            <div id="codes-editor-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="coachAuthLogout()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;margin-top:16px;">Se déconnecter</button>
     </div>
 
   </div>
@@ -1417,6 +1446,19 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     </div>
     <button class="login-btn" id="login-btn" onclick="submitLoginCode()">Valider</button>
     <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- CODE D'ACCÈS — ESPACE JOUEURS (optionnel, piloté depuis l'Espace coachs) -->
+<div class="login-overlay" id="ej-code-overlay" style="display:none;">
+  <div class="login-box">
+    <div class="login-logo">📊</div>
+    <div class="login-title">Espace Joueurs</div>
+    <div class="login-sub">Entre le code d'accès</div>
+    <input type="text" id="ej-code-input" class="login-input" placeholder="CODE" maxlength="20" autocomplete="off">
+    <button class="login-btn" onclick="submitEjCode()">Valider</button>
+    <div class="login-error" id="ej-code-error"></div>
+    <button type="button" onclick="document.getElementById('ej-code-overlay').style.display='none'" style="margin-top:14px;background:none;border:none;color:var(--gris-texte);font-size:12px;cursor:pointer;text-decoration:underline;">Annuler</button>
   </div>
 </div>
 
@@ -3039,6 +3081,76 @@ function enterClubSpace() {
   clubStatsLoad();
   clubProgrammeLoad();
 }
+// ===================== RÉGLAGES APP (Supabase, pilotés depuis l'Espace coachs) =====================
+let appSettings = {};
+async function loadAppSettings() {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/app_settings?select=key,value', { headers: SB_HEADERS });
+    if (res.ok) {
+      const rows = await res.json();
+      rows.forEach(r => { appSettings[r.key] = r.value; });
+    }
+  } catch (e) { /* pas grave, on garde les valeurs par defaut (visible, sans code) */ }
+  applyAppSettingsToHome();
+  ejSettingsLoadIntoForm();
+}
+function applyAppSettingsToHome() {
+  const btn = document.getElementById('home-btn-ej');
+  if (btn) btn.style.display = (appSettings.espace_joueurs_visible === 'false') ? 'none' : 'flex';
+}
+function enterClubSpaceGated() {
+  if (appSettings.espace_joueurs_code) {
+    document.getElementById('ej-code-input').value = '';
+    document.getElementById('ej-code-error').textContent = '';
+    document.getElementById('ej-code-overlay').style.display = 'flex';
+    setTimeout(() => document.getElementById('ej-code-input').focus(), 50);
+  } else {
+    enterClubSpace();
+  }
+}
+function submitEjCode() {
+  const val = document.getElementById('ej-code-input').value.trim();
+  if (val && val === appSettings.espace_joueurs_code) {
+    document.getElementById('ej-code-overlay').style.display = 'none';
+    enterClubSpace();
+  } else {
+    document.getElementById('ej-code-error').textContent = 'Code incorrect.';
+  }
+}
+function ejSettingsLoadIntoForm() {
+  const cb = document.getElementById('ej-settings-visible');
+  const codeInput = document.getElementById('ej-settings-code');
+  if (!cb || !codeInput) return;
+  cb.checked = appSettings.espace_joueurs_visible !== 'false';
+  codeInput.value = appSettings.espace_joueurs_code || '';
+}
+async function ejSettingsSave() {
+  const visible = document.getElementById('ej-settings-visible').checked ? 'true' : 'false';
+  const code = document.getElementById('ej-settings-code').value.trim();
+  const msg = document.getElementById('ej-settings-msg');
+  msg.style.color = 'var(--gris-texte)';
+  msg.textContent = 'Enregistrement...';
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/app_settings?on_conflict=key', {
+      method: 'POST',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify([
+        { key: 'espace_joueurs_visible', value: visible, updated_at: new Date().toISOString() },
+        { key: 'espace_joueurs_code', value: code, updated_at: new Date().toISOString() },
+      ]),
+    });
+    if (!res.ok) throw new Error('save failed');
+    appSettings.espace_joueurs_visible = visible;
+    appSettings.espace_joueurs_code = code;
+    applyAppSettingsToHome();
+    msg.style.color = 'var(--vert)';
+    msg.textContent = '✓ Enregistré — appliqué immédiatement pour tous.';
+  } catch (e) {
+    msg.style.color = '#e74c3c';
+    msg.textContent = 'Erreur — réessaie.';
+  }
+}
 function goHomeFromClub() {
   document.getElementById('screen-club').style.display = 'none';
   document.getElementById('screen-home').style.display = 'flex';
@@ -3171,7 +3283,7 @@ function pickCoachLogin(login) {
 
 function coachSubtabSwitch(name) {
   if (name === 'evaluations' && coachSession && coachSession.name === 'Sandrine') name = 'presence';
-  const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils', match: 'cs-box-match', evaluations: 'cs-box-evaluations' };
+  const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils', match: 'cs-box-match', evaluations: 'cs-box-evaluations', reglages: 'cs-box-reglages' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
     const btn = document.getElementById('cs-subtab-' + key);
@@ -3185,6 +3297,7 @@ function coachSubtabSwitch(name) {
   if (name === 'dashboard') dashboardLoad();
   if (name === 'outils' || name === 'match') outilsInit();
   if (name === 'evaluations') evaluationsInit();
+  if (name === 'reglages') loadAppSettings();
 }
 
 // ---------- Compositions du week-end (coach) ----------
@@ -3376,6 +3489,67 @@ async function postesSetDefault(code, poste) {
   } catch (e) {
     if (check) check.textContent = '';
     alert('Erreur — poste non enregistré, réessaie.');
+  }
+}
+
+// ===================== GESTION DES CODES JOUEURS =====================
+function codesOpenEditor() {
+  const box = document.getElementById('codes-editor');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'none') return;
+  codesRenderEditor();
+}
+function codesRenderEditor() {
+  const wrap = document.getElementById('codes-editor-list');
+  const sorted = [...presenceRoster].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  wrap.innerHTML = sorted.map(p => {
+    const locked = !!p.device_token;
+    return `<div id="codes-row-${p.code}" style="background:var(--noir);border-radius:8px;padding:8px 10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:700;color:var(--blanc);overflow-wrap:break-word;">${escapeSvgText(p.name)}</span>
+        <span style="flex-shrink:0;font-size:9px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;padding:2px 7px;border-radius:10px;${locked ? 'background:rgba(231,76,60,0.15);color:#e74c3c;' : 'background:rgba(46,204,113,0.15);color:#2ecc71;'}">${locked ? 'Verrouillé' : 'Libre'}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="flex:1;min-width:0;font-family:monospace;font-size:13px;letter-spacing:1px;color:var(--jaune);background:rgba(245,196,0,0.08);border-radius:6px;padding:5px 8px;overflow-wrap:break-word;">${escapeSvgText(p.code)}</span>
+        <button type="button" onclick="playerUnlockDevice('${p.code}', '${p.name.replace(/'/g, "\\'")}')" title="Débloquer l'appareil" style="flex-shrink:0;background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:5px 9px;font-size:13px;cursor:pointer;">🔓</button>
+        <button type="button" onclick="playerResetConfirm('${p.code}', '${p.name.replace(/'/g, "\\'")}')" title="Réinitialiser complètement" style="flex-shrink:0;background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:5px 9px;font-size:13px;cursor:pointer;">♻️</button>
+      </div>
+      <div id="codes-msg-${p.code}" style="font-size:11px;text-align:center;margin-top:6px;min-height:14px;"></div>
+    </div>`;
+  }).join('');
+}
+async function playerUnlockDevice(code, name) {
+  if (!confirm('Débloquer l\'appareil de ' + name + ' ?\n\nIl pourra se reconnecter avec son code sur un nouvel appareil sans avoir à confirmer son prénom.')) return;
+  const msg = document.getElementById('codes-msg-' + code);
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
+      method: 'PATCH',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device_token: null }),
+    });
+    if (!res.ok) throw new Error('unlock failed');
+    const p = presenceRoster.find(r => r.code === code);
+    if (p) p.device_token = null;
+    codesRenderEditor();
+  } catch (e) {
+    if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'Erreur — réessaie.'; }
+  }
+}
+async function playerResetConfirm(code, name) {
+  if (!confirm('Réinitialiser complètement le code de ' + name + ' ?\n\nLe prénom sera effacé et le code redeviendra disponible comme neuf. L\'historique déjà enregistré (présences, séances...) est conservé.')) return;
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
+      method: 'PATCH',
+      headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: null, claimed_at: null, device_token: null }),
+    });
+    if (!res.ok) throw new Error('reset failed');
+    await presenceLoadRoster();
+    codesRenderEditor();
+  } catch (e) {
+    alert('Erreur — impossible de réinitialiser.');
   }
 }
 
@@ -3750,7 +3924,9 @@ function playerAddToggleForm() {
 }
 async function playerAddManual() {
   const input = document.getElementById('player-add-name');
+  const codeInput = document.getElementById('player-add-code');
   const name = input.value.trim();
+  let customCode = codeInput.value.trim().toUpperCase();
   const msgEl = document.getElementById('player-add-msg');
   const btn = document.getElementById('player-add-btn');
   if (!name) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Entre un nom.'; return; }
@@ -3758,13 +3934,24 @@ async function playerAddManual() {
   msgEl.textContent = '';
   try {
     await ensureCoachSession();
+    if (customCode) {
+      const checkRes = await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(customCode) + '&select=code', { headers: coachAuthHeaders() });
+      const existing = checkRes.ok ? await checkRes.json() : [];
+      if (existing.length) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Ce code existe déjà — choisis-en un autre.';
+        btn.disabled = false; btn.textContent = 'Ajouter';
+        return;
+      }
+    }
     const res = await fetch(SB_URL + '/rest/v1/players', {
       method: 'POST',
       headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' },
-      body: JSON.stringify({ code: genPlayerCode(), name, claimed_at: new Date().toISOString(), role: 'joueur', postes: [] }),
+      body: JSON.stringify({ code: customCode || genPlayerCode(), name, claimed_at: new Date().toISOString(), role: 'joueur', postes: [] }),
     });
     if (!res.ok) throw new Error('add failed');
     input.value = '';
+    codeInput.value = '';
     document.getElementById('player-add-form').style.display = 'none';
     presenceLoadRoster();
     statsLoad();
@@ -3778,7 +3965,7 @@ async function playerAddManual() {
 async function presenceLoadRoster() {
   document.getElementById('presence-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Chargement...</div>';
   try {
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes,numero&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes,numero,device_token&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
     const rows = await res.json();
     presenceRoster = rows.filter(p => p.code !== 'COACHTEST' && p.name);
   } catch (e) { presenceRoster = []; }
@@ -4576,6 +4763,7 @@ async function dashboardLoad() {
   const nameEl = document.getElementById('dash-coach-name');
   if (nameEl) nameEl.textContent = coachSession ? coachSession.name : '';
   homeSessionTrackingLoad();
+  loadAppSettings();
   const wrap = document.getElementById('dash-todo-list');
   if (!wrap) return;
   wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
@@ -5637,6 +5825,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initInstallBanner();
   injectExerciseImageIcons();
   showHomeSessionIfToday();
+  loadAppSettings();
   updateGlobalProgress();
   refreshDoneBadges();
   loadCoachSession();
@@ -5679,6 +5868,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-name') && document.getElementById('login-name').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitLoginCode();
     });
+  document.getElementById('ej-code-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitEjCode();
+  });
 });
 </script>
 </body>
