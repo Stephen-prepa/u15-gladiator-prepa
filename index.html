@@ -482,6 +482,52 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     </div>
   </div>
 
+  <!-- SÉANCE MAISON EXCEPTIONNELLE #2 — visible uniquement le jour cible (voir showHomeSessionIfToday), directement sur l'accueil -->
+  <div class="seance" id="seance-SM2" data-only-date="2026-10-01" style="display:none;margin-top:16px;text-align:left;width:100%;max-width:420px;">
+    <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">🌧️ Aujourd'hui</span><span class="sname"><span data-role="joueur">Séance maison #2 — Renfo complet &amp; Cardio (intempéries)</span><span data-role="gb">Séance maison #2 — Renfo complet &amp; Cardio (intempéries)</span></span><span class="sdur">49 min</span><span class="schev">▼</span></div>
+    <div class="seance-body">
+      <button class="btn-demarrer" onclick="launchHomeSessionSM2()"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">48:58</span></button>
+      <div class="bloc-section">
+        <div class="note-chaleur"><div class="ic">🌧️</div><div class="tx">Pas d'entraînement au gymnase aujourd'hui (intempéries) — fais cette séance chez toi à la place. Aucun matériel obligatoire : si tu as une corde à sauter ou des élastiques tu peux les utiliser sur les exercices concernés, sinon fais les versions au poids du corps indiquées. Séance différente de la précédente pour varier — on continue !</div></div>
+        <div class="bloc"><div class="bloc-title">🔥 Échauffement cardio (8 min · 2 tours · 40 sec/ex)</div><ul>
+          <li><strong>Jumping jacks</strong> — 40 sec</li>
+          <li><strong>Talons-fesses rapides</strong> — 40 sec</li>
+          <li><strong>Pas chassés croisés</strong> — 40 sec</li>
+          <li><strong>Skipping sur place</strong> — 40 sec</li>
+          <li><strong>Squats + rotation des bras</strong> — 40 sec</li>
+          <li><em>Enchaîner sans pause · Repos 1 min entre les 2 tours</em></li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">💪 Renforcement — Membre inférieur (≈10 min · 3 séries · repos 75 sec)</div><ul>
+          <li><strong>Squats bulgares × 10</strong> — pied arrière sur une chaise, 5 par jambe</li>
+          <li><strong>Fentes avant alternées × 12</strong> — descente contrôlée, genou près du sol</li>
+          <li><strong>Chaise (wall sit)</strong> — 30 sec, dos collé au mur, cuisses à 90°</li>
+          <li><strong>Montées sur un step/marche × 16</strong> — 8 par jambe, pousse sur le talon</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">💪 Renforcement — Membre supérieur (≈9 min · 3 séries · repos 70 sec)</div><ul>
+          <li><strong>Pompes diamant × 8</strong> — mains rapprochées sous le sternum</li>
+          <li><strong>Pompes prise large × 10</strong> — coudes ouverts, poitrine basse</li>
+          <li><strong>Superman × 12</strong> — relève bras + jambes, maintien 1 sec</li>
+          <li><strong>Triceps dips relevés × 10</strong> — pieds surélevés si possible</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">🧘 Gainage (≈9 min · 3 séries · repos 65 sec)</div><ul>
+          <li><strong>Gainage dynamique (toe touch) × 20</strong> — allongé, relève jambes + mains vers les pieds</li>
+          <li><strong>Crunchs vélo × 20</strong> — coude vers genou opposé, rythme contrôlé</li>
+          <li><strong>Superman maintien</strong> — 30 sec, bas du dos, gainage complet</li>
+          <li><strong>Planche avec touches d'épaule × 20</strong> — planche haute, touche l'épaule opposée</li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">🏃 Cardio — finisher (≈7 min · 10 × 25 sec effort / 15 sec repos)</div><ul>
+          <li><strong>Fentes sautées légères</strong></li>
+          <li><strong>Burpees sans pompe</strong></li>
+          <li><strong>Montées de genoux rapides</strong></li>
+          <li><strong>Talons-fesses rapides</strong></li>
+          <li><em>⇄ En alternance à chaque répétition — pas les uns après les autres</em></li>
+        </ul></div>
+        <div class="bloc"><div class="bloc-title">Retour au calme (5 min)</div><ul><li>Marche + étirements complets</li></ul></div>
+      </div>
+      <div class="seance-done-badge" id="done-SM2">✓ Séance terminée</div>
+    </div>
+  </div>
+
   <div class="home-buttons" style="margin-top:20px;">
     <button class="home-btn" onclick="enterApp('planning')">
       <span style="font-size:28px;">🏋️</span>
@@ -2178,6 +2224,26 @@ const CORE_HOME = [
   ['Dead bug 30 sec','Bas du dos colle au sol',30],
   ['Mountain climbers x24','Rythme soutenu',30],
 ];
+// Variante (séance maison #2) — mêmes volets, exercices différents pour ne pas répéter la précédente.
+const CW_HOME5_V2 = ['Jumping jacks','Talons-fesses rapides','Pas chasses croises','Skipping sur place','Squats + rotation des bras'];
+const LOWER_HOME_V2 = [
+  ['Squats bulgares x10','Pied arriere sur une chaise, 5 par jambe',40],
+  ['Fentes avant alternees x12','Descente controlee, genou pres du sol',40],
+  ['Chaise (wall sit) 30 sec','Dos colle au mur, cuisses a 90',30],
+  ['Montees sur un step/marche x16','8 par jambe, pousse sur le talon',38],
+];
+const UPPER_HOME_V2 = [
+  ['Pompes diamant x8','Mains rapprochees sous le sternum',36],
+  ['Pompes prise large x10','Coudes ouverts, poitrine basse',34],
+  ['Superman x12','Releve bras + jambes, maintien 1 sec',32],
+  ['Triceps dips releves x10','Pieds surélevés si possible',32],
+];
+const CORE_HOME_V2 = [
+  ['Gainage dynamique (toe touch) x20','Allonge, releve jambes + mains vers les pieds',35],
+  ['Crunchs velo x20','Coude vers genou oppose, rythme controle',32],
+  ['Superman maintien 30 sec','Bas du dos, gainage complet',30],
+  ['Planche avec touches d\'epaule x20','Planche haute, touche l\'epaule opposee',30],
+];
 
 // ===================== SESSIONS =====================
 function buildSessions(role) {
@@ -2194,6 +2260,19 @@ function buildSessions(role) {
     ...customBlock('Gainage', 3, CORE_HOME, 65),
     {type:'repos', name:'Transition — Cardio', detail:'Dernier effort', duration:20},
     ...cardioInter(10, 25, 15, ['Squat jumps legers', 'Skater jumps legers', 'High knees dynamiques', 'Jumping jacks legers']),
+    {type:'retour', name:'Retour au calme', detail:'Marche + etirements complets', duration:300},
+  ]},
+  'SM2': { name:'Séance maison #2 — Renfo complet & Cardio (intempéries)', duration:0, steps:[
+    {type:'info', name:'Échauffement', detail:'', duration:4},
+    ...circuitWarmup(2, 40, 60, CW_HOME5_V2),
+    {type:'repos', name:'Transition — Renfo membre inférieur', detail:'Prepare-toi', duration:20},
+    ...customBlock('Renfo — Membre inférieur', 3, LOWER_HOME_V2, 75),
+    {type:'repos', name:'Transition — Renfo membre supérieur', detail:'Prepare-toi', duration:20},
+    ...customBlock('Renfo — Membre supérieur', 3, UPPER_HOME_V2, 70),
+    {type:'repos', name:'Transition — Gainage', detail:'Prepare-toi', duration:20},
+    ...customBlock('Gainage', 3, CORE_HOME_V2, 65),
+    {type:'repos', name:'Transition — Cardio', detail:'Dernier effort', duration:20},
+    ...cardioInter(10, 25, 15, ['Fentes sautees legeres', 'Burpees sans pompe', 'Montees de genoux rapides', 'Talons-fesses rapides']),
     {type:'retour', name:'Retour au calme', detail:'Marche + etirements complets', duration:300},
   ]},
   'S1-A': { name:'S1-A · Footing de relance', duration:41*60, steps:[
@@ -2527,6 +2606,14 @@ function launchHomeSessionSM1() {
     return;
   }
   launchSession('SM1');
+}
+function launchHomeSessionSM2() {
+  if (!appState.playerCode) {
+    pendingHomeLaunch = 'SM2';
+    document.getElementById('login-overlay').style.display = 'flex';
+    return;
+  }
+  launchSession('SM2');
 }
 function handlePendingHomeLaunch() {
   if (!pendingHomeLaunch) return;
@@ -4724,15 +4811,16 @@ async function homeSessionTrackingLoad() {
   const box = document.getElementById('dash-sm1-box');
   const wrap = document.getElementById('dash-sm1-wrap');
   if (!box || !wrap) return;
-  const smEl = document.getElementById('seance-SM1');
-  const targetDate = smEl ? smEl.dataset.onlyDate : null;
   const now = new Date();
   const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-  if (!targetDate || todayStr !== targetDate) { box.style.display = 'none'; return; }
+  const homeSeances = Array.from(document.querySelectorAll('#screen-home .seance[data-only-date]'));
+  const activeEl = homeSeances.find(el => el.dataset.onlyDate === todayStr);
+  if (!activeEl) { box.style.display = 'none'; return; }
+  const sid = activeEl.id.replace(/^seance-/, '');
   box.style.display = 'block';
   wrap.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
   try {
-    const res = await fetch(SB_URL + '/rest/v1/completions?session_id=eq.SM1&select=player_code,difficulty,completed_at&order=completed_at.desc', { headers: SB_HEADERS });
+    const res = await fetch(SB_URL + '/rest/v1/completions?session_id=eq.' + encodeURIComponent(sid) + '&select=player_code,difficulty,completed_at&order=completed_at.desc', { headers: SB_HEADERS });
     const rows = res.ok ? await res.json() : [];
     if (!rows.length) {
       wrap.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Personne n\'a encore fait la séance.</div>';
@@ -5787,12 +5875,11 @@ function toggleSeance(h) {
 
 // ===================== SÉANCE MAISON EXCEPTIONNELLE — visibilité du jour =====================
 function showHomeSessionIfToday() {
-  const el = document.getElementById('seance-SM1');
-  if (!el) return;
-  const target = el.dataset.onlyDate; // format 'YYYY-MM-DD'
   const now = new Date();
   const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-  el.style.display = (todayStr === target) ? '' : 'none';
+  document.querySelectorAll('#screen-home .seance[data-only-date]').forEach(el => {
+    el.style.display = (todayStr === el.dataset.onlyDate) ? '' : 'none';
+  });
 }
 
 // ===================== GLOBAL PROGRESS =====================
