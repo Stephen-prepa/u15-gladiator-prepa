@@ -483,8 +483,8 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   </div>
 
   <!-- SÉANCE MAISON EXCEPTIONNELLE #2 — visible uniquement le jour cible (voir showHomeSessionIfToday), directement sur l'accueil -->
-  <div class="seance" id="seance-SM2" data-only-date="2026-10-01" style="display:none;margin-top:16px;text-align:left;width:100%;max-width:420px;">
-    <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">🌧️ Aujourd'hui</span><span class="sname"><span data-role="joueur">Séance maison #2 — Renfo complet &amp; Cardio (intempéries)</span><span data-role="gb">Séance maison #2 — Renfo complet &amp; Cardio (intempéries)</span></span><span class="sdur">49 min</span><span class="schev">▼</span></div>
+  <div class="seance" id="seance-SM2" data-only-date="2026-10-01" data-until-date="2026-10-04" style="display:none;margin-top:16px;text-align:left;width:100%;max-width:420px;">
+    <div class="seance-header renfo" onclick="toggleSeance(this)"><span class="stag">🌧️ Dispo jusqu'à dimanche</span><span class="sname"><span data-role="joueur">Séance maison #2 — Renfo complet &amp; Cardio (intempéries)</span><span data-role="gb">Séance maison #2 — Renfo complet &amp; Cardio (intempéries)</span></span><span class="sdur">49 min</span><span class="schev">▼</span></div>
     <div class="seance-body">
       <button class="btn-demarrer" onclick="launchHomeSessionSM2()"><span class="bd-label">▶ Démarrer la séance</span><span class="bd-dur">48:58</span></button>
       <div class="bloc-section">
@@ -616,6 +616,13 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
     <div class="img-lightbox-close" onclick="closeImageLightbox(event)">✕</div>
     <img id="img-lightbox-img" src="" alt="Exercice">
     <div class="img-lightbox-caption" id="img-lightbox-caption"></div>
+  </div>
+</div>
+
+<div class="img-lightbox" id="match-lightbox" onclick="closeMatchDetail(event)">
+  <div class="img-lightbox-inner" style="background:var(--gris-fonce);border-radius:12px;padding:22px 18px;">
+    <div class="img-lightbox-close" onclick="closeMatchDetail(event)">✕</div>
+    <div id="match-lightbox-content"></div>
   </div>
 </div>
 
@@ -1318,6 +1325,11 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
           <h3 style="font-size:13px;font-weight:800;color:var(--blanc);margin-bottom:8px;">🏆 Scores à saisir</h3>
           <div id="scores-todo-list" style="display:flex;flex-direction:column;gap:8px;">
             <div style="text-align:center;padding:8px;color:var(--gris-texte);font-size:12px;">Chargement...</div>
+          </div>
+          <button onclick="scoresDoneOpenEditor()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11px;cursor:pointer;margin-top:10px;">✏️ Corriger un score déjà saisi</button>
+          <div id="scores-done-editor" style="display:none;margin-top:10px;">
+            <div style="font-size:10.5px;color:var(--gris-texte);margin-bottom:8px;">Modifie puis réenregistre — ça remplace le score précédent.</div>
+            <div id="scores-done-list" style="display:flex;flex-direction:column;gap:8px;"></div>
           </div>
         </div>
 
@@ -3072,6 +3084,7 @@ async function homeRefreshTap() {
   if (btn) setTimeout(() => btn.classList.remove('spinning'), 400);
 }
 
+let homeMatchesCache = [];
 async function homeLoadMatches() {
   try {
     const res = await fetch(SB_URL + '/rest/v1/matches?select=*&order=debut.asc', { headers: SB_HEADERS });
@@ -3081,6 +3094,7 @@ async function homeLoadMatches() {
       rows = homeFictionalMatches();
       isFictional = true;
     }
+    homeMatchesCache = rows;
     const now = new Date();
     const upcoming = rows.filter(r => new Date(r.debut) >= now);
     const past = rows.filter(r => new Date(r.debut) < now && (r.score_nous !== null && r.score_nous !== undefined));
@@ -3129,7 +3143,7 @@ async function homeLoadMatches() {
         const info = homeParseOpponent(m.titre);
         const win = m.score_nous > m.score_eux;
         const scoreDisplay = info.home ? `${m.score_nous}–${m.score_eux}` : `${m.score_eux}–${m.score_nous}`;
-        return `<div class="home-rchip ${win ? 'w' : 'l'}"><span class="dot">${win ? 'V' : 'D'}</span><span class="lbl">${escapeSvgText(info.opp)}</span><span class="sc">${scoreDisplay}</span></div>`;
+        return `<div class="home-rchip ${win ? 'w' : 'l'}" style="cursor:pointer;" onclick="openMatchDetail('${m.id}')"><span class="dot">${win ? 'V' : 'D'}</span><span class="lbl">${escapeSvgText(info.opp)}</span><span class="sc">${scoreDisplay}</span></div>`;
       }).join('');
     } else {
       resWrap.style.display = 'none';
@@ -3155,6 +3169,36 @@ async function homeLoadMatches() {
   } catch (e) {
     document.getElementById('home-hero-scroll').innerHTML = '<div class="home-hero-empty">Erreur de chargement des matchs.</div>';
   }
+}
+
+// Détail d'un résultat (score final + détail par tiers-temps si renseigné)
+function openMatchDetail(matchId) {
+  const m = homeMatchesCache.find(x => String(x.id) === String(matchId));
+  if (!m) return;
+  const info = homeParseOpponent(m.titre);
+  const scoreDisplay = info.home ? `${m.score_nous}–${m.score_eux}` : `${m.score_eux}–${m.score_nous}`;
+  let periodsHtml = '';
+  if (Array.isArray(m.score_periodes) && m.score_periodes.length) {
+    periodsHtml = '<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">' +
+      '<div style="font-size:11px;color:var(--gris-texte);text-transform:uppercase;font-weight:800;margin-bottom:8px;text-align:center;">Détail par tiers-temps</div>' +
+      m.score_periodes.map((p, i) => {
+        const pd = info.home ? `${p.nous}–${p.eux}` : `${p.eux}–${p.nous}`;
+        return `<div style="display:flex;justify-content:space-between;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;color:var(--gris-clair);"><span>Tiers-temps ${i + 1}</span><span style="font-weight:800;color:var(--blanc);">${pd}</span></div>`;
+      }).join('') + '</div>';
+  }
+  document.getElementById('match-lightbox-content').innerHTML = `
+    <div style="text-align:center;">
+      <div style="font-size:11px;color:var(--gris-texte);margin-bottom:4px;">Équipe ${m.equipe} · ${homeFmtDateShort(m.debut)}</div>
+      <div style="font-size:16px;font-weight:800;color:var(--blanc);margin-bottom:10px;">${info.home ? 'vs' : 'à'} ${escapeSvgText(info.opp)}</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:var(--jaune);">${scoreDisplay}</div>
+    </div>
+    ${periodsHtml}
+  `;
+  document.getElementById('match-lightbox').classList.add('show');
+}
+function closeMatchDetail(e) {
+  if (e && e.target.closest('.img-lightbox-inner') && !e.target.classList.contains('img-lightbox-close')) return;
+  document.getElementById('match-lightbox').classList.remove('show');
 }
 
 function goHome() {
@@ -4811,10 +4855,9 @@ async function homeSessionTrackingLoad() {
   const box = document.getElementById('dash-sm1-box');
   const wrap = document.getElementById('dash-sm1-wrap');
   if (!box || !wrap) return;
-  const now = new Date();
-  const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const todayStr = todayDateStr();
   const homeSeances = Array.from(document.querySelectorAll('#screen-home .seance[data-only-date]'));
-  const activeEl = homeSeances.find(el => el.dataset.onlyDate === todayStr);
+  const activeEl = homeSeances.find(el => homeSeanceActiveOn(el, todayStr));
   if (!activeEl) { box.style.display = 'none'; return; }
   const sid = activeEl.id.replace(/^seance-/, '');
   box.style.display = 'block';
@@ -4921,28 +4964,86 @@ async function scoresTodoLoad() {
           <input type="number" min="0" id="score-them-${m.id}" placeholder="Eux" style="width:60px;background:var(--noir);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px;color:var(--blanc);text-align:center;">
           <button onclick="scoreSave('${m.id}')" style="flex:1;padding:7px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:11px;cursor:pointer;">Enregistrer</button>
         </div>
+        <input type="text" id="score-periods-${m.id}" placeholder="Tiers-temps (optionnel) ex: 6-4, 8-5, 10-9" style="width:100%;box-sizing:border-box;margin-top:6px;background:var(--noir);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 8px;color:var(--gris-clair);font-size:11px;">
       </div>`;
     }).join('');
   } catch (e) {
     wrap.innerHTML = '<div style="text-align:center;padding:8px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
   }
 }
+function formatScorePeriodes(arr) {
+  if (!Array.isArray(arr) || !arr.length) return '';
+  return arr.map(p => p.nous + '-' + p.eux).join(', ');
+}
+function parseScorePeriodes(text) {
+  text = (text || '').trim();
+  if (!text) return undefined; // champ laisse vide -> on ne touche pas au detail existant
+  const parts = text.split(',').map(s => s.trim()).filter(Boolean);
+  const periodes = [];
+  for (const p of parts) {
+    const m = p.match(/^(\d+)\s*-\s*(\d+)$/);
+    if (!m) return null; // format invalide
+    periodes.push({ nous: parseInt(m[1], 10), eux: parseInt(m[2], 10) });
+  }
+  return periodes.length ? periodes : undefined;
+}
 async function scoreSave(matchId) {
   const us = document.getElementById('score-us-' + matchId).value;
   const them = document.getElementById('score-them-' + matchId).value;
   if (us === '' || them === '') { alert('Renseigne les deux scores.'); return; }
+  const periodsInput = document.getElementById('score-periods-' + matchId);
+  const periodes = periodsInput ? parseScorePeriodes(periodsInput.value) : undefined;
+  if (periodes === null) { alert('Format des tiers-temps invalide — exemple : 6-4, 8-5, 10-9'); return; }
   try {
     await ensureCoachSession();
+    const body = { score_nous: parseInt(us, 10), score_eux: parseInt(them, 10) };
+    if (periodes !== undefined) body.score_periodes = periodes;
     const res = await fetch(SB_URL + '/rest/v1/matches?id=eq.' + matchId, {
       method: 'PATCH',
       headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score_nous: parseInt(us, 10), score_eux: parseInt(them, 10) }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error('save failed');
     scoresTodoLoad();
     homeLoadMatches();
+    if (document.getElementById('scores-done-editor').style.display !== 'none') scoresDoneRenderEditor();
   } catch (e) {
     alert('Erreur — impossible d\'enregistrer le score.');
+  }
+}
+function scoresDoneOpenEditor() {
+  const box = document.getElementById('scores-done-editor');
+  const show = box.style.display === 'none';
+  box.style.display = show ? 'block' : 'none';
+  if (show) scoresDoneRenderEditor();
+}
+async function scoresDoneRenderEditor() {
+  const wrap = document.getElementById('scores-done-list');
+  wrap.innerHTML = '<div style="text-align:center;padding:8px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/matches?select=*&score_nous=not.is.null&order=debut.desc&limit=10', { headers: coachAuthHeaders() });
+    const rows = res.ok ? await res.json() : [];
+    if (!rows.length) {
+      wrap.innerHTML = '<div style="text-align:center;padding:8px;color:var(--gris-texte);font-size:12px;">Aucun score enregistré pour le moment.</div>';
+      return;
+    }
+    wrap.innerHTML = rows.map(m => {
+      const info = homeParseOpponent(m.titre);
+      const d = new Date(m.debut);
+      return `<div style="background:var(--gris-fonce);border-radius:8px;padding:8px 10px;">
+        <div style="font-size:12px;color:var(--gris-clair);margin-bottom:6px;">Éq.${m.equipe} ${info.home ? 'vs' : 'à'} ${escapeSvgText(info.opp)} · ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" min="0" id="score-us-${m.id}" value="${m.score_nous}" style="width:60px;background:var(--noir);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px;color:var(--blanc);text-align:center;">
+          <span style="color:var(--gris-texte);">–</span>
+          <input type="number" min="0" id="score-them-${m.id}" value="${m.score_eux}" style="width:60px;background:var(--noir);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px;color:var(--blanc);text-align:center;">
+          <button onclick="scoreSave('${m.id}')" style="flex:1;padding:7px;border:none;border-radius:6px;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:11px;cursor:pointer;">Corriger</button>
+        </div>
+        <input type="text" id="score-periods-${m.id}" value="${formatScorePeriodes(m.score_periodes)}" placeholder="Tiers-temps (optionnel) ex: 6-4, 8-5, 10-9" style="width:100%;box-sizing:border-box;margin-top:6px;background:var(--noir);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 8px;color:var(--gris-clair);font-size:11px;">
+      </div>`;
+    }).join('');
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:8px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
   }
 }
 
@@ -5873,12 +5974,21 @@ function toggleSeance(h) {
   b.classList.toggle('open'); c.classList.toggle('open');
 }
 
-// ===================== SÉANCE MAISON EXCEPTIONNELLE — visibilité du jour =====================
-function showHomeSessionIfToday() {
+// ===================== SÉANCE MAISON EXCEPTIONNELLE — visibilité du jour (ou d'une plage de jours) =====================
+function todayDateStr() {
   const now = new Date();
-  const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+}
+function homeSeanceActiveOn(el, dateStr) {
+  const start = el.dataset.onlyDate;
+  if (!start) return false;
+  const end = el.dataset.untilDate || start;
+  return dateStr >= start && dateStr <= end; // comparaison lexicographique valide sur 'YYYY-MM-DD'
+}
+function showHomeSessionIfToday() {
+  const todayStr = todayDateStr();
   document.querySelectorAll('#screen-home .seance[data-only-date]').forEach(el => {
-    el.style.display = (todayStr === el.dataset.onlyDate) ? '' : 'none';
+    el.style.display = homeSeanceActiveOn(el, todayStr) ? '' : 'none';
   });
 }
 
