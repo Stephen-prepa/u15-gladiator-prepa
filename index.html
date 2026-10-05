@@ -1245,7 +1245,15 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
       <div class="cs-box" id="cs-box-dashboard" style="background:var(--gris-fonce);border-radius:10px;padding:14px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:2px;">🏠 Bonjour <span id="dash-coach-name"></span> 👋</h3>
-        <div class="section-title" style="margin-top:14px;">À faire aujourd'hui</div>
+
+        <div id="dash-next-match-box" style="margin-top:14px;"></div>
+
+        <div id="dash-last-session-box" style="margin-top:16px;">
+          <div class="section-title" style="margin:0 0 8px;">📋 Dernier entraînement</div>
+          <div id="dash-last-session-wrap" style="background:var(--noir);border-radius:8px;padding:10px 12px;"></div>
+        </div>
+
+        <div class="section-title" style="margin-top:18px;">À faire aujourd'hui</div>
         <div id="dash-todo-list"></div>
         <div id="dash-sm1-box" style="display:none;margin-top:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -4890,9 +4898,99 @@ async function homeSessionTrackingLoad() {
   }
 }
 
+// ===================== ACCUEIL COACH — RAPPEL PROCHAIN MATCH + DERNIER ENTRAÎNEMENT =====================
+async function dashboardNextMatchLoad() {
+  const wrap = document.getElementById('dash-next-match-box');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/matches?select=*&debut=gte.' + new Date().toISOString() + '&order=debut.asc&limit=10', { headers: SB_HEADERS });
+    const rows = res.ok ? await res.json() : [];
+    const next = {};
+    rows.forEach(m => { if (!next[m.equipe]) next[m.equipe] = m; });
+    const chips = [1, 2].filter(eq => next[eq]).map(eq => {
+      const m = next[eq];
+      const info = homeParseOpponent(m.titre);
+      return `<div style="flex:1;background:var(--noir);border-radius:8px;padding:8px 10px;">
+        <div style="font-size:10px;color:var(--gris-texte);text-transform:uppercase;font-weight:800;">Équipe ${eq} · ${homeCountdown(m.debut)}</div>
+        <div style="font-size:12.5px;color:var(--blanc);font-weight:700;margin-top:2px;">${info.home ? 'vs' : 'à'} ${escapeSvgText(info.opp)}</div>
+        <div style="font-size:11px;color:var(--gris-clair);">${homeFmtDateShort(m.debut)}</div>
+      </div>`;
+    }).join('');
+    if (chips) {
+      wrap.innerHTML = '<div class="section-title" style="margin:0 0 8px;">🔔 Prochain match</div><div style="display:flex;gap:8px;">' + chips + '</div>';
+    }
+  } catch (e) { /* pas grave, le rappel n'est qu'indicatif */ }
+}
+async function dashboardLastSessionLoad() {
+  const wrap = document.getElementById('dash-last-session-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="text-align:center;padding:4px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
+  try {
+    await ensureCoachSession();
+    const today = dateStr(new Date());
+    const [noteRes, compDateRes] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/session_notes?select=session_date,content&session_date=lte.' + today + '&order=session_date.desc&limit=1', { headers: coachAuthHeaders() }),
+      fetch(SB_URL + '/rest/v1/outils_composition?select=session_date&session_date=lte.' + today + '&order=session_date.desc&limit=1', { headers: coachAuthHeaders() }),
+    ]);
+    const noteRows = noteRes.ok ? await noteRes.json() : [];
+    const compDateRows = compDateRes.ok ? await compDateRes.json() : [];
+    const note = noteRows[0] || null;
+    const lastCompDate = compDateRows[0] ? compDateRows[0].session_date : null;
+    const lastDate = [note ? note.session_date : null, lastCompDate].filter(Boolean).sort().reverse()[0] || null;
+
+    if (!lastDate) {
+      wrap.innerHTML = '<div style="text-align:center;padding:4px;color:var(--gris-texte);font-size:12px;">Aucune séance enregistrée pour le moment.</div>';
+      return;
+    }
+
+    let teamsHtml = '';
+    if (lastCompDate === lastDate) {
+      const [compRes, goalsRes] = await Promise.all([
+        fetch(SB_URL + '/rest/v1/outils_composition?select=player_code,team_index&session_date=eq.' + lastCompDate, { headers: coachAuthHeaders() }),
+        fetch(SB_URL + '/rest/v1/outils_goals?select=team_index,player_code,points&session_date=eq.' + lastCompDate, { headers: coachAuthHeaders() }),
+      ]);
+      const compRows = compRes.ok ? await compRes.json() : [];
+      const goalRows = goalsRes.ok ? await goalsRes.json() : [];
+      const codes = [...new Set(compRows.map(r => r.player_code))];
+      const nameByCode = {};
+      if (codes.length) {
+        const pRes = await fetch(SB_URL + '/rest/v1/players?code=in.(' + codes.map(encodeURIComponent).join(',') + ')&select=code,name', { headers: coachAuthHeaders() });
+        const pRows = pRes.ok ? await pRes.json() : [];
+        pRows.forEach(p => { nameByCode[p.code] = p.name; });
+      }
+      const maxIdx = compRows.length ? Math.max(...compRows.map(r => r.team_index)) : -1;
+      const teams = [];
+      for (let i = 0; i <= maxIdx; i++) teams.push([]);
+      compRows.forEach(r => { if (teams[r.team_index]) teams[r.team_index].push(nameByCode[r.player_code] || r.player_code); });
+      const hasGoals = goalRows.length > 0;
+      const scoreByTeam = teams.map((_, i) => goalRows.filter(g => g.team_index === i).reduce((s, g) => s + (g.points != null ? g.points : 1), 0));
+      const scorerTally = {};
+      goalRows.forEach(g => {
+        const pts = g.points != null ? g.points : 1;
+        if (g.player_code && pts > 0) scorerTally[g.player_code] = (scorerTally[g.player_code] || 0) + pts;
+      });
+      let topScorer = null, topScore = 0;
+      Object.entries(scorerTally).forEach(([code, n]) => { if (n > topScore) { topScore = n; topScorer = code; } });
+      teamsHtml = '<div style="margin-top:10px;display:flex;flex-direction:column;gap:5px;">' +
+        teams.map((t, i) => `<div style="font-size:12px;color:var(--gris-clair);"><span style="font-weight:800;color:${TEAM_COLORS[i]};">Équipe ${i + 1}${hasGoals ? ' · ' + scoreByTeam[i] : ''}</span> — ${t.length ? t.map(escapeSvgText).join(', ') : '(vide)'}</div>`).join('') +
+        (topScorer ? `<div style="font-size:11px;color:var(--jaune);margin-top:2px;">⚽ Meilleur buteur : ${escapeSvgText(nameByCode[topScorer] || topScorer)} (${topScore})</div>` : '') +
+        '</div>';
+    }
+
+    const themeText = (note && note.session_date === lastDate && note.content && note.content.trim()) ? note.content.trim() : null;
+    wrap.innerHTML = `<div style="font-size:11px;color:var(--jaune);font-weight:800;margin-bottom:4px;">${lastDate}</div>` +
+      (themeText ? `<div style="font-size:13px;color:var(--gris-clair);">${escapeSvgText(themeText)}</div>` : '<div style="font-size:12px;color:var(--gris-texte);">(pas de thème noté)</div>') +
+      teamsHtml;
+  } catch (e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:4px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
+  }
+}
 async function dashboardLoad() {
   const nameEl = document.getElementById('dash-coach-name');
   if (nameEl) nameEl.textContent = coachSession ? coachSession.name : '';
+  dashboardNextMatchLoad();
+  dashboardLastSessionLoad();
   homeSessionTrackingLoad();
   loadAppSettings();
   const wrap = document.getElementById('dash-todo-list');
