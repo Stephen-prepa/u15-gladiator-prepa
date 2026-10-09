@@ -5494,7 +5494,7 @@ function crRenderExView() {
     <div class="cr-card">
       <div style="font-size:15px;font-weight:800;color:var(--blanc);margin-bottom:8px;">Schéma de la situation</div>
       <div id="cr-ex-schema" onclick="crOpenDraw()" style="cursor:pointer;">${crSchemaHas(x) ? crSvgStatic(x.schema, 0) : `<div style="border:2px dashed rgba(245,196,0,0.5);border-radius:12px;padding:26px 10px;text-align:center;"><div style="font-size:30px;color:var(--jaune);">＋</div><div style="font-weight:800;color:var(--blanc);">Dessiner la situation</div><div style="font-size:12px;color:var(--gris-texte);margin-top:4px;">Joueurs, ballon, passes, déplacements, tirs… et animation image par image</div></div>`}</div>
-      ${crSchemaHas(x) ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><button type="button" class="cr-btn sm" onclick="crOpenDraw()">✏️ Modifier le schéma</button>${crSchemaFrames(x) > 1 ? `<button type="button" class="cr-btn sm primary" id="cr-ex-play" onclick="crExTogglePlay()">▶ Lecture</button><span style="font-size:11px;color:var(--gris-texte);">${crSchemaFrames(x)} images</span>` : ''}</div>` : ''}
+      ${crSchemaHas(x) ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><button type="button" class="cr-btn sm" onclick="crOpenDraw()">✏️ Modifier le schéma</button><button type="button" class="cr-btn sm" id="cr-ex-share" onclick="crShareAnim()">📤 Partager</button>${crSchemaFrames(x) > 1 ? `<button type="button" class="cr-btn sm primary" id="cr-ex-play" onclick="crExTogglePlay()">▶ Lecture</button><span style="font-size:11px;color:var(--gris-texte);">${crSchemaFrames(x)} images</span>` : ''}</div>` : ''}
     </div>
     <div class="cr-card">
       <div style="font-size:15px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Vidéos de l'exercice</div>
@@ -5961,6 +5961,150 @@ function crDUp(e) {
   }
   if (d.moved) crDFramesBar();
   crDCtx(); crDRender();
+}
+
+// ----- Export / partage de l'animation (GIF, ou PNG s'il n'y a qu'une image) -----
+function crSvgMarkup(schema, els, W, H, opts) {
+  const c = CR_COURT[schema.mode], th = CR_TH.dark;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${c.vb.join(' ')}" width="${W}" height="${H}"><rect x="${c.vb[0]}" y="${c.vb[1]}" width="${c.vb[2]}" height="${c.vb[3]}" fill="${th.svgBg}"/>${crElsSvg(schema.mode, els, { arrows: !!(opts && opts.arrows) })}</svg>`;
+}
+function crLoadImg(src) {
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('image')); im.src = src; });
+}
+function crGifPalette() {
+  const cols = [];
+  const add = (r, g, b) => { if (cols.length < 256 && !cols.some(c => c[0] === r && c[1] === g && c[2] === b)) cols.push([r, g, b]); };
+  Object.values(CR_TH.dark).forEach(v => { if (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v)) add(parseInt(v.slice(1, 3), 16), parseInt(v.slice(3, 5), 16), parseInt(v.slice(5, 7), 16)); });
+  add(255, 255, 255); add(0, 0, 0);
+  for (let r = 0; r < 6; r++) for (let g = 0; g < 6; g++) for (let b = 0; b < 6; b++) add(r * 51, g * 51, b * 51);
+  while (cols.length < 256) cols.push([0, 0, 0]);
+  return cols;
+}
+function crLzw(idx, minCode) {
+  const clear = 1 << minCode, eoi = clear + 1;
+  let size = minCode + 1, next = eoi + 1, cur = 0, bits = 0;
+  const out = [];
+  const emit = c => { cur |= c << bits; bits += size; while (bits >= 8) { out.push(cur & 255); cur >>>= 8; bits -= 8; } };
+  let dict = new Map();
+  emit(clear);
+  let prefix = idx[0];
+  for (let i = 1; i < idx.length; i++) {
+    const k = idx[i], key = prefix * 256 + k, hit = dict.get(key);
+    if (hit !== undefined) { prefix = hit; continue; }
+    emit(prefix);
+    if (next === 4096) { emit(clear); dict = new Map(); next = eoi + 1; size = minCode + 1; }
+    else { if (next >= (1 << size) && size < 12) size++; dict.set(key, next++); }
+    prefix = k;
+  }
+  emit(prefix);
+  if (next >= (1 << size) && size < 12) size++;
+  emit(eoi);
+  if (bits > 0) out.push(cur & 255);
+  return out;
+}
+function crGifEncode(frames, W, H, pal) {
+  const b = [];
+  const w16 = v => { b.push(v & 255, (v >> 8) & 255); };
+  'GIF89a'.split('').forEach(ch => b.push(ch.charCodeAt(0)));
+  w16(W); w16(H); b.push(0xF7, 0, 0);
+  pal.forEach(c => b.push(c[0], c[1], c[2]));
+  b.push(0x21, 0xFF, 0x0B); 'NETSCAPE2.0'.split('').forEach(ch => b.push(ch.charCodeAt(0))); b.push(3, 1, 0, 0, 0);
+  frames.forEach(f => {
+    b.push(0x21, 0xF9, 4, 0x04); w16(f.delay); b.push(0, 0);
+    b.push(0x2C); w16(0); w16(0); w16(W); w16(H); b.push(0, 8);
+    const data = crLzw(f.idx, 8);
+    for (let i = 0; i < data.length; i += 255) { const n = Math.min(255, data.length - i); b.push(n); for (let j = 0; j < n; j++) b.push(data[i + j]); }
+    b.push(0);
+  });
+  b.push(0x3B);
+  return new Uint8Array(b);
+}
+async function crBuildMedia(x) {
+  const schema = crNormSchema(JSON.parse(JSON.stringify(x.schema)));
+  const c = CR_COURT[schema.mode], W = 360, H = Math.round(W * c.vb[3] / c.vb[2]);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  const draw = async (els, arrows, label) => {
+    const im = await crLoadImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(crSvgMarkup(schema, els, W, H, { arrows })));
+    ctx.drawImage(im, 0, 0, W, H);
+    ctx.font = 'bold 13px Arial, sans-serif'; ctx.textBaseline = 'top';
+    const cap = (x.name || 'Exercice') + (label ? '  ·  ' + label : '');
+    ctx.fillStyle = 'rgba(10,22,40,0.85)'; ctx.fillRect(4, 3, ctx.measureText(cap).width + 10, 20);
+    ctx.fillStyle = '#F5C400'; ctx.fillText(cap, 9, 6);
+    ctx.font = 'bold 10px Arial, sans-serif'; ctx.fillStyle = '#8AA0C0'; ctx.textAlign = 'right';
+    ctx.fillText('HBCCS U15', W - 8, H - 14); ctx.textAlign = 'left';
+  };
+  const n = schema.frames.length;
+  if (n < 2) {
+    await draw(schema.frames[0].els, true, '');
+    const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    return { blob, type: 'image/png', ext: 'png' };
+  }
+  const pal = crGifPalette(), lut = new Uint16Array(32768).fill(0xFFFF);
+  const near = key => {
+    const r = ((key >> 10) & 31) * 8 + 4, g = ((key >> 5) & 31) * 8 + 4, bl = (key & 31) * 8 + 4;
+    let best = 0, bd = 1e9;
+    for (let i = 0; i < 256; i++) { const p = pal[i], d = (p[0] - r) * (p[0] - r) + (p[1] - g) * (p[1] - g) + (p[2] - bl) * (p[2] - bl); if (d < bd) { bd = d; best = i; } }
+    return best;
+  };
+  const grab = () => {
+    const d = ctx.getImageData(0, 0, W, H).data, idx = new Uint8Array(W * H);
+    for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+      const key = ((d[i] >> 3) << 10) | ((d[i + 1] >> 3) << 5) | (d[i + 2] >> 3);
+      let v = lut[key]; if (v === 0xFFFF) { v = near(key); lut[key] = v; }
+      idx[j] = v;
+    }
+    return idx;
+  };
+  const steps = Math.max(2, Math.min(8, Math.floor(100 / (n - 1))));
+  const frames = [];
+  for (let i = 0; i < n; i++) {
+    await draw(schema.frames[i].els, true, (i + 1) + '/' + n);
+    frames.push({ idx: grab(), delay: i === n - 1 ? 90 : 45 });
+    if (i < n - 1) {
+      for (let s = 1; s <= steps; s++) {
+        await draw(crInterp(schema.frames[i], schema.frames[i + 1], s / (steps + 1)), false, '');
+        frames.push({ idx: grab(), delay: 6 });
+      }
+    }
+  }
+  const bytes = crGifEncode(frames, W, H, pal);
+  return { blob: new Blob([bytes], { type: 'image/gif' }), type: 'image/gif', ext: 'gif', bytes, frames: frames.length };
+}
+let crShareMedia = null;
+async function crShareAnim() {
+  const x = crCurEx(); if (!crSchemaHas(x)) return;
+  const btn = document.getElementById('cr-ex-share');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
+  try {
+    const m = await crBuildMedia(x);
+    const slug = (x.name || 'exercice').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'exercice';
+    m.name = slug + '.' + m.ext;
+    if (crShareMedia && crShareMedia.url) URL.revokeObjectURL(crShareMedia.url);
+    m.url = URL.createObjectURL(m.blob);
+    crShareMedia = m;
+    document.getElementById('cr-modal-inner').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="font-size:17px;color:var(--blanc);">${m.ext === 'gif' ? 'Animation prête' : 'Image prête'}</h3><button type="button" class="cr-btn sm" onclick="crCloseModal()">✕</button></div>
+      <img src="${m.url}" alt="${crEsc(x.name)}" style="width:100%;border-radius:10px;display:block;background:#0E1F3D;">
+      <div style="font-size:12px;color:var(--gris-texte);margin:8px 0;">${m.ext === 'gif' ? (m.frames + ' vues · ' + Math.round(m.blob.size / 1024) + ' Ko · ') : ''}Envoie-la par WhatsApp, SMS ou mail, ou enregistre-la.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;"><button type="button" class="cr-btn primary" onclick="crDoShare()">📤 Partager</button><button type="button" class="cr-btn" onclick="crDoDownload()">⬇ Enregistrer</button></div>`;
+    document.getElementById('cr-modal').classList.add('show');
+  } catch (e) {
+    alert("Impossible de créer l'animation (" + (e.message || e) + ').');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '📤 Partager'; }
+}
+async function crDoShare() {
+  const m = crShareMedia; if (!m) return;
+  const file = new File([m.blob], m.name, { type: m.type });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: m.name }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  crDoDownload();
+}
+function crDoDownload() {
+  const m = crShareMedia; if (!m) return;
+  const a = document.createElement('a'); a.href = m.url; a.download = m.name; document.body.appendChild(a); a.click(); a.remove();
 }
 
 // ---------- Scores à saisir (coach) ----------
