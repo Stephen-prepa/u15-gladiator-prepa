@@ -470,33 +470,35 @@ textarea.cr-in{resize:vertical;min-height:44px;}
   .cr-fiche-page{padding:0;max-width:none;}
   .cr-fiche-row,.cr-fiche-row.tot,.cr-fiche-rule{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
-/* Éditeur de schéma plein écran */
-#cr-draw{display:none;position:fixed;inset:0;z-index:1450;background:#fff;flex-direction:column;color:#0a3f7a;font-family:'Barlow',Arial,sans-serif;}
+/* Éditeur de schéma plein écran — charte de l'appli (marine / jaune / bleu / rouge) */
+#cr-draw{display:none;position:fixed;inset:0;z-index:1450;background:var(--noir);flex-direction:column;color:var(--blanc);font-family:'Barlow',Arial,sans-serif;}
 #cr-draw.show{display:flex;}
 .cr-d-top{display:flex;align-items:center;gap:8px;padding:10px 12px;}
-.cr-d-ib{min-width:40px;height:40px;border-radius:10px;border:1px solid #c5d0e0;background:#fff;color:#0a3f7a;font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;}
-.cr-d-ib:disabled{opacity:.35;}
-.cr-d-ok{background:#0a6bb8;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;}
-.cr-d-seg{display:flex;flex:1;border:1px solid #c5d0e0;border-radius:10px;overflow:hidden;}
-.cr-d-seg button{flex:1;border:none;background:#fff;color:#5a6f8a;padding:10px 4px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
-.cr-d-seg button.on{background:#0a3f7a;color:#fff;}
-.cr-d-ctx{min-height:40px;padding:6px 12px;font-size:12.5px;color:#4a607c;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.cr-d-ctx input{border:1px solid #c5d0e0;border-radius:8px;padding:6px;font-size:15px;text-align:center;}
-.cr-d-del{border:1px solid #e0b4b0;background:#fff;color:#c0281c;border-radius:8px;padding:7px 10px;font-weight:700;cursor:pointer;font-family:inherit;}
-.cr-d-canvas{position:relative;flex:1;min-height:0;background:#e8eef7;border-top:1px solid #d5deea;border-bottom:1px solid #d5deea;touch-action:none;user-select:none;-webkit-user-select:none;}
-.cr-d-frames{padding:8px 12px 4px;background:#fff;}
-.cr-d-fb{border:1px solid #c5d0e0;background:#fff;color:#0a3f7a;border-radius:8px;padding:8px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+#cr-d-title{font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;text-transform:uppercase;color:var(--jaune) !important;}
+.cr-d-ib{min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:var(--gris-fonce);color:var(--gris-clair);font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;}
+.cr-d-ib:disabled{opacity:.3;}
+.cr-d-ok{background:var(--jaune);color:var(--noir);border:none;border-radius:10px;padding:10px 14px;font-weight:800;font-size:15px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;}
+.cr-d-seg{display:flex;flex:1;border:1px solid rgba(255,255,255,0.18);border-radius:10px;overflow:hidden;background:var(--gris-fonce);}
+.cr-d-seg button{flex:1;border:none;background:transparent;color:var(--gris-texte);padding:10px 4px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.cr-d-seg button.on{background:var(--bleu);color:var(--jaune);}
+.cr-d-ctx{min-height:40px;padding:6px 12px;font-size:12.5px;color:var(--gris-texte);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.cr-d-ctx b{color:var(--jaune);}
+.cr-d-ctx input{border:1px solid var(--gris-moyen);background:var(--gris-fonce);color:var(--blanc);border-radius:8px;padding:6px;font-size:15px;text-align:center;}
+.cr-d-del{border:1px solid rgba(232,84,58,0.6);background:transparent;color:var(--rouge-light);border-radius:8px;padding:7px 10px;font-weight:700;cursor:pointer;font-family:inherit;}
+.cr-d-canvas{position:relative;flex:1;min-height:0;background:var(--noir);border-top:1px solid var(--gris-moyen);border-bottom:1px solid var(--gris-moyen);touch-action:none;user-select:none;-webkit-user-select:none;}
+.cr-d-frames{padding:8px 12px 4px;background:var(--gris-fonce);}
+.cr-d-fb{border:1px solid rgba(255,255,255,0.18);background:var(--noir);color:var(--gris-clair);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cr-d-fb:disabled{opacity:.35;}
-.cr-d-fb.on{background:#0a3f7a;color:#fff;}
-.cr-d-fb.rec{background:#e63323;color:#fff;border-color:#e63323;}
+.cr-d-fb.on{background:var(--bleu);color:var(--jaune);border-color:var(--bleu-light);}
+.cr-d-fb.rec{background:var(--rouge);color:#fff;border-color:var(--rouge-light);}
 .cr-d-strip{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
-.cr-d-strip button{flex-shrink:0;min-width:34px;height:34px;border-radius:8px;border:1px solid #c5d0e0;background:#fff;color:#0a3f7a;font-weight:700;cursor:pointer;font-family:inherit;}
-.cr-d-strip button.on{background:#0a6bb8;border-color:#0a6bb8;color:#fff;}
-.cr-d-pal{display:flex;gap:14px;overflow-x:auto;padding:6px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;-webkit-overflow-scrolling:touch;}
+.cr-d-strip button{flex-shrink:0;min-width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,0.18);background:var(--noir);color:var(--gris-clair);font-weight:700;cursor:pointer;font-family:inherit;}
+.cr-d-strip button.on{background:var(--jaune);border-color:var(--jaune);color:var(--noir);}
+.cr-d-pal{display:flex;gap:14px;overflow-x:auto;padding:6px 12px calc(10px + env(safe-area-inset-bottom));background:var(--gris-fonce);-webkit-overflow-scrolling:touch;}
 .cr-d-grp{flex-shrink:0;}
-.cr-d-gl{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#6a7d95;margin-bottom:4px;}
-.cr-d-tool{width:78px;min-height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid #c5d0e0;border-radius:10px;background:#fff;color:#0a3f7a;font-size:11px;font-weight:700;cursor:pointer;padding:4px 2px;font-family:inherit;}
-.cr-d-tool.on{background:#e3f0fb;border:2px solid #0a6bb8;}
+.cr-d-gl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--jaune);margin-bottom:4px;}
+.cr-d-tool{width:78px;min-height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid rgba(255,255,255,0.15);border-radius:10px;background:var(--noir);color:var(--gris-clair);font-size:11px;font-weight:700;cursor:pointer;padding:4px 2px;font-family:inherit;}
+.cr-d-tool.on{background:rgba(245,196,0,0.12);border:2px solid var(--jaune);color:var(--jaune);}
 </style>
 </head>
 <body>
@@ -5557,32 +5559,43 @@ function crNormSchema(s) {
 function crSchemaHas(x) { return !!(x && x.schema && x.schema.frames && x.schema.frames.some(f => f.els.length)); }
 function crSchemaFrames(x) { return (x && x.schema && x.schema.frames) ? x.schema.frames.length : 0; }
 
-function crCourtSvg(mode) {
-  const nav = '#0a3f7a';
+// Palette du schéma : thème "dark" (appli : marine / jaune / bleu / rouge) et "print" (fiche PDF, fond clair)
+const CR_TH = {
+  dark: { svgBg: '#0E1F3D', bg: '#12284D', line: '#C8D4E8', lw: 2.4, zone: 'rgba(0,82,180,0.45)', dash: '#F5C400', gk: '#1A3060', mark: '#F5C400', grid: '#1A3060', free: '#12284D', freeLine: '#3a5588',
+    att: '#F5C400', attTx: '#0A1628', attSt: '#0A1628', def: '#E8543A', defTx: '#FFFFFF', defSt: '#0A1628', gb: '#0052B4', gbIn: '#003F8A', gbSt: '#F5C400', gbTx: '#FFFFFF',
+    arrow: '#FFFFFF', shot: '#E8543A', ball: '#FF9F1C', ballSt: '#7a3f00', cone: '#F28C1E', coneSt: '#0A1628', coupelle: '#F5C400', cerceau: '#4d9bff', cerceauBg: 'rgba(77,155,255,0.12)', haie: '#F5C400', mini: '#C8D4E8', miniSt: '#0A1628', sel: '#F5C400', jalon: '#FFFFFF', jalonDot: '#E8543A' },
+  print: { svgBg: '#FFFFFF', bg: '#F4F8FD', line: '#0A1628', lw: 2.4, zone: 'rgba(0,63,138,0.14)', dash: '#003F8A', gk: '#C8D4E8', mark: '#0A1628', grid: '#dbe5f1', free: '#F8FBFF', freeLine: '#9fb4cf',
+    att: '#F5C400', attTx: '#0A1628', attSt: '#0A1628', def: '#C0392B', defTx: '#FFFFFF', defSt: '#0A1628', gb: '#003F8A', gbIn: '#0052B4', gbSt: '#0A1628', gbTx: '#FFFFFF',
+    arrow: '#0A1628', shot: '#C0392B', ball: '#FF9F1C', ballSt: '#7a3f00', cone: '#F28C1E', coneSt: '#7a3f00', coupelle: '#F5C400', cerceau: '#0052B4', cerceauBg: 'rgba(0,82,180,0.08)', haie: '#C9A000', mini: '#E6EDF6', miniSt: '#0A1628', sel: '#003F8A', jalon: '#FFFFFF', jalonDot: '#C0392B' },
+};
+function crCourtSvg(mode, th) {
+  th = th || CR_TH.dark;
+  const L = th.line, lw = th.lw;
   if (mode === 'half') {
-    return `<rect x="0" y="0" width="200" height="200" fill="#f4f8fd" stroke="${nav}" stroke-width="2.5"/>
-    <path d="M25 0 A60 60 0 0 0 85 60 L115 60 A60 60 0 0 0 175 0 Z" fill="rgba(10,107,184,0.14)" stroke="${nav}" stroke-width="2"/>
-    <path d="M0 29.6 A90 90 0 0 0 85 90 L115 90 A90 90 0 0 0 200 29.6" fill="none" stroke="${nav}" stroke-width="1.6" stroke-dasharray="6 5"/>
-    <line x1="95" y1="70" x2="105" y2="70" stroke="${nav}" stroke-width="2"/>
-    <rect x="85" y="-7" width="30" height="7" fill="#c9d6e6" stroke="${nav}" stroke-width="2"/>`;
+    return `<rect x="0" y="0" width="200" height="200" fill="${th.bg}" stroke="${L}" stroke-width="${lw + 0.4}"/>
+    <path d="M25 0 A60 60 0 0 0 85 60 L115 60 A60 60 0 0 0 175 0 Z" fill="${th.zone}" stroke="${L}" stroke-width="${lw}"/>
+    <path d="M0 29.6 A90 90 0 0 0 85 90 L115 90 A90 90 0 0 0 200 29.6" fill="none" stroke="${th.dash}" stroke-width="1.8" stroke-dasharray="6 5"/>
+    <line x1="95" y1="70" x2="105" y2="70" stroke="${th.mark}" stroke-width="2"/>
+    <rect x="85" y="-7" width="30" height="7" fill="${th.gk}" stroke="${L}" stroke-width="${lw}"/>`;
   }
   if (mode === 'full') {
-    const side = `<path d="M0 25 A60 60 0 0 1 60 85 L60 115 A60 60 0 0 1 0 175 Z" fill="rgba(10,107,184,0.14)" stroke="${nav}" stroke-width="2"/><path d="M29.6 0 A90 90 0 0 1 90 85 L90 115 A90 90 0 0 1 29.6 200" fill="none" stroke="${nav}" stroke-width="1.6" stroke-dasharray="6 5"/><line x1="70" y1="95" x2="70" y2="105" stroke="${nav}" stroke-width="2"/><rect x="-7" y="85" width="7" height="30" fill="#c9d6e6" stroke="${nav}" stroke-width="2"/>`;
-    return `<rect x="0" y="0" width="400" height="200" fill="#f4f8fd" stroke="${nav}" stroke-width="2.5"/><line x1="200" y1="0" x2="200" y2="200" stroke="${nav}" stroke-width="1.5"/>${side}<g transform="translate(400,0) scale(-1,1)">${side}</g>`;
+    const side = `<path d="M0 25 A60 60 0 0 1 60 85 L60 115 A60 60 0 0 1 0 175 Z" fill="${th.zone}" stroke="${L}" stroke-width="${lw}"/><path d="M29.6 0 A90 90 0 0 1 90 85 L90 115 A90 90 0 0 1 29.6 200" fill="none" stroke="${th.dash}" stroke-width="1.8" stroke-dasharray="6 5"/><line x1="70" y1="95" x2="70" y2="105" stroke="${th.mark}" stroke-width="2"/><rect x="-7" y="85" width="7" height="30" fill="${th.gk}" stroke="${L}" stroke-width="${lw}"/>`;
+    return `<rect x="0" y="0" width="400" height="200" fill="${th.bg}" stroke="${L}" stroke-width="${lw + 0.4}"/><line x1="200" y1="0" x2="200" y2="200" stroke="${L}" stroke-width="1.6"/><circle cx="200" cy="100" r="3" fill="${L}"/>${side}<g transform="translate(400,0) scale(-1,1)">${side}</g>`;
   }
   let grid = '';
-  for (let x = 25; x < 300; x += 25) grid += `<line x1="${x}" y1="0" x2="${x}" y2="200" stroke="#dbe5f1" stroke-width="1"/>`;
-  for (let y = 25; y < 200; y += 25) grid += `<line x1="0" y1="${y}" x2="300" y2="${y}" stroke="#dbe5f1" stroke-width="1"/>`;
-  return `<rect x="0" y="0" width="300" height="200" fill="#f8fbff" stroke="#9fb4cf" stroke-width="2" stroke-dasharray="7 5"/>${grid}`;
+  for (let x = 25; x < 300; x += 25) grid += `<line x1="${x}" y1="0" x2="${x}" y2="200" stroke="${th.grid}" stroke-width="1"/>`;
+  for (let y = 25; y < 200; y += 25) grid += `<line x1="0" y1="${y}" x2="300" y2="${y}" stroke="${th.grid}" stroke-width="1"/>`;
+  return `<rect x="0" y="0" width="300" height="200" fill="${th.free}" stroke="${th.freeLine}" stroke-width="2" stroke-dasharray="7 5"/>${grid}`;
 }
-function crArrowSvg(e, k, sel) {
+function crArrowSvg(e, k, th) {
+  th = th || CR_TH.dark;
   const kind = e.t, x1 = e.x1, y1 = e.y1, x2 = e.x2, y2 = e.y2;
   const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, px = -uy, py = ux;
-  const col = kind === 'shot' ? '#e63323' : '#0a2a4a', w = (kind === 'shot' ? 3.4 : 2.2) * Math.min(k, 1.2);
-  const hl = 9 * k, hw = 5 * k;
+  const col = kind === 'shot' ? th.shot : th.arrow, w = (kind === 'shot' ? 3.6 : 2.4) * Math.min(k, 1.2);
+  const hl = 9 * k, hw = 5.2 * k;
   if (kind === 'screen') {
     const bw = 8 * k;
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><line x1="${x2 + px * bw}" y1="${y2 + py * bw}" x2="${x2 - px * bw}" y2="${y2 - py * bw}" stroke="${col}" stroke-width="${w + 0.6}" stroke-linecap="round"/>`;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><line x1="${x2 + px * bw}" y1="${y2 + py * bw}" x2="${x2 - px * bw}" y2="${y2 - py * bw}" stroke="${col}" stroke-width="${w + 0.8}" stroke-linecap="round"/>`;
   }
   const bx = x2 - ux * hl, by = y2 - uy * hl;
   let line;
@@ -5596,25 +5609,26 @@ function crArrowSvg(e, k, sel) {
   }
   return line + `<polygon points="${x2},${y2} ${bx + px * hw},${by + py * hw} ${bx - px * hw},${by - py * hw}" fill="${col}"/>`;
 }
-function crTokenSvg(e, k, sel) {
-  const x = e.x, y = e.y, r = 8 * k, nav = '#0a2a4a';
+function crTokenSvg(e, k, th) {
+  th = th || CR_TH.dark;
+  const x = e.x, y = e.y, r = 8 * k;
   let s = '';
-  if (e.t === 'att') s = `<circle cx="${x}" cy="${y}" r="${r}" fill="#0a6bb8" stroke="#fff" stroke-width="${1.6 * k}"/><text x="${x}" y="${y + 4 * k}" text-anchor="middle" font-size="${11 * k}" font-weight="800" fill="#fff" style="pointer-events:none;font-family:Arial,sans-serif;">${crEsc(e.n || '')}</text>`;
-  else if (e.t === 'def') s = `<polygon points="${x - r * 1.1},${y - r * 0.85} ${x + r * 1.1},${y - r * 0.85} ${x},${y + r * 1.1}" fill="#e63323" stroke="#fff" stroke-width="${1.4 * k}" stroke-linejoin="round"/><text x="${x}" y="${y - r * 0.15}" text-anchor="middle" font-size="${9.5 * k}" font-weight="800" fill="#fff" style="pointer-events:none;font-family:Arial,sans-serif;">${crEsc(e.n || '')}</text>`;
-  else if (e.t === 'gb') s = `<circle cx="${x}" cy="${y}" r="${r}" fill="#0a3f7a" stroke="#fff" stroke-width="${1.6 * k}"/><circle cx="${x}" cy="${y}" r="${r - 2.5 * k}" fill="#0a6bb8" stroke="#fff" stroke-width="${0.8 * k}"/><text x="${x}" y="${y + 3.4 * k}" text-anchor="middle" font-size="${8.5 * k}" font-weight="800" fill="#fff" style="pointer-events:none;font-family:Arial,sans-serif;">GB</text>`;
-  else if (e.t === 'ball') s = `<circle cx="${x}" cy="${y}" r="${5.5 * k}" fill="#f5b800" stroke="#9a6b00" stroke-width="${1 * k}"/><path d="M${x - 5.5 * k} ${y} Q${x} ${y - 3 * k} ${x + 5.5 * k} ${y}" fill="none" stroke="#9a6b00" stroke-width="${0.8 * k}"/>`;
-  else if (e.t === 'cone') s = `<polygon points="${x},${y - 8 * k} ${x - 7 * k},${y + 6 * k} ${x + 7 * k},${y + 6 * k}" fill="#f28c1e" stroke="#b25e00" stroke-width="${1 * k}" stroke-linejoin="round"/>`;
-  else if (e.t === 'coupelle') s = `<circle cx="${x}" cy="${y}" r="${5.5 * k}" fill="#fbd38d" stroke="#b25e00" stroke-width="${1 * k}"/><circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="#b25e00"/>`;
-  else if (e.t === 'jalon') s = `<circle cx="${x}" cy="${y}" r="${4.5 * k}" fill="#fff" stroke="#6a7d95" stroke-width="${1 * k}"/><circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="#e63323"/>`;
-  else if (e.t === 'cerceau') s = `<circle cx="${x}" cy="${y}" r="${8 * k}" fill="rgba(10,107,184,0.06)" stroke="#0a6bb8" stroke-width="${2 * k}"/>`;
-  else if (e.t === 'haie') s = `<line x1="${x - 9 * k}" y1="${y}" x2="${x + 9 * k}" y2="${y}" stroke="#d9a400" stroke-width="${2.4 * k}" stroke-linecap="round"/><line x1="${x - 9 * k}" y1="${y - 3.5 * k}" x2="${x - 9 * k}" y2="${y + 3.5 * k}" stroke="#d9a400" stroke-width="${2 * k}"/><line x1="${x + 9 * k}" y1="${y - 3.5 * k}" x2="${x + 9 * k}" y2="${y + 3.5 * k}" stroke="#d9a400" stroke-width="${2 * k}"/>`;
-  else if (e.t === 'minibut') s = `<rect x="${x - 10 * k}" y="${y - 4 * k}" width="${20 * k}" height="${8 * k}" fill="#e6edf6" stroke="${nav}" stroke-width="${1.4 * k}"/><line x1="${x - 10 * k}" y1="${y}" x2="${x + 10 * k}" y2="${y}" stroke="#9fb4cf" stroke-width="${0.8 * k}"/>`;
+  if (e.t === 'att') s = `<circle cx="${x}" cy="${y}" r="${r}" fill="${th.att}" stroke="${th.attSt}" stroke-width="${1.6 * k}"/><text x="${x}" y="${y + 4 * k}" text-anchor="middle" font-size="${11 * k}" font-weight="800" fill="${th.attTx}" style="pointer-events:none;font-family:Arial,sans-serif;">${crEsc(e.n || '')}</text>`;
+  else if (e.t === 'def') s = `<polygon points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${th.def}" stroke="${th.defSt}" stroke-width="${1.4 * k}" stroke-linejoin="round"/><text x="${x}" y="${y - r * 0.02}" text-anchor="middle" font-size="${8.5 * k}" font-weight="800" fill="${th.defTx}" style="pointer-events:none;font-family:Arial,sans-serif;">${crEsc(e.n || '')}</text>`;
+  else if (e.t === 'gb') s = `<circle cx="${x}" cy="${y}" r="${r}" fill="${th.gb}" stroke="${th.gbSt}" stroke-width="${2 * k}"/><circle cx="${x}" cy="${y}" r="${r - 3 * k}" fill="${th.gbIn}"/><text x="${x}" y="${y + 3.4 * k}" text-anchor="middle" font-size="${8.5 * k}" font-weight="800" fill="${th.gbTx}" style="pointer-events:none;font-family:Arial,sans-serif;">GB</text>`;
+  else if (e.t === 'ball') s = `<circle cx="${x}" cy="${y}" r="${5.5 * k}" fill="${th.ball}" stroke="${th.ballSt}" stroke-width="${1 * k}"/><path d="M${x - 5.5 * k} ${y} Q${x} ${y - 3 * k} ${x + 5.5 * k} ${y}" fill="none" stroke="${th.ballSt}" stroke-width="${0.8 * k}"/>`;
+  else if (e.t === 'cone') s = `<polygon points="${x},${y - 8 * k} ${x - 7 * k},${y + 6 * k} ${x + 7 * k},${y + 6 * k}" fill="${th.cone}" stroke="${th.coneSt}" stroke-width="${1 * k}" stroke-linejoin="round"/>`;
+  else if (e.t === 'coupelle') s = `<circle cx="${x}" cy="${y}" r="${5.5 * k}" fill="${th.coupelle}" stroke="${th.coneSt}" stroke-width="${1 * k}"/><circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="${th.coneSt}"/>`;
+  else if (e.t === 'jalon') s = `<circle cx="${x}" cy="${y}" r="${4.5 * k}" fill="${th.jalon}" stroke="${th.coneSt}" stroke-width="${1 * k}"/><circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="${th.jalonDot}"/>`;
+  else if (e.t === 'cerceau') s = `<circle cx="${x}" cy="${y}" r="${8 * k}" fill="${th.cerceauBg}" stroke="${th.cerceau}" stroke-width="${2 * k}"/>`;
+  else if (e.t === 'haie') s = `<line x1="${x - 9 * k}" y1="${y}" x2="${x + 9 * k}" y2="${y}" stroke="${th.haie}" stroke-width="${2.6 * k}" stroke-linecap="round"/><line x1="${x - 9 * k}" y1="${y - 3.5 * k}" x2="${x - 9 * k}" y2="${y + 3.5 * k}" stroke="${th.haie}" stroke-width="${2 * k}"/><line x1="${x + 9 * k}" y1="${y - 3.5 * k}" x2="${x + 9 * k}" y2="${y + 3.5 * k}" stroke="${th.haie}" stroke-width="${2 * k}"/>`;
+  else if (e.t === 'minibut') s = `<rect x="${x - 10 * k}" y="${y - 4 * k}" width="${20 * k}" height="${8 * k}" fill="${th.mini}" stroke="${th.miniSt}" stroke-width="${1.4 * k}"/><line x1="${x - 10 * k}" y1="${y}" x2="${x + 10 * k}" y2="${y}" stroke="${th.miniSt}" stroke-opacity=".35" stroke-width="${0.8 * k}"/>`;
   return s;
 }
 // Rendu d'une liste d'éléments sur un terrain. o: {edit, sel, arrows (défaut true)}
 function crElsSvg(mode, els, o) {
   o = o || {};
-  const k = CR_COURT[mode].k;
+  const k = CR_COURT[mode].k, th = CR_TH[o.th || 'dark'];
   const order = els.map((e, i) => i).sort((a, b) => ((els[a].x1 != null ? 0 : 1) - (els[b].x1 != null ? 0 : 1)) || (a - b));
   let body = '';
   order.forEach(i => {
@@ -5622,19 +5636,20 @@ function crElsSvg(mode, els, o) {
     if (isA && o.arrows === false) return;
     const selected = o.sel && o.sel === e.id;
     if (isA) {
-      body += `<g data-id="${e.id}">${o.edit ? `<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="transparent" stroke-width="${18 * k}"/>` : ''}${crArrowSvg(e, k)}</g>`;
-      if (selected) body += `<circle data-h="1" data-id="${e.id}" cx="${e.x1}" cy="${e.y1}" r="${6 * k}" fill="#fff" stroke="#0a6bb8" stroke-width="2"/><circle data-h="2" data-id="${e.id}" cx="${e.x2}" cy="${e.y2}" r="${6 * k}" fill="#fff" stroke="#0a6bb8" stroke-width="2"/>`;
+      body += `<g data-id="${e.id}">${o.edit ? `<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="transparent" stroke-width="${18 * k}"/>` : ''}${crArrowSvg(e, k, th)}</g>`;
+      if (selected) body += `<circle data-h="1" data-id="${e.id}" cx="${e.x1}" cy="${e.y1}" r="${6 * k}" fill="${th.svgBg}" stroke="${th.sel}" stroke-width="2.4"/><circle data-h="2" data-id="${e.id}" cx="${e.x2}" cy="${e.y2}" r="${6 * k}" fill="${th.svgBg}" stroke="${th.sel}" stroke-width="2.4"/>`;
     } else {
-      body += `<g data-id="${e.id}" ${e.o != null ? `opacity="${e.o}"` : ''}>${o.edit ? `<circle cx="${e.x}" cy="${e.y}" r="${14 * k}" fill="transparent"/>` : ''}${crTokenSvg(e, k)}</g>`;
-      if (selected) body += `<circle cx="${e.x}" cy="${e.y}" r="${13 * k}" fill="none" stroke="#0a6bb8" stroke-width="2" stroke-dasharray="4 3" style="pointer-events:none;"/>`;
+      body += `<g data-id="${e.id}" ${e.o != null ? `opacity="${e.o}"` : ''}>${o.edit ? `<circle cx="${e.x}" cy="${e.y}" r="${14 * k}" fill="transparent"/>` : ''}${crTokenSvg(e, k, th)}</g>`;
+      if (selected) body += `<circle cx="${e.x}" cy="${e.y}" r="${13 * k}" fill="none" stroke="${th.sel}" stroke-width="2.2" stroke-dasharray="4 3" style="pointer-events:none;"/>`;
     }
   });
-  return crCourtSvg(mode) + body;
+  return crCourtSvg(mode, th) + body;
 }
-function crSvgStatic(schema, fi, idx) {
+function crSvgStatic(schema, fi, thName) {
   const s = crNormSchema(schema), c = CR_COURT[s.mode];
   const els = (s.frames[Math.min(fi || 0, s.frames.length - 1)] || s.frames[0]).els;
-  return `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:#fff;border-radius:10px;">${crElsSvg(s.mode, els, {})}</svg>`;
+  const th = CR_TH[thName || 'dark'];
+  return `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${th.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, { th: thName || 'dark' })}</svg>`;
 }
 function crInterp(fa, fb, t) {
   const e = t * t * (3 - 2 * t);
@@ -5663,7 +5678,7 @@ function crPlayInto(boxId, schema, speed) {
     const p = ((now - t0) / per) % n, i = Math.floor(p), t = p - i;
     const a = s.frames[i], b = s.frames[(i + 1) % n];
     const els = (i + 1 < n) ? crInterp(a, b, t) : a.els.filter(x => x.x1 == null);
-    box.innerHTML = `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:#fff;border-radius:10px;">${crElsSvg(s.mode, els, {})}</svg>`;
+    box.innerHTML = `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${CR_TH.dark.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, {})}</svg>`;
     crPlayRaf = requestAnimationFrame(step);
   };
   crPlayRaf = requestAnimationFrame(step);
@@ -5678,11 +5693,11 @@ function crFicheSchema(schema) {
   const s = crNormSchema(schema);
   if (!s.frames.some(f => f.els.length)) return '';
   const n = s.frames.length;
-  if (n === 1) return `<div style="max-width:420px;margin-top:6px;">${crSvgStatic(s, 0)}</div>`;
+  if (n === 1) return `<div style="max-width:420px;margin-top:6px;">${crSvgStatic(s, 0, 'print')}</div>`;
   const keys = [];
   const m = Math.min(6, n);
   for (let i = 0; i < m; i++) { const idx = m === 1 ? 0 : Math.round(i * (n - 1) / (m - 1)); if (!keys.includes(idx)) keys.push(idx); }
-  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:520px;margin-top:6px;">${keys.map(i => `<div><div style="font-size:10px;color:#6a7d95;margin-bottom:2px;">Image ${i + 1}/${n}</div>${crSvgStatic(s, i)}</div>`).join('')}</div><div style="font-size:11px;color:#6a7d95;margin-top:4px;">Animation de ${n} images — visible dans l'appli (Créateur → exercice → ▶ Lecture).</div>`;
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:520px;margin-top:6px;">${keys.map(i => `<div><div style="font-size:10px;color:#6a7d95;margin-bottom:2px;">Image ${i + 1}/${n}</div>${crSvgStatic(s, i, 'print')}</div>`).join('')}</div><div style="font-size:11px;color:#6a7d95;margin-top:4px;">Animation de ${n} images — visible dans l'appli (Créateur → exercice → ▶ Lecture).</div>`;
 }
 
 // ----- Éditeur de schéma plein écran -----
@@ -5696,10 +5711,10 @@ const CR_PAL = [
 ];
 const CR_ACTIONS = ['mv', 'pass', 'dribble', 'shot', 'screen'];
 function crPalIcon(t) {
-  if (t === 'sel') return '<svg viewBox="-14 -14 28 28" width="30" height="30"><path d="M-6 -10 L-6 9 L-1.5 5 L2 11 L5 9.5 L1.5 3.5 L8 3 Z" fill="#0a3f7a"/></svg>';
-  if (t === 'pan') return '<svg viewBox="-14 -14 28 28" width="30" height="30" fill="none" stroke="#0a3f7a" stroke-width="2" stroke-linecap="round"><path d="M0 -11 V11 M-11 0 H11 M0 -11 l-3 3 M0 -11 l3 3 M0 11 l-3 -3 M0 11 l3 -3 M-11 0 l3 -3 M-11 0 l3 3 M11 0 l-3 -3 M11 0 l-3 3"/></svg>';
+  if (t === 'sel') return '<svg viewBox="-14 -14 28 28" width="30" height="30"><path d="M-6 -10 L-6 9 L-1.5 5 L2 11 L5 9.5 L1.5 3.5 L8 3 Z" fill="#F5C400"/></svg>';
+  if (t === 'pan') return '<svg viewBox="-14 -14 28 28" width="30" height="30" fill="none" stroke="#F5C400" stroke-width="2" stroke-linecap="round"><path d="M0 -11 V11 M-11 0 H11 M0 -11 l-3 3 M0 -11 l3 3 M0 11 l-3 -3 M0 11 l3 -3 M-11 0 l3 -3 M-11 0 l3 3 M11 0 l-3 -3 M11 0 l-3 3"/></svg>';
   const e = CR_ACTIONS.includes(t) ? { t, x1: -10, y1: 8, x2: 10, y2: -8 } : { t, x: 0, y: 0, n: 1 };
-  return `<svg viewBox="-14 -14 28 28" width="30" height="30">${e.x1 != null ? crArrowSvg(e, 0.9) : crTokenSvg(e, 1)}</svg>`;
+  return `<svg viewBox="-14 -14 28 28" width="30" height="30">${e.x1 != null ? crArrowSvg(e, 0.9, CR_TH.dark) : crTokenSvg(e, 1, CR_TH.dark)}</svg>`;
 }
 function crDFrame() { return crD.schema.frames[crD.f]; }
 function crDEl(id) { return crDFrame().els.find(e => e.id === id); }
@@ -5799,7 +5814,7 @@ function crDRender(customEls) {
   if (!box) return;
   const els = customEls || crDFrame().els;
   let extra = '';
-  if (crD.pending) extra = `<circle cx="${crD.pending.x}" cy="${crD.pending.y}" r="5" fill="none" stroke="#e63323" stroke-width="2"/>`;
+  if (crD.pending) extra = `<circle cx="${crD.pending.x}" cy="${crD.pending.y}" r="5" fill="none" stroke="#F5C400" stroke-width="2.4"/>`;
   box.innerHTML = `<svg class="cr-d-svg" viewBox="${crDVB().join(' ')}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;touch-action:none;">${crElsSvg(crD.schema.mode, els, { edit: !crD.playing, sel: crD.sel, arrows: !customEls })}${extra}</svg>`;
 }
 function crDCtx() {
@@ -5915,7 +5930,7 @@ function crDMove(e) {
     crDRender(); return;
   }
   const p = crDPt(e);
-  if (d.kind === 'draw') { d.cur = p; crDRender(); const svg = document.querySelector('#cr-d-svgbox svg'); if (svg) svg.insertAdjacentHTML('beforeend', crArrowSvg({ t: crD.tool, x1: d.start.x, y1: d.start.y, x2: p.x, y2: p.y }, CR_COURT[crD.schema.mode].k)); return; }
+  if (d.kind === 'draw') { d.cur = p; crDRender(); const svg = document.querySelector('#cr-d-svgbox svg'); if (svg) svg.insertAdjacentHTML('beforeend', crArrowSvg({ t: crD.tool, x1: d.start.x, y1: d.start.y, x2: p.x, y2: p.y }, CR_COURT[crD.schema.mode].k, CR_TH.dark)); return; }
   if (!d.moved) {
     if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 4) return;
     d.moved = true;
