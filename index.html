@@ -492,6 +492,9 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 .cr-d-seg button.on{background:var(--bleu);color:var(--jaune);}
 .cr-d-ctx{min-height:40px;padding:6px 12px;font-size:12.5px;color:var(--gris-texte);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .cr-d-ctx b{color:var(--jaune);}
+.cr-d-sw{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);cursor:pointer;padding:0;flex:none;}
+.cr-d-sw.on{border-color:var(--jaune);box-shadow:0 0 0 2px var(--jaune);}
+.cr-d-sw.def{background:var(--gris-fonce);color:var(--gris-clair);font-size:11px;font-weight:800;width:auto;border-radius:13px;padding:0 8px;}
 .cr-d-ctx input{border:1px solid var(--gris-moyen);background:var(--gris-fonce);color:var(--blanc);border-radius:8px;padding:6px;font-size:15px;text-align:center;}
 .cr-d-del{border:1px solid rgba(232,84,58,0.6);background:transparent;color:var(--rouge-light);border-radius:8px;padding:7px 10px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cr-d-canvas{position:relative;flex:1;min-height:0;background:var(--noir);border-top:1px solid var(--gris-moyen);border-bottom:1px solid var(--gris-moyen);touch-action:none;user-select:none;-webkit-user-select:none;}
@@ -5569,6 +5572,7 @@ function crNormSchema(s) {
   if (!CR_COURT[s.mode]) s.mode = 'half';
   if (!Array.isArray(s.frames) || !s.frames.length) s.frames = [{ els: [] }];
   s.frames.forEach(f => { if (!Array.isArray(f.els)) f.els = []; f.els.forEach(e => { if (!e.id) e.id = crUid(); }); });
+  s.sc = Math.max(0.5, Math.min(2.5, parseFloat(s.sc) || 1));
   return s;
 }
 function crSchemaHas(x) { return !!(x && x.schema && x.schema.frames && x.schema.frames.some(f => f.els.length)); }
@@ -5624,38 +5628,45 @@ function crArrowSvg(e, k, th) {
   }
   return line + `<polygon points="${x2},${y2} ${bx + px * hw},${by + py * hw} ${bx - px * hw},${by - py * hw}" fill="${col}"/>`;
 }
+// Couleurs personnalisables des joueurs et du matériel (e.c)
+const CR_COLS = [['#F5C400', 'Jaune'], ['#F28C1E', 'Orange'], ['#E8543A', 'Rouge'], ['#E84393', 'Rose'], ['#8E5BD9', 'Violet'], ['#2F7DE1', 'Bleu'], ['#2ECC71', 'Vert'], ['#FFFFFF', 'Blanc'], ['#1B1B1B', 'Noir']];
+const CR_COLORABLE = ['att', 'def', 'gb', 'ball', 'cone', 'coupelle', 'jalon', 'cerceau', 'haie', 'minibut'];
+function crTxtOn(hex) { const h = /^#[0-9a-f]{6}$/i.test(hex || '') ? hex : '#888888'; const l = (0.299 * parseInt(h.slice(1, 3), 16) + 0.587 * parseInt(h.slice(3, 5), 16) + 0.114 * parseInt(h.slice(5, 7), 16)) / 255; return l > 0.6 ? '#0A1628' : '#FFFFFF'; }
+function crShade(hex, f) { const h = /^#[0-9a-f]{6}$/i.test(hex || '') ? hex : '#888888'; const c = i => Math.max(0, Math.min(255, Math.round(parseInt(h.slice(i, i + 2), 16) * f))).toString(16).padStart(2, '0'); return '#' + c(1) + c(3) + c(5); }
 function crTokenSvg(e, k, th) {
   th = th || CR_TH.dark;
   const x = e.x, y = e.y, r = 8 * k;
+  const C = (typeof e.c === 'string' && /^#[0-9a-f]{6}$/i.test(e.c)) ? e.c : null;
   let s = '';
-  if (e.t === 'att') s = `<circle cx="${x}" cy="${y}" r="${r}" fill="${th.att}" stroke="${th.attSt}" stroke-width="${1.6 * k}"/><text x="${x}" y="${y + 4 * k}" text-anchor="middle" font-size="${11 * k}" font-weight="800" fill="${th.attTx}" style="pointer-events:none;font-family:Arial,sans-serif;">${crEsc(e.n || '')}</text>`;
-  else if (e.t === 'def') s = `<polygon points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${th.def}" stroke="${th.defSt}" stroke-width="${1.4 * k}" stroke-linejoin="round"/><text x="${x}" y="${y - r * 0.02}" text-anchor="middle" font-size="${8.5 * k}" font-weight="800" fill="${th.defTx}" style="pointer-events:none;font-family:Arial,sans-serif;">${crEsc(e.n || '')}</text>`;
-  else if (e.t === 'gb') s = `<circle cx="${x}" cy="${y}" r="${r}" fill="${th.gb}" stroke="${th.gbSt}" stroke-width="${2 * k}"/><circle cx="${x}" cy="${y}" r="${r - 3 * k}" fill="${th.gbIn}"/><text x="${x}" y="${y + 3.4 * k}" text-anchor="middle" font-size="${8.5 * k}" font-weight="800" fill="${th.gbTx}" style="pointer-events:none;font-family:Arial,sans-serif;">GB</text>`;
-  else if (e.t === 'ball') s = `<circle cx="${x}" cy="${y}" r="${5.5 * k}" fill="${th.ball}" stroke="${th.ballSt}" stroke-width="${1 * k}"/><path d="M${x - 5.5 * k} ${y} Q${x} ${y - 3 * k} ${x + 5.5 * k} ${y}" fill="none" stroke="${th.ballSt}" stroke-width="${0.8 * k}"/>`;
-  else if (e.t === 'cone') s = `<polygon points="${x},${y - 8 * k} ${x - 7 * k},${y + 6 * k} ${x + 7 * k},${y + 6 * k}" fill="${th.cone}" stroke="${th.coneSt}" stroke-width="${1 * k}" stroke-linejoin="round"/>`;
-  else if (e.t === 'coupelle') s = `<circle cx="${x}" cy="${y}" r="${5.5 * k}" fill="${th.coupelle}" stroke="${th.coneSt}" stroke-width="${1 * k}"/><circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="${th.coneSt}"/>`;
-  else if (e.t === 'jalon') s = `<circle cx="${x}" cy="${y}" r="${4.5 * k}" fill="${th.jalon}" stroke="${th.coneSt}" stroke-width="${1 * k}"/><circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="${th.jalonDot}"/>`;
-  else if (e.t === 'cerceau') s = `<circle cx="${x}" cy="${y}" r="${8 * k}" fill="${th.cerceauBg}" stroke="${th.cerceau}" stroke-width="${2 * k}"/>`;
-  else if (e.t === 'haie') s = `<line x1="${x - 9 * k}" y1="${y}" x2="${x + 9 * k}" y2="${y}" stroke="${th.haie}" stroke-width="${2.6 * k}" stroke-linecap="round"/><line x1="${x - 9 * k}" y1="${y - 3.5 * k}" x2="${x - 9 * k}" y2="${y + 3.5 * k}" stroke="${th.haie}" stroke-width="${2 * k}"/><line x1="${x + 9 * k}" y1="${y - 3.5 * k}" x2="${x + 9 * k}" y2="${y + 3.5 * k}" stroke="${th.haie}" stroke-width="${2 * k}"/>`;
-  else if (e.t === 'minibut') s = `<rect x="${x - 10 * k}" y="${y - 4 * k}" width="${20 * k}" height="${8 * k}" fill="${th.mini}" stroke="${th.miniSt}" stroke-width="${1.4 * k}"/><line x1="${x - 10 * k}" y1="${y}" x2="${x + 10 * k}" y2="${y}" stroke="${th.miniSt}" stroke-opacity=".35" stroke-width="${0.8 * k}"/>`;
+  if (e.t === 'att') s = `<circle cx="${x}" cy="${y}" r="${r}" fill="${C || th.att}" stroke="${th.attSt}" stroke-width="${1.6 * k}"/><text x="${x}" y="${y + 4 * k}" text-anchor="middle" font-size="${11 * k}" font-weight="800" fill="${C ? crTxtOn(C) : th.attTx}" style="pointer-events:none;font-family:Arial,sans-serif;">${crEsc(e.n || '')}</text>`;
+  else if (e.t === 'def') s = `<polygon points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${C || th.def}" stroke="${th.defSt}" stroke-width="${1.4 * k}" stroke-linejoin="round"/><text x="${x}" y="${y - r * 0.02}" text-anchor="middle" font-size="${8.5 * k}" font-weight="800" fill="${C ? crTxtOn(C) : th.defTx}" style="pointer-events:none;font-family:Arial,sans-serif;">${crEsc(e.n || '')}</text>`;
+  else if (e.t === 'gb') s = `<circle cx="${x}" cy="${y}" r="${r}" fill="${C || th.gb}" stroke="${th.gbSt}" stroke-width="${2 * k}"/><circle cx="${x}" cy="${y}" r="${r - 3 * k}" fill="${C ? crShade(C, 0.72) : th.gbIn}"/><text x="${x}" y="${y + 3.4 * k}" text-anchor="middle" font-size="${8.5 * k}" font-weight="800" fill="${C ? crTxtOn(crShade(C, 0.72)) : th.gbTx}" style="pointer-events:none;font-family:Arial,sans-serif;">GB</text>`;
+  else if (e.t === 'ball') s = `<circle cx="${x}" cy="${y}" r="${5.5 * k}" fill="${C || th.ball}" stroke="${th.ballSt}" stroke-width="${1 * k}"/><path d="M${x - 5.5 * k} ${y} Q${x} ${y - 3 * k} ${x + 5.5 * k} ${y}" fill="none" stroke="${th.ballSt}" stroke-width="${0.8 * k}"/>`;
+  else if (e.t === 'cone') s = `<polygon points="${x},${y - 8 * k} ${x - 7 * k},${y + 6 * k} ${x + 7 * k},${y + 6 * k}" fill="${C || th.cone}" stroke="${th.coneSt}" stroke-width="${1 * k}" stroke-linejoin="round"/>`;
+  else if (e.t === 'coupelle') s = `<circle cx="${x}" cy="${y}" r="${5.5 * k}" fill="${C || th.coupelle}" stroke="${th.coneSt}" stroke-width="${1 * k}"/><circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="${th.coneSt}"/>`;
+  else if (e.t === 'jalon') s = `<circle cx="${x}" cy="${y}" r="${4.5 * k}" fill="${C || th.jalon}" stroke="${th.coneSt}" stroke-width="${1 * k}"/><circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="${th.jalonDot}"/>`;
+  else if (e.t === 'cerceau') s = `<circle cx="${x}" cy="${y}" r="${8 * k}" fill="${C || th.cerceauBg}" ${C ? 'fill-opacity="0.18"' : ''} stroke="${C || th.cerceau}" stroke-width="${2 * k}"/>`;
+  else if (e.t === 'haie') s = `<line x1="${x - 9 * k}" y1="${y}" x2="${x + 9 * k}" y2="${y}" stroke="${C || th.haie}" stroke-width="${2.6 * k}" stroke-linecap="round"/><line x1="${x - 9 * k}" y1="${y - 3.5 * k}" x2="${x - 9 * k}" y2="${y + 3.5 * k}" stroke="${C || th.haie}" stroke-width="${2 * k}"/><line x1="${x + 9 * k}" y1="${y - 3.5 * k}" x2="${x + 9 * k}" y2="${y + 3.5 * k}" stroke="${C || th.haie}" stroke-width="${2 * k}"/>`;
+  else if (e.t === 'minibut') s = `<rect x="${x - 10 * k}" y="${y - 4 * k}" width="${20 * k}" height="${8 * k}" fill="${C || th.mini}" stroke="${th.miniSt}" stroke-width="${1.4 * k}"/><line x1="${x - 10 * k}" y1="${y}" x2="${x + 10 * k}" y2="${y}" stroke="${th.miniSt}" stroke-opacity=".35" stroke-width="${0.8 * k}"/>`;
   return s;
 }
 // Rendu d'une liste d'éléments sur un terrain. o: {edit, sel, arrows (défaut true)}
 function crElsSvg(mode, els, o) {
   o = o || {};
-  const k = CR_COURT[mode].k, th = CR_TH[o.th || 'dark'];
+  const k0 = CR_COURT[mode].k, th = CR_TH[o.th || 'dark'], sc = o.sc || 1;
   const order = els.map((e, i) => i).sort((a, b) => ((els[a].x1 != null ? 0 : 1) - (els[b].x1 != null ? 0 : 1)) || (a - b));
   let body = '';
   order.forEach(i => {
     const e = els[i], isA = e.x1 != null;
     if (isA && o.arrows === false) return;
+    const k = k0 * sc * (parseFloat(e.s) || 1);
     const selected = o.sels && o.sels.includes(e.id), single = o.sels && o.sels.length === 1;
     if (isA) {
-      body += `<g data-id="${e.id}">${o.edit ? `<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="transparent" stroke-width="${18 * k}"/>` : ''}${crArrowSvg(e, k, th)}</g>`;
+      body += `<g data-id="${e.id}">${o.edit ? `<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="transparent" stroke-width="${Math.max(18 * k, 14 * k0)}"/>` : ''}${crArrowSvg(e, k, th)}</g>`;
       if (selected && single) body += `<circle data-h="1" data-id="${e.id}" cx="${e.x1}" cy="${e.y1}" r="${6 * k}" fill="${th.svgBg}" stroke="${th.sel}" stroke-width="2.4"/><circle data-h="2" data-id="${e.id}" cx="${e.x2}" cy="${e.y2}" r="${6 * k}" fill="${th.svgBg}" stroke="${th.sel}" stroke-width="2.4"/>`;
     } else {
-      body += `<g data-id="${e.id}" ${e.o != null ? `opacity="${e.o}"` : ''}>${o.edit ? `<circle cx="${e.x}" cy="${e.y}" r="${14 * k}" fill="transparent"/>` : ''}${crTokenSvg(e, k, th)}</g>`;
-      if (selected) body += `<circle cx="${e.x}" cy="${e.y}" r="${13 * k}" fill="none" stroke="${th.sel}" stroke-width="2.2" stroke-dasharray="4 3" style="pointer-events:none;"/>`;
+      body += `<g data-id="${e.id}" ${e.o != null ? `opacity="${e.o}"` : ''}>${o.edit ? `<circle cx="${e.x}" cy="${e.y}" r="${Math.max(14 * k, 11 * k0)}" fill="transparent"/>` : ''}${crTokenSvg(e, k, th)}</g>`;
+      if (selected) body += `<circle cx="${e.x}" cy="${e.y}" r="${Math.max(13 * k, 10 * k0)}" fill="none" stroke="${th.sel}" stroke-width="2.2" stroke-dasharray="4 3" style="pointer-events:none;"/>`;
     }
   });
   return crCourtSvg(mode, th) + body;
@@ -5664,7 +5675,7 @@ function crSvgStatic(schema, fi, thName) {
   const s = crNormSchema(schema), c = CR_COURT[s.mode];
   const els = (s.frames[Math.min(fi || 0, s.frames.length - 1)] || s.frames[0]).els;
   const th = CR_TH[thName || 'dark'];
-  return `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${th.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, { th: thName || 'dark' })}</svg>`;
+  return `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${th.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, { th: thName || 'dark', sc: s.sc })}</svg>`;
 }
 function crInterp(fa, fb, t) {
   const e = t * t * (3 - 2 * t);
@@ -5693,7 +5704,7 @@ function crPlayInto(boxId, schema, speed) {
     const p = ((now - t0) / per) % n, i = Math.floor(p), t = p - i;
     const a = s.frames[i], b = s.frames[(i + 1) % n];
     const els = (i + 1 < n) ? crInterp(a, b, t) : a.els.filter(x => x.x1 == null);
-    box.innerHTML = `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${CR_TH.dark.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, {})}</svg>`;
+    box.innerHTML = `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${CR_TH.dark.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, { sc: s.sc })}</svg>`;
     crPlayRaf = requestAnimationFrame(step);
   };
   crPlayRaf = requestAnimationFrame(step);
@@ -5752,7 +5763,7 @@ function crDRedo() {
 }
 function crOpenDraw() {
   crPlayStop();
-  crD = { schema: crNormSchema(JSON.parse(JSON.stringify(crCurEx().schema))), f: 0, tool: 'sel', sels: [], pending: null, rec: false, undo: [], redo: [], z: 1, cx: null, cy: null, playing: false, speed: 1, drag: null };
+  crD = { schema: crNormSchema(JSON.parse(JSON.stringify(crCurEx().schema))), f: 0, tool: 'sel', sels: [], pending: null, rec: false, undo: [], redo: [], z: 1, cx: null, cy: null, playing: false, speed: 1, drag: null, ptrs: {}, pinch: null, cols: {} };
   const root = document.getElementById('cr-draw');
   root.innerHTML = `
     <div class="cr-d-top">
@@ -5769,7 +5780,8 @@ function crOpenDraw() {
     <div id="cr-d-ctx" class="cr-d-ctx"></div>
     <div id="cr-d-canvas" class="cr-d-canvas">
       <div id="cr-d-svgbox" style="position:absolute;inset:0;"></div>
-      <div style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;"><button type="button" class="cr-d-ib" onclick="crDZoom(1.4)">+</button><button type="button" class="cr-d-ib" onclick="crDZoom(1/1.4)">−</button></div>
+      <div style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;"><button type="button" class="cr-d-ib" onclick="crDZoom(1.4)" aria-label="Zoom avant">🔍+</button><button type="button" class="cr-d-ib" onclick="crDZoom(1/1.4)" aria-label="Zoom arrière">🔍−</button></div>
+      <div style="position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:6px;"><button type="button" class="cr-d-ib" onclick="crDSize(1.2)" aria-label="Agrandir les éléments">A+</button><button type="button" class="cr-d-ib" onclick="crDSize(1/1.2)" aria-label="Réduire les éléments">A−</button><button type="button" class="cr-d-ib" id="cr-d-sizelbl" onclick="crDSizeReset()" style="font-size:10px;line-height:1.15;padding:0 2px;" aria-label="Taille normale"></button></div>
     </div>
     <div class="cr-d-frames" id="cr-d-frames"></div>
     <div class="cr-d-pal" id="cr-d-pal"></div>`;
@@ -5779,6 +5791,7 @@ function crOpenDraw() {
   cv.addEventListener('pointermove', crDMove);
   cv.addEventListener('pointerup', crDUp);
   cv.addEventListener('pointercancel', crDUp);
+  cv.addEventListener('wheel', crDWheel, { passive: false });
   crDRefresh();
 }
 function crDClose(save) {
@@ -5831,25 +5844,103 @@ function crDRender(customEls) {
   const els = customEls || crDFrame().els;
   let extra = '';
   if (crD.pending) extra = `<circle cx="${crD.pending.x}" cy="${crD.pending.y}" r="5" fill="none" stroke="#F5C400" stroke-width="2.4"/>`;
-  box.innerHTML = `<svg class="cr-d-svg" viewBox="${crDVB().join(' ')}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;touch-action:none;">${crElsSvg(crD.schema.mode, els, { edit: !crD.playing, sels: crD.sels, arrows: !customEls })}${extra}</svg>`;
+  box.innerHTML = `<svg class="cr-d-svg" viewBox="${crDVB().join(' ')}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;touch-action:none;">${crElsSvg(crD.schema.mode, els, { edit: !crD.playing, sels: crD.sels, arrows: !customEls, sc: crD.schema.sc })}${extra}</svg>`;
+}
+function crDSwatches(cur) {
+  return '<span style="display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap;">' + CR_COLS.map(([c, n]) => `<button type="button" class="cr-d-sw ${cur && cur.toLowerCase() === c.toLowerCase() ? 'on' : ''}" style="background:${c};" aria-label="${n}" onclick="crDColor('${c}')"></button>`).join('') + `<button type="button" class="cr-d-sw def ${cur ? '' : 'on'}" onclick="crDColor(null)">Défaut</button></span>`;
+}
+function crDColor(c) {
+  if (!crD || crD.playing) return;
+  const toks = crD.sels.map(crDEl).filter(z => z && z.x1 == null && CR_COLORABLE.includes(z.t));
+  if (toks.length) {
+    crDPush();
+    toks.forEach(z => crD.schema.frames.forEach(fr => fr.els.forEach(q => { if (q.id === z.id) { if (c) q.c = c; else delete q.c; } })));
+  } else if (CR_COLORABLE.includes(crD.tool)) { if (c) crD.cols[crD.tool] = c; else delete crD.cols[crD.tool]; }
+  crDCtx(); crDRender();
 }
 function crDCtx() {
+  crDSizeUi();
   const el = document.getElementById('cr-d-ctx');
   const t = crD.tool, sel = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null;
+  const selToks = crD.sels.map(crDEl).filter(z => z && z.x1 == null && CR_COLORABLE.includes(z.t));
   if (crD.sels.length > 1) {
-    el.innerHTML = `<b>${crD.sels.length} éléments</b> <span>glisse l'un d'eux pour tout déplacer</span> <button type="button" class="cr-d-del" onclick="crDDelSel()">🗑 Supprimer</button> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDClearSel()">Désélectionner</button>`; return;
+    el.innerHTML = `<b>${crD.sels.length} éléments</b> <span>glisse l'un d'eux pour tout déplacer · A+ / A− = taille</span> <button type="button" class="cr-d-del" onclick="crDDelSel()">🗑 Supprimer</button> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDClearSel()">Désélectionner</button>` + (selToks.length ? ` <span>Couleur :</span> ` + crDSwatches(selToks.every(z => z.c === selToks[0].c) ? selToks[0].c : null) : ''); return;
   }
   if (sel) {
     let h = `<b>${{ att: 'Attaquant', def: 'Défenseur', gb: 'Gardien', ball: 'Ballon', cone: 'Plot', coupelle: 'Coupelle', jalon: 'Jalon', cerceau: 'Cerceau', haie: 'Haie', minibut: 'Mini-but', mv: 'Déplacement', pass: 'Passe', dribble: 'Dribble', shot: 'Tir', screen: 'Écran / bloc' }[sel.t] || ''}</b>`;
     if (sel.t === 'att' || sel.t === 'def') h += ` N° <input type="number" inputmode="numeric" min="1" max="99" value="${crEsc(sel.n || '')}" oninput="crDSetN(this.value)" style="width:56px;">`;
     h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">🗑 Supprimer</button>`;
+    if (selToks.length) h += ` <span>Couleur :</span> ` + crDSwatches(sel.c);
     el.innerHTML = h; return;
   }
-  const hint = t === 'sel' ? 'Touche un élément pour le déplacer, ou glisse sur le terrain pour en entourer plusieurs.' : t === 'multi' ? 'Touche plusieurs éléments pour les grouper, puis glisse l\'un d\'eux (ou entoure-les en glissant sur le terrain).' : t === 'pan' ? 'Glisse pour déplacer la vue (zoom + / −).' : CR_ACTIONS.includes(t) ? 'Glisse du départ à l\'arrivée (ou touche départ puis arrivée).' : 'Touche le terrain pour placer l\'élément.';
+  const hint = t === 'sel' ? 'Touche un élément pour le déplacer, ou glisse sur le terrain pour en entourer plusieurs. Pince à deux doigts pour zoomer · A+ / A− pour la taille des éléments.' : t === 'multi' ? 'Touche plusieurs éléments pour les grouper, puis glisse l\'un d\'eux (ou entoure-les en glissant sur le terrain).' : t === 'pan' ? 'Glisse pour déplacer la vue (pince à deux doigts ou 🔍+ / 🔍− pour zoomer).' : CR_ACTIONS.includes(t) ? 'Glisse du départ à l\'arrivée (ou touche départ puis arrivée).' : 'Touche le terrain pour placer l\'élément.';
+  if (CR_COLORABLE.includes(t)) { el.innerHTML = `<span>Couleur :</span> ` + crDSwatches(crD.cols[t]) + ` <span>puis touche le terrain pour placer.</span>`; return; }
   el.textContent = (crD.pending ? 'Touche maintenant le point d\'arrivée. ' : '') + hint;
 }
 function crDSetN(v) { const e = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!e) return; e.n = v === '' ? '' : Math.max(1, Math.min(99, parseInt(v, 10) || 1)); crDRender(); }
 function crDClearSel() { crD.sels = []; crDCtx(); crDRender(); }
+// ----- Taille des éléments (A+ / A−) : sélection si présente, sinon tous les éléments -----
+function crDSizeClamp(v, lo, hi) { return Math.round(Math.max(lo, Math.min(hi, v)) * 100) / 100; }
+function crDSize(f) {
+  if (!crD || crD.playing) return;
+  crDPush();
+  if (crD.sels.length) {
+    crD.sels.forEach(id => {
+      const e = crDEl(id); if (!e) return;
+      const ns = crDSizeClamp((parseFloat(e.s) || 1) * f, 0.4, 3);
+      if (e.x1 == null) crD.schema.frames.forEach(fr => fr.els.forEach(z => { if (z.id === id) z.s = ns; }));
+      else e.s = ns;
+    });
+  } else crD.schema.sc = crDSizeClamp(crD.schema.sc * f, 0.5, 2.5);
+  crDSizeUi(); crDRender();
+}
+function crDSizeReset() {
+  if (!crD || crD.playing) return;
+  crDPush();
+  if (crD.sels.length) crD.sels.forEach(id => { const e = crDEl(id); if (!e) return; if (e.x1 == null) crD.schema.frames.forEach(fr => fr.els.forEach(z => { if (z.id === id) delete z.s; })); else delete e.s; });
+  else crD.schema.sc = 1;
+  crDSizeUi(); crDRender();
+}
+function crDSizeUi() {
+  const b = document.getElementById('cr-d-sizelbl'); if (!b || !crD) return;
+  let v, l;
+  if (crD.sels.length) { const e = crDEl(crD.sels[0]); v = e ? (parseFloat(e.s) || 1) : 1; l = crD.sels.length > 1 ? 'Sél.' : 'Élém.'; }
+  else { v = crD.schema.sc; l = 'Tous'; }
+  b.innerHTML = l + '<br>' + Math.round(v * 100) + '%';
+}
+
+// ----- Zoom : pincement à deux doigts (centré sur les doigts) et molette -----
+function crDRaw(x, y) {
+  const svg = document.querySelector('#cr-d-svgbox svg');
+  const pt = svg.createSVGPoint(); pt.x = x; pt.y = y;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+function crDZoomAt(px, py, nx, ny, nz) {
+  const svg = document.querySelector('#cr-d-svgbox svg'); if (!svg) return;
+  const q = crDRaw(px, py);
+  crD.z = Math.max(1, Math.min(4, nz));
+  svg.setAttribute('viewBox', crDVB().join(' '));
+  const q2 = crDRaw(nx, ny);
+  crD.cx += q.x - q2.x; crD.cy += q.y - q2.y;
+  svg.setAttribute('viewBox', crDVB().join(' '));
+}
+function crDPinchStart() {
+  const pts = Object.values(crD.ptrs).slice(0, 2);
+  crD.drag = null;
+  crD.pinch = { d0: Math.max(10, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)), z0: crD.z, mx: (pts[0].x + pts[1].x) / 2, my: (pts[0].y + pts[1].y) / 2 };
+}
+function crDPinchMove() {
+  const pts = Object.values(crD.ptrs).slice(0, 2), pi = crD.pinch;
+  if (pts.length < 2) return;
+  const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), mx = (pts[0].x + pts[1].x) / 2, my = (pts[0].y + pts[1].y) / 2;
+  crDZoomAt(pi.mx, pi.my, mx, my, pi.z0 * d / pi.d0);
+  pi.mx = mx; pi.my = my;
+}
+function crDWheel(e) {
+  if (!crD) return;
+  e.preventDefault();
+  crDZoomAt(e.clientX, e.clientY, e.clientX, e.clientY, crD.z * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)));
+}
 function crDDelSel() {
   const ids = crD.sels.slice(); if (!ids.length) return;
   crDPush();
@@ -5919,6 +6010,9 @@ function crDNextN(t) { const ns = crDFrame().els.filter(e => e.t === t).map(e =>
 function crDDown(e) {
   if (!crD || crD.playing) return;
   if (e.target.closest && e.target.closest('button')) return;
+  if (e.isPrimary) { crD.ptrs = {}; crD.pinch = null; }
+  crD.ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+  if (Object.keys(crD.ptrs).length >= 2) { crDPinchStart(); return; }
   const t = crD.tool, p = crDPt(e), cv = document.getElementById('cr-d-canvas');
   const hitEl = e.target.closest ? e.target.closest('[data-id]') : null;
   const cap = () => { try { cv.setPointerCapture(e.pointerId); } catch (x) {} };
@@ -5955,11 +6049,15 @@ function crDDown(e) {
   crDPush();
   const el = { id: crUid(), t, x: p.x, y: p.y };
   if (t === 'att' || t === 'def') el.n = crDNextN(t);
+  if (crD.cols[t]) el.c = crD.cols[t];
   for (let i = crD.f; i < crD.schema.frames.length; i++) crD.schema.frames[i].els.push(i === crD.f ? el : { ...el });
   crDRefresh();
 }
 function crDMove(e) {
-  if (!crD || !crD.drag) return;
+  if (!crD) return;
+  if (crD.ptrs[e.pointerId]) crD.ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+  if (crD.pinch) { crDPinchMove(); return; }
+  if (!crD.drag) return;
   const d = crD.drag;
   if (d.kind === 'pan') {
     const svg = document.querySelector('#cr-d-svgbox svg'), r = svg.getBoundingClientRect(), vb = crDVB();
@@ -6002,7 +6100,10 @@ function crDMove(e) {
   crDRender();
 }
 function crDUp(e) {
-  if (!crD || !crD.drag) return;
+  if (!crD) return;
+  delete crD.ptrs[e.pointerId];
+  if (crD.pinch) { if (Object.keys(crD.ptrs).length < 2) crD.pinch = null; crD.drag = null; return; }
+  if (!crD.drag) return;
   const d = crD.drag; crD.drag = null;
   if (d.kind === 'draw') {
     const p = d.cur, dist = Math.hypot(p.x - d.start.x, p.y - d.start.y);
@@ -6028,7 +6129,7 @@ function crDUp(e) {
 // ----- Export / partage de l'animation (GIF, ou PNG s'il n'y a qu'une image) -----
 function crSvgMarkup(schema, els, W, H, opts) {
   const c = CR_COURT[schema.mode], th = CR_TH.dark;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${c.vb.join(' ')}" width="${W}" height="${H}"><rect x="${c.vb[0]}" y="${c.vb[1]}" width="${c.vb[2]}" height="${c.vb[3]}" fill="${th.svgBg}"/>${crElsSvg(schema.mode, els, { arrows: !!(opts && opts.arrows) })}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${c.vb.join(' ')}" width="${W}" height="${H}"><rect x="${c.vb[0]}" y="${c.vb[1]}" width="${c.vb[2]}" height="${c.vb[3]}" fill="${th.svgBg}"/>${crElsSvg(schema.mode, els, { arrows: !!(opts && opts.arrows), sc: schema.sc })}</svg>`;
 }
 function crLoadImg(src) {
   return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('image')); im.src = src; });
