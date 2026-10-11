@@ -1311,11 +1311,11 @@ textarea.cr-in{resize:vertical;min-height:44px;}
         <button type="button" class="cs-tab" id="cs-subtab-presence" onclick="coachSubtabSwitch('presence')">
           <span class="cs-tab-icon">📋</span><span class="cs-tab-label">Présences</span>
         </button>
-        <button type="button" class="cs-tab" id="cs-subtab-outils" onclick="coachSubtabSwitch('outils')">
-          <span class="cs-tab-icon">🧩</span><span class="cs-tab-label">Équipes</span>
+        <button type="button" class="cs-tab" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')">
+          <span class="cs-tab-icon">📝</span><span class="cs-tab-label">Séance</span>
         </button>
-        <button type="button" class="cs-tab" id="cs-subtab-match" onclick="coachSubtabSwitch('match')">
-          <span class="cs-tab-icon">⚽</span><span class="cs-tab-label">Match</span>
+        <button type="button" class="cs-tab" id="cs-subtab-outils" onclick="coachSubtabSwitch('outils')">
+          <span class="cs-tab-icon">🧩</span><span class="cs-tab-label">Éq./Match</span>
         </button>
         <button type="button" class="cs-tab" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')">
           <span class="cs-tab-icon">🎽</span><span class="cs-tab-label">Compos</span>
@@ -1327,9 +1327,6 @@ textarea.cr-in{resize:vertical;min-height:44px;}
         </button>
         <button type="button" class="cs-tab" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')">
           <span class="cs-tab-icon">🗓️</span><span class="cs-tab-label">Programme</span>
-        </button>
-        <button type="button" class="cs-tab" id="cs-subtab-seance" onclick="coachSubtabSwitch('seance')">
-          <span class="cs-tab-icon">📝</span><span class="cs-tab-label">Séance</span>
         </button>
         <button type="button" class="cs-tab" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')">
           <span class="cs-tab-icon">🎯</span><span class="cs-tab-label">Évals</span>
@@ -1521,6 +1518,11 @@ textarea.cr-in{resize:vertical;min-height:44px;}
       </div>
 
       <div class="cs-box" id="cs-box-outils" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
+        <div class="seance-seg">
+          <button type="button" id="outils-seg-equipes" class="on" onclick="outilsPane('equipes')">🧩 Équipes</button>
+          <button type="button" id="outils-seg-match" onclick="outilsPane('match')">⚽ Match</button>
+        </div>
+        <div id="outils-pane-equipes">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🧩 Équipes entraînement</h3>
         <div style="font-size:11px;color:var(--gris-texte);margin-bottom:6px;">Compose les équipes du match de fin de séance à partir des présents de la date choisie dans l'onglet Présences.</div>
         <div id="outils-date-label" style="font-size:12px;font-weight:800;color:var(--jaune);margin-bottom:12px;"></div>
@@ -1546,13 +1548,13 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
         <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:8px;">Tape un joueur pour l'ajouter à l'équipe en cours</div>
         <div id="outils-pool" style="display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:8px;"></div>
-      </div>
+        </div>
 
-      <div class="cs-box" id="cs-box-match" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
+        <div id="outils-pane-match" style="display:none;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">⚽ Match d'opposition</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Score en direct des oppositions de fin de séance, à partir des équipes composées dans l'onglet Équipes.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Score en direct des oppositions de fin de séance, à partir des équipes composées dans le volet Équipes.</div>
         <div id="outils-match-empty" style="display:none;text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">
-          Compose d'abord au moins 2 équipes dans l'onglet <button type="button" onclick="coachSubtabSwitch('outils')" style="background:none;border:none;color:var(--jaune);font-weight:800;cursor:pointer;text-decoration:underline;padding:0;font-size:12px;">🧩 Équipes</button>.
+          Compose d'abord au moins 2 équipes dans le volet <button type="button" onclick="outilsPane('equipes')" style="background:none;border:none;color:var(--jaune);font-weight:800;cursor:pointer;text-decoration:underline;padding:0;font-size:12px;">🧩 Équipes</button>.
         </div>
         <div id="outils-match-content" style="display:none;">
           <div id="outils-pair-picker" style="margin-bottom:10px;"></div>
@@ -1560,6 +1562,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <button onclick="outilsUndoLastGoal()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11.5px;cursor:pointer;margin-bottom:12px;">↩️ Annuler la dernière action</button>
           <div style="font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin-bottom:6px;">🥅 Meilleurs buteurs du jour</div>
           <div id="outils-topscorers"></div>
+        </div>
         </div>
       </div>
 
@@ -3542,7 +3545,7 @@ function pickCoachLogin(login) {
 
 function coachSubtabSwitch(name) {
   if (name === 'evaluations' && coachSession && coachSession.name === 'Sandrine') name = 'presence';
-  const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils', match: 'cs-box-match', evaluations: 'cs-box-evaluations', reglages: 'cs-box-reglages' };
+  const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils', evaluations: 'cs-box-evaluations', reglages: 'cs-box-reglages' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
     const btn = document.getElementById('cs-subtab-' + key);
@@ -3554,7 +3557,7 @@ function coachSubtabSwitch(name) {
     btn.style.fontWeight = active ? '800' : '400';
   });
   if (name === 'dashboard') dashboardLoad();
-  if (name === 'outils' || name === 'match') outilsInit();
+  if (name === 'outils') { outilsInit(); outilsPaneInit(); }
   if (name === 'evaluations') evaluationsInit();
   if (name === 'reglages') loadAppSettings();
   if (name === 'seance') seancePaneInit();
@@ -6551,6 +6554,15 @@ function seancePane(which) {
   try { localStorage.setItem('seancePane', isC ? 'createur' : 'resume'); } catch (e) {}
   if (isC) crInit();
 }
+function outilsPane(which) {
+  const isE = which !== 'match';
+  document.getElementById('outils-pane-equipes').style.display = isE ? '' : 'none';
+  document.getElementById('outils-pane-match').style.display = isE ? 'none' : '';
+  document.getElementById('outils-seg-equipes').classList.toggle('on', isE);
+  document.getElementById('outils-seg-match').classList.toggle('on', !isE);
+  try { if (typeof outilsInit === 'function') outilsInit(); } catch (e) {}
+}
+function outilsPaneInit() { outilsPane('equipes'); }
 function seancePaneInit() {
   let w = 'createur';
   try { w = localStorage.getItem('seancePane') || 'createur'; } catch (e) {}
