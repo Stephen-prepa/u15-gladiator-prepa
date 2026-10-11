@@ -408,6 +408,10 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   border:1px solid rgba(255,255,255,0.06);
 }
 /* ---- Créateur de séances (coach) ---- */
+.seance-seg{display:flex;border:1px solid rgba(255,255,255,0.18);border-radius:10px;overflow:hidden;background:var(--noir);margin-bottom:14px;}
+.seance-seg button{flex:1;border:none;background:transparent;color:var(--gris-texte);padding:11px 6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.seance-seg button.on{background:var(--bleu);color:var(--jaune);}
+
 .cr-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:var(--gris-clair);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cr-btn.primary{background:var(--jaune);border-color:var(--jaune);color:#111;}
 .cr-btn.danger{color:#ff6b6b;border-color:rgba(255,107,107,0.5);}
@@ -1330,9 +1334,6 @@ textarea.cr-in{resize:vertical;min-height:44px;}
         <button type="button" class="cs-tab" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')">
           <span class="cs-tab-icon">🎯</span><span class="cs-tab-label">Évals</span>
         </button>
-        <button type="button" class="cs-tab" id="cs-subtab-createur" onclick="coachSubtabSwitch('createur')">
-          <span class="cs-tab-icon">🗂️</span><span class="cs-tab-label">Créateur</span>
-        </button>
         <button type="button" class="cs-tab" id="cs-subtab-reglages" onclick="coachSubtabSwitch('reglages')">
           <span class="cs-tab-icon">⚙️</span><span class="cs-tab-label">Réglages</span>
         </button>
@@ -1342,6 +1343,19 @@ textarea.cr-in{resize:vertical;min-height:44px;}
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:2px;">🏠 Bonjour <span id="dash-coach-name"></span> 👋</h3>
 
         <div id="dash-next-match-box" style="margin-top:14px;"></div>
+
+        <div id="dash-scores-box" style="background:var(--noir);border-radius:10px;padding:12px;margin-top:12px;">
+          <h3 style="font-size:13px;font-weight:800;color:var(--blanc);margin-bottom:8px;">🏆 Scores à saisir</h3>
+          <div id="scores-todo-list" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="text-align:center;padding:8px;color:var(--gris-texte);font-size:12px;">Chargement...</div>
+          </div>
+          <button onclick="scoresDoneOpenEditor()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11px;cursor:pointer;margin-top:10px;">✏️ Corriger un score déjà saisi</button>
+          <div id="scores-done-editor" style="display:none;margin-top:10px;">
+            <div style="font-size:10.5px;color:var(--gris-texte);margin-bottom:8px;">Modifie puis réenregistre — ça remplace le score précédent.</div>
+            <div id="scores-done-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
+
 
         <div id="dash-last-session-box" style="margin-top:16px;">
           <div class="section-title" style="margin:0 0 8px;">📋 Dernier entraînement</div>
@@ -1424,25 +1438,31 @@ textarea.cr-in{resize:vertical;min-height:44px;}
       </div>
 
       <div class="cs-box" id="cs-box-seance" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
-        <div style="background:var(--noir);border-radius:10px;padding:12px;margin-bottom:16px;">
-          <h3 style="font-size:13px;font-weight:800;color:var(--blanc);margin-bottom:8px;">🏆 Scores à saisir</h3>
-          <div id="scores-todo-list" style="display:flex;flex-direction:column;gap:8px;">
-            <div style="text-align:center;padding:8px;color:var(--gris-texte);font-size:12px;">Chargement...</div>
-          </div>
-          <button onclick="scoresDoneOpenEditor()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11px;cursor:pointer;margin-top:10px;">✏️ Corriger un score déjà saisi</button>
-          <div id="scores-done-editor" style="display:none;margin-top:10px;">
-            <div style="font-size:10.5px;color:var(--gris-texte);margin-bottom:8px;">Modifie puis réenregistre — ça remplace le score précédent.</div>
-            <div id="scores-done-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-          </div>
+        <div class="seance-seg" id="seance-seg">
+          <button type="button" id="seance-seg-createur" class="on" onclick="seancePane('createur')">🗂️ Créateur</button>
+          <button type="button" id="seance-seg-resume" onclick="seancePane('resume')">📝 Résumé</button>
         </div>
-
-        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">📝 Résumé de séance</h3>
+        <div id="seance-pane-createur">
+        <div id="cr-list-view">
+          <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Prépare tes séances : type, durée et déroulé en blocs, schémas animés, puis fiche PDF. Partagé entre les coachs, invisible des joueurs.</div>
+          <button type="button" class="cr-btn primary" style="width:100%;padding:14px;font-size:15px;" onclick="crOpenTemplates()">＋ Créer une séance</button>
+          <div id="cr-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 10px;"></div>
+          <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
+          <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
+          <div id="cr-list"></div>
+        </div>
+        <div id="cr-edit-view" style="display:none;"></div>
+        <div id="cr-ex-view" style="display:none;"></div>
+        </div>
+        <div id="seance-pane-resume" style="display:none;">
+        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:6px;">📝 Résumé de séance</h3>
         <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Module simple en attendant mieux — une note libre par séance.</div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <button onclick="seanceShiftDay(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
           <input type="date" id="seance-date" class="login-input" style="flex:1;margin:0;" onchange="seanceDateChanged()">
           <button onclick="seanceShiftDay(1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">→</button>
         </div>
+        <button type="button" onclick="seanceImportOpen()" style="width:100%;padding:9px;border:1px dashed rgba(245,196,0,0.5);border-radius:8px;background:transparent;color:var(--jaune);font-weight:700;font-size:12px;cursor:pointer;margin-bottom:10px;">📥 Importer une séance préparée (Créateur)</button>
         <textarea id="seance-content" rows="6" placeholder="Contenu travaillé, thème, remarques..." style="width:100%;box-sizing:border-box;background:var(--noir);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--blanc);font-size:13px;font-family:inherit;resize:vertical;margin-bottom:10px;"></textarea>
         <button onclick="seanceSave()" id="seance-save-btn" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
         <div id="seance-save-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
@@ -1450,6 +1470,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
           <div style="font-size:12px;font-weight:800;color:var(--blanc);margin-bottom:8px;">Dernières séances</div>
           <div id="seance-recent" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
+        </div>
         </div>
       </div>
 
@@ -1556,20 +1577,6 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
         <div id="eval-save-msg" style="font-size:12px;text-align:center;margin-top:10px;min-height:16px;font-weight:700;"></div>
         <div style="font-size:10px;color:var(--gris-texte);margin-top:6px;text-align:center;">Un tap = enregistrement immédiat · retaper la même note l'efface. Détail complet des exercices : document de synthèse filière.</div>
-      </div>
-
-      <div class="cs-box cs-hide" id="cs-box-createur" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
-        <div id="cr-list-view">
-          <h3 style="font-size:16px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🗂️ Créateur de séances</h3>
-          <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Prépare tes séances : type, durée et déroulé en blocs, puis fiche PDF. Partagé entre les coachs, invisible des joueurs.</div>
-          <button type="button" class="cr-btn primary" style="width:100%;padding:14px;font-size:15px;" onclick="crOpenTemplates()">＋ Créer une séance</button>
-          <div id="cr-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 10px;"></div>
-          <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
-          <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
-          <div id="cr-list"></div>
-        </div>
-        <div id="cr-edit-view" style="display:none;"></div>
-        <div id="cr-ex-view" style="display:none;"></div>
       </div>
 
       <div class="cs-box" id="cs-box-reglages" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
@@ -3535,7 +3542,7 @@ function pickCoachLogin(login) {
 
 function coachSubtabSwitch(name) {
   if (name === 'evaluations' && coachSession && coachSession.name === 'Sandrine') name = 'presence';
-  const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils', match: 'cs-box-match', evaluations: 'cs-box-evaluations', reglages: 'cs-box-reglages', createur: 'cs-box-createur' };
+  const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', composition: 'cs-box-composition', outils: 'cs-box-outils', match: 'cs-box-match', evaluations: 'cs-box-evaluations', reglages: 'cs-box-reglages' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
     const btn = document.getElementById('cs-subtab-' + key);
@@ -3550,7 +3557,7 @@ function coachSubtabSwitch(name) {
   if (name === 'outils' || name === 'match') outilsInit();
   if (name === 'evaluations') evaluationsInit();
   if (name === 'reglages') loadAppSettings();
-  if (name === 'createur') crInit();
+  if (name === 'seance') seancePaneInit();
 }
 
 // ---------- Compositions du week-end (coach) ----------
@@ -5206,7 +5213,7 @@ function crRenderEditor(p) {
     </div>
     <div class="cr-card">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="cr-badge ${done ? 'ok' : ''}" id="cr-status-badge">${done ? 'Terminée' : 'Brouillon'}</span><span style="font-size:12px;color:var(--gris-texte);">Visible par les coachs uniquement.</span></div>
-      <div style="margin-top:10px;"><button type="button" class="cr-btn" id="cr-status-btn" onclick="crToggleDone()">${done ? '↩ Repasser en brouillon' : '✓ Marquer comme terminée'}</button></div>
+      <div style="margin-top:10px;"><button type="button" class="cr-btn" id="cr-status-btn" onclick="crToggleDone()">${done ? '↩ Repasser en brouillon' : '✓ Marquer comme terminée'}</button><button type="button" class="cr-btn" style="margin-left:6px;" onclick="seanceImportPlan(crCur.id, true)">📝 Utiliser pour le résumé de séance</button></div>
     </div>
     <div class="cr-card">
       <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="crInfoOpen=!crInfoOpen;document.getElementById('cr-info').style.display=crInfoOpen?'':'none';this.querySelector('span').textContent=crInfoOpen?'▲':'▼';">
@@ -6288,6 +6295,7 @@ async function dashboardLoad() {
   const nameEl = document.getElementById('dash-coach-name');
   if (nameEl) nameEl.textContent = coachSession ? coachSession.name : '';
   dashboardNextMatchLoad();
+  scoresTodoLoad();
   dashboardLastSessionLoad();
   homeSessionTrackingLoad();
   loadAppSettings();
@@ -6533,10 +6541,64 @@ async function seanceLoadRecent() {
     wrap.innerHTML = '<div style="text-align:center;padding:10px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
   }
 }
+// ---------- Séance : Créateur + Résumé réunis ----------
+function seancePane(which) {
+  const isC = which !== 'resume';
+  document.getElementById('seance-pane-createur').style.display = isC ? '' : 'none';
+  document.getElementById('seance-pane-resume').style.display = isC ? 'none' : '';
+  document.getElementById('seance-seg-createur').classList.toggle('on', isC);
+  document.getElementById('seance-seg-resume').classList.toggle('on', !isC);
+  try { localStorage.setItem('seancePane', isC ? 'createur' : 'resume'); } catch (e) {}
+  if (isC) crInit();
+}
+function seancePaneInit() {
+  let w = 'createur';
+  try { w = localStorage.getItem('seancePane') || 'createur'; } catch (e) {}
+  seancePane(w);
+}
+function seancePlanText(p) {
+  let t = '🗂️ Séance préparée : ' + p.title + ' (' + crFmtDur(crTotal(p)) + ')';
+  const meta = [];
+  if (p.theme) meta.push('Thème : ' + p.theme);
+  if (p.objectif_principal) meta.push('Objectif : ' + p.objectif_principal);
+  if (meta.length) t += '\n' + meta.join(' · ');
+  (p.blocks || []).forEach(b => {
+    const ex = (b.exercises || []).map(x => x.name).filter(Boolean).join(', ');
+    t += '\n• ' + b.name + ' — ' + (parseInt(b.minutes, 10) || 0) + ' min' + (ex ? ' : ' + ex : '');
+  });
+  return t;
+}
+async function seanceImportOpen() {
+  if (!crLoaded) await crLoadPlans();
+  const date = document.getElementById('seance-date').value;
+  const plans = crPlans.filter(p => !p.is_template && p.status !== 'archivee')
+    .sort((a, b) => ((b.seance_date === date) - (a.seance_date === date)) || String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+  const list = plans.length ? plans.map(p => `<button type="button" class="cr-tpl" onclick="seanceImportPlan('${p.id}')"><b>${crEsc(p.title)}</b><span>${p.seance_date ? '📅 ' + crEsc(p.seance_date.split('-').reverse().join('/')) + ' · ' : ''}${(p.blocks || []).length} blocs</span><i>${crFmtDur(crTotal(p))}${p.seance_date === date ? ' · prévue ce jour' : ''}</i></button>`).join('')
+    : '<div style="color:var(--gris-texte);font-size:13px;padding:10px 0;">Aucune séance préparée pour l\'instant — crée-la dans l\'onglet Créateur.</div>';
+  document.getElementById('cr-modal-inner').innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;"><h3 style="font-size:18px;color:var(--blanc);">Importer une séance</h3><button type="button" class="cr-btn sm" onclick="crCloseModal()">✕</button></div><div style="font-size:12px;color:var(--gris-texte);margin:6px 0 12px;">Le déroulé est ajouté au résumé de la date affichée.</div>' + list;
+  document.getElementById('cr-modal').classList.add('show');
+}
+async function seanceImportPlan(id, fromEditor) {
+  const p = crPlans.find(x => x.id === id); if (!p) return;
+  if (fromEditor && typeof crSaveNow === 'function') await crSaveNow();
+  crCloseModal();
+  coachSubtabSwitch('seance');
+  seancePane('resume');
+  const inp = document.getElementById('seance-date');
+  if (fromEditor || !inp.value) inp.value = p.seance_date || dateStr(new Date());
+  await seanceDateChanged();
+  const ta = document.getElementById('seance-content');
+  if (!ta.value.includes('🗂️ Séance préparée : ' + p.title)) ta.value = (ta.value.trim() ? ta.value.trim() + '\n\n' : '') + seancePlanText(p);
+  const msg = document.getElementById('seance-save-msg');
+  if (msg) { msg.style.color = 'var(--jaune)'; msg.textContent = 'Séance importée — pense à enregistrer.'; }
+  window.scrollTo(0, 0);
+}
+
 function seanceGoToDate(dateVal) {
   document.getElementById('seance-date').value = dateVal;
   seanceDateChanged();
   coachSubtabSwitch('seance');
+  seancePane('resume');
 }
 
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
