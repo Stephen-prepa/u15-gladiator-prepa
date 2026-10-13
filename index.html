@@ -451,6 +451,28 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .vg-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .vg-btn{border:1px solid rgba(255,255,255,0.18);background:var(--noir);color:var(--gris-clair);border-radius:8px;padding:9px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .vg-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--noir);border:1px solid var(--jaune);color:var(--blanc);border-radius:99px;padding:10px 16px;font-size:13px;font-weight:700;z-index:3000;box-shadow:0 6px 20px rgba(0,0,0,.5);max-width:92vw;}
+/* mode par joueur */
+.vg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.vg-tile{border:1px solid rgba(255,255,255,0.15);background:var(--noir);color:var(--blanc);border-radius:12px;padding:10px 4px 8px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:78px;}
+.vg-tile b{font-family:'Barlow Condensed',sans-serif;font-size:24px;color:var(--jaune);line-height:1;}
+.vg-tile span{font-size:12px;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;box-sizing:border-box;}
+.vg-tile.part{border-color:var(--jaune);}
+.vg-tile.full{border-color:var(--vert);background:rgba(46,204,113,0.1);}
+.vg-dots{display:flex;gap:3px;margin-top:3px;}
+.vg-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.18);}
+.vg-dots i.on{background:var(--vert);}
+.vg-fiche-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.vg-fname{flex:1;text-align:right;}
+.vg-fname b{display:block;font-size:20px;color:var(--blanc);font-weight:900;}
+.vg-fname span{font-size:11px;color:var(--gris-texte);}
+.vg-card{text-align:center;border:1px solid transparent;}
+.vg-card.ok{border-color:rgba(46,204,113,0.5);}
+.vg-time.sm{font-size:56px;margin:2px 0 6px;}
+.vg-time.sm small{font-size:20px;}
+.vg-card .vg-go{padding:16px 10px;font-size:26px;}
+.vg-nav{position:sticky;bottom:10px;display:flex;gap:8px;margin-top:6px;}
+.vg-nav button{flex:1;border:1px solid rgba(255,255,255,0.2);background:var(--gris-fonce);color:var(--gris-clair);border-radius:12px;padding:15px 8px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(0,0,0,.45);}
+.vg-nav button.next{background:var(--jaune);color:var(--noir);border-color:var(--jaune);flex:1.6;}
 
 </style>
 </head>
@@ -6033,7 +6055,7 @@ const VIGIE_TESTS = [
 ];
 const VIGIE_PK = 'hbccs_vigie_pending';
 const vigie = { open: false, test: 'sprint20', tab: 'saisie', date: '', players: [], rows: [], armed: null, loaded: false, error: '',
-  chrono: { running: false, t0: 0, elapsed: 0, raf: 0 }, lastSaved: null, resDate: '' };
+  chrono: { running: false, t0: 0, elapsed: 0, raf: 0, test: null, code: null }, lastSaved: null, resDate: '', mode: 'joueur', cur: null, filter: '' };
 
 function vgEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function vgToday() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -6152,40 +6174,43 @@ async function vigieUndoLast() {
   const id = vigie.lastSaved; vigie.lastSaved = null; await vigieDelRow(id);
 }
 
-// ----- Chronomètre -----
+// ----- Chronomètre (un seul à la fois ; le temps est enregistré tout seul au STOP) -----
 function vgChronoText(ms) { const s = ms / 1000; return s.toFixed(2).replace('.', ','); }
+function vgTimeEl() { const c = vigie.chrono; return c.test ? document.getElementById('vg-time-' + c.test) : null; }
 function vgChronoTick() {
   const c = vigie.chrono; if (!c.running) return;
-  const el = document.getElementById('vg-time'); if (el) el.firstChild.nodeValue = vgChronoText(performance.now() - c.t0);
+  const el = vgTimeEl(); if (el) el.firstChild.nodeValue = vgChronoText(performance.now() - c.t0);
   c.raf = requestAnimationFrame(vgChronoTick);
 }
 function vgChronoStop(save) {
   const c = vigie.chrono; if (!c.running) return;
   c.running = false; cancelAnimationFrame(c.raf);
   c.elapsed = performance.now() - c.t0;
-  const el = document.getElementById('vg-time'); if (el) el.firstChild.nodeValue = vgChronoText(c.elapsed);
+  const el = vgTimeEl(); if (el) el.firstChild.nodeValue = vgChronoText(c.elapsed);
   try { if (navigator.vibrate) navigator.vibrate(40); } catch (e) {}
   return c.elapsed;
 }
-async function vigieChronoBtn() {
+// k = test chronométré, code = joueur concerné (joueur choisi, ou joueur armé en mode « par test »)
+async function vigieChronoBtn(k, code) {
   const c = vigie.chrono;
   if (!c.running) {
-    c.running = true; c.elapsed = 0; c.t0 = performance.now(); c.raf = requestAnimationFrame(vgChronoTick);
-    const b = document.getElementById('vg-go'); if (b) { b.textContent = 'STOP'; b.classList.add('run'); }
+    if (!code) { vgToast('Choisis d\'abord un joueur'); return; }
+    c.running = true; c.elapsed = 0; c.t0 = performance.now(); c.test = k; c.code = code; c.raf = requestAnimationFrame(vgChronoTick);
+    const b = document.getElementById('vg-go-' + k); if (b) { b.textContent = 'STOP'; b.classList.add('run'); }
     return;
   }
-  const ms = vgChronoStop(true);
-  const b = document.getElementById('vg-go'); if (b) { b.textContent = 'DÉPART'; b.classList.remove('run'); }
-  const t = vgTest();
-  if (!vigie.armed) { vgToast('Temps ' + vgChronoText(ms) + ' s — choisis un joueur pour l\'enregistrer'); return; }
-  const code = vigie.armed, p = vigie.players.find(x => x.code === code);
-  if (await vigieSave(code, ms / 1000, t.key)) {
-    vgToast('✓ ' + vgFmt(Math.round(ms / 10) / 100, t) + ' → ' + (p ? p.name : code));
-    // passe au joueur suivant sans mesure ce jour-là
-    const list = vigie.players, i = list.findIndex(x => x.code === code);
-    const nxt = list.slice(i + 1).concat(list.slice(0, i)).find(x => !vgRowsFor(x.code, t.key, vigie.date).length);
-    if (nxt) vigie.armed = nxt.code;
+  const ms = vgChronoStop(true), kk = c.test, cc = c.code;
+  const b = document.getElementById('vg-go-' + kk); if (b) { b.textContent = 'DÉPART'; b.classList.remove('run'); }
+  const t = vgTest(kk), p = vigie.players.find(x => x.code === cc);
+  if (await vigieSave(cc, ms / 1000, kk)) {
+    vgToast('✓ ' + vgFmt(Math.round(ms / 10) / 100, t) + ' → ' + (p ? p.name : cc));
+    if (vigie.mode === 'test') {   // passe au joueur suivant sans mesure ce jour-là
+      const list = vigie.players, i = list.findIndex(x => x.code === cc);
+      const nxt = list.slice(i + 1).concat(list.slice(0, i)).find(x => !vgRowsFor(x.code, kk, vigie.date).length);
+      if (nxt) vigie.armed = nxt.code;
+    }
     vigieRender(true);
+    const el = document.getElementById('vg-time-' + kk); if (el) el.firstChild.nodeValue = vgChronoText(ms);
   }
 }
 function vigieChronoReset() {
@@ -6194,14 +6219,19 @@ function vigieChronoReset() {
 }
 
 // ----- Saisie manuelle -----
-async function vigieManual(code) {
-  const inp = document.getElementById('vg-in-' + code); if (!inp) return;
+async function vigieManual(code, test) {
+  const inp = document.getElementById('vg-in-' + code + (test ? '-' + test : '')); if (!inp) return;
   const v = parseFloat(String(inp.value).replace(',', '.'));
   if (!(v > 0)) { vgToast('Saisis une valeur'); return; }
-  if (await vigieSave(code, v, vigie.test)) { vigieRender(true); }
+  if (await vigieSave(code, v, test || vigie.test)) { vigieRender(true); }
 }
-function vigieKey(ev, code) { if (ev.key === 'Enter') { ev.preventDefault(); vigieManual(code); } }
+function vigieKey(ev, code, test) { if (ev.key === 'Enter') { ev.preventDefault(); vigieManual(code, test); } }
 function vigieArm(code) { vigie.armed = code; vigieRender(true); }
+function vigieSetMode(m) { vgChronoStop(false); vigie.mode = m; vigie.cur = null; vigie.armed = null; vigie.lastSaved = null; vigieRender(); window.scrollTo(0, 0); }
+function vigiePick(code) { vgChronoStop(false); vigie.cur = code; vigie.lastSaved = null; vigieRender(); window.scrollTo(0, 0); }
+function vigieStep(d) { vgChronoStop(false); const L = vigie.players, i = L.findIndex(x => x.code === vigie.cur); vigie.cur = L[(i + d + L.length) % L.length].code; vigie.lastSaved = null; vigieRender(); window.scrollTo(0, 0); }
+function vigieBackGrid() { vgChronoStop(false); vigie.cur = null; vigieRender(); window.scrollTo(0, 0); }
+function vigieFilter(v) { vigie.filter = v.toLowerCase(); document.querySelectorAll('.vg-tile').forEach(e => { e.style.display = e.dataset.n.indexOf(vigie.filter) >= 0 ? '' : 'none'; }); }
 function vigieSetTest(k) { if (vigie.chrono.running) return; vigie.test = k; vigie.armed = null; vigie.chrono.elapsed = 0; vigie.lastSaved = null; vigieRender(); }
 function vigieSetDate(d) { if (!d) return; vigie.date = d; vigie.lastSaved = null; vigieRender(); }
 function vigieSetTab(t) { vigie.tab = t; vigieRender(); }
@@ -6218,7 +6248,7 @@ function vigieRender(keepScroll) {
   const head = '<div class="vg-tabs"><button class="' + (vigie.tab === 'saisie' ? 'on' : '') + '" onclick="vigieSetTab(\'saisie\')">Saisie</button><button class="' + (vigie.tab === 'resultats' ? 'on' : '') + '" onclick="vigieSetTab(\'resultats\')">Résultats</button></div>'
     + (vigie.error ? '<div class="vg-box" style="color:#ff6b6b;font-size:12px;">' + vgEsc(vigie.error) + '</div>' : '')
     + (pend ? '<div class="vg-box" style="font-size:12px;color:var(--jaune);display:flex;justify-content:space-between;align-items:center;gap:8px;"><span>' + pend + ' mesure(s) en attente de synchronisation</span><button class="vg-btn" onclick="vigieFlush(false).then(vigieRender)">Envoyer</button></div>' : '');
-  root.innerHTML = head + (vigie.tab === 'saisie' ? vigieSaisieHtml() : vigieResultsHtml());
+  root.innerHTML = head + (vigie.tab === 'saisie' ? vigieModeHtml() + (vigie.mode === 'joueur' ? vigieJoueurHtml() : vigieSaisieHtml()) : vigieResultsHtml());
   if (keepScroll) window.scrollTo(0, y);
 }
 function vigieSaisieHtml() {
@@ -6229,9 +6259,9 @@ function vigieSaisieHtml() {
   if (t.timed) {
     const arm = vigie.armed && vigie.players.find(p => p.code === vigie.armed);
     const c = vigie.chrono;
-    chrono = '<div class="vg-box vg-chrono"><div class="vg-lbl">' + vgEsc(t.label) + '</div><div class="vg-time" id="vg-time">' + vgChronoText(c.running ? performance.now() - c.t0 : c.elapsed) + '<small>s</small></div>'
+    chrono = '<div class="vg-box vg-chrono"><div class="vg-lbl">' + vgEsc(t.label) + '</div><div class="vg-time" id="vg-time-' + t.key + '">' + vgChronoText(c.running && c.test === t.key ? performance.now() - c.t0 : (c.test === t.key ? c.elapsed : 0)) + '<small>s</small></div>'
       + '<div class="vg-for">' + (arm ? 'Pour : <b>' + vgEsc(arm.name) + '</b>' : 'Touche un joueur dans la liste pour l\'armer') + '</div>'
-      + '<button class="vg-go ' + (c.running ? 'run' : '') + '" id="vg-go" onclick="vigieChronoBtn()">' + (c.running ? 'STOP' : 'DÉPART') + '</button>'
+      + '<button class="vg-go ' + (c.running ? 'run' : '') + '" id="vg-go-' + t.key + '" onclick="vigieChronoBtn(\'' + t.key + '\',' + (vigie.armed ? '\'' + vigie.armed + '\'' : 'null') + ')">' + (c.running ? 'STOP' : 'DÉPART') + '</button>'
       + '<div class="vg-sec"><button onclick="vigieChronoReset()">⟲ Remise à zéro</button><button onclick="vigieUndoLast()" ' + (vigie.lastSaved ? '' : 'disabled') + '>↶ Annuler le dernier</button></div></div>';
   }
   if (!vigie.loaded && !vigie.error) return tests + chrono + '<div class="vg-box" style="text-align:center;color:var(--gris-texte);font-size:12px;">Chargement de l\'effectif…</div>';
@@ -6269,6 +6299,38 @@ function vigieExport() {
   });
   const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'vigie-tests-' + vgToday() + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+// ----- Mode « par joueur » : on choisit le joueur, puis on déroule ses 6 tests -----
+function vigieModeHtml() {
+  return '<div class="vg-tabs" style="margin-bottom:10px;"><button class="' + (vigie.mode === 'joueur' ? 'on' : '') + '" onclick="vigieSetMode(\'joueur\')">👤 Par joueur</button><button class="' + (vigie.mode === 'test' ? 'on' : '') + '" onclick="vigieSetMode(\'test\')">📋 Par test</button></div>';
+}
+function vigieJoueurHtml() {
+  if (!vigie.loaded && !vigie.error) return '<div class="vg-box" style="text-align:center;color:var(--gris-texte);font-size:12px;">Chargement de l\'effectif…</div>';
+  if (vigie.cur) return vigieFicheHtml();
+  const dateRow = '<div class="vg-box" style="display:flex;gap:8px;align-items:center;"><span class="vg-lbl">Date</span><input type="date" class="vg-in" value="' + vigie.date + '" onchange="vigieSetDate(this.value)" style="flex:1;"></div>';
+  const search = '<input class="vg-in" type="search" placeholder="Chercher un joueur…" value="' + vgEsc(vigie.filter) + '" oninput="vigieFilter(this.value)" style="width:100%;margin-bottom:10px;">';
+  const tiles = vigie.players.map(p => {
+    const n = VIGIE_TESTS.filter(t => vgRowsFor(p.code, t.key, vigie.date).length).length;
+    const dots = VIGIE_TESTS.map(t => '<i class="' + (vgRowsFor(p.code, t.key, vigie.date).length ? 'on' : '') + '"></i>').join('');
+    return '<button class="vg-tile ' + (n === VIGIE_TESTS.length ? 'full' : n ? 'part' : '') + '" data-n="' + vgEsc(p.name.toLowerCase()) + '" onclick="vigiePick(\'' + p.code + '\')"><b>' + (p.numero != null ? p.numero : '·') + '</b><span>' + vgEsc(p.name) + '</span><div class="vg-dots">' + dots + '</div></button>';
+  }).join('');
+  const done = vigie.players.filter(p => VIGIE_TESTS.some(t => vgRowsFor(p.code, t.key, vigie.date).length)).length;
+  return dateRow + '<div class="vg-box">' + search + '<div class="vg-prog"><span>' + done + ' / ' + vigie.players.length + ' joueur(s) avec au moins un test</span></div><div class="vg-grid">' + (tiles || '<div style="color:var(--gris-texte);font-size:12px;">Aucun joueur.</div>') + '</div></div>';
+}
+function vigieFicheHtml() {
+  const p = vigie.players.find(x => x.code === vigie.cur); if (!p) { vigie.cur = null; return ''; }
+  const cards = VIGIE_TESTS.map(t => {
+    const rs = vgRowsFor(p.code, t.key, vigie.date), best = vgBest(rs, t);
+    const chips = rs.map(r => '<button class="vg-chip ' + (Number(r.value) === best ? 'best ' : '') + (String(r.id).startsWith('tmp_') ? 'pend' : '') + '" onclick="vigieDelRow(\'' + r.id + '\')" title="Toucher pour supprimer">' + vgEsc(vgFmt(r.value, t)) + '</button>').join('');
+    const c = vigie.chrono, live = c.test === t.key && c.code === p.code;
+    const add = '<div class="vg-add" style="justify-content:center;margin-top:8px;"><input class="vg-in" id="vg-in-' + p.code + '-' + t.key + '" inputmode="decimal" placeholder="' + (t.timed ? 'saisie manuelle (s)' : 'distance (m)') + '" onkeydown="vigieKey(event,\'' + p.code + '\',\'' + t.key + '\')" style="' + (t.timed ? 'width:150px;' : 'width:130px;font-size:18px;') + '"><button onclick="vigieManual(\'' + p.code + '\',\'' + t.key + '\')" aria-label="Ajouter">＋</button></div>';
+    const timer = t.timed ? '<div class="vg-time sm" id="vg-time-' + t.key + '">' + vgChronoText(live ? (c.running ? performance.now() - c.t0 : c.elapsed) : (rs.length ? Number(rs[rs.length - 1].value) * 1000 : 0)) + '<small>s</small></div><button class="vg-go ' + (live && c.running ? 'run' : '') + '" id="vg-go-' + t.key + '" onclick="vigieChronoBtn(\'' + t.key + '\',\'' + p.code + '\')">' + (live && c.running ? 'STOP' : 'DÉPART') + '</button>' : '';
+    return '<div class="vg-box vg-card ' + (rs.length ? 'ok' : '') + '"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><div class="vg-lbl" style="font-size:11px;color:var(--blanc);">' + vgEsc(t.label) + '</div>' + (best != null ? '<span style="color:var(--vert);font-weight:800;font-size:13px;">' + vgEsc(vgFmt(best, t)) + '</span>' : '') + '</div>'
+      + timer + (chips ? '<div class="vg-trials" style="margin-top:8px;justify-content:center;">' + chips + '</div>' : '') + add + '</div>';
+  }).join('');
+  return '<div class="vg-fiche-head"><button class="vg-btn" onclick="vigieBackGrid()">☰ Tous les joueurs</button><div class="vg-fname"><b>' + (p.numero != null ? p.numero + ' · ' : '') + vgEsc(p.name) + '</b><span>' + vgFmtDate(vigie.date) + '</span></div></div>' + cards
+    + '<div class="vg-nav"><button onclick="vigieStep(-1)">‹ Précédent</button><button class="next" onclick="vigieStep(1)">Joueur suivant ›</button></div>';
 }
 </script>
 </body>
