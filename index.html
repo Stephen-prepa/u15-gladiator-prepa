@@ -5762,8 +5762,8 @@ function crInterp(fa, fb, t) {
   const out = [], pos = {};
   const bmap = {}; fb.els.forEach(x => { if (x.x1 == null) bmap[x.id] = x; });
   const amap = {}; fa.els.forEach(x => { amap[x.id] = x; });
-  // chaque mouvement démarre après le précédent (léger chevauchement, comme dans le jeu)
-  const ord = crOrderInfo(fa, fb), n = Math.max(1, ord.n), dur = 1 / (1 + 0.45 * (n - 1)), st = 0.45 * dur;
+  // chaque mouvement démarre quand le précédent se termine (très léger chevauchement) ; « = Avec le précédent » les rend simultanés
+  const ord = crOrderInfo(fa, fb), n = Math.max(1, ord.n), dur = 1 / (1 + 0.85 * (n - 1)), st = 0.85 * dur;
   const ease = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
   const eOf = id => { const r = ord.ranks[id]; return r == null ? ease(t) : ease((t - r * st) / dur); };
   fa.els.forEach(a => {
@@ -5787,7 +5787,7 @@ function crTimeline(frames) {
   const segs = []; let acc = 0;
   for (let i = 0; i < frames.length; i++) {
     let m = 0, dur;
-    if (i < frames.length - 1) { m = CR_BASE_MS * (1 + 0.3 * Math.max(0, crOrderInfo(frames[i], frames[i + 1]).n - 1)); dur = m + 350; }
+    if (i < frames.length - 1) { m = CR_BASE_MS * (1 + 0.6 * Math.max(0, crOrderInfo(frames[i], frames[i + 1]).n - 1)); dur = m + 350; }
     else dur = 900;
     segs.push({ i, start: acc, dur, m }); acc += dur;
   }
