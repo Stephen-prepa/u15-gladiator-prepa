@@ -5701,7 +5701,7 @@ function crGhostSvg(els, next, ks, th) {
   els.forEach(a => {
     if (a.x1 != null) return;
     const b = nm[a.id]; if (!b) return;
-    if (Math.hypot(b.x - a.x, b.y - a.y) < 1.5) return;
+    if (Math.hypot(b.x - a.x, b.y - a.y) < 1.5 && !(Array.isArray(a.pth) && a.pth.length)) return;
     if (a.t === 'ball' && a.hold && a.hold === b.hold) return;
     const poly = crPathPoly(a, b), n = poly.length, e = poly[n - 1], q = poly[Math.max(0, n - 3)];
     const dx = e[0] - q[0], dy = e[1] - q[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, hl = 6 * ks, hw = 3.2 * ks;
@@ -5739,27 +5739,64 @@ function crSvgStatic(schema, fi, thName) {
   const th = CR_TH[thName || 'dark'], nx = s.frames[fx + 1];
   return `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${th.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, { th: thName || 'dark', sc: s.sc, next: nx ? nx.els : null })}</svg>`;
 }
+// Mouvements de l'image fa vers fb : éléments qui se déplacent (hors ballon simplement porté)
+function crMovers(fa, fb) {
+  const bm = {}; fb.els.forEach(z => { if (z.x1 == null) bm[z.id] = z; });
+  return fa.els.filter(a => {
+    if (a.x1 != null) return false;
+    const b = bm[a.id]; if (!b) return false;
+    if (a.t === 'ball' && a.hold && a.hold === b.hold) return false;
+    return Math.hypot(b.x - a.x, b.y - a.y) >= 1.5 || (Array.isArray(a.pth) && a.pth.length > 0);
+  });
+}
+// Ordre de départ des mouvements (a.q : ordre d'enregistrement ; à défaut, ordre de création des éléments)
+function crOrderInfo(fa, fb) {
+  const mv = crMovers(fa, fb), idx = {}; fa.els.forEach((z, i) => { idx[z.id] = i; });
+  const qOf = a => (a.q != null && isFinite(+a.q)) ? +a.q : 1000 + idx[a.id];
+  const qs = [...new Set(mv.map(qOf))].sort((x, y) => x - y), ranks = {};
+  mv.forEach(a => { ranks[a.id] = qs.indexOf(qOf(a)); });
+  return { mv, ranks, n: qs.length, qs, qOf };
+}
+const CR_BASE_MS = 1800;
 function crInterp(fa, fb, t) {
-  const e = t * t * (3 - 2 * t);
   const out = [], pos = {};
   const bmap = {}; fb.els.forEach(x => { if (x.x1 == null) bmap[x.id] = x; });
   const amap = {}; fa.els.forEach(x => { amap[x.id] = x; });
-  // joueurs et matériel : suivent leur trajectoire (courbe) ; le ballon ensuite
+  // chaque mouvement démarre après le précédent (léger chevauchement, comme dans le jeu)
+  const ord = crOrderInfo(fa, fb), n = Math.max(1, ord.n), dur = 1 / (1 + 0.45 * (n - 1)), st = 0.45 * dur;
+  const ease = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+  const eOf = id => { const r = ord.ranks[id]; return r == null ? ease(t) : ease((t - r * st) / dur); };
   fa.els.forEach(a => {
     if (a.x1 != null || a.t === 'ball') return;
     const b = bmap[a.id];
-    if (b) { const q = crPolyAt(crPathPoly(a, b), e); pos[a.id] = q; out.push({ ...a, x: q[0], y: q[1] }); }
+    if (b) { const q = crPolyAt(crPathPoly(a, b), eOf(a.id)); pos[a.id] = q; out.push({ ...a, x: q[0], y: q[1] }); }
     else out.push({ ...a, o: Math.max(0, 1 - t * 2) });
   });
   fa.els.forEach(a => {
     if (a.x1 != null || a.t !== 'ball') return;
     const b = bmap[a.id], ha = a.hold ? amap[a.hold] : null;
     if (b && ha && a.hold === b.hold && pos[a.hold]) out.push({ ...a, x: pos[a.hold][0] + (a.x - ha.x), y: pos[a.hold][1] + (a.y - ha.y) });
-    else if (b) { const q = crPolyAt(crPathPoly(a, b), e); out.push({ ...a, x: q[0], y: q[1] }); }
+    else if (b) { const q = crPolyAt(crPathPoly(a, b), eOf(a.id)); out.push({ ...a, x: q[0], y: q[1] }); }
     else out.push({ ...a, o: Math.max(0, 1 - t * 2) });
   });
   fb.els.forEach(b => { if (b.x1 == null && !amap[b.id]) out.push({ ...b, o: Math.max(0, t * 2 - 1) }); });
   return out;
+}
+// Chronologie de lecture : durée de chaque transition selon le nombre de mouvements successifs, courte pause à chaque image clé
+function crTimeline(frames) {
+  const segs = []; let acc = 0;
+  for (let i = 0; i < frames.length; i++) {
+    let m = 0, dur;
+    if (i < frames.length - 1) { m = CR_BASE_MS * (1 + 0.3 * Math.max(0, crOrderInfo(frames[i], frames[i + 1]).n - 1)); dur = m + 350; }
+    else dur = 900;
+    segs.push({ i, start: acc, dur, m }); acc += dur;
+  }
+  return { segs, total: acc };
+}
+function crTimeAt(tl, ms) {
+  const x = ((ms % tl.total) + tl.total) % tl.total;
+  for (const sg of tl.segs) if (x < sg.start + sg.dur) return { i: sg.i, t: sg.m ? Math.min(1, (x - sg.start) / sg.m) : 0 };
+  return { i: tl.segs.length - 1, t: 0 };
 }
 // Lecture d'animation dans un conteneur (page d'exercice)
 let crPlayRaf = null;
@@ -5768,12 +5805,11 @@ function crPlayInto(boxId, schema, speed) {
   crPlayStop();
   const s = crNormSchema(JSON.parse(JSON.stringify(schema))), box = document.getElementById(boxId);
   if (!box || s.frames.length < 2) return;
-  const c = CR_COURT[s.mode], per = 750 / (speed || 1), n = s.frames.length, t0 = performance.now();
+  const c = CR_COURT[s.mode], tl = crTimeline(s.frames), t0 = performance.now();
   const step = now => {
     if (!document.body.contains(box)) { crPlayRaf = null; return; }
-    const p = ((now - t0) / per) % n, i = Math.floor(p), t = p - i;
-    const a = s.frames[i], b = s.frames[(i + 1) % n];
-    const els = (i + 1 < n) ? crInterp(a, b, t) : a.els.filter(x => x.x1 == null);
+    const q = crTimeAt(tl, (now - t0) * (speed || 1)), i = q.i, t = q.t;
+    const els = (i + 1 < s.frames.length) ? crInterp(s.frames[i], s.frames[i + 1], t) : s.frames[i].els.filter(x => x.x1 == null);
     box.innerHTML = `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${CR_TH.dark.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, { sc: s.sc })}</svg>`;
     crPlayRaf = requestAnimationFrame(step);
   };
@@ -5947,6 +5983,8 @@ function crDCtx() {
     if (sel.t === 'att' || sel.t === 'def') h += ` N° <input type="number" inputmode="numeric" min="1" max="99" value="${crEsc(sel.n || '')}" oninput="crDSetN(this.value)" style="width:56px;">`;
     if (sel.t === 'ball') h += sel.hold ? ` <span>porté par un joueur</span> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDRelease()">Lâcher</button>` : ` <span>pose-le sur un joueur pour le lui attacher</span>`;
     if (sel.x1 == null && sel.pth && sel.pth.length) h += ` <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDStraight()">↩ Trajet droit</button>`;
+    const od = crDOrderOf(sel);
+    if (od) h += ` <span>Départ ${od.rank + 1}/${od.n}</span> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderMove(-1)" ${od.rank < 1 ? 'disabled' : ''}>◀ Plus tôt</button> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderMove(1)" ${od.rank >= od.n - 1 ? 'disabled' : ''}>Plus tard ▶</button>` + (od.rank >= 1 ? ` <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderTogether()">= Avec le précédent</button>` : '');
     h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">🗑 Supprimer</button>`;
     if (selToks.length) h += ` <span>Couleur :</span> ` + crDSwatches(sel.c);
     el.innerHTML = h; return;
@@ -6035,6 +6073,34 @@ function crDSnapBall(b, fr) {
   else delete b.hold;
 }
 function crDRelease() { const e = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!e || !e.hold) return; crDPush(); delete e.hold; crDCtx(); crDRender(); }
+// Ordre d'un nouveau mouvement : après tous ceux déjà présents dans la transition de l'image f
+function crDNextQ(f, exceptIds) {
+  const fr = crD.schema.frames; if (!fr[f + 1]) return 1;
+  const o = crOrderInfo(fr[f], fr[f + 1]); let m = 0;
+  o.mv.forEach(a => { if (!exceptIds.includes(a.id)) m = Math.max(m, o.qOf(a)); });
+  return m + 1;
+}
+// Réglage de l'ordre depuis la barre contextuelle
+function crDOrderOf(sel) {
+  const fr = crD.schema.frames, f = crD.f; if (!sel || sel.x1 != null || !fr[f + 1]) return null;
+  const o = crOrderInfo(fr[f], fr[f + 1]); const r = o.ranks[sel.id];
+  return r == null ? null : { rank: r, n: o.n, o };
+}
+function crDOrderMove(dir) {
+  const sel = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null, od = crDOrderOf(sel); if (!od) return;
+  const nr = od.rank + dir; if (nr < 0 || nr >= od.n) return;
+  crDPush();
+  od.o.mv.forEach(a => { a.q = od.o.ranks[a.id] * 10; });
+  sel.q = nr * 10 + (dir > 0 ? 5 : -5);
+  crDCtx(); crDRender();
+}
+function crDOrderTogether() {
+  const sel = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null, od = crDOrderOf(sel); if (!od || od.rank < 1) return;
+  crDPush();
+  od.o.mv.forEach(a => { a.q = od.o.ranks[a.id] * 10; });
+  sel.q = (od.rank - 1) * 10;
+  crDCtx(); crDRender();
+}
 function crDStraight() { const e = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!e || !e.pth) return; crDPush(); delete e.pth; crDCtx(); crDRender(); }
 
 // ----- Trajectoires -----
@@ -6048,7 +6114,7 @@ function crDApplyTraj(d) {
   const fr = crD.schema.frames, f = crD.f;
   if (f === fr.length - 1 && fr.length >= CR_MAX_FRAMES) { crDCtx(); crDRender(); return; }
   crDPush();
-  if (f === fr.length - 1) fr.push({ els: JSON.parse(JSON.stringify(fr[f].els.filter(z => z.x1 == null))) });
+  if (f === fr.length - 1) { fr.push({ els: JSON.parse(JSON.stringify(fr[f].els.filter(z => z.x1 == null))) }); fr[f + 1].els.forEach(z => { delete z.pth; delete z.q; }); }
   const nf = fr[f + 1], tok = crDEl(d.id), end = tr[tr.length - 1];
   if (!tok) { crDRefresh(); return; }
   let ntok = nf.els.find(z => z.id === d.id);
@@ -6056,6 +6122,7 @@ function crDApplyTraj(d) {
   ntok.x = Math.round(end.x * 10) / 10; ntok.y = Math.round(end.y * 10) / 10;
   const mid = crSimplifyMid(tr);
   if (mid.length) tok.pth = mid; else delete tok.pth;
+  tok.q = crDNextQ(f, [tok.id]);
   if (ntok.t === 'ball') crDSnapBall(ntok, nf); else crDSyncHeld(nf, ntok.id);
   crDRefresh();
 }
@@ -6063,9 +6130,11 @@ function crDApplyTraj(d) {
 function crDStoreTrace(d) {
   const prev = crD.schema.frames[crD.f - 1], cur = crDFrame(); if (!prev || !d.trace) return;
   const ids = d.kind === 'group' ? d.ids : [d.id];
+  const gq = crDNextQ(crD.f - 1, ids);
   ids.forEach(id => {
     const a = prev.els.find(z => z.id === id), b = cur.els.find(z => z.id === id);
     if (!a || !b || a.x1 != null) return;
+    a.q = gq;
     if (a.t === 'ball' && a.hold && b.hold === a.hold) return;
     let pts = d.kind === 'group' ? d.trace.map(q => crDClampPt({ x: q.x - d.p0.x + a.x, y: q.y - d.p0.y + a.y })) : d.trace.map(q => ({ x: q.x, y: q.y }));
     pts[0] = { x: a.x, y: a.y }; pts[pts.length - 1] = { x: b.x, y: b.y };
@@ -6120,7 +6189,7 @@ function crDFramesBar() {
       <button type="button" class="cr-d-fb" onclick="crDAddFrame()" ${play || n >= CR_MAX_FRAMES ? 'disabled' : ''}>＋ Image</button>
       <button type="button" class="cr-d-fb" onclick="crDDelFrame()" ${play || n < 2 ? 'disabled' : ''}>🗑</button>
       <button type="button" class="cr-d-fb ${play ? 'on' : ''}" onclick="crDPlay()" ${n < 2 ? 'disabled' : ''}>${play ? '⏸ Stop' : '▶ Lecture'}</button>
-      <select class="cr-d-fb" onchange="crD.speed=parseFloat(this.value)"><option value="0.5" ${crD.speed === 0.5 ? 'selected' : ''}>×0,5</option><option value="1" ${crD.speed === 1 ? 'selected' : ''}>×1</option><option value="2" ${crD.speed === 2 ? 'selected' : ''}>×2</option><option value="4" ${crD.speed === 4 ? 'selected' : ''}>×4</option></select>
+      <select class="cr-d-fb" onchange="crD.speed=parseFloat(this.value)">${[[0.5, '×0,5'], [0.75, '×0,75'], [1, '×1'], [1.5, '×1,5'], [2, '×2']].map(([v, l]) => `<option value="${v}" ${crD.speed === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <button type="button" class="cr-d-fb ${crD.rec ? 'rec' : ''}" onclick="crDRec()" ${play ? 'disabled' : ''}>${crD.rec ? '● Enreg. auto : OUI' : '○ Enreg. auto'}</button>
     </div>
     <div class="cr-d-strip" id="cr-d-strip">${s.frames.map((f, i) => `<button type="button" class="${i === crD.f ? 'on' : ''}" onclick="crDGo(${i})">${i + 1}</button>`).join('')}</div>`;
@@ -6133,26 +6202,29 @@ function crDAddFrame(noPush) {
   if (crD.schema.frames.length >= CR_MAX_FRAMES) return false;
   if (!noPush) crDPush();
   const copy = { els: JSON.parse(JSON.stringify(crDFrame().els.filter(e => e.x1 == null))) };
+  crDFrame().els.forEach(e => { delete e.pth; delete e.q; }); // la transition vers l'image suivante passe à la copie
   crD.schema.frames.splice(crD.f + 1, 0, copy); crD.f++;
   if (!noPush) crDRefresh();
   return true;
 }
 function crDDelFrame() {
   if (crD.schema.frames.length < 2) return;
-  crDPush(); crD.schema.frames.splice(crD.f, 1); crD.f = Math.min(crD.f, crD.schema.frames.length - 1); crD.sels = []; crDRefresh();
+  crDPush(); crD.schema.frames.splice(crD.f, 1); crD.f = Math.min(crD.f, crD.schema.frames.length - 1);
+  const pv = crD.schema.frames[crD.f - 1]; if (pv) pv.els.forEach(e => { delete e.pth; delete e.q; });
+  crD.sels = []; crDRefresh();
 }
 function crDPlay() {
   if (crD.playing) { crDStop(); return; }
   const n = crD.schema.frames.length; if (n < 2) return;
   crD.playing = true; crD.sels = []; crD.pending = null;
-  const t0 = performance.now(), start = crD.f;
+  const t0 = performance.now(), start = crD.f, tl = crTimeline(crD.schema.frames), off = tl.segs[start].start;
   crDFramesBar(); crDCtx();
   const step = now => {
     if (!crD || !crD.playing) return;
-    const per = 750 / crD.speed, p = (start + (now - t0) / per) % n, i = Math.floor(p), t = p - i;
-    const a = crD.schema.frames[i], b = crD.schema.frames[(i + 1) % n];
+    const q = crTimeAt(tl, off + (now - t0) * crD.speed), i = q.i, t = q.t;
+    const a = crD.schema.frames[i], b = crD.schema.frames[i + 1];
     crDRender(i + 1 < n ? crInterp(a, b, t) : a.els.filter(x => x.x1 == null));
-    const sl = document.getElementById('cr-d-scrub'); if (sl) sl.value = String(Math.round(Math.min(p, n - 1) * 100));
+    const sl = document.getElementById('cr-d-scrub'); if (sl) sl.value = String(Math.round((i + t) * 100));
     crDRaf = requestAnimationFrame(step);
   };
   crDRaf = requestAnimationFrame(step);
@@ -6404,15 +6476,15 @@ async function crBuildMedia(x) {
     }
     return idx;
   };
-  const steps = Math.max(2, Math.min(10, Math.floor(120 / (n - 1))));
+  const steps = Math.max(3, Math.min(14, Math.floor(150 / (n - 1))));
   const frames = [];
   for (let i = 0; i < n; i++) {
     await draw(schema.frames[i].els, true, (i + 1) + '/' + n);
-    frames.push({ idx: grab(), delay: i === n - 1 ? 90 : 45 });
+    frames.push({ idx: grab(), delay: i === n - 1 ? 90 : 40 });
     if (i < n - 1) {
       for (let s = 1; s <= steps; s++) {
         await draw(crInterp(schema.frames[i], schema.frames[i + 1], s / (steps + 1)), false, '');
-        frames.push({ idx: grab(), delay: 6 });
+        frames.push({ idx: grab(), delay: 7 });
       }
     }
   }
