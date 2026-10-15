@@ -6003,7 +6003,7 @@ function crDCtx() {
     if (sel.t === 'att' || sel.t === 'def') h += ` N° <input type="number" inputmode="numeric" min="1" max="99" value="${crEsc(sel.n || '')}" oninput="crDSetN(this.value)" style="width:56px;">`;
     if (sel.t === 'ball') h += sel.hold ? ` <span>porté par un joueur</span> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDRelease()">Lâcher</button>` : ` <span>pose-le sur un joueur pour le lui attacher</span>`;
     if (sel.x1 == null && sel.pth && sel.pth.length) h += ` <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDStraight()">↩ Trajet droit</button>`;
-    const od = crDOrderOf(sel);
+    const od = crDOrderOf(crDOrderTarget());
     if (od) h += ` <span>Départ ${od.rank + 1}/${od.n}</span> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderMove(-1)" ${od.rank < 1 ? 'disabled' : ''}>◀ Plus tôt</button> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderMove(1)" ${od.rank >= od.n - 1 ? 'disabled' : ''}>Plus tard ▶</button>` + (od.rank >= 1 ? ` <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderTogether()">= Avec le précédent</button>` : '');
     if (od && sel.t !== 'ball' && crDFrame().els.some(b => b.t === 'ball' && b.hold === sel.id)) h += ` <button type="button" class="cr-d-opt ${sel.dr ? 'on' : ''}" onclick="crDToggleDrb()">⚽ Dribble : ${sel.dr ? 'OUI' : 'NON'}</button>`;
     h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">🗑 Supprimer</button>`;
@@ -6151,13 +6151,19 @@ function crDNextQ(f, exceptIds) {
   return m + 1;
 }
 // Réglage de l'ordre depuis la barre contextuelle
+// Cible du réglage d'ordre : l'élément sélectionné, ou l'élément animé par la flèche sélectionnée (passe, dribble…)
+function crDOrderTarget() {
+  const sel = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!sel) return null;
+  if (sel.x1 != null) { const id = Array.isArray(sel.lnk) && sel.lnk[0]; return id ? (crDEl(id) || null) : null; }
+  return sel;
+}
 function crDOrderOf(sel) {
   const fr = crD.schema.frames, f = crD.f; if (!sel || sel.x1 != null || !fr[f + 1]) return null;
   const o = crOrderInfo(fr[f], fr[f + 1]); const r = o.ranks[sel.id];
   return r == null ? null : { rank: r, n: o.n, o };
 }
 function crDOrderMove(dir) {
-  const sel = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null, od = crDOrderOf(sel); if (!od) return;
+  const sel = crDOrderTarget(), od = crDOrderOf(sel); if (!od) return;
   const nr = od.rank + dir; if (nr < 0 || nr >= od.n) return;
   crDPush();
   od.o.mv.forEach(a => { a.q = od.o.ranks[a.id] * 10; });
@@ -6165,7 +6171,7 @@ function crDOrderMove(dir) {
   crDCtx(); crDRender();
 }
 function crDOrderTogether() {
-  const sel = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null, od = crDOrderOf(sel); if (!od || od.rank < 1) return;
+  const sel = crDOrderTarget(), od = crDOrderOf(sel); if (!od || od.rank < 1) return;
   crDPush();
   od.o.mv.forEach(a => { a.q = od.o.ranks[a.id] * 10; });
   sel.q = (od.rank - 1) * 10;
