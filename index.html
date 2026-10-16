@@ -499,6 +499,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 .cr-d-sw.def{background:var(--gris-fonce);color:var(--gris-clair);font-size:11px;font-weight:800;width:auto;border-radius:13px;padding:0 8px;}
 .cr-d-ctx input{border:1px solid var(--gris-moyen);background:var(--gris-fonce);color:var(--blanc);border-radius:8px;padding:6px;font-size:15px;text-align:center;}
 .cr-d-opt{border:1px solid rgba(255,255,255,0.25);background:transparent;color:var(--gris-clair);border-radius:8px;padding:7px 10px;font-weight:700;cursor:pointer;font-family:inherit;}
+.cr-d-mv .cr-d-opt{padding:5px 8px;font-size:12px;}
 .cr-d-opt.on{border-color:var(--jaune);color:var(--jaune);background:rgba(245,196,0,0.12);}
 .cr-d-del{border:1px solid rgba(232,84,58,0.6);background:transparent;color:var(--rouge-light);border-radius:8px;padding:7px 10px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cr-d-canvas{position:relative;flex:1;min-height:0;background:var(--noir);border-top:1px solid var(--gris-moyen);border-bottom:1px solid var(--gris-moyen);touch-action:none;user-select:none;-webkit-user-select:none;}
@@ -6051,16 +6052,14 @@ function crDCtx() {
     let h = `<b>${{ att: 'Attaquant', def: 'Défenseur', gb: 'Gardien', ball: 'Ballon', cone: 'Plot', coupelle: 'Coupelle', jalon: 'Jalon', cerceau: 'Cerceau', haie: 'Haie', minibut: 'Mini-but', mv: 'Déplacement', pass: 'Passe', dribble: 'Dribble', shot: 'Tir', screen: 'Écran / bloc' }[sel.t] || ''}</b>`;
     if (sel.t === 'att' || sel.t === 'def') h += ` N° <input type="number" inputmode="numeric" min="1" max="99" value="${crEsc(sel.n || '')}" oninput="crDSetN(this.value)" style="width:56px;">`;
     if (sel.t === 'ball') h += sel.hold ? ` <span>porté par un joueur</span> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDRelease()">Lâcher</button>` : ` <span>pose-le sur un joueur pour le lui attacher</span>`;
-    if (sel.x1 == null && sel.pth && sel.pth.length) h += ` <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDStraight()">↩ Trajet droit</button>`;
-    const od = crDOrderOf(crDOrderTarget());
-    if (od) h += ` <span>Départ ${od.rank + 1}/${od.n}</span> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderMove(-1)" ${od.rank < 1 ? 'disabled' : ''}>◀ Plus tôt</button> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderMove(1)" ${od.rank >= od.n - 1 ? 'disabled' : ''}>Plus tard ▶</button>` + (od.rank >= 1 ? ` <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderTogether()">= Avec le précédent</button>` : '');
     const lg = crDLegOf(sel);
     if (lg) {
       const fv = lg.leg.f == null ? 1 : lg.leg.f;
       h += lg.mover ? ` <span>Passe part à :</span> ` + [[0, 'Début'], [0.33, '⅓'], [0.5, '½'], [0.67, '⅔'], [1, 'Fin']].map(([v, l]) => `<button type="button" class="cr-d-opt ${Math.abs(fv - v) < 0.02 ? 'on' : ''}" onclick="crDLegF(${v})">${l}</button>`).join(' ') + (lg.late != null ? ` <span style="font-size:11px;">Le ballon n'arrive qu'à ${Math.min(100, lg.late)} % de sa course : il part dès réception. Pour partir plus tôt, avance la passe précédente.</span>` : '') : ` <span style="font-size:11px;">La passe part dès que le porteur a le ballon.</span>`;
     }
-    if (od && sel.t !== 'ball' && crDFrame().els.some(b => b.t === 'ball' && b.hold === sel.id)) h += ` <button type="button" class="cr-d-opt ${sel.dr ? 'on' : ''}" onclick="crDToggleDrb()">⚽ Dribble : ${sel.dr ? 'OUI' : 'NON'}</button>`;
-    h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">🗑 Supprimer</button>`;
+    if (!(sel.x1 != null && (sel.t === 'pass' || sel.t === 'shot'))) h += crDMovePanel(sel);
+    const delLbl = sel.x1 != null ? (sel.t === 'pass' || sel.t === 'shot' ? '🗑 Supprimer la passe' : '🗑 Supprimer la flèche et son déplacement') : '🗑 Supprimer le joueur';
+    h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">${sel.x1 == null && !CR_PLAYERS.includes(sel.t) ? '🗑 Supprimer' : delLbl}</button>`;
     if (selToks.length) h += ` <span>Couleur :</span> ` + crDSwatches(sel.c);
     el.innerHTML = h; return;
   }
@@ -6143,6 +6142,50 @@ function crDFlash(msg) { crD.flash = msg; clearTimeout(crDFlashT); crDFlashT = s
 function crDAnimOn() { return crD.anim != null ? crD.anim : (crD.schema.frames.length >= 2 || crD.rec); }
 function crDToggleAnim() { crD.anim = !crDAnimOn(); crDCtx(); }
 function crDToggleDr(v) { crD.dr = v; crDCtx(); }
+const CR_PLAYERS = ['att', 'def', 'gb'];
+// Panneau « déplacement » d'un joueur (ou de la flèche qui le fait bouger) : tout ce qui concerne sa course vers l'image suivante, au même endroit
+function crDMovePanel(sel) {
+  const tok = crDOrderTarget(); if (!tok || tok.x1 != null) return '';
+  const fr = crD.schema.frames, f = crD.f, nx = fr[f + 1];
+  const row = inner => `<div class="cr-d-mv" style="width:100%;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.12);padding-top:5px;">${inner}</div>`;
+  const sm = t => `<span style="font-size:11px;">${t}</span>`;
+  const bt = (cls, fn, label, dis) => `<button type="button" class="${cls}" onclick="${fn}" ${dis ? 'disabled' : ''}>${label}</button>`;
+  const od = nx ? crDOrderOf(tok) : null;
+  if (!od) {
+    if (tok.t === 'ball' || !CR_PLAYERS.includes(tok.t)) return '';
+    if (!nx) return row(sm('Aucun déplacement. Pour le faire bouger : outil <b>Trajet</b> ou <b>Déplacement</b>, puis trace son parcours.'));
+    return row(sm(`Image ${f + 1} → ${f + 2} : <b>reste en place</b>. Pour le faire bouger : outil <b>Trajet</b> ou <b>Déplacement</b>.`));
+  }
+  const hasBall = fr[f].els.some(b => b.t === 'ball' && b.hold === tok.id);
+  const nth = k => k === 1 ? '1er' : k + 'ᵉ';
+  let h = `<b>Son déplacement</b> ${sm('(image ' + (f + 1) + ' → ' + (f + 2) + ')')}`;
+  const sh = od.o.mv.filter(a => od.o.ranks[a.id] === od.rank).length - 1;
+  if (od.n > 1 || sh > 0) h += `<div style="width:100%;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${sm('Part en <b>' + nth(od.rank + 1) + '</b> sur ' + od.n + (sh > 0 ? ' <b>(en même temps que ' + sh + ' autre' + (sh > 1 ? 's' : '') + ')</b>' : '') + ' :')} ` + bt('cr-d-opt', 'crDOrderMove(-1)', '◀ Plus tôt', od.rank < 1 && sh < 1) + bt('cr-d-opt', 'crDOrderMove(1)', 'Plus tard ▶', od.rank >= od.n - 1 && sh < 1) + (od.rank >= 1 ? bt('cr-d-opt', 'crDOrderTogether()', '⇉ Avec le précédent') : '') + `</div>`;
+  else h += ` ${sm('· seul à bouger')}`;
+  h += `<div style="width:100%;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">`;
+  if (hasBall) h += sm('Ballon :') + ' ' + bt('cr-d-opt ' + (tok.dr ? '' : 'on'), 'crDSetDrb(false)', '🏃 Course') + bt('cr-d-opt ' + (tok.dr ? 'on' : ''), 'crDSetDrb(true)', '⚽ Dribble');
+  if (tok.pth && tok.pth.length) h += bt('cr-d-opt', 'crDStraight()', '↩ Trajet droit');
+  h += bt('cr-d-opt', 'crDCancelMove()', '✕ Annuler le déplacement') + `</div>`;
+  return row(h);
+}
+// Dribble ou course : met à jour le joueur ET le type des flèches qui le font bouger (trait ondulé ou droit)
+function crDSetDrb(on) {
+  const tok = crDOrderTarget(); if (!tok || tok.x1 != null) return;
+  crDPush(); if (on) tok.dr = 1; else delete tok.dr;
+  crDFrame().els.forEach(a => { if (a.x1 != null && Array.isArray(a.lnk) && a.lnk.includes(tok.id) && (a.t === 'mv' || a.t === 'dribble')) a.t = on ? 'dribble' : 'mv'; });
+  crDCtx(); crDRender();
+}
+// Annule le déplacement d'un joueur vers l'image suivante : il reste à sa place, les flèches qui le faisaient bouger disparaissent
+function crDCancelMoveOf(tok) {
+  const nx = crD.schema.frames[crD.f + 1], nz = nx && nx.els.find(z => z.id === tok.id);
+  if (nz) { nz.x = tok.x; nz.y = tok.y; crDSyncHeld(nx, tok.id); }
+  delete tok.pth; delete tok.q; delete tok.dr;
+  crDFrame().els = crDFrame().els.filter(a => !(a.x1 != null && Array.isArray(a.lnk) && a.lnk.includes(tok.id) && a.t !== 'pass' && a.t !== 'shot'));
+}
+function crDCancelMove() {
+  const tok = crDOrderTarget(); if (!tok || tok.x1 != null) return;
+  crDPush(); crDCancelMoveOf(tok); crD.sels = [tok.id]; crDRefresh();
+}
 function crDToggleDrb() {
   const sel = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!sel) return;
   crDPush(); if (sel.dr) delete sel.dr; else sel.dr = 1; crDCtx(); crDRender();
@@ -6246,7 +6289,7 @@ function crDOrderOf(sel) {
 }
 function crDOrderMove(dir) {
   const sel = crDOrderTarget(), od = crDOrderOf(sel); if (!od) return;
-  const nr = od.rank + dir; if (nr < 0 || nr >= od.n) return;
+  const sh = od.o.mv.filter(a => od.o.ranks[a.id] === od.rank).length > 1, nr = od.rank + dir; if (!sh && (nr < 0 || nr >= od.n)) return;
   crDPush();
   od.o.mv.forEach(a => { a.q = od.o.ranks[a.id] * 10; });
   sel.q = nr * 10 + (dir > 0 ? 5 : -5);
@@ -6367,7 +6410,12 @@ function crDDelSel() {
   crDPush();
   ids.forEach(id => {
     const e = crDEl(id); if (!e) return;
-    if (e.x1 != null) { crDUnlinkLeg(e); crDFrame().els = crDFrame().els.filter(x => x.id !== id); }
+    if (e.x1 != null) {
+      crDUnlinkLeg(e);
+      const lt = (e.t !== 'pass' && e.t !== 'shot' && Array.isArray(e.lnk)) ? crDEl(e.lnk[0]) : null;
+      if (lt && lt.x1 == null) crDCancelMoveOf(lt);
+      crDFrame().els = crDFrame().els.filter(x => x.id !== id);
+    }
     else for (let i = crD.f; i < crD.schema.frames.length; i++) crD.schema.frames[i].els = crD.schema.frames[i].els.filter(x => x.id !== id);
   });
   crD.sels = []; crDRefresh();
