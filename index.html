@@ -5862,6 +5862,8 @@ function crTimeline(frames) {
   }
   return { segs, total: acc };
 }
+// Fin d'une lecture unique : on s'arrête un instant sur la dernière image
+function crTimeEnd(tl) { const l = tl.segs[tl.segs.length - 1]; return l.start + 500; }
 function crTimeAt(tl, ms) {
   const x = ((ms % tl.total) + tl.total) % tl.total;
   for (const sg of tl.segs) if (x < sg.start + sg.dur) return { i: sg.i, t: sg.m ? Math.min(1, (x - sg.start) / sg.m) : 0 };
@@ -5877,9 +5879,11 @@ function crPlayInto(boxId, schema, speed) {
   const c = CR_COURT[s.mode], tl = crTimeline(s.frames), t0 = performance.now();
   const step = now => {
     if (!document.body.contains(box)) { crPlayRaf = null; return; }
-    const q = crTimeAt(tl, (now - t0) * (speed || 1)), i = q.i, t = q.t;
+    const ms = (now - t0) * (speed || 1), done = ms >= crTimeEnd(tl);
+    const q = crTimeAt(tl, done ? tl.segs[tl.segs.length - 1].start : ms), i = q.i, t = q.t;
     const els = (i + 1 < s.frames.length) ? crInterp(s.frames[i], s.frames[i + 1], t) : s.frames[i].els.filter(x => x.x1 == null);
     box.innerHTML = `<svg viewBox="${c.vb.join(' ')}" style="width:100%;display:block;background:${CR_TH.dark.svgBg};border-radius:10px;">${crElsSvg(s.mode, els, { sc: s.sc })}</svg>`;
+    if (done) { crPlayRaf = null; const bt = document.getElementById('cr-ex-play'); if (bt) bt.textContent = '↺ Rejouer'; return; }
     crPlayRaf = requestAnimationFrame(step);
   };
   crPlayRaf = requestAnimationFrame(step);
@@ -6456,11 +6460,13 @@ function crDPlay() {
   if (crD.playing) { crDStop(); return; }
   const n = crD.schema.frames.length; if (n < 2) return;
   crD.playing = true; crD.sels = []; crD.pending = null;
-  const t0 = performance.now(), start = crD.f, tl = crTimeline(crD.schema.frames), off = tl.segs[start].start;
+  const t0 = performance.now(), start = crD.f >= n - 1 ? 0 : crD.f, tl = crTimeline(crD.schema.frames), off = tl.segs[start].start;
   crDFramesBar(); crDCtx();
   const step = now => {
     if (!crD || !crD.playing) return;
-    const q = crTimeAt(tl, off + (now - t0) * crD.speed), i = q.i, t = q.t;
+    const ms = off + (now - t0) * crD.speed;
+    if (ms >= crTimeEnd(tl)) { crDRaf = null; crD.playing = false; crD.f = n - 1; crD.sels = []; crDRefresh(); return; }
+    const q = crTimeAt(tl, ms), i = q.i, t = q.t;
     const a = crD.schema.frames[i], b = crD.schema.frames[i + 1];
     crDRender(i + 1 < n ? crInterp(a, b, t) : a.els.filter(x => x.x1 == null));
     const sl = document.getElementById('cr-d-scrub'); if (sl) sl.value = String(Math.round((i + t) * 100));
@@ -6693,7 +6699,7 @@ function crGifEncode(frames, W, H, pal) {
   'GIF89a'.split('').forEach(ch => b.push(ch.charCodeAt(0)));
   w16(W); w16(H); b.push(0xF7, 0, 0);
   pal.forEach(c => b.push(c[0], c[1], c[2]));
-  b.push(0x21, 0xFF, 0x0B); 'NETSCAPE2.0'.split('').forEach(ch => b.push(ch.charCodeAt(0))); b.push(3, 1, 0, 0, 0);
+  // pas d'extension de boucle : le GIF se joue une fois et reste sur la dernière image
   frames.forEach(f => {
     b.push(0x21, 0xF9, 4, 0x04); w16(f.delay); b.push(0, 0);
     b.push(0x2C); w16(0); w16(0); w16(W); w16(H); b.push(0, 8);
@@ -6745,7 +6751,7 @@ async function crBuildMedia(x) {
   const frames = [];
   for (let i = 0; i < n; i++) {
     await draw(schema.frames[i].els, true, (i + 1) + '/' + n);
-    frames.push({ idx: grab(), delay: i === n - 1 ? 90 : 40 });
+    frames.push({ idx: grab(), delay: i === n - 1 ? 200 : 40 });
     if (i < n - 1) {
       for (let s = 1; s <= steps; s++) {
         await draw(crInterp(schema.frames[i], schema.frames[i + 1], s / (steps + 1)), false, '');
