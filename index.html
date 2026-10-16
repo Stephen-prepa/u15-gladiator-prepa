@@ -5750,6 +5750,7 @@ function crMovers(fa, fb) {
   return fa.els.filter(a => {
     if (a.x1 != null) return false;
     const b = bm[a.id]; if (!b) return false;
+    if (a.t === 'ball' && Array.isArray(a.legs) && a.legs.length) return false;
     if (a.t === 'ball' && a.hold && a.hold === b.hold) return false;
     return Math.hypot(b.x - a.x, b.y - a.y) >= 1.5 || (Array.isArray(a.pth) && a.pth.length > 0);
   });
@@ -5763,43 +5764,87 @@ function crOrderInfo(fa, fb) {
   return { mv, ranks, n: qs.length, qs, qOf };
 }
 const CR_BASE_MS = 1800;
+// Plan d'une transition : fenêtres des mouvements + passes enchaînées du ballon (a.legs : [{h:receveur|null, x, y, f:fraction de la course du passeur où part la passe}])
+function crTrans(fa, fb) {
+  const ord = crOrderInfo(fa, fb), n = Math.max(1, ord.n), dur = 1 / (1 + 0.85 * (n - 1)), st = 0.85 * dur;
+  const df = Math.max(0.1, 0.4 * dur);
+  const win = id => { const r = ord.ranks[id]; return r == null ? null : [r * st, r * st + dur]; };
+  const plans = {}; let T = 1;
+  fa.els.forEach(a => {
+    if (a.x1 != null || a.t !== 'ball' || !Array.isArray(a.legs) || !a.legs.length) return;
+    let prev = 0, holder = a.hold || null; const legs = [];
+    a.legs.forEach(L => {
+      const f = L.f == null ? 1 : L.f, wp = holder ? win(holder) : null, wr = L.h ? win(L.h) : null;
+      let ts;
+      if (wp) ts = wp[0] + f * (wp[1] - wp[0]);
+      else if (wr) ts = wr[0] + 0.7 * (wr[1] - wr[0]) - df;
+      else ts = prev;
+      ts = Math.max(ts, prev, 0);
+      const te = ts + df;
+      legs.push({ ...L, from: holder, ts, te }); prev = te; holder = L.h || null; T = Math.max(T, te);
+    });
+    plans[a.id] = legs;
+  });
+  return { ord, n, dur, st, plans, T };
+}
 function crInterp(fa, fb, t) {
   const out = [], pos = {}, paths = {};
   const bmap = {}; fb.els.forEach(x => { if (x.x1 == null) bmap[x.id] = x; });
   const amap = {}; fa.els.forEach(x => { amap[x.id] = x; });
   // chaque mouvement démarre quand le précédent se termine (très léger chevauchement) ; « = Avec le précédent » les rend simultanés
-  const ord = crOrderInfo(fa, fb), n = Math.max(1, ord.n), dur = 1 / (1 + 0.85 * (n - 1)), st = 0.85 * dur;
+  // tt : temps interne (0 → T) ; T dépasse 1 quand des passes enchaînées se terminent après le dernier mouvement
+  const tr = crTrans(fa, fb), ord = tr.ord, dur = tr.dur, st = tr.st, tt = Math.max(0, Math.min(1, t)) * tr.T;
   const ease = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
-  const eLoc = (id, tt) => { const r = ord.ranks[id]; return r == null ? ease(tt) : ease((tt - r * st) / dur); };
+  const eLoc = (id, u) => { const r = ord.ranks[id]; return r == null ? ease(u) : ease((u - r * st) / dur); };
   fa.els.forEach(a => {
     if (a.x1 != null || a.t === 'ball') return;
     const b = bmap[a.id];
     if (b) {
       const poly = crPathPoly(a, b); let L = 0; for (let i = 1; i < poly.length; i++) L += Math.hypot(poly[i][0] - poly[i - 1][0], poly[i][1] - poly[i - 1][1]);
       poly.len = L; paths[a.id] = poly;
-      const q = crPolyAt(poly, eLoc(a.id, t)); pos[a.id] = q; out.push({ ...a, x: q[0], y: q[1] });
+      const q = crPolyAt(poly, eLoc(a.id, tt)); pos[a.id] = q; out.push({ ...a, x: q[0], y: q[1] });
     } else out.push({ ...a, o: Math.max(0, 1 - t * 2) });
   });
-  const posOf = (id, tt) => crPolyAt(paths[id], eLoc(id, tt));
+  const posOf = (id, u) => crPolyAt(paths[id], eLoc(id, u));
   // rebonds du ballon pendant un dribble (un rebond environ tous les 14 unités parcourues)
-  const bounce = (ha, id, tt) => { const el = eLoc(id, tt); return (ha.dr && paths[id].len > 0 && el > 0 && el < 1) ? Math.abs(Math.sin(Math.PI * paths[id].len * el / 14)) * 4.5 : 0; };
+  const bounce = (ha, id, u) => { const el = eLoc(id, u); return (ha.dr && paths[id] && paths[id].len > 0 && el > 0 && el < 1) ? Math.abs(Math.sin(Math.PI * paths[id].len * el / 14)) * 4.5 : 0; };
   fa.els.forEach(a => {
     if (a.x1 != null || a.t !== 'ball') return;
     const b = bmap[a.id], ha = a.hold ? amap[a.hold] : null;
+    const plan = b ? tr.plans[a.id] : null;
+    if (plan) {
+      // passes enchaînées : porté par le porteur, vol vers le receveur (qui peut être en pleine course), porté par lui, vol vers le suivant…
+      const o0 = ha ? [a.x - ha.x, a.y - ha.y] : [0, 0], hb = b.hold ? bmap[b.hold] : null, oF = hb ? [b.x - hb.x, b.y - hb.y] : o0;
+      const carried = (id, u) => {
+        const h = amap[id]; if (!h) return [a.x, a.y];
+        const o = id === b.hold ? oF : o0, q = paths[id] ? posOf(id, u) : [h.x, h.y];
+        return [q[0] + o[0], q[1] + o[1] - bounce(h, id, u)];
+      };
+      let p = null;
+      if (tt <= plan[0].ts) p = carried(a.hold, tt);
+      else for (let i = 0; i < plan.length && !p; i++) {
+        const L = plan[i], nx = plan[i + 1] ? plan[i + 1].ts : Infinity;
+        if (tt < L.te) {
+          const s0 = carried(L.from, L.ts), e0 = L.h ? carried(L.h, L.te) : [L.x, L.y], u = (tt - L.ts) / (L.te - L.ts);
+          p = [s0[0] + (e0[0] - s0[0]) * u, s0[1] + (e0[1] - s0[1]) * u];
+        } else if (tt < nx) p = L.h ? carried(L.h, tt) : [L.x, L.y];
+      }
+      out.push({ ...a, x: p[0], y: p[1] }); return;
+    }
     if (b && ha && paths[a.hold]) {
       const dx = a.x - ha.x, dy = a.y - ha.y;
       if (a.hold === b.hold) {
         // ballon porté (et dribblé si le joueur est en dribble : rebonds réguliers pendant la course)
         const q = pos[a.hold];
-        out.push({ ...a, x: q[0] + dx, y: q[1] + dy - bounce(ha, a.hold, t) }); return;
+        out.push({ ...a, x: q[0] + dx, y: q[1] + dy - bounce(ha, a.hold, tt) }); return;
       }
       // passe ou tir : porté par le passeur jusqu'au départ, puis vol en ligne droite vers la destination
       const r = ord.ranks[a.id], ts = r == null ? 0 : r * st;
-      if (t <= ts) { const q = posOf(a.hold, t); out.push({ ...a, x: q[0] + dx, y: q[1] + dy - bounce(ha, a.hold, t) }); return; }
-      const s0 = posOf(a.hold, ts), x0 = s0[0] + dx, y0 = s0[1] + dy - bounce(ha, a.hold, ts), u = ease((t - ts) / dur);
+      if (tt <= ts) { const q = posOf(a.hold, tt); out.push({ ...a, x: q[0] + dx, y: q[1] + dy - bounce(ha, a.hold, tt) }); return; }
+      const s0 = posOf(a.hold, ts), x0 = s0[0] + dx, y0 = s0[1] + dy - bounce(ha, a.hold, ts), u = ease((tt - ts) / dur);
       out.push({ ...a, x: x0 + (b.x - x0) * u, y: y0 + (b.y - y0) * u }); return;
     }
-    if (b) { const q = crPolyAt(crPathPoly(a, b), eLoc(a.id, t)); out.push({ ...a, x: q[0], y: q[1] }); }
+    if (b) { const q = crPolyAt(crPathPoly(a, b), eLoc(a.id, tt)); out.push({ ...a, x: q[0], y: q[1] }); }
     else out.push({ ...a, o: Math.max(0, 1 - t * 2) });
   });
   fb.els.forEach(b => { if (b.x1 == null && !amap[b.id]) out.push({ ...b, o: Math.max(0, t * 2 - 1) }); });
@@ -5810,7 +5855,7 @@ function crTimeline(frames) {
   const segs = []; let acc = 0;
   for (let i = 0; i < frames.length; i++) {
     let m = 0, dur;
-    if (i < frames.length - 1) { m = CR_BASE_MS * (1 + 0.6 * Math.max(0, crOrderInfo(frames[i], frames[i + 1]).n - 1)); dur = m + 350; }
+    if (i < frames.length - 1) { const tr = crTrans(frames[i], frames[i + 1]); m = CR_BASE_MS * (1 + 0.6 * Math.max(0, tr.ord.n - 1)) * tr.T; dur = m + 350; }
     else dur = 900;
     segs.push({ i, start: acc, dur, m }); acc += dur;
   }
@@ -6009,6 +6054,11 @@ function crDCtx() {
     if (sel.x1 == null && sel.pth && sel.pth.length) h += ` <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDStraight()">↩ Trajet droit</button>`;
     const od = crDOrderOf(crDOrderTarget());
     if (od) h += ` <span>Départ ${od.rank + 1}/${od.n}</span> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderMove(-1)" ${od.rank < 1 ? 'disabled' : ''}>◀ Plus tôt</button> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderMove(1)" ${od.rank >= od.n - 1 ? 'disabled' : ''}>Plus tard ▶</button>` + (od.rank >= 1 ? ` <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDOrderTogether()">= Avec le précédent</button>` : '');
+    const lg = crDLegOf(sel);
+    if (lg) {
+      const fv = lg.leg.f == null ? 1 : lg.leg.f;
+      h += lg.mover ? ` <span>Passe part à :</span> ` + [[0, 'Début'], [0.33, '⅓'], [0.5, '½'], [0.67, '⅔'], [1, 'Fin']].map(([v, l]) => `<button type="button" class="cr-d-opt ${Math.abs(fv - v) < 0.02 ? 'on' : ''}" onclick="crDLegF(${v})">${l}</button>`).join(' ') + (lg.late != null ? ` <span style="font-size:11px;">Le ballon n'arrive qu'à ${Math.min(100, lg.late)} % de sa course : il part dès réception. Pour partir plus tôt, avance la passe précédente.</span>` : '') : ` <span style="font-size:11px;">La passe part dès que le porteur a le ballon.</span>`;
+    }
     if (od && sel.t !== 'ball' && crDFrame().els.some(b => b.t === 'ball' && b.hold === sel.id)) h += ` <button type="button" class="cr-d-opt ${sel.dr ? 'on' : ''}" onclick="crDToggleDrb()">⚽ Dribble : ${sel.dr ? 'OUI' : 'NON'}</button>`;
     h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">🗑 Supprimer</button>`;
     if (selToks.length) h += ` <span>Couleur :</span> ` + crDSwatches(sel.c);
@@ -6117,7 +6167,7 @@ function crDNextFrame() {
   if (f < fr.length - 1) return fr[f + 1];
   if (fr.length >= CR_MAX_FRAMES) return null;
   const nf = { els: JSON.parse(JSON.stringify(fr[f].els.filter(z => z.x1 == null))) };
-  nf.els.forEach(z => { delete z.pth; delete z.q; delete z.dr; });
+  nf.els.forEach(z => { delete z.pth; delete z.q; delete z.dr; delete z.legs; });
   fr.push(nf); return nf;
 }
 // La flèche tracée devient un vrai mouvement dans l'image suivante :
@@ -6131,18 +6181,26 @@ function crDArrowAnimate(a) {
   if (!S) { crDFlash('Flèche non animée : elle doit partir d\'un joueur' + (isPass ? ' (ou de son point d\'arrivée).' : '.')); return; }
   const nf = crDNextFrame(); if (!nf) return;
   if (isPass) {
-    const ball = cur.els.find(z => z.t === 'ball' && z.hold === S.id) || crDNearestTok(cur, S.x, S.y, R * 1.2, ['ball']);
-    if (!ball) { crDFlash('Flèche non animée : ce joueur n\'a pas le ballon.'); return; }
+    // ballon porté par S « à ce moment-là » : porteur initial (sans passe encore) ou receveur de la dernière passe enchaînée
+    const lastH = z => Array.isArray(z.legs) && z.legs.length ? z.legs[z.legs.length - 1].h : z.hold;
+    // anciennes données : une passe sans « legs » (hold différent d'une image à l'autre) est convertie
+    cur.els.forEach(z => {
+      if (z.t !== 'ball' || (Array.isArray(z.legs) && z.legs.length) || !z.hold) return;
+      const zb = nf.els.find(q => q.id === z.id);
+      if (zb && zb.hold && zb.hold !== z.hold) { z.legs = [{ h: zb.hold, x: zb.x, y: zb.y, f: 1 }]; delete z.q; }
+    });
+    let ball = cur.els.find(z => z.t === 'ball' && lastH(z) === S.id);
+    if (!ball) {
+      const near = crDNearestTok(cur, S.x, S.y, R * 1.2, ['ball']);
+      if (near && !(Array.isArray(near.legs) && near.legs.length)) { ball = near; ball.hold = S.id; crDSyncHeld(cur, S.id); }
+    }
+    if (!ball) { crDFlash('Flèche non animée : ce joueur n\'a pas le ballon à ce moment-là.'); return; }
     const nb = nf.els.find(z => z.id === ball.id); if (!nb) return;
-    if (ball.hold !== S.id) { ball.hold = S.id; crDSyncHeld(cur, S.id); }
     const Q = a.t === 'pass' ? crDFindTok(cur, nf, a.x2, a.y2, 14 * k0 * sc, PL, S.id) : null;
+    if (!Array.isArray(ball.legs)) ball.legs = [];
+    ball.legs.push({ h: Q ? Q.id : null, x: rnd(a.x2), y: rnd(a.y2), f: ball.legs.length ? 0.5 : 1, aid: a.id });
     if (Q) { nb.hold = Q.id; crDSyncHeld(nf, Q.id); } else { delete nb.hold; nb.x = rnd(a.x2); nb.y = rnd(a.y2); }
-    // moment de la passe : après la course du porteur, en même temps que l'appel du receveur s'il y en a un
-    const mvIds = {}; crOrderInfo(cur, nf).mv.forEach(z => { mvIds[z.id] = z; });
-    const qP = mvIds[S.id] && S.q != null ? +S.q : null, qR = Q && mvIds[Q.id] && Q.q != null ? +Q.q : null;
-    let q = crDNextQ(f, [ball.id]);
-    if (qR != null) q = Math.max(qR, qP != null ? qP + 0.5 : qR);
-    ball.q = q; a.lnk = [ball.id];
+    delete ball.q; a.lnk = [ball.id];
   } else {
     const ns = nf.els.find(z => z.id === S.id); if (!ns) return;
     ns.x = rnd(a.x2); ns.y = rnd(a.y2); delete S.pth;
@@ -6201,6 +6259,38 @@ function crDOrderTogether() {
   sel.q = (od.rank - 1) * 10;
   crDCtx(); crDRender();
 }
+// Passe enchaînée liée à une flèche (passe / tir) : ballon, maillon, rang, passeur, et si le passeur court (réglage du départ possible)
+function crDLegOf(a) {
+  if (!a || a.x1 == null || !Array.isArray(a.lnk) || (a.t !== 'pass' && a.t !== 'shot')) return null;
+  const fr = crD.schema.frames, f = crD.f, cur = fr[f], ball = cur.els.find(z => z.id === a.lnk[0] && z.t === 'ball');
+  if (!ball || !Array.isArray(ball.legs)) return null;
+  const idx = ball.legs.findIndex(L => L.aid === a.id); if (idx < 0) return null;
+  const holder = idx ? ball.legs[idx - 1].h : ball.hold, nx = fr[f + 1];
+  const tr = nx ? crTrans(cur, nx) : null, r = tr && holder ? tr.ord.ranks[holder] : null, mover = r != null;
+  let late = null; // si le ballon n'est pas encore arrivé à l'instant voulu : part de la course où il arrive réellement
+  if (mover && tr.plans[ball.id]) {
+    const pl = tr.plans[ball.id][idx], w0 = r * tr.st, f = ball.legs[idx].f == null ? 1 : ball.legs[idx].f;
+    if (pl.ts > w0 + f * tr.dur + 0.004) late = Math.round(100 * (pl.ts - w0) / tr.dur);
+  }
+  return { ball, leg: ball.legs[idx], idx, holder, mover, late };
+}
+function crDLegF(v) {
+  const a = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null, lg = crDLegOf(a); if (!lg) return;
+  crDPush(); lg.leg.f = v; crDCtx(); crDRender();
+}
+// Supprime la passe liée à une flèche (et les passes suivantes de la chaîne) et remet le ballon de l'image suivante en cohérence
+function crDUnlinkLeg(a) {
+  const lg = crDLegOf(a); if (!lg) return;
+  const ball = lg.ball; ball.legs.splice(lg.idx);
+  const nf = crD.schema.frames[crD.f + 1], nb = nf && nf.els.find(z => z.id === ball.id);
+  const last = ball.legs.length ? ball.legs[ball.legs.length - 1] : null;
+  if (!ball.legs.length) delete ball.legs;
+  if (nb) {
+    const h = last ? last.h : ball.hold;
+    if (h) { nb.hold = h; crDSyncHeld(nf, h); }
+    else { delete nb.hold; nb.x = last ? last.x : ball.x; nb.y = last ? last.y : ball.y; }
+  }
+}
 function crDStraight() { const e = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!e || !e.pth) return; crDPush(); delete e.pth; crDCtx(); crDRender(); }
 
 // ----- Trajectoires -----
@@ -6214,7 +6304,7 @@ function crDApplyTraj(d) {
   const fr = crD.schema.frames, f = crD.f;
   if (f === fr.length - 1 && fr.length >= CR_MAX_FRAMES) { crDCtx(); crDRender(); return; }
   crDPush();
-  if (f === fr.length - 1) { fr.push({ els: JSON.parse(JSON.stringify(fr[f].els.filter(z => z.x1 == null))) }); fr[f + 1].els.forEach(z => { delete z.pth; delete z.q; delete z.dr; }); }
+  if (f === fr.length - 1) { fr.push({ els: JSON.parse(JSON.stringify(fr[f].els.filter(z => z.x1 == null))) }); fr[f + 1].els.forEach(z => { delete z.pth; delete z.q; delete z.dr; delete z.legs; }); }
   const nf = fr[f + 1], tok = crDEl(d.id), end = tr[tr.length - 1];
   if (!tok) { crDRefresh(); return; }
   let ntok = nf.els.find(z => z.id === d.id);
@@ -6277,7 +6367,7 @@ function crDDelSel() {
   crDPush();
   ids.forEach(id => {
     const e = crDEl(id); if (!e) return;
-    if (e.x1 != null) crDFrame().els = crDFrame().els.filter(x => x.id !== id);
+    if (e.x1 != null) { crDUnlinkLeg(e); crDFrame().els = crDFrame().els.filter(x => x.id !== id); }
     else for (let i = crD.f; i < crD.schema.frames.length; i++) crD.schema.frames[i].els = crD.schema.frames[i].els.filter(x => x.id !== id);
   });
   crD.sels = []; crDRefresh();
@@ -6303,7 +6393,7 @@ function crDAddFrame(noPush) {
   if (crD.schema.frames.length >= CR_MAX_FRAMES) return false;
   if (!noPush) crDPush();
   const copy = { els: JSON.parse(JSON.stringify(crDFrame().els.filter(e => e.x1 == null))) };
-  crDFrame().els.forEach(e => { delete e.pth; delete e.q; delete e.dr; }); // la transition vers l'image suivante passe à la copie
+  crDFrame().els.forEach(e => { delete e.pth; delete e.q; delete e.dr; delete e.legs; }); // la transition vers l'image suivante passe à la copie
   crD.schema.frames.splice(crD.f + 1, 0, copy); crD.f++;
   if (!noPush) crDRefresh();
   return true;
@@ -6311,7 +6401,7 @@ function crDAddFrame(noPush) {
 function crDDelFrame() {
   if (crD.schema.frames.length < 2) return;
   crDPush(); crD.schema.frames.splice(crD.f, 1); crD.f = Math.min(crD.f, crD.schema.frames.length - 1);
-  const pv = crD.schema.frames[crD.f - 1]; if (pv) pv.els.forEach(e => { delete e.pth; delete e.q; delete e.dr; });
+  const pv = crD.schema.frames[crD.f - 1]; if (pv) pv.els.forEach(e => { delete e.pth; delete e.q; delete e.dr; delete e.legs; });
   crD.sels = []; crDRefresh();
 }
 function crDPlay() {
@@ -6486,7 +6576,7 @@ function crDUp(e) {
   const d = crD.drag; crD.drag = null;
   if (d.kind === 'draw') {
     const p = d.cur, dist = Math.hypot(p.x - d.start.x, p.y - d.start.y);
-    const mk = (a, b) => { crDPush(); const el = { id: crUid(), t: crD.tool, x1: a.x, y1: a.y, x2: b.x, y2: b.y }; crDFrame().els.push(el); crD.pending = null; crD.sels = []; if (crDAnimOn()) crDArrowAnimate(el); };
+    const mk = (a, b) => { crDPush(); const el = { id: crUid(), t: crD.tool, x1: a.x, y1: a.y, x2: b.x, y2: b.y }; crDFrame().els.push(el); crD.pending = null; crD.sels = []; if (crDAnimOn()) { crDArrowAnimate(el); if (crDLegOf(el)) crD.sels = [el.id]; } };
     if (dist > 10) mk(d.start, p);
     else if (crD.pending) { if (Math.hypot(p.x - crD.pending.x, p.y - crD.pending.y) > 6) mk(crD.pending, p); else crD.pending = null; }
     else crD.pending = d.start;
