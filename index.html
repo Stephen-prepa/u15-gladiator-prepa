@@ -451,6 +451,25 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 .cr-tpl b{display:block;font-size:15px;}
 .cr-tpl span{display:block;font-size:12px;color:var(--gris-texte);margin-top:3px;}
 .cr-tpl i{display:block;font-style:normal;font-size:12px;color:var(--jaune);font-weight:700;margin-top:5px;}
+/* ---- iPad 13" / grands écrans : Séance en deux colonnes, boutons plus larges ---- */
+@media (min-width:900px){
+  #cr-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;}
+  #cr-list .cr-card{margin-bottom:0;}
+  .cr-edit-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:18px;align-items:start;}
+  .cr-ex-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start;}
+  .cr-btn{padding:10px 14px;font-size:13px;} .cr-btn.sm{padding:9px 12px;font-size:12.5px;}
+  .cr-chip{padding:9px 15px;font-size:13px;}
+  .cr-in{font-size:15px;padding:12px;}
+  .cr-step button{width:42px;height:42px;} .cr-step input{height:42px;width:56px;font-size:15px;}
+  .cr-actions button{width:42px;height:38px;}
+  .cr-modal-inner{max-width:640px;}
+  .seance-seg button{padding:13px 6px;font-size:14px;}
+}
+@media screen and (min-width:900px){
+  #cr-fiche .cr-fiche-page{max-width:920px;}
+  .cr-fiche-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start;}
+  .cr-fiche-body > div:first-child > div{max-width:440px !important;}
+}
 /* Fiche de séance (aperçu + PDF) */
 #cr-fiche{display:none;position:fixed;inset:0;z-index:1400;background:#fff;color:#0a2a4a;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #cr-fiche.show{display:block;}
@@ -517,6 +536,14 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 .cr-d-tool span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 @media (min-width:700px){ .cr-d-tool{height:62px;font-size:10.5px;} .cr-d-tool svg{width:30px;height:30px;} }
 .cr-d-tool.on{background:rgba(245,196,0,0.14);border-color:var(--jaune);box-shadow:inset 0 0 0 1px var(--jaune);color:var(--jaune);}
+/* Éditeur de schéma sur tablette en paysage : palette à gauche, terrain en grand */
+@media (min-width:1000px) and (orientation:landscape){
+  #cr-draw.show{display:grid;grid-template-columns:310px minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr) auto auto;}
+  #cr-draw.show > *{grid-column:2;min-width:0;}
+  #cr-draw.show > .cr-d-pal{grid-column:1;grid-row:1 / -1;grid-template-columns:repeat(4,minmax(0,1fr));align-content:start;overflow-y:auto;border-right:1px solid var(--gris-moyen);padding:10px 8px calc(10px + env(safe-area-inset-bottom));gap:6px;}
+  #cr-draw.show > .cr-d-pal .cr-d-tool{height:68px;}
+  #cr-draw.show > .cr-d-canvas{min-height:0;}
+}
 </style>
 </head>
 <body>
@@ -5228,6 +5255,7 @@ function crRenderEditor(p) {
       <div id="cr-head-title" style="flex:1;font-size:17px;font-weight:800;color:var(--blanc);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${crEsc(p.title || 'Sans titre')}</div>
       <span class="cr-save-status" style="font-size:12px;color:#2ecc71;white-space:nowrap;">✓ Enregistré</span>
     </div>
+    <div class="cr-edit-grid"><div class="cr-edit-l">
     <div class="cr-card">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="cr-badge ${done ? 'ok' : ''}" id="cr-status-badge">${done ? 'Terminée' : 'Brouillon'}</span><span style="font-size:12px;color:var(--gris-texte);">Visible par les coachs uniquement.</span></div>
       <div style="margin-top:10px;"><button type="button" class="cr-btn" id="cr-status-btn" onclick="crToggleDone()">${done ? '↩ Repasser en brouillon' : '✓ Marquer comme terminée'}</button><button type="button" class="cr-btn" style="margin-left:6px;" onclick="seanceImportPlan(crCur.id, true)">📝 Utiliser pour le résumé de séance</button></div>
@@ -5257,6 +5285,7 @@ function crRenderEditor(p) {
         <div style="display:flex;gap:6px;margin-top:8px;"><input class="cr-in" id="cr-mat-other" placeholder="Autre matériel…"><button type="button" class="cr-btn" onclick="crAddMat()">Ajouter</button></div>
       </div>
     </div>
+    </div><div class="cr-edit-r">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 2px 8px;"><div style="font-size:17px;font-weight:800;color:var(--blanc);">Déroulé</div><div style="font-size:13px;font-weight:800;color:var(--jaune);">Durée prévue : <span class="cr-total">${crFmtDur(crTotal(p))}</span></div></div>
     <div id="cr-blocks"></div>
     <button type="button" class="cr-add" style="margin-bottom:12px;" onclick="crAddBlock()">＋ Ajouter un bloc</button>
@@ -5267,6 +5296,7 @@ function crRenderEditor(p) {
       <input class="cr-in" id="cr-vid-title" placeholder="Titre de la vidéo" style="margin-bottom:6px;">
       <div style="display:flex;gap:6px;"><input class="cr-in" id="cr-vid-url" placeholder="https://…" inputmode="url"><button type="button" class="cr-btn" onclick="crAddVideo()">Associer</button></div>
     </div>
+    </div></div>
     <div class="cr-foot"><div><div style="font-size:10px;letter-spacing:1px;color:var(--gris-texte);font-weight:800;">DURÉE PRÉVUE</div><div class="cr-total" style="font-size:24px;font-weight:800;color:var(--blanc);">${crFmtDur(crTotal(p))}</div></div>
       <button type="button" class="cr-btn primary" style="padding:13px 16px;font-size:14px;" onclick="crOpenFiche(crCur.id)">Aperçu fiche &amp; PDF →</button></div>`;
   crRenderBlocks();
@@ -5509,6 +5539,7 @@ function crRenderExView() {
       <div id="cr-ex-head" style="flex:1;font-size:17px;font-weight:800;color:var(--blanc);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${crEsc(x.name || 'Exercice')}</div>
       <span class="cr-save-status" style="font-size:12px;color:#2ecc71;white-space:nowrap;">✓ Enregistré</span>
     </div>
+    <div class="cr-ex-grid"><div>
     <div class="cr-card">
       <label class="cr-lbl" style="margin-top:0;">Nom de l'exercice</label>
       <input class="cr-in" value="${crEsc(x.name)}" oninput="crExSet('name',this.value)">
@@ -5520,6 +5551,13 @@ function crRenderExView() {
       <div id="cr-ex-schema" onclick="crOpenDraw()" style="cursor:pointer;">${crSchemaHas(x) ? crSvgStatic(x.schema, 0) : `<div style="border:2px dashed rgba(245,196,0,0.5);border-radius:12px;padding:26px 10px;text-align:center;"><div style="font-size:30px;color:var(--jaune);">＋</div><div style="font-weight:800;color:var(--blanc);">Dessiner la situation</div><div style="font-size:12px;color:var(--gris-texte);margin-top:4px;">Joueurs, ballon, passes, déplacements, tirs… et animation image par image</div></div>`}</div>
       ${crSchemaHas(x) ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><button type="button" class="cr-btn sm" onclick="crOpenDraw()">✏️ Modifier le schéma</button><button type="button" class="cr-btn sm" id="cr-ex-share" onclick="crShareAnim()">📤 Partager</button>${crSchemaFrames(x) > 1 ? `<button type="button" class="cr-btn sm primary" id="cr-ex-play" onclick="crExTogglePlay()">▶ Lecture</button><span style="font-size:11px;color:var(--gris-texte);">${crSchemaFrames(x)} images</span>` : ''}</div>` : ''}
     </div>
+    </div><div>
+    <div class="cr-card">
+      <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;">${tabs}</div>
+      <div style="font-size:15px;font-weight:800;color:var(--blanc);margin:8px 0;">${CR_SECTIONS.find(s => s[0] === crEx.tab)[1]}</div>
+      ${items.map((t, i) => `<div style="display:flex;gap:6px;margin-bottom:6px;"><textarea class="cr-in" rows="2" id="cr-item-${i}" oninput="crExItem(${i},this.value)">${crEsc(t)}</textarea><button type="button" class="cr-btn sm danger" onclick="crExDelItem(${i})">✕</button></div>`).join('')}
+      <button type="button" class="cr-btn" onclick="crExAddItem()">＋ Ajouter</button>
+    </div>
     <div class="cr-card">
       <div style="font-size:15px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Vidéos de l'exercice</div>
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:8px;">Ajoute un lien vers une démonstration filmée.</div>
@@ -5527,12 +5565,7 @@ function crRenderExView() {
       <input class="cr-in" id="cr-exvid-title" placeholder="Titre de la vidéo" style="margin-bottom:6px;">
       <div style="display:flex;gap:6px;"><input class="cr-in" id="cr-exvid-url" placeholder="https://…" inputmode="url"><button type="button" class="cr-btn" onclick="crExAddVideo()">Associer</button></div>
     </div>
-    <div class="cr-card">
-      <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;">${tabs}</div>
-      <div style="font-size:15px;font-weight:800;color:var(--blanc);margin:8px 0;">${CR_SECTIONS.find(s => s[0] === crEx.tab)[1]}</div>
-      ${items.map((t, i) => `<div style="display:flex;gap:6px;margin-bottom:6px;"><textarea class="cr-in" rows="2" id="cr-item-${i}" oninput="crExItem(${i},this.value)">${crEsc(t)}</textarea><button type="button" class="cr-btn sm danger" onclick="crExDelItem(${i})">✕</button></div>`).join('')}
-      <button type="button" class="cr-btn" onclick="crExAddItem()">＋ Ajouter</button>
-    </div>
+    </div></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px;"><button type="button" class="cr-btn" onclick="crCloseEx()">← Retour à la séance</button><span style="color:var(--gris-texte);">${x.minutes ? x.minutes + ' min' : ''}</span></div>
     <button type="button" class="cr-btn primary" style="padding:13px 16px;" onclick="crOpenFiche(crCur.id)">Voir dans la fiche →</button>`;
 }
@@ -5566,7 +5599,7 @@ function crFicheEx(x) {
     return it.length ? `<div style="margin-top:6px;"><b>${l}</b><ul style="margin:2px 0 0;padding-left:18px;">${it.map(t => `<li>${crEsc(t).replace(/\n/g, '<br>')}</li>`).join('')}</ul></div>` : '';
   }).join('');
   const vids = x.videos.map(v => `<div style="margin-top:4px;word-break:break-all;">▶ ${crEsc(v.title || '')} <a href="${crEsc(v.url)}">${crEsc(v.url)}</a></div>`).join('');
-  return `<div class="cr-fiche-ex"><div style="font-weight:800;color:#0a2a4a;font-size:14px;">${crEsc(x.name || 'Exercice')}${x.minutes ? ' <span style="font-weight:400;color:#6a7d95;">· ' + x.minutes + ' min</span>' : ''}</div>${crFicheSchema(x.schema)}${secs}${vids}</div>`;
+  return `<div class="cr-fiche-ex"><div style="font-weight:800;color:#0a2a4a;font-size:14px;">${crEsc(x.name || 'Exercice')}${x.minutes ? ' <span style="font-weight:400;color:#6a7d95;">· ' + x.minutes + ' min</span>' : ''}</div><div class="cr-fiche-body"><div>${crFicheSchema(x.schema)}</div><div>${secs}${vids}</div></div></div>`;
 }
 
 // ----- Schéma (terrain) : modèle, rendu, éditeur image par image -----
