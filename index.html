@@ -505,6 +505,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 #cr-d-title{font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;text-transform:uppercase;color:var(--jaune) !important;}
 .cr-d-ib{min-width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:var(--gris-fonce);color:var(--gris-clair);font-size:18px;font-weight:800;cursor:pointer;font-family:inherit;}
 .cr-d-ib:disabled{opacity:.3;}
+.cr-d-ib.on{border-color:var(--jaune);color:var(--jaune);background:rgba(245,196,0,0.14);}
 .cr-d-ok{background:var(--jaune);color:var(--noir);border:none;border-radius:10px;padding:10px 14px;font-weight:800;font-size:15px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;}
 .cr-d-seg{display:flex;flex:1;border:1px solid rgba(255,255,255,0.18);border-radius:10px;overflow:hidden;background:var(--gris-fonce);}
 .cr-d-seg button{flex:1;border:none;background:transparent;color:var(--gris-texte);padding:10px 4px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
@@ -5970,7 +5971,7 @@ function crDRedo() {
 }
 function crOpenDraw() {
   crPlayStop();
-  crD = { schema: crNormSchema(JSON.parse(JSON.stringify(crCurEx().schema))), f: 0, tool: 'sel', sels: [], pending: null, rec: false, undo: [], redo: [], z: 1, cx: null, cy: null, playing: false, speed: 1, drag: null, ptrs: {}, pinch: null, cols: {}, scrub: null, anim: null, dr: false, flash: null };
+  crD = { schema: crNormSchema(JSON.parse(JSON.stringify(crCurEx().schema))), f: 0, tool: 'sel', sels: [], pending: null, rec: false, undo: [], redo: [], z: 1, cx: null, cy: null, playing: false, speed: 1, drag: null, ptrs: {}, pinch: null, cols: {}, scrub: null, anim: null, dr: false, flash: null, snap: crDSnapPref(), penT: 0, penDown: false };
   const root = document.getElementById('cr-draw');
   root.innerHTML = `
     <div class="cr-d-top">
@@ -5982,6 +5983,7 @@ function crOpenDraw() {
       <div class="cr-d-seg" id="cr-d-seg"></div>
       <button type="button" class="cr-d-ib" id="cr-d-undo" onclick="crDUndo()" aria-label="Annuler">↶</button>
       <button type="button" class="cr-d-ib" id="cr-d-redo" onclick="crDRedo()" aria-label="Rétablir">↷</button>
+      <button type="button" class="cr-d-ib ${crDSnapPref() ? 'on' : ''}" id="cr-d-snap" onclick="crDToggleSnap()" aria-label="Aimant : placer sur une grille de 50 cm" title="Aimant / grille">🧲</button>
       <button type="button" class="cr-d-ib" onclick="crDFit()" aria-label="Recentrer">⤢</button>
     </div>
     <div id="cr-d-ctx" class="cr-d-ctx"></div>
@@ -5999,6 +6001,7 @@ function crOpenDraw() {
   cv.addEventListener('pointermove', crDMove);
   cv.addEventListener('pointerup', crDUp);
   cv.addEventListener('pointercancel', crDUp);
+  cv.addEventListener('pointerleave', crDHoverOff);
   cv.addEventListener('wheel', crDWheel, { passive: false });
   crDRefresh();
 }
@@ -6060,6 +6063,7 @@ function crDRender(customEls) {
   const els = customEls || (preview ? crDScrubEls() : crDFrame().els);
   const next = (!customEls && !preview) ? ((crD.schema.frames[crD.f + 1] || {}).els || null) : null;
   let extra = '';
+  if (crD.snap && !customEls && !preview && !crD.playing) { const c = CR_COURT[crD.schema.mode]; let d = ''; for (let x = 0; x <= c.w; x += CR_SNAP) d += `M${x} 0V${c.h}`; for (let y = 0; y <= c.h; y += CR_SNAP) d += `M0 ${y}H${c.w}`; extra += `<path d="${d}" stroke="#fff" stroke-opacity=".07" stroke-width=".35" fill="none" style="pointer-events:none;"/>`; }
   if (crD.pending) extra = `<circle cx="${crD.pending.x}" cy="${crD.pending.y}" r="5" fill="none" stroke="#F5C400" stroke-width="2.4"/>`;
   box.innerHTML = `<svg class="cr-d-svg" viewBox="${crDVB().join(' ')}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;touch-action:none;">${crElsSvg(crD.schema.mode, els, { edit: !crD.playing && !preview, sels: crD.sels, arrows: !customEls && !preview, sc: crD.schema.sc, next })}${extra}</svg>`;
 }
@@ -6095,6 +6099,7 @@ function crDCtx() {
       h += lg.mover ? ` <span>Passe part à :</span> ` + [[0, 'Début'], [0.33, '⅓'], [0.5, '½'], [0.67, '⅔'], [1, 'Fin']].map(([v, l]) => `<button type="button" class="cr-d-opt ${Math.abs(fv - v) < 0.02 ? 'on' : ''}" onclick="crDLegF(${v})">${l}</button>`).join(' ') + (lg.late != null ? ` <span style="font-size:11px;">Le ballon n'arrive qu'à ${Math.min(100, lg.late)} % de sa course : il part dès réception. Pour partir plus tôt, avance la passe précédente.</span>` : '') : ` <span style="font-size:11px;">La passe part dès que le porteur a le ballon.</span>`;
     }
     if (!(sel.x1 != null && (sel.t === 'pass' || sel.t === 'shot'))) h += crDMovePanel(sel);
+    if (sel.x1 == null && window.innerWidth >= 900) h += ` <span style="display:inline-flex;gap:4px;align-items:center;"><span style="font-size:11px;">Ajuster (10 cm) :</span>` + [['◀', -1, 0], ['▲', 0, -1], ['▼', 0, 1], ['▶', 1, 0]].map(([l, dx, dy]) => `<button type="button" class="cr-d-opt" style="padding:5px 10px;" onclick="crDNudge(${dx},${dy})">${l}</button>`).join('') + `</span>`;
     const delLbl = sel.x1 != null ? (sel.t === 'pass' || sel.t === 'shot' ? '🗑 Supprimer la passe' : '🗑 Supprimer la flèche et son déplacement') : '🗑 Supprimer le joueur';
     h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">${sel.x1 == null && !CR_PLAYERS.includes(sel.t) ? '🗑 Supprimer' : delLbl}</button>`;
     if (selToks.length) h += ` <span>Couleur :</span> ` + crDSwatches(sel.c);
@@ -6512,6 +6517,57 @@ function crDStop() {
   if (crD) { crD.playing = false; crDRefresh(); }
 }
 // ----- Interaction canvas -----
+// ----- Précision (doigt, stylet Apple Pencil, souris) -----
+const CR_SNAP = 5; // pas de l'aimant : 5 unités = 50 cm
+function crDSnapPref() { try { return localStorage.getItem('cr_snap') === '1'; } catch (x) { return false; } }
+function crDToggleSnap() {
+  if (!crD) return; crD.snap = !crD.snap;
+  try { localStorage.setItem('cr_snap', crD.snap ? '1' : '0'); } catch (x) {}
+  const b = document.getElementById('cr-d-snap'); if (b) b.classList.toggle('on', crD.snap);
+  crDFlash(crD.snap ? 'Aimant activé : les éléments se calent sur une grille de 50 cm.' : 'Aimant désactivé : placement libre.'); crDRender();
+}
+function crDSn(v) { return crD && crD.snap ? Math.round(v / CR_SNAP) * CR_SNAP : v; }
+// tolérance de sélection en pixels écran selon l'outil : stylet très précis, souris précise, doigt plus large
+function crDTolPx(e) { const t = e && e.pointerType; return t === 'pen' ? 4 : (t === 'mouse' ? 6 : 9); }
+function crDDragPx(e) { return e && e.pointerType === 'pen' ? 2 : 4; }
+function crDUpx() { const svg = document.querySelector('#cr-d-svgbox svg'); if (!svg) return 1; const r = svg.getBoundingClientRect(), vb = crDVB(); return 1 / Math.min(r.width / vb[2], r.height / vb[3]); }
+// Point (aimanté si l'option est active) pour placer / déplacer / tracer
+function crDPtS(e) { const p = crDPt(e), c = CR_COURT[crD.schema.mode]; return crD.snap ? { x: Math.max(0, Math.min(c.w, crDSn(p.x))), y: Math.max(0, Math.min(c.h, crDSn(p.y))) } : p; }
+// Colle un point de départ / d'arrivée de flèche sur le centre d'un joueur voisin (sa position actuelle ou son arrivée en transparence)
+function crDMagnet(p, e, skip) {
+  const tol = crDTolPx(e) * crDUpx(), k0 = CR_COURT[crD.schema.mode].k, sc = crD.schema.sc, cur = crDFrame(), nf = crD.schema.frames[crD.f + 1];
+  let best = null, bd = 1e9;
+  cur.els.forEach(z => {
+    if (z.x1 != null || z.t === 'ball') return;
+    const rv = (CR_VIS_R[z.t] || 6) * k0 * sc * (parseFloat(z.s) || 1) * CR_TB, nz = nf ? nf.els.find(q => q.id === z.id) : null;
+    [[z.x, z.y], nz ? [nz.x, nz.y] : null].forEach(pt => {
+      if (!pt || (skip && Math.hypot(pt[0] - skip.x, pt[1] - skip.y) < 1.5)) return;
+      const d = Math.hypot(pt[0] - p.x, pt[1] - p.y);
+      if (d - rv <= tol && d < bd) { bd = d; best = { x: pt[0], y: pt[1] }; }
+    });
+  });
+  return best || p;
+}
+// Pose à l'unité près (boutons ◀ ▲ ▼ ▶ de la barre contextuelle)
+function crDNudge(dx, dy) {
+  const el = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!el || el.x1 != null) return;
+  const c = CR_COURT[crD.schema.mode]; crDPush();
+  el.x = Math.round(Math.max(0, Math.min(c.w, el.x + dx)) * 10) / 10; el.y = Math.round(Math.max(0, Math.min(c.h, el.y + dy)) * 10) / 10;
+  if (el.t !== 'ball') crDSyncHeld(crDFrame(), el.id); else crDSnapBall(el, crDFrame());
+  crDRender();
+}
+// Survol du Pencil : anneau de visée, et l'élément qui serait saisi
+function crDHoverOff() { const g = document.getElementById('cr-d-hover'); if (g) g.remove(); }
+function crDHover(e) {
+  const svg = document.querySelector('#cr-d-svgbox svg'); if (!svg || crD.playing || crD.scrub != null) return;
+  crDHoverOff();
+  const p = crDPtS(e), hit = crDHit(e), el = hit && hit.dataset && hit.dataset.id ? crDEl(hit.dataset.id) : null, k0 = CR_COURT[crD.schema.mode].k;
+  let h;
+  if (el && el.x1 == null) { const r = (CR_VIS_R[el.t] || 6) * k0 * crD.schema.sc * (parseFloat(el.s) || 1) * CR_TB * 1.35 + 1; h = `<circle cx="${el.x}" cy="${el.y}" r="${r}" fill="none" stroke="#F5C400" stroke-width="1.4" stroke-dasharray="3 2"/>`; }
+  else if (el) h = `<line x1="${el.x1}" y1="${el.y1}" x2="${el.x2}" y2="${el.y2}" stroke="#F5C400" stroke-opacity=".55" stroke-width="3.2" stroke-linecap="round"/>`;
+  else h = `<circle cx="${p.x}" cy="${p.y}" r="2.2" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width=".9"/><circle cx="${p.x}" cy="${p.y}" r=".5" fill="#F5C400"/>`;
+  svg.insertAdjacentHTML('beforeend', `<g id="cr-d-hover" style="pointer-events:none;">${h}</g>`);
+}
 function crDPt(e) {
   const svg = document.querySelector('#cr-d-svgbox svg');
   const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
@@ -6527,7 +6583,7 @@ function crDHit(e) {
   const svg = document.querySelector('#cr-d-svgbox svg'); if (!svg) return null;
   const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
   const q = pt.matrixTransform(svg.getScreenCTM().inverse());
-  const r = svg.getBoundingClientRect(), vb = crDVB(), upx = 1 / Math.min(r.width / vb[2], r.height / vb[3]), tol = 9 * upx;
+  const r = svg.getBoundingClientRect(), vb = crDVB(), upx = 1 / Math.min(r.width / vb[2], r.height / vb[3]), tol = crDTolPx(e) * upx;
   const k0 = CR_COURT[crD.schema.mode].k, sc = crD.schema.sc;
   let best = null, bd = 1e9;
   crDFrame().els.forEach(z => {
@@ -6549,20 +6605,24 @@ function crDNextN(t) { const ns = crDFrame().els.filter(e => e.t === t).map(e =>
 function crDDown(e) {
   if (!crD || crD.playing) return;
   if (e.target.closest && e.target.closest('button')) return;
+  // stylet : la paume (toucher) posée à côté est ignorée pendant et juste après le tracé
+  const nowT = performance.now();
+  if (e.pointerType === 'pen') { crD.penT = nowT; crD.penDown = true; }
+  else if (e.pointerType === 'touch' && (crD.penDown || nowT - crD.penT < 450)) return;
   if (crD.scrub != null) { crDScrubExit(); return; }
   if (e.isPrimary) { crD.ptrs = {}; crD.pinch = null; }
   crD.ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
   if (Object.keys(crD.ptrs).length >= 2) { crDPinchStart(); return; }
-  const t = crD.tool, p = crDPt(e), cv = document.getElementById('cr-d-canvas');
+  const t = crD.tool, p = crDPt(e), ps = crDPtS(e), cv = document.getElementById('cr-d-canvas');
   const hitEl = crDHit(e);
-  const cap = () => { try { cv.setPointerCapture(e.pointerId); } catch (x) {} };
+  const cap = () => { if (crD.drag) crD.drag.pid = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (x) {} };
   const base = { last: p, moved: false, sx: e.clientX, sy: e.clientY };
   if (t === 'pan') { crD.drag = { kind: 'pan', sx: e.clientX, sy: e.clientY }; cap(); return; }
   if (t === 'sel' || t === 'multi') {
     const el = hitEl ? crDEl(hitEl.dataset.id) : null;
     if (el) {
       const id = el.id, tok = el.x1 == null;
-      if (hitEl.dataset.h) { crD.sels = [id]; crD.drag = { ...base, kind: 'h' + hitEl.dataset.h, id }; }
+      if (hitEl.dataset.h) { crD.sels = [id]; const hx = hitEl.dataset.h === '1' ? el.x1 : el.x2, hy = hitEl.dataset.h === '1' ? el.y1 : el.y2; crD.drag = { ...base, kind: 'h' + hitEl.dataset.h, id, off: { x: hx - p.x, y: hy - p.y } }; }
       else if (t === 'multi' && tok) {
         const had = crD.sels.includes(id);
         if (!had) crD.sels = crD.sels.filter(i => { const z = crDEl(i); return z && z.x1 == null; }).concat(id);
@@ -6571,7 +6631,7 @@ function crDDown(e) {
         crD.drag = { ...base, kind: 'group', ids: crD.sels.slice(), toggle: null };
       } else {
         crD.sels = [id];
-        crD.drag = { ...base, kind: tok ? 'token' : 'arrow', id };
+        crD.drag = { ...base, kind: tok ? 'token' : 'arrow', id, off: tok ? { x: el.x - p.x, y: el.y - p.y } : null };
       }
       cap();
     } else {
@@ -6587,12 +6647,13 @@ function crDDown(e) {
     return;
   }
   if (CR_ACTIONS.includes(t)) {
-    crD.drag = { kind: 'draw', start: p, sx: e.clientX, sy: e.clientY, cur: p };
+    const st = (t === 'pass' || t === 'shot' || t === 'mv' || t === 'dribble' || t === 'screen') ? crDMagnet(p, e) : ps, snapped = st !== p;
+    crD.drag = { kind: 'draw', start: snapped ? st : ps, sx: e.clientX, sy: e.clientY, cur: snapped ? st : ps };
     cap(); return;
   }
   // placement d'un joueur / objet : présent dans cette image et les suivantes
   crDPush();
-  const el = { id: crUid(), t, x: p.x, y: p.y };
+  const el = { id: crUid(), t, x: ps.x, y: ps.y };
   if (t === 'att' || t === 'def') el.n = crDNextN(t);
   if (t === 'ball') crDSnapBall(el, crDFrame());
   if (crD.cols[t]) el.c = crD.cols[t];
@@ -6603,8 +6664,10 @@ function crDMove(e) {
   if (!crD) return;
   if (crD.ptrs[e.pointerId]) crD.ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
   if (crD.pinch) { crDPinchMove(); return; }
-  if (!crD.drag) return;
+  if (e.pointerType === 'pen') crD.penT = performance.now();
+  if (!crD.drag) { if (e.pointerType === 'pen' && e.buttons === 0) crDHover(e); return; }
   const d = crD.drag;
+  if (d.pid != null && e.pointerId !== d.pid) return;
   if (d.kind === 'pan') {
     const svg = document.querySelector('#cr-d-svgbox svg'), r = svg.getBoundingClientRect(), vb = crDVB();
     const scale = Math.min(r.width / vb[2], r.height / vb[3]);
@@ -6612,7 +6675,7 @@ function crDMove(e) {
     crDRender(); return;
   }
   const p = crDPt(e);
-  if (d.kind === 'draw') { d.cur = p; crDRender(); const svg = document.querySelector('#cr-d-svgbox svg'); if (svg) svg.insertAdjacentHTML('beforeend', crArrowSvg({ t: crD.tool, x1: d.start.x, y1: d.start.y, x2: p.x, y2: p.y }, CR_COURT[crD.schema.mode].k, CR_TH.dark)); return; }
+  if (d.kind === 'draw') { const pe = crDPtS(e), t = crD.tool; d.cur = (t === 'pass') ? crDMagnet(pe, e, d.start) : pe; crDRender(); const svg = document.querySelector('#cr-d-svgbox svg'); if (svg) svg.insertAdjacentHTML('beforeend', crArrowSvg({ t: crD.tool, x1: d.start.x, y1: d.start.y, x2: d.cur.x, y2: d.cur.y }, CR_COURT[crD.schema.mode].k, CR_TH.dark)); return; }
   if (d.kind === 'marquee') {
     if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 4) return;
     d.moved = true; d.b = p; crDRender();
@@ -6621,15 +6684,16 @@ function crDMove(e) {
     return;
   }
   if (d.kind === 'traj') {
-    const l = d.trace[d.trace.length - 1];
-    if (Math.hypot(p.x - l.x, p.y - l.y) < 2) return;
-    d.trace.push(p); d.moved = true; crDRender();
+    // le stylet envoie plusieurs points entre deux images : on les garde tous pour une courbe fidèle
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null, minD = e.pointerType === 'pen' ? 1.1 : 2;
+    (evs && evs.length ? evs : [e]).forEach(ev => { const pp = crDPt(ev), l = d.trace[d.trace.length - 1]; if (Math.hypot(pp.x - l.x, pp.y - l.y) >= minD) { d.trace.push(pp); d.moved = true; } });
+    crDRender();
     const svg = document.querySelector('#cr-d-svgbox svg');
     if (svg) svg.insertAdjacentHTML('beforeend', `<polyline points="${d.trace.map(q => q.x + ',' + q.y).join(' ')}" fill="none" stroke="#F5C400" stroke-width="2.2" stroke-dasharray="4 3" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"/>`);
     return;
   }
   if (!d.moved) {
-    if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 4) return;
+    if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < crDDragPx(e)) return;
     d.moved = true;
     if (crD.rec && (d.kind === 'token' || d.kind === 'group')) { crDAddFrame(); crDFramesBar(); d.rec = true; d.p0 = { x: d.last.x, y: d.last.y }; d.trace = [d.p0]; } else crDPush();
   }
@@ -6644,9 +6708,11 @@ function crDMove(e) {
     crDRender(); return;
   }
   const el = crDEl(d.id); if (!el) return;
-  if (d.kind === 'token') { el.x = p.x; el.y = p.y; if (el.t !== 'ball') crDSyncHeld(crDFrame(), el.id); }
-  else if (d.kind === 'h1') { el.x1 = p.x; el.y1 = p.y; }
-  else if (d.kind === 'h2') { el.x2 = p.x; el.y2 = p.y; }
+  const cc = CR_COURT[crD.schema.mode], po = d.off || { x: 0, y: 0 }, cl = (v, m) => Math.max(0, Math.min(m, v));
+  const pt = { x: Math.round(cl(crDSn(p.x + po.x), cc.w) * 10) / 10, y: Math.round(cl(crDSn(p.y + po.y), cc.h) * 10) / 10 };
+  if (d.kind === 'token') { el.x = pt.x; el.y = pt.y; if (el.t !== 'ball') crDSyncHeld(crDFrame(), el.id); }
+  else if (d.kind === 'h1') { el.x1 = pt.x; el.y1 = pt.y; }
+  else if (d.kind === 'h2') { const m = (el.t === 'pass') ? crDMagnet(pt, e, { x: el.x1, y: el.y1 }) : pt; el.x2 = m.x; el.y2 = m.y; }
   else if (d.kind === 'arrow') {
     const c = CR_COURT[crD.schema.mode], dx = p.x - d.last.x, dy = p.y - d.last.y;
     const nx1 = el.x1 + dx, nx2 = el.x2 + dx, ny1 = el.y1 + dy, ny2 = el.y2 + dy;
@@ -6658,14 +6724,17 @@ function crDMove(e) {
 function crDUp(e) {
   if (!crD) return;
   delete crD.ptrs[e.pointerId];
+  if (e.pointerType === 'pen') { crD.penDown = false; crD.penT = performance.now(); }
   if (crD.pinch) { if (Object.keys(crD.ptrs).length < 2) crD.pinch = null; crD.drag = null; return; }
   if (!crD.drag) return;
+  if (crD.drag.pid != null && e.pointerId !== crD.drag.pid) return;
   const d = crD.drag; crD.drag = null;
   if (d.kind === 'draw') {
-    const p = d.cur, dist = Math.hypot(p.x - d.start.x, p.y - d.start.y);
+    if (e.type === 'pointercancel') { crDRefresh(); return; }
+    const p = d.cur, dist = Math.hypot(e.clientX - d.sx, e.clientY - d.sy) / 1; // distance en pixels écran : une flèche courte au stylet est possible
     const mk = (a, b) => { crDPush(); const el = { id: crUid(), t: crD.tool, x1: a.x, y1: a.y, x2: b.x, y2: b.y }; crDFrame().els.push(el); crD.pending = null; crD.sels = []; if (crDAnimOn()) { crDArrowAnimate(el); if (crDLegOf(el)) crD.sels = [el.id]; } };
-    if (dist > 10) mk(d.start, p);
-    else if (crD.pending) { if (Math.hypot(p.x - crD.pending.x, p.y - crD.pending.y) > 6) mk(crD.pending, p); else crD.pending = null; }
+    if (dist > (e.pointerType === 'pen' ? 4 : 9) && Math.hypot(p.x - d.start.x, p.y - d.start.y) > 0.8) mk(d.start, p);
+    else if (crD.pending) { if (Math.hypot(p.x - crD.pending.x, p.y - crD.pending.y) > 1.2) mk(crD.pending, p); else crD.pending = null; }
     else crD.pending = d.start;
     crDRefresh(); return;
   }
