@@ -5671,18 +5671,18 @@ function crArrowSvg(e, k, th) {
   th = th || CR_TH.dark;
   const kind = e.t, x1 = e.x1, y1 = e.y1, x2 = e.x2, y2 = e.y2;
   const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, px = -uy, py = ux;
-  const col = kind === 'shot' ? th.shot : th.arrow, w = (kind === 'shot' ? 3.6 : 2.4) * Math.min(k, 1.2);
-  const hl = 9 * k, hw = 5.2 * k;
+  const col = kind === 'shot' ? th.shot : th.arrow, w = (kind === 'shot' ? 2.3 : 1.45) * Math.min(k, 1.2);
+  const hl = 7 * k, hw = 4.1 * k;
   if (kind === 'screen') {
     const bw = 8 * k;
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><line x1="${x2 + px * bw}" y1="${y2 + py * bw}" x2="${x2 - px * bw}" y2="${y2 - py * bw}" stroke="${col}" stroke-width="${w + 0.8}" stroke-linecap="round"/>`;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><line x1="${x2 + px * bw}" y1="${y2 + py * bw}" x2="${x2 - px * bw}" y2="${y2 - py * bw}" stroke="${col}" stroke-width="${w + 0.6}" stroke-linecap="round"/>`;
   }
   const bx = x2 - ux * hl, by = y2 - uy * hl;
   let line;
   if (kind === 'dribble') {
     const len = Math.max(0, L - hl), n = Math.max(2, Math.round(len / 3));
     let d = `M${x1} ${y1}`;
-    for (let i = 1; i <= n; i++) { const s = (i / n) * len, off = Math.sin(i * 1.3) * 3 * k; d += ` L${(x1 + ux * s + px * off).toFixed(1)} ${(y1 + uy * s + py * off).toFixed(1)}`; }
+    for (let i = 1; i <= n; i++) { const s = (i / n) * len, off = Math.sin(i * 1.3) * 2.4 * k; d += ` L${(x1 + ux * s + px * off).toFixed(1)} ${(y1 + uy * s + py * off).toFixed(1)}`; }
     line = `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round"/>`;
   } else {
     line = `<line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${col}" stroke-width="${w}" ${kind === 'pass' ? 'stroke-dasharray="6 4"' : ''} stroke-linecap="round"/>`;
@@ -5691,10 +5691,10 @@ function crArrowSvg(e, k, th) {
 }
 // Couleurs personnalisables des joueurs et du matériel (e.c)
 const CR_COLS = [['#F5C400', 'Jaune'], ['#F28C1E', 'Orange'], ['#E8543A', 'Rouge'], ['#E84393', 'Rose'], ['#8E5BD9', 'Violet'], ['#2F7DE1', 'Bleu'], ['#2ECC71', 'Vert'], ['#FFFFFF', 'Blanc'], ['#1B1B1B', 'Noir']];
-const CR_DRAWT = ['pen', 'zone', 'text']; // annotations : crayon libre, zones (rectangle / ellipse), texte
-const CR_COLORABLE = ['att', 'def', 'gb', 'ball', 'cone', 'coupelle', 'jalon', 'cerceau', 'haie', 'minibut', 'pen', 'zone', 'text'];
-const CR_LWS = [1.4, 2.4, 4];
-function crLwi(e) { const v = parseInt(e.lw, 10); return v >= 1 && v <= 3 ? v : 2; }
+const CR_DRAWT = ['pen', 'zone', 'text', 'echelle']; // annotations : crayon libre, zones (rectangle / ellipse), texte
+const CR_COLORABLE = ['att', 'def', 'gb', 'ball', 'cone', 'coupelle', 'jalon', 'cerceau', 'haie', 'minibut', 'pen', 'zone', 'text', 'echelle'];
+// épaisseur du trait (crayon, zone) : e.lt réglable en continu ; e.lw (1-3) = anciens réglages
+function crLw(e) { if (e.lt != null && isFinite(+e.lt)) return Math.max(0.3, Math.min(5, +e.lt)); const v = parseInt(e.lw, 10); return v >= 1 && v <= 3 ? [0.84, 1.44, 2.4][v - 1] : 1.4; }
 // Rectangle englobant (unités terrain) d'une annotation
 function crDrawBox(e, k0, sc) {
   const s = parseFloat(e.s) || 1, x = +e.x || 0, y = +e.y || 0;
@@ -5705,6 +5705,7 @@ function crDrawBox(e, k0, sc) {
     return { x0: x + x0, x1: x + x1, y0: y + y0, y1: y + y1 };
   }
   if (e.t === 'zone') { const w = (+e.w || 1) * s, h = (+e.h || 1) * s; return { x0: x - w, x1: x + w, y0: y - h, y1: y + h }; }
+  if (e.t === 'echelle') { const L = (+e.L || 20) * s, W = 3.4 * s, a = (+e.a || 0) * Math.PI / 180, cs = Math.cos(a), sn = Math.sin(a), hx = Math.abs(L * cs) + Math.abs(W * sn), hy = Math.abs(L * sn) + Math.abs(W * cs); return { x0: x - hx, x1: x + hx, y0: y - hy, y1: y + hy }; }
   const fs = 9 * (k0 || 1) * (sc || 1) * s, w = Math.max(3, String(e.txt || '').length) * 0.58 * fs;
   return { x0: x - w / 2, x1: x + w / 2, y0: y - fs * 0.62, y1: y + fs * 0.62 };
 }
@@ -5735,7 +5736,7 @@ function crTokenSvg(e, k, th) {
   else if (e.t === 'haie') s = `<line x1="${x - 9 * k}" y1="${y}" x2="${x + 9 * k}" y2="${y}" stroke="${C || th.haie}" stroke-width="${2.6 * k}" stroke-linecap="round"/><line x1="${x - 9 * k}" y1="${y - 3.5 * k}" x2="${x - 9 * k}" y2="${y + 3.5 * k}" stroke="${C || th.haie}" stroke-width="${2 * k}"/><line x1="${x + 9 * k}" y1="${y - 3.5 * k}" x2="${x + 9 * k}" y2="${y + 3.5 * k}" stroke="${C || th.haie}" stroke-width="${2 * k}"/>`;
   else if (e.t === 'minibut') s = `<rect x="${x - 10 * k}" y="${y - 4 * k}" width="${20 * k}" height="${8 * k}" fill="${C || th.mini}" stroke="${th.miniSt}" stroke-width="${1.4 * k}"/><line x1="${x - 10 * k}" y1="${y}" x2="${x + 10 * k}" y2="${y}" stroke="${th.miniSt}" stroke-opacity=".35" stroke-width="${0.8 * k}"/>`;
   else if (CR_DRAWT.includes(e.t)) {
-    const u = k / CR_TB, sg = parseFloat(e.s) || 1, lwi = crLwi(e), sw = CR_LWS[lwi - 1] * u * 0.6;
+    const u = k / CR_TB, sg = parseFloat(e.s) || 1, sw = crLw(e) * u;
     if (e.t === 'pen') {
       const P = (Array.isArray(e.pts) ? e.pts : []).map(q => [(+e.x || 0) + (+q[0] || 0) * sg, (+e.y || 0) + (+q[1] || 0) * sg]);
       s = `<path d="${crPenPath(P)}" fill="none" stroke="${C || th.arrow}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>`;
@@ -5744,6 +5745,12 @@ function crTokenSvg(e, k, th) {
       s = e.shape === 'ellipse'
         ? `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${h}" fill="${col}" fill-opacity="${fo}" stroke="${col}" stroke-width="${sw}"/>`
         : `<rect x="${x - w}" y="${y - h}" width="${w * 2}" height="${h * 2}" rx="${Math.min(2, w, h) * 0.6}" fill="${col}" fill-opacity="${fo}" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    } else if (e.t === 'echelle') {
+      // échelle de rythme : 2 montants + barreaux (n cases), L = demi-longueur, a = angle en degrés ; 10 unités = 1 m
+      const Ls = (+e.L || 20) * sg, Ws = 3.4 * sg, n = Math.max(2, Math.min(16, Math.round(+e.n || 8))), col = C || th.haie, rw = Math.max(0.5, 1.0 * u * Math.min(1.4, sg));
+      let g = `<rect x="${x - Ls}" y="${y - Ws}" width="${Ls * 2}" height="${Ws * 2}" fill="${col}" fill-opacity="0.08" stroke="none"/><line x1="${x - Ls}" y1="${y - Ws}" x2="${x + Ls}" y2="${y - Ws}"/><line x1="${x - Ls}" y1="${y + Ws}" x2="${x + Ls}" y2="${y + Ws}"/>`;
+      for (let i = 0; i <= n; i++) { const lx = x - Ls + (2 * Ls) * i / n; g += `<line x1="${lx.toFixed(2)}" y1="${y - Ws}" x2="${lx.toFixed(2)}" y2="${y + Ws}"/>`; }
+      s = `<g transform="rotate(${+e.a || 0} ${x} ${y})" stroke="${col}" stroke-width="${rw}" stroke-linecap="round" fill="none">${g}</g>`;
     } else {
       const fs = 9 * u;
       s = `<text x="${x}" y="${y + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${C || th.arrow}" stroke="${th.svgBg}" stroke-width="${fs * 0.24}" stroke-linejoin="round" style="paint-order:stroke;pointer-events:none;font-family:Arial,sans-serif;">${crEsc(String(e.txt || '').slice(0, 40))}</text>`;
@@ -5805,9 +5812,9 @@ function crGhostSvg(els, next, ks, th, skip) {
     if (a.t !== 'ball') out += `<g style="pointer-events:none;" opacity="0.32">${crTokenSvg({ ...a, x: b.x, y: b.y }, ks / 0.8 * CR_TB * (parseFloat(a.s) || 1), th)}</g>`;
     if (skip && skip[a.id]) return;
     const poly = crPathPoly(a, b), n = poly.length, e = poly[n - 1], q = poly[Math.max(0, n - 3)];
-    const dx = e[0] - q[0], dy = e[1] - q[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, hl = 6 * ks, hw = 3.2 * ks;
+    const dx = e[0] - q[0], dy = e[1] - q[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, hl = 5 * ks, hw = 2.7 * ks;
     const bx = e[0] - ux * hl, by = e[1] - uy * hl;
-    out += `<g style="pointer-events:none;" opacity="0.7"><path d="M${poly.map(z => z[0].toFixed(1) + ' ' + z[1].toFixed(1)).join(' L')}" fill="none" stroke="${th.arrow}" stroke-width="${1.5 * ks}" stroke-dasharray="${3 * ks} ${3 * ks}" stroke-linecap="round" stroke-linejoin="round"/><polygon points="${e[0]},${e[1]} ${bx - uy * hw},${by + ux * hw} ${bx + uy * hw},${by - ux * hw}" fill="${th.arrow}"/></g>`;
+    out += `<g style="pointer-events:none;" opacity="0.7"><path d="M${poly.map(z => z[0].toFixed(1) + ' ' + z[1].toFixed(1)).join(' L')}" fill="none" stroke="${th.arrow}" stroke-width="${1.05 * ks}" stroke-dasharray="${3 * ks} ${3 * ks}" stroke-linecap="round" stroke-linejoin="round"/><polygon points="${e[0]},${e[1]} ${bx - uy * hw},${by + ux * hw} ${bx + uy * hw},${by - ux * hw}" fill="${th.arrow}"/></g>`;
   });
   return out;
 }
@@ -5815,7 +5822,7 @@ function crGhostSvg(els, next, ks, th, skip) {
 function crElsSvg(mode, els, o) {
   o = o || {};
   const k0 = CR_COURT[mode].k, th = CR_TH[o.th || 'dark'], sc = o.sc || 1;
-  const rank = e => e.x1 != null ? 0 : (e.t === 'ball' ? 2 : (e.t === 'zone' ? -1 : (e.t === 'pen' || e.t === 'text' ? 3 : 1)));
+  const rank = e => e.x1 != null ? 0 : (e.t === 'ball' ? 2 : (e.t === 'zone' || e.t === 'echelle' ? -1 : (e.t === 'pen' || e.t === 'text' ? 3 : 1)));
   const order = els.map((e, i) => i).sort((a, b) => (rank(els[a]) - rank(els[b])) || (a - b));
   let body = '';
   if (o.next) { const skip = {}; els.forEach(z => { if (z.x1 != null && Array.isArray(z.lnk)) z.lnk.forEach(i => { skip[i] = 1; }); }); body += crGhostSvg(els, o.next, k0 * sc * 0.8, th, skip); }
@@ -5830,7 +5837,11 @@ function crElsSvg(mode, els, o) {
     } else {
       const dr = CR_DRAWT.includes(e.t);
       body += `<g data-id="${e.id}" ${e.o != null ? `opacity="${e.o}"` : ''}>${o.edit && !dr ? `<circle cx="${e.x}" cy="${e.y}" r="${e.t === 'ball' ? Math.max(10 * k, 5.5 * k0) : Math.max(14 * k, 9 * k0)}" fill="transparent"/>` : ''}${crTokenSvg(e, k, th)}</g>`;
-      if (selected && dr) {
+      if (selected && dr && e.t === 'echelle') {
+        const sg = parseFloat(e.s) || 1, Ls = (+e.L || 20) * sg, Ws = 3.4 * sg, pd = 1.8 * k0, a = (+e.a || 0) * Math.PI / 180;
+        body += `<rect transform="rotate(${+e.a || 0} ${e.x} ${e.y})" x="${e.x - Ls - pd}" y="${e.y - Ws - pd}" width="${Ls * 2 + pd * 2}" height="${Ws * 2 + pd * 2}" fill="none" stroke="${th.sel}" stroke-width="1.6" stroke-dasharray="3.5 2.6" style="pointer-events:none;"/>`;
+        if (single) body += `<circle data-h="l" data-id="${e.id}" cx="${e.x + Math.cos(a) * Ls}" cy="${e.y + Math.sin(a) * Ls}" r="${Math.max(6 * k, 6 * k0)}" fill="${th.svgBg}" stroke="${th.sel}" stroke-width="2.4"/>`;
+      } else if (selected && dr) {
         const b = crDrawBox(e, k0, sc), pd = 2.2 * k0;
         body += `<rect x="${b.x0 - pd}" y="${b.y0 - pd}" width="${b.x1 - b.x0 + pd * 2}" height="${b.y1 - b.y0 + pd * 2}" fill="none" stroke="${th.sel}" stroke-width="1.6" stroke-dasharray="3.5 2.6" style="pointer-events:none;"/>`;
         if (single && e.t === 'zone') body += `<circle data-h="z" data-id="${e.id}" cx="${b.x1}" cy="${b.y1}" r="${Math.max(6 * k, 6 * k0)}" fill="${th.svgBg}" stroke="${th.sel}" stroke-width="2.4"/>`;
@@ -6038,7 +6049,7 @@ function crDRedo() {
 }
 function crOpenDraw() {
   crPlayStop();
-  crD = { schema: crNormSchema(JSON.parse(JSON.stringify(crCurEx().schema))), f: 0, tool: 'sel', sels: [], pending: null, rec: false, undo: [], redo: [], z: 1, cx: null, cy: null, playing: false, speed: 1, drag: null, ptrs: {}, pinch: null, cols: {}, scrub: null, anim: null, dr: false, flash: null, dm: 'pen', dcol: null, dlw: 2, dfill: 1, dtxt: '', snap: crDSnapPref(), penT: 0, penDown: false };
+  crD = { schema: crNormSchema(JSON.parse(JSON.stringify(crCurEx().schema))), f: 0, tool: 'sel', sels: [], pending: null, rec: false, undo: [], redo: [], z: 1, cx: null, cy: null, playing: false, speed: 1, drag: null, ptrs: {}, pinch: null, cols: {}, scrub: null, anim: null, dr: false, flash: null, dm: 'pen', dcol: null, dlt: 1.4, dn: 8, dfill: 1, dtxt: '', prevTool: null, prevDm: null, snap: crDSnapPref(), penT: 0, penDown: false };
   const root = document.getElementById('cr-draw');
   if (root.parentNode !== document.documentElement) document.documentElement.appendChild(root); // hors du zoom CSS du body : le toucher tombe exactement sous le doigt / la pointe
   root.innerHTML = `
@@ -6058,6 +6069,7 @@ function crOpenDraw() {
     <div id="cr-d-ctx" class="cr-d-ctx"></div>
     <div id="cr-d-canvas" class="cr-d-canvas">
       <div id="cr-d-svgbox" style="position:absolute;inset:0;"></div>
+      <div id="cr-d-quick" style="position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:8px;"><button type="button" class="cr-d-ib" id="cr-d-qundo" onclick="crDUndo()" aria-label="Annuler">↶</button><button type="button" class="cr-d-ib" id="cr-d-qredo" onclick="crDRedo()" aria-label="Rétablir">↷</button><button type="button" class="cr-d-ib" id="cr-d-erase" onclick="crDEraserToggle()" aria-label="Gomme : effacer les dessins, textes et zones" title="Gomme">🧽</button></div>
       <div style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;"><button type="button" class="cr-d-ib" onclick="crDZoom(1.4)" aria-label="Zoom avant">🔍+</button><button type="button" class="cr-d-ib" onclick="crDZoom(1/1.4)" aria-label="Zoom arrière">🔍−</button></div>
       <div style="position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:6px;"><button type="button" class="cr-d-ib" onclick="crDSize(1.2)" aria-label="Agrandir les éléments">A+</button><button type="button" class="cr-d-ib" onclick="crDSize(1/1.2)" aria-label="Réduire les éléments">A−</button><button type="button" class="cr-d-ib" id="cr-d-sizelbl" onclick="crDSizeReset()" style="font-size:10px;line-height:1.15;padding:0 2px;" aria-label="Taille normale"></button></div>
     </div>
@@ -6092,14 +6104,13 @@ function crDRefresh() {
   const modes = [['half', '½ terrain'], ['full', 'Terrain'], ['free', 'Espace libre']];
   document.getElementById('cr-d-seg').innerHTML = modes.map(([k, l]) => `<button type="button" class="${crD.schema.mode === k ? 'on' : ''}" onclick="crDMode('${k}')">${l}</button>`).join('');
   document.getElementById('cr-d-title').textContent = 'Image ' + (crD.f + 1) + ' / ' + crD.schema.frames.length + ' · ' + (crCurEx().name || 'Exercice');
-  document.getElementById('cr-d-undo').disabled = !crD.undo.length || crD.playing;
-  document.getElementById('cr-d-redo').disabled = !crD.redo.length || crD.playing;
+  crDUndoUi();
   crDPalette(); crDFramesBar(); crDCtx(); crDRender();
 }
 // Palette sur 2 lignes, sans défilement : joueurs, ballon et outils de mouvement d'abord
 const CR_PAL_FLAT = [
-  ['sel', 'Sélect.'], ['att', 'Att.'], ['def', 'Déf.'], ['gb', 'GB'], ['ball', 'Ballon'], ['traj', 'Trajet'], ['pass', 'Passe'], ['dribble', 'Drib.'], ['mv', 'Dépl.'], ['shot', 'Tir'],
-  ['screen', 'Écran'], ['cone', 'Plot'], ['coupelle', 'Coup.'], ['jalon', 'Jalon'], ['cerceau', 'Cerc.'], ['haie', 'Haie'], ['minibut', 'Mini'], ['dessin', 'Dessin'], ['multi', 'Multi'], ['pan', 'Vue'],
+  ['sel', 'Sélect.'], ['att', 'Att.'], ['def', 'Déf.'], ['mv', 'Dépl.'], ['pass', 'Passe'], ['ball', 'Ballon'], ['traj', 'Trajet'], ['dribble', 'Drib.'], ['shot', 'Tir'], ['gb', 'GB'],
+  ['dessin', 'Dessin'], ['screen', 'Écran'], ['cone', 'Plot'], ['coupelle', 'Coup.'], ['jalon', 'Jalon'], ['cerceau', 'Cerc.'], ['haie', 'Haie'], ['minibut', 'Mini'], ['multi', 'Multi'], ['pan', 'Vue'],
 ];
 const CR_TOOL_NAMES = { sel: 'Sélection', att: 'Attaquant', def: 'Défenseur', gb: 'Gardien', ball: 'Ballon', traj: 'Trajectoire', pass: 'Passe', dribble: 'Dribble', mv: 'Déplacement', shot: 'Tir', screen: 'Écran / bloc', cone: 'Plot', coupelle: 'Coupelle', jalon: 'Jalon', cerceau: 'Cerceau', haie: 'Haie', minibut: 'Mini-but', dessin: 'Dessin : crayon, zones, texte', multi: 'Multi-sélection', pan: 'Déplacer la vue' };
 function crDPalette() {
@@ -6156,9 +6167,31 @@ function crDSetProp(prop, val) {
   if (sels.length) {
     crDPush();
     sels.forEach(z => crD.schema.frames.forEach(fr => fr.els.forEach(q => { if (q.id === z.id) q[prop] = val; })));
-  } else if (prop === 'lw') crD.dlw = val; else if (prop === 'f') crD.dfill = val; else if (prop === 'shape') crD.dm = val;
+  } else if (prop === 'f') crD.dfill = val; else if (prop === 'shape') crD.dm = val; else if (prop === 'n') crD.dn = val;
   crDCtx(); crDRender();
 }
+// Épaisseur du trait (crayon et zones) : curseur et boutons − / +
+function crDLtCur() { const z = crD.sels.map(crDEl).find(q => q && (q.t === 'pen' || q.t === 'zone')); return z ? crLw(z) : crD.dlt; }
+function crDThickSet(v, refresh) {
+  if (!crD || crD.playing) return;
+  v = Math.round(Math.max(0.3, Math.min(5, parseFloat(v) || 1.4)) * 10) / 10;
+  const sels = crD.sels.map(crDEl).filter(z => z && (z.t === 'pen' || z.t === 'zone'));
+  if (sels.length) {
+    const sig = 'lt' + sels.map(z => z.id).join() + ':' + crD.undo.length; if (crD.ltSig !== sig) { crDPush(); crD.ltSig = 'lt' + sels.map(z => z.id).join() + ':' + crD.undo.length; }
+    sels.forEach(z => crD.schema.frames.forEach(fr => fr.els.forEach(q => { if (q.id === z.id) { q.lt = v; delete q.lw; } })));
+  } else crD.dlt = v;
+  const l = document.getElementById('cr-d-lt'); if (l) l.textContent = v.toFixed(1);
+  if (refresh) crDCtx();
+  crDRender();
+}
+function crDThickStep(d) { crDThickSet(crDLtCur() + d * 0.2, true); }
+function crDSetAng(v, rel) {
+  const e = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!e || e.t !== 'echelle') return;
+  crDPush(); let a = rel ? (+e.a || 0) + v : v; a = ((a % 360) + 540) % 360 - 180;
+  crD.schema.frames.forEach(fr => fr.els.forEach(q => { if (q.id === e.id) q.a = a; }));
+  crDCtx(); crDRender();
+}
+function crSnapAng(a) { a = ((a % 360) + 540) % 360 - 180; const m = Math.round(a / 45) * 45; return Math.abs(a - m) < 4 ? m : Math.round(a * 10) / 10; }
 function crDSetMode(m) { crD.dm = m; crDCtx(); }
 function crDSetTxt(v) {
   const e = crD.sels.length === 1 ? crDEl(crD.sels[0]) : null; if (!e || e.t !== 'text') return;
@@ -6170,14 +6203,32 @@ function crDSetTxt(v) {
 function crDChips(prop, cur, opts) { return opts.map(([v, l]) => `<button type="button" class="cr-d-opt ${cur === v ? 'on' : ''}" onclick="crDSetProp('${prop}',${typeof v === 'string' ? `'${v}'` : v})">${l}</button>`).join(' '); }
 function crDDrawOpts(src) {
   // src : annotation sélectionnée, ou null pour le réglage par défaut du prochain dessin
-  const t = src ? src.t : (crD.dm === 'pen' ? 'pen' : (crD.dm === 'text' ? 'text' : 'zone'));
+  const t = src ? src.t : ({ pen: 'pen', text: 'text', echelle: 'echelle', erase: '' }[crD.dm] != null ? { pen: 'pen', text: 'text', echelle: 'echelle', erase: '' }[crD.dm] : 'zone');
   let h = '';
   if (t === 'zone') h += ` <span>Forme :</span> ` + crDChips('shape', src ? (src.shape === 'ellipse' ? 'ellipse' : 'rect') : crD.dm, [['rect', '▭'], ['ellipse', '◯']]) + ` <span>Fond :</span> ` + crDChips('f', src ? (src.f == null ? 1 : +src.f) : crD.dfill, [[0, 'Vide'], [1, 'Léger'], [2, 'Plein']]);
-  if (t === 'pen' || t === 'zone') h += ` <span>Trait :</span> ` + crDChips('lw', src ? crLwi(src) : crD.dlw, [[1, 'Fin'], [2, 'Moyen'], [3, 'Épais']]);
+  if (t === 'echelle') {
+    h += ` <span>Cases :</span> ` + crDChips('n', src ? Math.round(+src.n || 8) : crD.dn, [[6, '6'], [8, '8'], [10, '10'], [12, '12']]);
+    if (src) h += ` <span>Sens :</span> <button type="button" class="cr-d-opt" onclick="crDSetAng(0)">↔</button> <button type="button" class="cr-d-opt" onclick="crDSetAng(90)">↕</button> <button type="button" class="cr-d-opt" onclick="crDSetAng(-15,1)">⟲ 15°</button> <button type="button" class="cr-d-opt" onclick="crDSetAng(15,1)">⟳ 15°</button> <span style="font-size:11px;">Tire la poignée pour allonger, raccourcir ou pivoter · A+ / A− = taille</span>`;
+  }
+  if (t === 'pen' || t === 'zone') { const lt = src ? crLw(src) : crD.dlt; h += ` <span>Trait :</span> <button type="button" class="cr-d-opt" onclick="crDThickStep(-1)" aria-label="Plus fin">−</button> <input type="range" min="0.3" max="5" step="0.1" value="${lt}" oninput="crDThickSet(this.value)" style="width:120px;padding:0;vertical-align:middle;" aria-label="Épaisseur du trait"> <button type="button" class="cr-d-opt" onclick="crDThickStep(1)" aria-label="Plus épais">+</button> <b id="cr-d-lt" style="min-width:28px;display:inline-block;">${lt.toFixed(1)}</b>`; }
   return h;
 }
+function crDUndoUi() {
+  if (!crD) return;
+  const u = !crD.undo.length || crD.playing, r = !crD.redo.length || crD.playing;
+  ['cr-d-undo', 'cr-d-qundo'].forEach(i => { const b = document.getElementById(i); if (b) b.disabled = u; });
+  ['cr-d-redo', 'cr-d-qredo'].forEach(i => { const b = document.getElementById(i); if (b) b.disabled = r; });
+  const g = document.getElementById('cr-d-erase'); if (g) g.classList.toggle('on', crD.tool === 'dessin' && crD.dm === 'erase');
+}
+// Gomme : bascule rapide (puis retour à l'outil précédent)
+function crDEraserToggle() {
+  if (!crD || crD.playing) return;
+  if (crD.tool === 'dessin' && crD.dm === 'erase') { crD.tool = crD.prevTool || 'sel'; crD.dm = crD.prevDm || 'pen'; }
+  else { crD.prevTool = crD.tool; crD.prevDm = crD.dm === 'erase' ? 'pen' : crD.dm; crD.tool = 'dessin'; crD.dm = 'erase'; crD.sels = []; crD.pending = null; }
+  crDRefresh();
+}
 function crDCtx() {
-  crDSizeUi();
+  crDSizeUi(); crDUndoUi();
   const el = document.getElementById('cr-d-ctx');
   if (crD.flash) { el.innerHTML = `<b>${crD.flash}</b>`; return; }
   if (crD.scrub != null) { el.textContent = 'Aperçu de l\'animation — touche le terrain ou une image pour reprendre l\'édition.'; return; }
@@ -6187,7 +6238,7 @@ function crDCtx() {
     el.innerHTML = `<b>${crD.sels.length} éléments</b> <span>glisse l'un d'eux pour tout déplacer · A+ / A− = taille</span> <button type="button" class="cr-d-del" onclick="crDDelSel()">🗑 Supprimer</button> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDClearSel()">Désélectionner</button>` + (selToks.length ? ` <span>Couleur :</span> ` + crDSwatches(selToks.every(z => z.c === selToks[0].c) ? selToks[0].c : null) : ''); return;
   }
   if (sel) {
-    let h = `<b>${{ pen: 'Dessin', zone: 'Zone', text: 'Texte', att: 'Attaquant', def: 'Défenseur', gb: 'Gardien', ball: 'Ballon', cone: 'Plot', coupelle: 'Coupelle', jalon: 'Jalon', cerceau: 'Cerceau', haie: 'Haie', minibut: 'Mini-but', mv: 'Déplacement', pass: 'Passe', dribble: 'Dribble', shot: 'Tir', screen: 'Écran / bloc' }[sel.t] || ''}</b>`;
+    let h = `<b>${{ pen: 'Dessin', zone: 'Zone', text: 'Texte', echelle: 'Échelle de rythme', att: 'Attaquant', def: 'Défenseur', gb: 'Gardien', ball: 'Ballon', cone: 'Plot', coupelle: 'Coupelle', jalon: 'Jalon', cerceau: 'Cerceau', haie: 'Haie', minibut: 'Mini-but', mv: 'Déplacement', pass: 'Passe', dribble: 'Dribble', shot: 'Tir', screen: 'Écran / bloc' }[sel.t] || ''}</b>`;
     if (sel.t === 'att' || sel.t === 'def') h += ` N° <input type="number" inputmode="numeric" min="1" max="99" value="${crEsc(sel.n || '')}" oninput="crDSetN(this.value)" style="width:56px;">`;
     if (sel.t === 'text') h += ` <input type="text" maxlength="40" value="${crEsc(sel.txt || '')}" oninput="crDSetTxt(this.value)" placeholder="Texte" style="width:170px;text-align:left;">`;
     if (CR_DRAWT.includes(sel.t)) h += crDDrawOpts(sel);
@@ -6200,17 +6251,17 @@ function crDCtx() {
     if (!(sel.x1 != null && (sel.t === 'pass' || sel.t === 'shot'))) h += crDMovePanel(sel);
     if (sel.x1 == null && window.innerWidth >= 900) h += ` <span style="display:inline-flex;gap:4px;align-items:center;"><span style="font-size:11px;">Ajuster (10 cm) :</span>` + [['◀', -1, 0], ['▲', 0, -1], ['▼', 0, 1], ['▶', 1, 0]].map(([l, dx, dy]) => `<button type="button" class="cr-d-opt" style="padding:5px 10px;" onclick="crDNudge(${dx},${dy})">${l}</button>`).join('') + `</span>`;
     const delLbl = sel.x1 != null ? (sel.t === 'pass' || sel.t === 'shot' ? '🗑 Supprimer la passe' : '🗑 Supprimer la flèche et son déplacement') : '🗑 Supprimer le joueur';
-    h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">${CR_DRAWT.includes(sel.t) ? { pen: '🗑 Supprimer le dessin', zone: '🗑 Supprimer la zone', text: '🗑 Supprimer le texte' }[sel.t] : (sel.x1 == null && !CR_PLAYERS.includes(sel.t) ? '🗑 Supprimer' : delLbl)}</button>`;
+    h += ` <button type="button" class="cr-d-del" onclick="crDDelSel()">${CR_DRAWT.includes(sel.t) ? { pen: '🗑 Supprimer le dessin', zone: '🗑 Supprimer la zone', text: '🗑 Supprimer le texte', echelle: '🗑 Supprimer l\'échelle' }[sel.t] : (sel.x1 == null && !CR_PLAYERS.includes(sel.t) ? '🗑 Supprimer' : delLbl)}</button>`;
     if (selToks.length) h += ` <span>Couleur :</span> ` + crDSwatches(sel.c);
     el.innerHTML = h; return;
   }
   const hint = t === 'sel' ? 'Touche un élément pour le déplacer, ou glisse sur le terrain pour en entourer plusieurs. Pince à deux doigts pour zoomer · A+ / A− pour la taille des éléments.' : t === 'multi' ? 'Touche plusieurs éléments pour les grouper, puis glisse l\'un d\'eux (ou entoure-les en glissant sur le terrain).' : t === 'traj' ? 'Touche un joueur (ou le ballon), puis trace son trajet avec le doigt : il le suivra dans l\'animation, courbe comprise.' : t === 'pan' ? 'Glisse pour déplacer la vue (pince à deux doigts ou 🔍+ / 🔍− pour zoomer).' : CR_ACTIONS.includes(t) ? 'Glisse du départ à l\'arrivée (ou touche départ puis arrivée).' : 'Touche le terrain pour placer l\'élément.';
   if (t === 'dessin') {
-    const md = [['pen', '✏️ Crayon'], ['rect', '▭ Rectangle'], ['ellipse', '◯ Ellipse'], ['text', '🔤 Texte']];
+    const md = [['pen', '✏️ Crayon'], ['rect', '▭ Rectangle'], ['ellipse', '◯ Ellipse'], ['text', '🔤 Texte'], ['echelle', '🪜 Échelle'], ['erase', '🧽 Gomme']];
     el.innerHTML = md.map(([v, l]) => `<button type="button" class="cr-d-opt ${crD.dm === v ? 'on' : ''}" onclick="crDSetMode('${v}')">${l}</button>`).join(' ')
       + (crD.dm === 'text' ? ` <input type="text" maxlength="40" value="${crEsc(crD.dtxt || '')}" oninput="crD.dtxt=this.value" placeholder="Texte à poser" style="width:170px;text-align:left;">` : '')
-      + crDDrawOpts(null) + ` <span>Couleur :</span> ` + crDSwatches(crD.dcol)
-      + ` <span style="font-size:11px;">${{ pen: 'Dessine au doigt ou au stylet.', rect: 'Glisse d\'un coin à l\'autre (ou touche pour une zone standard).', ellipse: 'Glisse d\'un coin à l\'autre (ou touche pour une zone standard).', text: 'Écris le texte puis touche le terrain.' }[crD.dm]} Pour modifier ou supprimer : outil Sélect.</span>`;
+      + crDDrawOpts(null) + (crD.dm === 'erase' ? '' : ` <span>Couleur :</span> ` + crDSwatches(crD.dcol))
+      + ` <span style="font-size:11px;">${{ pen: 'Dessine au doigt ou au stylet.', rect: 'Glisse d\'un coin à l\'autre (ou touche pour une zone standard).', ellipse: 'Glisse d\'un coin à l\'autre (ou touche pour une zone standard).', text: 'Écris le texte puis touche le terrain.', echelle: 'Glisse du début à la fin de l\'échelle (ou touche pour une échelle standard de 5 m).', erase: 'Passe sur un dessin, un texte, une échelle ou le bord d\'une zone pour l\'effacer.' }[crD.dm]} Pour modifier ou supprimer : outil Sélect.</span>`;
     return;
   }
   if (CR_COLORABLE.includes(t)) { el.innerHTML = `<span>Couleur :</span> ` + crDSwatches(crD.cols[t]) + ` <span>puis touche le terrain pour placer.</span>`; return; }
@@ -6627,7 +6678,7 @@ function crDStop() {
 }
 // ----- Interaction canvas -----
 // ----- Précision (doigt, stylet Apple Pencil, souris) -----
-const CR_BUILD = '19-10-d'; // repère de version : permet de vérifier que la tablette affiche bien la dernière mise à jour
+const CR_BUILD = '19-10-e'; // repère de version : permet de vérifier que la tablette affiche bien la dernière mise à jour
 const CR_SNAP = 5; // pas de l'aimant : 5 unités = 50 cm
 function crDSnapPref() { try { return localStorage.getItem('cr_snap') === '1'; } catch (x) { return false; } }
 function crDToggleSnap() {
@@ -6712,11 +6763,11 @@ function crDHit(e) {
   });
   if (ba) return { dataset: { id: ba.id } };
   let bz = null, ba2 = 1e18;
-  crDFrame().els.forEach(z => { if (z.x1 == null && z.t === 'zone' && crDDrawHit(z, q, tol, k0, sc) != null) { const ar = (+z.w || 1) * (+z.h || 1); if (ar < ba2) { ba2 = ar; bz = z; } } });
+  crDFrame().els.forEach(z => { if (z.x1 == null && (z.t === 'zone' || z.t === 'echelle') && crDDrawHit(z, q, tol, k0, sc) != null) { const ar = z.t === 'echelle' ? (+z.L || 20) * 3.4 : (+z.w || 1) * (+z.h || 1); if (ar < ba2) { ba2 = ar; bz = z; } } });
   return bz ? { dataset: { id: bz.id } } : null;
 }
 // Distance (unités terrain) entre un point et une annotation, ou null si hors de portée
-function crDDrawHit(z, q, tol, k0, sc) {
+function crDDrawHit(z, q, tol, k0, sc, edge) {
   const s = parseFloat(z.s) || 1;
   if (z.t === 'text') { const b = crDrawBox(z, k0, sc); return (q.x >= b.x0 - tol && q.x <= b.x1 + tol && q.y >= b.y0 - tol && q.y <= b.y1 + tol) ? 0 : null; }
   if (z.t === 'pen') {
@@ -6726,19 +6777,52 @@ function crDDrawHit(z, q, tol, k0, sc) {
       const dx = P[i][0] - P[i - 1][0], dy = P[i][1] - P[i - 1][1], L2 = dx * dx + dy * dy || 1, u = Math.max(0, Math.min(1, ((q.x - P[i - 1][0]) * dx + (q.y - P[i - 1][1]) * dy) / L2));
       best = Math.min(best, Math.hypot(P[i - 1][0] + dx * u - q.x, P[i - 1][1] + dy * u - q.y));
     }
-    return best <= tol + CR_LWS[crLwi(z) - 1] * k0 * sc * s * 0.3 ? best : null;
+    return best <= tol + crLw(z) * k0 * sc * s * 0.5 ? best : null;
+  }
+  if (z.t === 'echelle') {
+    const a = (+z.a || 0) * Math.PI / 180, dx = q.x - z.x, dy = q.y - z.y, lx = dx * Math.cos(a) + dy * Math.sin(a), ly = -dx * Math.sin(a) + dy * Math.cos(a);
+    return (Math.abs(lx) <= (+z.L || 20) * s + tol && Math.abs(ly) <= 3.4 * s + tol) ? 0 : null;
   }
   const w = (+z.w || 1) * s, h = (+z.h || 1) * s, dx = q.x - z.x, dy = q.y - z.y;
   const d = z.shape === 'ellipse' ? (Math.hypot(dx / w, dy / h) - 1) * Math.min(w, h) : Math.max(Math.abs(dx) - w, Math.abs(dy) - h);
-  const filled = (z.f == null ? 1 : +z.f) > 0;
+  const filled = !edge && (z.f == null ? 1 : +z.f) > 0;
   return (filled ? d <= tol : Math.abs(d) <= tol) ? Math.abs(d) : null;
 }
 // Positions des annotations : valables pour cette image et les suivantes
 function crDPropPos(z) {
-  for (let i = crD.f + 1; i < crD.schema.frames.length; i++) crD.schema.frames[i].els.forEach(q => { if (q.id === z.id) { q.x = z.x; q.y = z.y; if (z.t === 'zone') { q.w = z.w; q.h = z.h; } } });
+  for (let i = crD.f + 1; i < crD.schema.frames.length; i++) crD.schema.frames[i].els.forEach(q => { if (q.id === z.id) { q.x = z.x; q.y = z.y; if (z.t === 'zone') { q.w = z.w; q.h = z.h; } if (z.t === 'echelle') { q.L = z.L; q.a = z.a; } } });
 }
 function crDAddAll(el) {
   for (let i = crD.f; i < crD.schema.frames.length; i++) crD.schema.frames[i].els.push(i === crD.f ? el : JSON.parse(JSON.stringify(el)));
+}
+function crDLadderGeom(a, b, dist) {
+  if (dist < 8) return { x: a.x, y: a.y, L: 25, a: 0 };
+  const dx = b.x - a.x, dy = b.y - a.y;
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, L: Math.max(4, Math.hypot(dx, dy) / 2), a: crSnapAng(Math.atan2(dy, dx) * 180 / Math.PI) };
+}
+function crDLadderDone(d, e) {
+  const g = crDLadderGeom(d.a, d.b, Math.hypot(e.clientX - d.sx, e.clientY - d.sy)), r1 = v => Math.round(v * 10) / 10;
+  const el = { id: crUid(), t: 'echelle', x: r1(g.x), y: r1(g.y), L: r1(g.L), a: g.a, n: crD.dn };
+  if (crD.dcol) el.c = crD.dcol;
+  crDPush(); crDAddAll(el); crD.tool = 'sel'; crD.sels = [el.id]; crDRefresh();
+}
+// Gomme : efface le dessin / texte touché ; à défaut le bord d'une zone ou l'échelle
+function crDEraseDrag(e) {
+  const d = crD.drag; if (!d) return;
+  const k0 = CR_COURT[crD.schema.mode].k, sc = crD.schema.sc, tol = (e.pointerType === 'pen' ? 7 : 11) * crDUpx();
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null; let last = crDRaw(e.clientX, e.clientY);
+  (evs && evs.length ? evs : [e]).forEach(ev => {
+    const q = crDRaw(ev.clientX, ev.clientY); last = q;
+    const fr = crDFrame(); let gone = fr.els.filter(z => z.x1 == null && (z.t === 'pen' || z.t === 'text') && crDDrawHit(z, q, tol, k0, sc) != null).map(z => z.id);
+    if (!gone.length) gone = fr.els.filter(z => z.x1 == null && (z.t === 'zone' || z.t === 'echelle') && crDDrawHit(z, q, tol, k0, sc, true) != null).map(z => z.id);
+    if (!gone.length) return;
+    if (!d.pushed) { crDPush(); d.pushed = true; }
+    for (let i = crD.f; i < crD.schema.frames.length; i++) crD.schema.frames[i].els = crD.schema.frames[i].els.filter(z => !gone.includes(z.id));
+    crD.sels = crD.sels.filter(i => !gone.includes(i));
+  });
+  crDRender();
+  const svg = document.querySelector('#cr-d-svgbox svg');
+  if (svg) svg.insertAdjacentHTML('beforeend', `<circle cx="${last.x}" cy="${last.y}" r="${tol}" fill="rgba(232,84,58,0.15)" stroke="#E8543A" stroke-width="${0.9 * crDUpx()}" style="pointer-events:none;"/>`);
 }
 function crDZoneGeom(a, b, dist) {
   const k0 = CR_COURT[crD.schema.mode].k;
@@ -6755,13 +6839,13 @@ function crDPenDone(d) {
   if (P.length < 2 || len < 3 * upx) { crDRender(); return; }
   P = crRdp(P, Math.max(0.3, 0.7 * upx));
   const xs = P.map(q => q.x), ys = P.map(q => q.y), cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2, r1 = v => Math.round(v * 10) / 10;
-  const el = { id: crUid(), t: 'pen', x: r1(cx), y: r1(cy), pts: P.map(q => [r1(q.x - cx), r1(q.y - cy)]), lw: crD.dlw };
+  const el = { id: crUid(), t: 'pen', x: r1(cx), y: r1(cy), pts: P.map(q => [r1(q.x - cx), r1(q.y - cy)]), lt: crD.dlt };
   if (crD.dcol) el.c = crD.dcol;
   crDPush(); crDAddAll(el); crDRefresh();
 }
 function crDZoneDone(d, e) {
   const g = crDZoneGeom(d.a, d.b, Math.hypot(e.clientX - d.sx, e.clientY - d.sy)), r1 = v => Math.round(v * 10) / 10;
-  const el = { id: crUid(), t: 'zone', shape: crD.dm === 'ellipse' ? 'ellipse' : 'rect', x: r1(g.x), y: r1(g.y), w: r1(g.w), h: r1(g.h), f: crD.dfill, lw: crD.dlw };
+  const el = { id: crUid(), t: 'zone', shape: crD.dm === 'ellipse' ? 'ellipse' : 'rect', x: r1(g.x), y: r1(g.y), w: r1(g.w), h: r1(g.h), f: crD.dfill, lt: crD.dlt };
   if (crD.dcol) el.c = crD.dcol;
   crDPush(); crDAddAll(el); crD.tool = 'sel'; crD.sels = [el.id]; crDRefresh();
 }
@@ -6782,12 +6866,15 @@ function crDDown(e) {
   const hitEl = crDHit(e);
   const cap = () => { if (crD.drag) crD.drag.pid = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (x) {} };
   const base = { last: p, moved: false, sx: e.clientX, sy: e.clientY };
+  // stylet : bouton latéral / gomme (si l'appareil les transmet) = gomme le temps du geste
+  if (e.pointerType === 'pen' && (e.buttons & 34) && t !== 'pan') { crD.drag = { ...base, kind: 'erase', pushed: false }; cap(); crDEraseDrag(e); return; }
   if (t === 'pan') { crD.drag = { kind: 'pan', sx: e.clientX, sy: e.clientY }; cap(); return; }
   if (t === 'sel' || t === 'multi') {
     const el = hitEl ? crDEl(hitEl.dataset.id) : null;
     if (el) {
       const id = el.id, tok = el.x1 == null;
       if (hitEl.dataset.h === 'z') { const sg = parseFloat(el.s) || 1; crD.sels = [id]; crD.drag = { ...base, kind: 'hz', id, off: { x: el.x + (+el.w || 1) * sg - p.x, y: el.y + (+el.h || 1) * sg - p.y } }; }
+      else if (hitEl.dataset.h === 'l') { const sg = parseFloat(el.s) || 1, an = (+el.a || 0) * Math.PI / 180; crD.sels = [id]; crD.drag = { ...base, kind: 'hl', id, off: { x: el.x + Math.cos(an) * (+el.L || 20) * sg - p.x, y: el.y + Math.sin(an) * (+el.L || 20) * sg - p.y } }; }
       else if (hitEl.dataset.h) { crD.sels = [id]; const hx = hitEl.dataset.h === '1' ? el.x1 : el.x2, hy = hitEl.dataset.h === '1' ? el.y1 : el.y2; crD.drag = { ...base, kind: 'h' + hitEl.dataset.h, id, off: { x: hx - p.x, y: hy - p.y } }; }
       else if (t === 'multi' && tok) {
         const had = crD.sels.includes(id);
@@ -6815,7 +6902,8 @@ function crDDown(e) {
       if (crD.dcol) el.c = crD.dcol;
       crDPush(); crDAddAll(el); crD.tool = 'sel'; crD.sels = [el.id]; crDRefresh(); return;
     }
-    crD.drag = crD.dm === 'pen' ? { ...base, kind: 'pen', pts: [p] } : { ...base, kind: 'zone', a: ps, b: ps };
+    if (crD.dm === 'erase') { crD.drag = { ...base, kind: 'erase', pushed: false }; cap(); crDEraseDrag(e); return; }
+    crD.drag = crD.dm === 'pen' ? { ...base, kind: 'pen', pts: [p] } : (crD.dm === 'echelle' ? { ...base, kind: 'ladder', a: ps, b: ps } : { ...base, kind: 'zone', a: ps, b: ps });
     cap(); return;
   }
   if (t === 'traj') {
@@ -6857,16 +6945,23 @@ function crDMove(e) {
   }
   const p = crDPt(e);
   if (d.kind === 'draw') { const pe = crDPtS(e), t = crD.tool; d.cur = (t === 'pass') ? crDMagnet(pe, e, d.start) : pe; crDRender(); const svg = document.querySelector('#cr-d-svgbox svg'); if (svg) svg.insertAdjacentHTML('beforeend', crArrowSvg({ t: crD.tool, x1: d.start.x, y1: d.start.y, x2: d.cur.x, y2: d.cur.y }, CR_COURT[crD.schema.mode].k, CR_TH.dark)); return; }
+  if (d.kind === 'erase') { crDEraseDrag(e); return; }
+  if (d.kind === 'ladder') {
+    d.b = crDPtS(e); crDRender();
+    const g = crDLadderGeom(d.a, d.b, Math.hypot(e.clientX - d.sx, e.clientY - d.sy));
+    crDDrawPrev({ t: 'echelle', x: g.x, y: g.y, L: g.L, a: g.a, n: crD.dn, c: crD.dcol });
+    return;
+  }
   if (d.kind === 'pen') {
     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null, minD = (e.pointerType === 'pen' ? 0.8 : 1.4) * crDUpx();
     (evs && evs.length ? evs : [e]).forEach(ev => { const pp = crDPt(ev), l = d.pts[d.pts.length - 1]; if (d.pts.length < 3000 && Math.hypot(pp.x - l.x, pp.y - l.y) >= minD) { d.pts.push(pp); d.moved = true; } });
-    crDRender(); crDDrawPrev({ t: 'pen', x: 0, y: 0, pts: d.pts.map(q => [q.x, q.y]), c: crD.dcol, lw: crD.dlw });
+    crDRender(); crDDrawPrev({ t: 'pen', x: 0, y: 0, pts: d.pts.map(q => [q.x, q.y]), c: crD.dcol, lt: crD.dlt });
     return;
   }
   if (d.kind === 'zone') {
     d.b = crDPtS(e); crDRender();
     const g = crDZoneGeom(d.a, d.b, Math.hypot(e.clientX - d.sx, e.clientY - d.sy));
-    crDDrawPrev({ t: 'zone', shape: crD.dm === 'ellipse' ? 'ellipse' : 'rect', x: g.x, y: g.y, w: g.w, h: g.h, f: crD.dfill, lw: crD.dlw, c: crD.dcol });
+    crDDrawPrev({ t: 'zone', shape: crD.dm === 'ellipse' ? 'ellipse' : 'rect', x: g.x, y: g.y, w: g.w, h: g.h, f: crD.dfill, lt: crD.dlt, c: crD.dcol });
     return;
   }
   if (d.kind === 'marquee') {
@@ -6882,7 +6977,7 @@ function crDMove(e) {
     (evs && evs.length ? evs : [e]).forEach(ev => { const pp = crDPt(ev), l = d.trace[d.trace.length - 1]; if (Math.hypot(pp.x - l.x, pp.y - l.y) >= minD) { d.trace.push(pp); d.moved = true; } });
     crDRender();
     const svg = document.querySelector('#cr-d-svgbox svg');
-    if (svg) svg.insertAdjacentHTML('beforeend', `<polyline points="${d.trace.map(q => q.x + ',' + q.y).join(' ')}" fill="none" stroke="#F5C400" stroke-width="2.2" stroke-dasharray="4 3" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"/>`);
+    if (svg) svg.insertAdjacentHTML('beforeend', `<polyline points="${d.trace.map(q => q.x + ',' + q.y).join(' ')}" fill="none" stroke="#F5C400" stroke-width="1.5" stroke-dasharray="4 3" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"/>`);
     return;
   }
   if (!d.moved) {
@@ -6904,6 +6999,7 @@ function crDMove(e) {
   const cc = CR_COURT[crD.schema.mode], po = d.off || { x: 0, y: 0 }, cl = (v, m) => Math.max(0, Math.min(m, v));
   const pt = { x: Math.round(cl(crDSn(p.x + po.x), cc.w) * 10) / 10, y: Math.round(cl(crDSn(p.y + po.y), cc.h) * 10) / 10 };
   if (d.kind === 'token') { el.x = pt.x; el.y = pt.y; if (el.t !== 'ball') crDSyncHeld(crDFrame(), el.id); }
+  else if (d.kind === 'hl') { const sg = parseFloat(el.s) || 1, dx = pt.x - el.x, dy = pt.y - el.y; el.L = Math.max(4, Math.round(Math.hypot(dx, dy) / sg * 10) / 10); el.a = crSnapAng(Math.atan2(dy, dx) * 180 / Math.PI); }
   else if (d.kind === 'hz') { const sg = parseFloat(el.s) || 1; el.w = Math.max(2, Math.round(Math.abs(pt.x - el.x) / sg * 10) / 10); el.h = Math.max(2, Math.round(Math.abs(pt.y - el.y) / sg * 10) / 10); }
   else if (d.kind === 'h1') { el.x1 = pt.x; el.y1 = pt.y; }
   else if (d.kind === 'h2') { const m = (el.t === 'pass') ? crDMagnet(pt, e, { x: el.x1, y: el.y1 }) : pt; el.x2 = m.x; el.y2 = m.y; }
@@ -6932,6 +7028,8 @@ function crDUp(e) {
     else crD.pending = d.start;
     crDRefresh(); return;
   }
+  if (d.kind === 'erase') { if (d.pushed) crDRefresh(); else crDRender(); return; }
+  if (d.kind === 'ladder') { if (e.type === 'pointercancel') { crDRender(); return; } crDLadderDone(d, e); return; }
   if (d.kind === 'pen') { if (e.type === 'pointercancel') { crDRender(); return; } crDPenDone(d); return; }
   if (d.kind === 'zone') { if (e.type === 'pointercancel') { crDRender(); return; } crDZoneDone(d, e); return; }
   if (d.kind === 'marquee') {
@@ -6948,7 +7046,7 @@ function crDUp(e) {
     (d.kind === 'group' ? d.ids : [d.id]).forEach(id => { const z = crDEl(id); if (z && z.t === 'ball') crDSnapBall(z, crDFrame()); });
     if (d.rec) crDStoreTrace(d);
   }
-  if (d.moved && !d.rec && (d.kind === 'token' || d.kind === 'group' || d.kind === 'hz')) (d.kind === 'group' ? d.ids : [d.id]).forEach(id => { const z = crDEl(id); if (z && CR_DRAWT.includes(z.t)) crDPropPos(z); });
+  if (d.moved && !d.rec && (d.kind === 'token' || d.kind === 'group' || d.kind === 'hz' || d.kind === 'hl')) (d.kind === 'group' ? d.ids : [d.id]).forEach(id => { const z = crDEl(id); if (z && CR_DRAWT.includes(z.t)) crDPropPos(z); });
   if (d.moved) crDFramesBar();
   crDCtx(); crDRender();
 }
