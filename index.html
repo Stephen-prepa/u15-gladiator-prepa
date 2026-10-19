@@ -6240,7 +6240,7 @@ function crDCtx() {
   if (sel) {
     let h = `<b>${{ pen: 'Dessin', zone: 'Zone', text: 'Texte', echelle: 'Échelle de rythme', att: 'Attaquant', def: 'Défenseur', gb: 'Gardien', ball: 'Ballon', cone: 'Plot', coupelle: 'Coupelle', jalon: 'Jalon', cerceau: 'Cerceau', haie: 'Haie', minibut: 'Mini-but', mv: 'Déplacement', pass: 'Passe', dribble: 'Dribble', shot: 'Tir', screen: 'Écran / bloc' }[sel.t] || ''}</b>`;
     if (sel.t === 'att' || sel.t === 'def') h += ` N° <input type="number" inputmode="numeric" min="1" max="99" value="${crEsc(sel.n || '')}" oninput="crDSetN(this.value)" style="width:56px;">`;
-    if (sel.t === 'text') h += ` <input type="text" maxlength="40" value="${crEsc(sel.txt || '')}" oninput="crDSetTxt(this.value)" placeholder="Texte" style="width:170px;text-align:left;">`;
+    if (sel.t === 'text') h += ` <input type="text" id="cr-d-txt" maxlength="40" value="${crEsc(sel.txt || '')}" oninput="crDSetTxt(this.value)" onkeydown="if(event.key==='Enter')this.blur()" enterkeyhint="done" autocomplete="off" placeholder="Texte" style="width:170px;text-align:left;">`;
     if (CR_DRAWT.includes(sel.t)) h += crDDrawOpts(sel);
     if (sel.t === 'ball') h += sel.hold ? ` <span>porté par un joueur</span> <button type="button" class="cr-d-del" style="color:var(--gris-clair);border-color:rgba(255,255,255,0.25);" onclick="crDRelease()">Lâcher</button>` : ` <span>pose-le sur un joueur pour le lui attacher</span>`;
     const lg = crDLegOf(sel);
@@ -6259,7 +6259,7 @@ function crDCtx() {
   if (t === 'dessin') {
     const md = [['pen', '✏️ Crayon'], ['rect', '▭ Rectangle'], ['ellipse', '◯ Ellipse'], ['text', '🔤 Texte'], ['echelle', '🪜 Échelle'], ['erase', '🧽 Gomme']];
     el.innerHTML = md.map(([v, l]) => `<button type="button" class="cr-d-opt ${crD.dm === v ? 'on' : ''}" onclick="crDSetMode('${v}')">${l}</button>`).join(' ')
-      + (crD.dm === 'text' ? ` <input type="text" maxlength="40" value="${crEsc(crD.dtxt || '')}" oninput="crD.dtxt=this.value" placeholder="Texte à poser" style="width:170px;text-align:left;">` : '')
+      + (crD.dm === 'text' ? ` <input type="text" id="cr-d-txt" maxlength="40" value="${crEsc(crD.dtxt || '')}" oninput="crD.dtxt=this.value" onkeydown="if(event.key==='Enter')this.blur()" enterkeyhint="done" autocomplete="off" placeholder="Texte à poser" style="width:170px;text-align:left;">` : '')
       + crDDrawOpts(null) + (crD.dm === 'erase' ? '' : ` <span>Couleur :</span> ` + crDSwatches(crD.dcol))
       + ` <span style="font-size:11px;">${{ pen: 'Dessine au doigt ou au stylet.', rect: 'Glisse d\'un coin à l\'autre (ou touche pour une zone standard).', ellipse: 'Glisse d\'un coin à l\'autre (ou touche pour une zone standard).', text: 'Écris le texte puis touche le terrain.', echelle: 'Glisse du début à la fin de l\'échelle (ou touche pour une échelle standard de 5 m).', erase: 'Passe sur un dessin, un texte, une échelle ou le bord d\'une zone pour l\'effacer.' }[crD.dm]} Pour modifier ou supprimer : outil Sélect.</span>`;
     return;
@@ -6678,7 +6678,7 @@ function crDStop() {
 }
 // ----- Interaction canvas -----
 // ----- Précision (doigt, stylet Apple Pencil, souris) -----
-const CR_BUILD = '19-10-e'; // repère de version : permet de vérifier que la tablette affiche bien la dernière mise à jour
+const CR_BUILD = '19-10-f'; // repère de version : permet de vérifier que la tablette affiche bien la dernière mise à jour
 const CR_SNAP = 5; // pas de l'aimant : 5 unités = 50 cm
 function crDSnapPref() { try { return localStorage.getItem('cr_snap') === '1'; } catch (x) { return false; } }
 function crDToggleSnap() {
@@ -6718,6 +6718,14 @@ function crDNudge(dx, dy) {
   crDRender();
 }
 // Survol du Pencil : anneau de visée, et l'élément qui serait saisi
+// Clavier : le focus doit être donné pendant le relâchement du doigt / du stylet (pointerup), seul instant où iPadOS accepte d'ouvrir le clavier ;
+// le redessin du terrain au pointerdown supprime l'élément touché, donc l'événement click n'arrive jamais
+function crDFocusTxt() {
+  if (!crD || !crD.focusTxt) return;
+  crD.focusTxt = false;
+  const i = document.getElementById('cr-d-txt'); if (!i) return;
+  i.focus(); try { i.select(); } catch (x) {}
+}
 function crDHoverOff() { const g = document.getElementById('cr-d-hover'); if (g) g.remove(); }
 function crDHover(e) {
   const svg = document.querySelector('#cr-d-svgbox svg'); if (!svg || crD.playing || crD.scrub != null) return;
@@ -6895,13 +6903,7 @@ function crDDown(e) {
     crDCtx(); crDRender(); return;
   }
   if (t === 'dessin') {
-    if (crD.dm === 'text') {
-      try { cv.setPointerCapture(e.pointerId); } catch (x) {}
-      crD.penDown = false;
-      const el = { id: crUid(), t: 'text', x: ps.x, y: ps.y, txt: (crD.dtxt || 'Texte').slice(0, 40) };
-      if (crD.dcol) el.c = crD.dcol;
-      crDPush(); crDAddAll(el); crD.tool = 'sel'; crD.sels = [el.id]; crDRefresh(); return;
-    }
+    if (crD.dm === 'text') { crD.drag = { ...base, kind: 'textplace', ps }; cap(); return; }
     if (crD.dm === 'erase') { crD.drag = { ...base, kind: 'erase', pushed: false }; cap(); crDEraseDrag(e); return; }
     crD.drag = crD.dm === 'pen' ? { ...base, kind: 'pen', pts: [p] } : (crD.dm === 'echelle' ? { ...base, kind: 'ladder', a: ps, b: ps } : { ...base, kind: 'zone', a: ps, b: ps });
     cap(); return;
@@ -6945,6 +6947,7 @@ function crDMove(e) {
   }
   const p = crDPt(e);
   if (d.kind === 'draw') { const pe = crDPtS(e), t = crD.tool; d.cur = (t === 'pass') ? crDMagnet(pe, e, d.start) : pe; crDRender(); const svg = document.querySelector('#cr-d-svgbox svg'); if (svg) svg.insertAdjacentHTML('beforeend', crArrowSvg({ t: crD.tool, x1: d.start.x, y1: d.start.y, x2: d.cur.x, y2: d.cur.y }, CR_COURT[crD.schema.mode].k, CR_TH.dark)); return; }
+  if (d.kind === 'textplace') return;
   if (d.kind === 'erase') { crDEraseDrag(e); return; }
   if (d.kind === 'ladder') {
     d.b = crDPtS(e); crDRender();
@@ -7028,6 +7031,12 @@ function crDUp(e) {
     else crD.pending = d.start;
     crDRefresh(); return;
   }
+  if (d.kind === 'textplace') {
+    if (e.type === 'pointercancel') return;
+    const el = { id: crUid(), t: 'text', x: d.ps.x, y: d.ps.y, txt: (crD.dtxt || 'Texte').slice(0, 40) };
+    if (crD.dcol) el.c = crD.dcol;
+    crDPush(); crDAddAll(el); crD.tool = 'sel'; crD.sels = [el.id]; crDRefresh(); crD.focusTxt = true; crDFocusTxt(); return;
+  }
   if (d.kind === 'erase') { if (d.pushed) crDRefresh(); else crDRender(); return; }
   if (d.kind === 'ladder') { if (e.type === 'pointercancel') { crDRender(); return; } crDLadderDone(d, e); return; }
   if (d.kind === 'pen') { if (e.type === 'pointercancel') { crDRender(); return; } crDPenDone(d); return; }
@@ -7041,6 +7050,7 @@ function crDUp(e) {
     crDCtx(); crDRender(); return;
   }
   if (d.kind === 'traj') { crDApplyTraj(d); return; }
+  if (d.kind === 'token' && !d.moved) { const z = crDEl(d.id); if (z && z.t === 'text') crD.focusTxt = true; }
   if (d.kind === 'group' && !d.moved && d.toggle) crD.sels = crD.sels.filter(i => i !== d.toggle);
   if (d.moved && (d.kind === 'token' || d.kind === 'group')) {
     (d.kind === 'group' ? d.ids : [d.id]).forEach(id => { const z = crDEl(id); if (z && z.t === 'ball') crDSnapBall(z, crDFrame()); });
@@ -7049,6 +7059,7 @@ function crDUp(e) {
   if (d.moved && !d.rec && (d.kind === 'token' || d.kind === 'group' || d.kind === 'hz' || d.kind === 'hl')) (d.kind === 'group' ? d.ids : [d.id]).forEach(id => { const z = crDEl(id); if (z && CR_DRAWT.includes(z.t)) crDPropPos(z); });
   if (d.moved) crDFramesBar();
   crDCtx(); crDRender();
+  if (crD.focusTxt) crDFocusTxt();
 }
 
 // ----- Export / partage de l'animation (GIF, ou PNG s'il n'y a qu'une image) -----
