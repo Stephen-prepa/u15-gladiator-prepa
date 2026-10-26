@@ -423,6 +423,22 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .sch-chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gris-clair);margin:4px 0 10px;}
 .sch-chk input{width:20px;height:20px;}
 .sch-svg{max-width:760px;margin:0 auto;}
+.sch-play{border:0;background:var(--jaune);color:#111;border-radius:10px;padding:12px 18px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;min-height:44px;}
+#sch-player .schp-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));}
+#sch-player .schp-title{font-size:17px;font-weight:800;}
+#sch-player .schp-stage{flex:1;min-height:0;padding:0 10px;display:flex;align-items:center;justify-content:center;}
+#sch-player .schp-warn{min-height:0;font-size:12px;color:#F5C400;text-align:center;padding:4px 14px;}
+#sch-player .schp-ctl{padding:8px 14px 14px;padding-bottom:max(14px,env(safe-area-inset-bottom));max-width:820px;width:100%;margin:0 auto;box-sizing:border-box;}
+#sch-player input[type=range]{width:100%;height:32px;margin:0 0 6px;accent-color:#F5C400;}
+#sch-player .schp-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#sch-player .schp-btn{border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#fff;border-radius:10px;min-width:48px;height:48px;font-size:20px;cursor:pointer;font-family:inherit;}
+#sch-player .schp-main{background:#F5C400;color:#111;border-color:#F5C400;min-width:64px;}
+#sch-player .schp-time{font-size:13px;color:#B8C4D6;margin:0 4px;font-variant-numeric:tabular-nums;}
+#sch-player .schp-sp{margin-left:auto;display:flex;gap:4px;}
+#sch-player .schp-chip{border:1px solid rgba(255,255,255,0.25);background:transparent;color:#B8C4D6;border-radius:8px;height:40px;padding:0 10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+#sch-player .schp-chip.on{border-color:#F5C400;color:#F5C400;background:rgba(245,196,0,0.12);}
+#sch-player .schp-chk{display:flex;align-items:center;gap:8px;font-size:13px;color:#B8C4D6;margin-top:8px;}
+#sch-player .schp-chk input{width:20px;height:20px;}
 </style>
 </head>
 <body>
@@ -1425,7 +1441,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 1 sur 4 (version 26-10-a) — affichage des schémas en lecture seule (démonstration). L'animation, l'éditeur et la sauvegarde arrivent aux étapes suivantes.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 2 sur 4 (version 26-10-b) — affichage et animation des schémas (démonstration). L'éditeur et la sauvegarde arrivent aux étapes suivantes.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -5446,30 +5462,242 @@ function schActionSvg(a, badge) {
   }
   return g;
 }
-// Rendu complet d'un schéma. o : { showBallStart (filigrane, défaut true), ballPos:{x,y} (position imposée du ballon, pour l'animation), hideBall, hideActions, sel }
+// Rendu : un « cadre » (frame) décrit ce qu'il faut dessiner à un instant donné : { els (hors actions et ballon), acts:[{a, badge}], balls:[{x,y,o,s}], ghosts:[{x,y,o,s}] }
+// Chaque élément peut porter _o (opacité 0-1). Ordre d'empilement : zones → cerceaux → actions → joueurs → objets → ballon → texte.
+function schBodySvg(f) {
+  const sorted = (list) => list.slice().sort((a, b) => a.z - b.z);
+  const withO = (e, svg) => e._o != null && e._o < 1 ? `<g opacity="${schR(Math.max(0, e._o), 2)}">${svg}</g>` : svg;
+  const els = f.els;
+  let body = '';
+  sorted(els.filter(e => e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE')).forEach(e => { body += withO(e, schElementSvg(e)); });
+  sorted(els.filter(e => e.type === 'HOOP')).forEach(e => { body += withO(e, schElementSvg(e)); });
+  f.acts.forEach(x => { body += schActionSvg(x.a, x.badge); });
+  sorted(els.filter(schIsPlayer)).forEach(e => { body += withO(e, schElementSvg(e)); });
+  sorted(els.filter(e => SCH_OBJECTS.includes(e.type) && e.type !== 'HOOP')).forEach(e => { body += withO(e, schElementSvg(e)); });
+  f.ghosts.forEach(g => { body += schBallSvg(g.x, g.y, g.s || 1, schR(0.3 * (g.o == null ? 1 : g.o), 2)); });
+  f.balls.forEach(b => { body += schBallSvg(b.x, b.y, b.s || 1, b.o != null && b.o < 1 ? schR(b.o, 2) : null); });
+  sorted(els.filter(e => e.type === 'TEXT')).forEach(e => { body += withO(e, schElementSvg(e)); });
+  return body;
+}
+// Rendu complet d'un schéma fixe. o : { showBallStart (filigrane, défaut true), hideBall, hideActions }
 function schDrawingSvg(d, o) {
   o = o || {}; d = schNormDrawing(d);
-  const els = d.elements, vw = schView(d.view), show = o.showBallStart !== false;
-  const sorted = (list) => list.slice().sort((a, b) => a.z - b.z);
-  const zones = sorted(els.filter(e => e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE')), hoops = sorted(els.filter(e => e.type === 'HOOP'));
-  const acts = o.hideActions ? [] : sorted(els.filter(schIsAction)), players = sorted(els.filter(schIsPlayer));
-  const objs = sorted(els.filter(e => SCH_OBJECTS.includes(e.type) && e.type !== 'HOOP' && e.type !== 'BALL')), balls = els.filter(e => e.type === 'BALL'), texts = sorted(els.filter(e => e.type === 'TEXT'));
-  let body = '';
-  zones.forEach(e => { body += schElementSvg(e); });
-  hoops.forEach(e => { body += schElementSvg(e); });
-  acts.forEach(a => { body += schActionSvg(a); });
-  players.forEach(e => { body += schElementSvg(e); });
-  objs.forEach(e => { body += schElementSvg(e); });
-  balls.forEach((b, i) => {
-    const st = schBallStart(b, els);
-    if (show) body += schBallSvg(st.x, st.y, b.scale || 1, 0.3); // filigrane : départ de l'étape
-    if (!o.hideBall) { const p = (i === 0 && o.ballPos) ? o.ballPos : st; body += schBallSvg(p.x, p.y, b.scale || 1); }
-  });
-  texts.forEach(e => { body += schElementSvg(e); });
-  return `<svg viewBox="${vw.vb.join(' ')}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;border-radius:10px;background:#fff;touch-action:manipulation;">${schCourtSvg(d.view)}${body}</svg>`;
+  const vw = schView(d.view), els = d.elements, balls = els.filter(e => e.type === 'BALL');
+  const f = { els: els.filter(e => !schIsAction(e) && e.type !== 'BALL'), acts: o.hideActions ? [] : els.filter(schIsAction).map(a => ({ a, badge: true })), balls: [], ghosts: [] };
+  balls.forEach(b => { const st = schBallStart(b, els); if (o.showBallStart !== false) f.ghosts.push({ x: st.x, y: st.y, s: b.scale }); if (!o.hideBall) f.balls.push({ x: st.x, y: st.y, s: b.scale }); });
+  return `<svg viewBox="${vw.vb.join(' ')}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;border-radius:10px;background:#fff;touch-action:manipulation;">${schCourtSvg(d.view)}${schBodySvg(f)}</svg>`;
 }
 
-// ----- Démonstration (étape 1 : lecture seule ; les vrais exercices viendront de Supabase) -----
+// ===================== ANIMATION =====================
+// Chronologie : les actions sont regroupées par numéro d'étape (step) croissant. Un groupe dure 1,4 s + son plus grand décalage ; chaque action démarre à (début du groupe + son décalage) et dure 1,2 s.
+// Tout est calculé à partir du temps seul (aucun état cumulé) : la barre de position (seek) donne donc exactement le même résultat qu'une lecture normale.
+const SCH_DUR = 1.2, SCH_GAP = 1.4, SCH_EMPTY = 0.6, SCH_TRANS = 0.9;
+function schEase(t) { t = Math.max(0, Math.min(1, t)); return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+function schGroups(d) {
+  const acts = d.elements.filter(schIsAction), steps = [...new Set(acts.map(a => a.step))].sort((a, b) => a - b);
+  let start = 0;
+  const groups = steps.map(s => { const list = acts.filter(a => a.step === s), md = Math.max(0, ...list.map(a => a.delay || 0)), g = { step: s, start, actions: list, dur: SCH_GAP + md }; start += g.dur; return g; });
+  return { groups, total: start };
+}
+// Position d'un joueur sur sa suite de déplacements (segs triés par t0) ; fondu entre sa position réelle et le début du tracé pour éviter tout saut
+function schPosOn(base, segs, t) {
+  let pos = { x: base.x, y: base.y };
+  for (const s of segs) {
+    if (t < s.t0) break;
+    const P = s.pts, end = P[P.length - 1];
+    if (t >= s.t1) { pos = { x: end.x, y: end.y }; continue; }
+    const u = schEase((t - s.t0) / (s.t1 - s.t0)), q = schPointAt(P, u);
+    return { x: q.x + (pos.x - P[0].x) * (1 - u), y: q.y + (pos.y - P[0].y) * (1 - u) };
+  }
+  return pos;
+}
+// Plan d'un schéma : mouvements des joueurs, trajets du ballon, fenêtres de temps de chaque action, incohérences
+function schPlan(d0) {
+  const d = schNormDrawing(d0), els = d.elements, byId = {}; els.forEach(e => { byId[e.id] = e; });
+  const gr = schGroups(d), sched = [];
+  gr.groups.forEach(g => g.actions.forEach(a => sched.push({ a, ts: g.start + (a.delay || 0), step: a.step, idx: els.indexOf(a) })));
+  sched.sort((p, q) => p.ts - q.ts || p.step - q.step || p.idx - q.idx);
+  const ownerOf = a => schActionOwner(a, els), isMove = a => a.type === 'MOVE' || a.type === 'RUN' || a.type === 'SCREEN';
+  const provSegs = id => sched.filter(s => isMove(s.a) && ownerOf(s.a) && ownerOf(s.a).id === id).map(s => ({ t0: s.ts, t1: s.ts + SCH_DUR, pts: s.a.points }));
+  const ball = els.find(e => e.type === 'BALL');
+  const segs = {}, events = [], windows = {}, warnings = [];
+  let poss = null, ground = null, tAvail = 0, maxEnd = 0;
+  if (ball) { const st = schBallStart(ball, els); poss = st.holder ? st.holder.id : null; ground = poss ? null : { x: st.x, y: st.y }; }
+  const addSeg = (id, t0, a) => { (segs[id] = segs[id] || []).push({ t0, t1: t0 + SCH_DUR, pts: a.points, a }); windows[a.id] = [t0, t0 + SCH_DUR]; maxEnd = Math.max(maxEnd, t0 + SCH_DUR); };
+  sched.forEach(s => {
+    const a = s.a, o = ownerOf(a); let t0 = s.ts;
+    const win = (w0) => { windows[a.id] = [w0, w0 + SCH_DUR]; maxEnd = Math.max(maxEnd, w0 + SCH_DUR); };
+    if (a.type === 'MOVE' || a.type === 'SCREEN') { if (o) addSeg(o.id, t0, a); else win(t0); return; }
+    if (a.type === 'RUN') { if (o) { if (ball && poss === o.id) t0 = Math.max(t0, tAvail); addSeg(o.id, t0, a); } else win(t0); return; }
+    // PASS / SHOT : n'est jouée que si son joueur a le ballon ; sinon la passe est signalée et le ballon ne bouge pas (pas de passe fantôme)
+    if (!ball || !o) { win(t0); return; }
+    if (poss !== o.id) { warnings.push({ id: a.id, owner: o.id, step: a.step }); win(t0); return; }
+    t0 = Math.max(t0, tAvail); win(t0);
+    const t1 = t0 + SCH_DUR, endPt = a.points[a.points.length - 1];
+    if (a.type === 'SHOT') { events.push({ type: 'SHOT', t0, t1, a, from: o.id, end: { x: endPt.x, y: endPt.y } }); poss = null; ground = { x: endPt.x, y: endPt.y }; tAvail = t1; return; }
+    let to = a.toElementId && byId[a.toElementId] && schIsPlayer(byId[a.toElementId]) ? a.toElementId : null;
+    if (!to) { // receveur : joueur le plus proche de la fin de la passe, à sa position au moment de l'arrivée
+      let best = null, bd = 2.0;
+      els.forEach(e => { if (!schIsPlayer(e) || e.id === o.id) return; const p = schPosOn(e, provSegs(e.id), t1), dd = Math.hypot(p.x - endPt.x, p.y - endPt.y); if (dd < bd) { bd = dd; best = e.id; } });
+      to = best;
+    }
+    events.push({ type: 'PASS', t0, t1, a, from: o.id, to, end: { x: endPt.x, y: endPt.y } });
+    poss = to; ground = to ? null : { x: endPt.x, y: endPt.y }; tAvail = t1;
+  });
+  Object.keys(segs).forEach(id => segs[id].sort((p, q) => p.t0 - q.t0));
+  const D = Math.max(gr.total || SCH_EMPTY, maxEnd + 0.2);
+  return { d, els, byId, segs, events, windows, warnings, D, ball, init: ball ? (() => { const st = schBallStart(ball, els); return { poss: st.holder ? st.holder.id : null, ground: st.holder ? null : { x: st.x, y: st.y } }; })() : null };
+}
+function schPlanState(p, tau) {
+  const pos = {};
+  p.els.forEach(e => { if (!schIsAction(e)) pos[e.id] = (schIsPlayer(e) ? schPosOn(e, p.segs[e.id] || [], tau) : { x: e.x, y: e.y }); });
+  const heldAt = (id, t) => { const q = schPosOn(p.byId[id], p.segs[id] || [], t); return { x: q.x + SCH_BALL_OFF.x, y: q.y + SCH_BALL_OFF.y }; };
+  let ballPos = null;
+  if (p.ball) {
+    let cur = { poss: p.init.poss, ground: p.init.ground }, done = false;
+    for (const ev of p.events) {
+      if (tau < ev.t0) break;
+      if (tau < ev.t1) {
+        const u = schEase((tau - ev.t0) / (ev.t1 - ev.t0)), q = schPointAt(ev.a.points, u), P0 = ev.a.points[0], PE = ev.a.points[ev.a.points.length - 1];
+        const S = cur.poss ? heldAt(cur.poss, ev.t0) : { x: P0.x, y: P0.y };
+        const T = (ev.type === 'PASS' && ev.to) ? heldAt(ev.to, ev.t1) : { x: PE.x, y: PE.y };
+        ballPos = { x: q.x + (S.x - P0.x) * (1 - u) + (T.x - PE.x) * u, y: q.y + (S.y - P0.y) * (1 - u) + (T.y - PE.y) * u };
+        done = true; break;
+      }
+      cur = (ev.type === 'PASS' && ev.to) ? { poss: ev.to, ground: null } : { poss: null, ground: ev.end };
+    }
+    if (!done) ballPos = cur.poss ? heldAt(cur.poss, tau) : cur.ground;
+  }
+  const drawn = {};
+  p.els.forEach(e => { if (!schIsAction(e)) return; const w = p.windows[e.id]; if (!w || tau < w[0]) return; drawn[e.id] = schEase((tau - w[0]) / (w[1] - w[0])); });
+  return { pos, ball: ballPos, drawn };
+}
+// Chronologie de l'enchaînement : étape k = [T, T + D], puis transition douce de 0,9 s vers l'étape suivante
+function schTimeline(drawings) {
+  const ds = schNormDrawings(drawings); let T = 0; const ph = [];
+  ds.forEach((d, k) => { const plan = schPlan(d), last = k === ds.length - 1; ph.push({ k, d, plan, T, D: plan.D, trans: last ? 0 : SCH_TRANS }); T += plan.D + (last ? 0 : SCH_TRANS); });
+  return { ph, total: T, n: ds.length };
+}
+function schSub(a, u) { // sous-courbe [0,u] d'un tracé (droite ou Bézier quadratique, de Casteljau)
+  const P = a.points, e = schPointAt(P, 1);
+  if (P.length === 2) return [P[0], { x: P[0].x + (P[1].x - P[0].x) * u, y: P[0].y + (P[1].y - P[0].y) * u }];
+  const t = u, c = { x: P[0].x + (P[1].x - P[0].x) * t, y: P[0].y + (P[1].y - P[0].y) * t }, end = schQuadAt(P[0], P[1], P[2], t);
+  return e ? [P[0], c, end] : P;
+}
+// Cadre à l'instant t (secondes depuis le début de l'enchaînement)
+function schAt(tl, t) {
+  t = Math.max(0, Math.min(tl.total, t));
+  let ph = tl.ph[tl.ph.length - 1];
+  for (const x of tl.ph) { if (t < x.T + x.D + x.trans) { ph = x; break; } }
+  const tau = t - ph.T, inTrans = ph.trans > 0 && tau > ph.D;
+  const mk = (plan, st, extraO) => {
+    const els = [];
+    plan.els.forEach(e => { if (schIsAction(e) || e.type === 'BALL') return; const p = st.pos[e.id]; els.push({ ...e, x: p.x, y: p.y, _o: extraO && extraO[e.id] != null ? extraO[e.id] : 1 }); });
+    return els;
+  };
+  if (!inTrans) {
+    const st = schPlanState(ph.plan, Math.min(tau, ph.D)), f = { els: mk(ph.plan, st), acts: [], balls: [], ghosts: [] };
+    ph.plan.els.forEach(a => { if (!schIsAction(a) || st.drawn[a.id] == null) return; const u = st.drawn[a.id]; f.acts.push({ a: u >= 0.999 ? a : { ...a, points: schSub(a, Math.max(0.001, u)) }, badge: false }); });
+    if (ph.plan.ball) { const s0 = ph.plan.init.poss ? schBallStart(ph.plan.ball, ph.plan.els) : { x: ph.plan.init.ground.x, y: ph.plan.init.ground.y }; f.ghosts.push({ x: s0.x, y: s0.y, s: ph.plan.ball.scale }); f.balls.push({ x: st.ball.x, y: st.ball.y, s: ph.plan.ball.scale }); }
+    return { k: ph.k, view: ph.d.view, frame: f, phase: 'play' };
+  }
+  // transition : positions finales de l'étape k → positions de départ de l'étape k+1
+  const nx = tl.ph[ph.k + 1], e = schEase((tau - ph.D) / ph.trans), A = schPlanState(ph.plan, ph.D), B = schPlanState(nx.plan, 0);
+  const elsA = mk(ph.plan, A), elsB = mk(nx.plan, B), mapB = {}; elsB.forEach(x => { mapB[x.id] = x; });
+  const out = [], seen = {};
+  elsA.forEach(a => { const b = mapB[a.id]; seen[a.id] = 1; if (b) out.push({ ...b, x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e, _o: 1 }); else out.push({ ...a, _o: 1 - e }); });
+  elsB.forEach(b => { if (!seen[b.id]) out.push({ ...b, _o: e }); });
+  const f = { els: out, acts: [], balls: [], ghosts: [] };
+  const ba = A.ball, bb = nx.plan.ball ? (nx.plan.init.poss ? schBallStart(nx.plan.ball, nx.plan.els) : nx.plan.init.ground) : null;
+  if (ba && bb) f.balls.push({ x: ba.x + (bb.x - ba.x) * e, y: ba.y + (bb.y - ba.y) * e, s: nx.plan.ball.scale });
+  else if (ba) f.balls.push({ x: ba.x, y: ba.y, o: 1 - e, s: ph.plan.ball.scale });
+  else if (bb) f.balls.push({ x: bb.x, y: bb.y, o: e, s: nx.plan.ball.scale });
+  if (bb) f.ghosts.push({ x: bb.x, y: bb.y, o: e, s: nx.plan.ball.scale });
+  return { k: e > 0.5 ? nx.k : ph.k, view: e > 0.5 ? nx.d.view : ph.d.view, frame: f, phase: 'trans' };
+}
+
+// ===================== LECTEUR D'ANIMATION (plein écran) =====================
+// Superposition ajoutée à <html> (pas à <body>) : le zoom CSS du body sur iPad ne la déforme pas.
+let schPl = null;
+function schFmtT(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+function schPlayerOpen(exIdx) {
+  if (!schDemo) schDemo = schDemoData();
+  const ex = schDemo[exIdx == null ? schUi.ex : exIdx]; if (!ex) return;
+  schPlayerClose();
+  const tl = schTimeline(ex.drawings);
+  const css = 'position:fixed;inset:0;z-index:99999;background:#0B1220;display:flex;flex-direction:column;color:#fff;font-family:Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;';
+  const el = document.createElement('div'); el.id = 'sch-player'; el.style.cssText = css;
+  const sp = [0.5, 1, 1.5, 2];
+  el.innerHTML = `<div class="schp-top"><div class="schp-title" id="schp-title"></div><button type="button" class="schp-btn" id="schp-close" aria-label="Fermer">✕</button></div>`
+    + `<div class="schp-stage" id="schp-stage"></div><div class="schp-warn" id="schp-warn"></div>`
+    + `<div class="schp-ctl"><input type="range" id="schp-seek" min="0" max="1000" value="0" aria-label="Position">`
+    + `<div class="schp-row"><button type="button" class="schp-btn" id="schp-prev" aria-label="Étape précédente">⏮</button><button type="button" class="schp-btn schp-main" id="schp-play" aria-label="Lecture">⏸</button><button type="button" class="schp-btn" id="schp-next" aria-label="Étape suivante">⏭</button><span class="schp-time" id="schp-time"></span>`
+    + `<span class="schp-sp">${sp.map(v => `<button type="button" class="schp-chip${v === 1 ? ' on' : ''}" data-sp="${v}">×${String(v).replace('.', ',')}</button>`).join('')}</span></div>`
+    + (tl.n > 1 ? `<label class="schp-chk"><input type="checkbox" id="schp-pause" checked> Pause entre les étapes</label>` : '') + `</div>`;
+  document.documentElement.appendChild(el);
+  schPl = { tl, name: ex.name, el, t: 0, playing: true, speed: 1, pause: tl.n > 1, last: 0, raf: 0, prevOverflow: document.documentElement.style.overflow, warned: tl.ph.map(p => p.plan.warnings.length) };
+  document.documentElement.style.overflow = 'hidden';
+  const $ = id => el.querySelector('#' + id);
+  $('schp-close').onclick = schPlayerClose;
+  $('schp-play').onclick = schPlToggle;
+  $('schp-stage').onclick = schPlToggle;
+  $('schp-prev').onclick = () => schPlStep(-1);
+  $('schp-next').onclick = () => schPlStep(1);
+  $('schp-seek').oninput = e => { schPl.playing = false; schPlSeek(e.target.value / 1000 * schPl.tl.total); };
+  el.querySelectorAll('[data-sp]').forEach(b => { b.onclick = () => { schPl.speed = parseFloat(b.dataset.sp); el.querySelectorAll('[data-sp]').forEach(x => x.classList.toggle('on', x === b)); }; });
+  if ($('schp-pause')) $('schp-pause').onchange = e => { schPl.pause = e.target.checked; };
+  document.addEventListener('keydown', schPlKey, true);
+  schPlDraw(); schPl.last = performance.now(); schPl.raf = requestAnimationFrame(schPlLoop);
+}
+function schPlayerClose() {
+  if (!schPl) return;
+  cancelAnimationFrame(schPl.raf); document.removeEventListener('keydown', schPlKey, true);
+  document.documentElement.style.overflow = schPl.prevOverflow || ''; schPl.el.remove(); schPl = null;
+}
+function schPlKey(e) {
+  if (!schPl) return;
+  if (e.key === 'Escape') { e.preventDefault(); schPlayerClose(); }
+  else if (e.key === ' ') { e.preventDefault(); schPlToggle(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); schPlStep(-1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); schPlStep(1); }
+}
+function schPlToggle() {
+  if (!schPl) return;
+  if (!schPl.playing && schPl.t >= schPl.tl.total - 0.001) schPl.t = 0; // rejouer
+  schPl.playing = !schPl.playing; schPl.last = performance.now(); schPlDraw();
+}
+function schPlSeek(t) { if (!schPl) return; schPl.t = Math.max(0, Math.min(schPl.tl.total, t)); schPlDraw(); }
+function schPlStep(dir) { // début de l'étape précédente / suivante
+  if (!schPl) return; const tl = schPl.tl, t = schPl.t; let cur = 0;
+  tl.ph.forEach(p => { if (t >= p.T - 0.001) cur = p.k; });
+  let k = dir > 0 ? cur + 1 : (t - tl.ph[cur].T > 0.6 ? cur : cur - 1);
+  if (k >= tl.n) { schPlSeek(tl.total); schPl.playing = false; schPlDraw(); return; }
+  schPlSeek(tl.ph[Math.max(0, k)].T);
+}
+function schPlLoop(now) {
+  if (!schPl) return;
+  const p = schPl;
+  if (p.playing) {
+    const dt = Math.min(0.1, (now - p.last) / 1000) * p.speed; let t1 = p.t + dt;
+    if (p.pause) { const stop = p.tl.ph.find(x => x.k < p.tl.n - 1 && x.T + x.D > p.t + 1e-6 && x.T + x.D <= t1); if (stop) { t1 = stop.T + stop.D; p.playing = false; } }
+    if (t1 >= p.tl.total) { t1 = p.tl.total; p.playing = false; }
+    p.t = t1; schPlDraw();
+  }
+  p.last = now; p.raf = requestAnimationFrame(schPlLoop);
+}
+function schPlDraw() {
+  const p = schPl; if (!p) return;
+  const r = schAt(p.tl, p.t), vw = schView(r.view), $ = id => p.el.querySelector('#' + id);
+  $('schp-stage').innerHTML = `<svg viewBox="${vw.vb.join(' ')}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:100%;width:100%;height:100%;display:block;border-radius:10px;background:#fff;">${schCourtSvg(r.view)}${schBodySvg(r.frame)}</svg>`;
+  const ph = p.tl.ph[r.k], n = p.tl.n;
+  $('schp-title').textContent = (ph.d.title || 'Étape ' + (r.k + 1)) + (n > 1 ? ' · ' + (r.k + 1) + '/' + n : '');
+  $('schp-play').textContent = p.playing ? '⏸' : (p.t >= p.tl.total - 0.001 ? '↻' : '▶');
+  $('schp-seek').value = Math.round(p.t / p.tl.total * 1000);
+  $('schp-time').textContent = schFmtT(p.t) + ' / ' + schFmtT(p.tl.total);
+  $('schp-warn').textContent = p.warned[r.k] ? '⚠ Une passe ou un tir de cette étape part d\'un joueur qui n\'a pas encore le ballon : il n\'est pas joué.' : '';
+}
+
+// ----- Démonstration (étapes 1-2 : les vrais exercices viendront de Supabase) -----
 function schDemoData() {
   const P = (id, type, x, y, label) => ({ id, type, x, y, label });
   const att = [[1.2, 3.2, '2'], [4.2, 10.8, '3'], [10, 12, '4'], [15.8, 10.8, '5'], [18.8, 3.2, '6'], [10, 7.6, '1']];
@@ -5508,6 +5736,7 @@ function schRenderDemo() {
     + (ex.drawings.length > 1 ? `<div class="sch-bar">${ex.drawings.map((x, i) => btn(i === schUi.step, `schSet('step',${i})`, schEsc(x.title))).join('')}</div>` : '')
     + `<div class="sch-bar"><span>Terrain :</span>${btn(!schUi.view, `schSet('view','')`, 'Celui de l\'étape')}${Object.keys(SCH_VIEWS).map(k => btn(schUi.view === k, `schSet('view','${k}')`, SCH_VIEWS[k].name)).join('')}</div>`
     + `<label class="sch-chk"><input type="checkbox" ${schUi.ball ? 'checked' : ''} onchange="schSet('ball',this.checked)"> Afficher le départ du ballon</label>`
+    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button></div>`
     + `<div class="sch-svg">${schDrawingSvg(d, { showBallStart: schUi.ball })}</div>`;
 }
 function schSet(k, v) { schUi[k] = v; if (k === 'ex') schUi.step = 0; schRenderDemo(); }
