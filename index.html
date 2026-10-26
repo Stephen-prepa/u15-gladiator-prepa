@@ -1482,7 +1482,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 3 sur 4 (version 26-10-c) — éditeur de schémas. Tes exercices sont gardés sur cet appareil ; la sauvegarde Supabase (partagée entre coachs) arrive à l'étape 4.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 3 sur 4 (version 26-10-e) — éditeur de schémas. Tes exercices sont gardés sur cet appareil ; la sauvegarde Supabase (partagée entre coachs) arrive à l'étape 4.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -6029,10 +6029,15 @@ function schEdDown(e) {
   const pt = schEdPt(e), tool = S.tool, d = schEdD();
   S.down = { id: e.pointerId, cx: e.clientX, cy: e.clientY, moved: false, pt, hit: null };
   if (tool === 'pan') { S.drag = { kind: 'pan', vb0: { ...S.vb } }; return; }
-  if (SCH_ACTIONS.includes(tool)) { S.plan = schPlan(d); S.drag = { kind: 'new', type: tool, p0: schEdClampPt(pt), p1: schEdClampPt(pt) }; return; }
+  if (SCH_ACTIONS.includes(tool)) { S.plan = schPlan(d); const q0 = schEdClampPt(pt); S.drag = { kind: 'new', type: tool, p0: q0, p1: q0, pts: [q0] }; return; }
   const hit = tool === 'BALL' ? null : schEdHit(pt, tool === 'select' ? {} : { zones: false, actions: false, handles: false }); // le ballon se pose sur un joueur : pas de sélection
   S.down.hit = hit;
   if (hit && hit.kind === 'handle') { S.drag = { kind: 'handle', h: hit.h, snap0: schEdSnapStr() }; return; }
+  if (hit && hit.kind === 'el' && schIsAction(hit.e) && tool === 'select') { // glisser directement sur le tracé : on le courbe
+    const e0 = hit.e, Sm = schSample(e0.points, 24); let bi = 0, bd = 1e9; Sm.forEach((q, i) => { const dd = Math.hypot(q.x - pt.x, q.y - pt.y); if (dd < bd) { bd = dd; bi = i; } });
+    S.sel = e0.id; schEdTools(); schEdPanel(); schEdDraw();
+    S.drag = { kind: 'bend', id: e0.id, t: Math.max(0.2, Math.min(0.8, bi / (Sm.length - 1))), snap0: schEdSnapStr() }; return;
+  }
   if (hit && hit.kind === 'el') {
     if (tool !== 'select') { S.tool = 'select'; S.group = 'tools'; }
     S.sel = hit.e.id; schEdTools(); schEdPanel();
@@ -6059,7 +6064,7 @@ function schEdMove(e) {
   if (!dn.moved && Math.hypot(e.clientX - dn.cx, e.clientY - dn.cy) > 6) dn.moved = true;
   if (dr.kind === 'pan') { if (!dn.moved) return; const m = schEdMap(dr.vb0); schEdSetVb({ ...dr.vb0, x: dr.vb0.x - (e.clientX - dn.cx) / m.s, y: dr.vb0.y - (e.clientY - dn.cy) / m.s }); return; }
   const pt = schEdPt(e), d = schEdD(), els = d.elements;
-  if (dr.kind === 'new') { dr.p1 = schEdClampPt(pt); schEdDraw(); return; }
+  if (dr.kind === 'new') { dr.p1 = schEdClampPt(pt); const L = dr.pts[dr.pts.length - 1]; if (Math.hypot(dr.p1.x - L.x, dr.p1.y - L.y) > 0.15) dr.pts.push(dr.p1); schEdDraw(); return; }
   if (!dn.moved) return;
   if (dr.kind === 'move') {
     const el = els.find(x => x.id === dr.id); if (!el) return; const q = schEdClampPt({ x: pt.x - dr.off.x, y: pt.y - dr.off.y });
@@ -6067,6 +6072,10 @@ function schEdMove(e) {
     else if (schIsAction(el)) { if (!dr.orig) dr.orig = el.points.map(a => ({ ...a })); const dx2 = schSnap(q.x, 0.1) - dr.orig[0].x, dy2 = schSnap(q.y, 0.1) - dr.orig[0].y; el.points = dr.orig.map(a => ({ x: schR(a.x + dx2, 2), y: schR(a.y + dy2, 2) })); }
     else { el.x = schSnap(q.x, 0.25); el.y = schSnap(q.y, 0.25); }
     schEdDraw(); return;
+  }
+  if (dr.kind === 'bend') {
+    const el = els.find(x => x.id === dr.id); if (!el) return; const P0 = el.points[0], P1 = el.points[el.points.length - 1], t = dr.t, b = 2 * t * (1 - t), M = schEdClampPt(pt);
+    el.points = [P0, { x: schR((M.x - (1 - t) * (1 - t) * P0.x - t * t * P1.x) / b, 2), y: schR((M.y - (1 - t) * (1 - t) * P0.y - t * t * P1.y) / b, 2) }, P1]; schEdDraw(); return;
   }
   if (dr.kind === 'handle') {
     const el = schEdSel(); if (!el) return; const h = dr.h, q = schEdClampPt(pt), g = { x: schSnap(q.x, 0.1), y: schSnap(q.y, 0.1) };
@@ -6104,6 +6113,12 @@ function schEdUp(e) {
     else if (!dn.moved) { schEdPanel(); }
     return;
   }
+  if (dr.kind === 'bend') {
+    const el = els.find(x => x.id === dr.id);
+    if (el && el.points.length === 3) { const P = el.points, m = { x: (P[0].x + P[2].x) / 2, y: (P[0].y + P[2].y) / 2 }, b = schQuadAt(P[0], P[1], P[2], 0.5); if (Math.hypot(b.x - m.x, b.y - m.y) < 0.15) el.points = [P[0], P[2]]; }
+    if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); }
+    return;
+  }
   if (dr.kind === 'handle') {
     const el = schEdSel();
     if (el && schIsAction(el)) {
@@ -6121,11 +6136,27 @@ function schEdAttach(a, plan, which) {
   if (which === 0 || which === 'all') { const h = near(P[0]); if (h) { a.fromElementId = h.e.id; P[0] = { x: schR(h.r.x, 2), y: schR(h.r.y, 2) }; } }
   if ((which === P.length - 1 || which === 'all') && a.type === 'PASS') { const h = near(P[P.length - 1], a.fromElementId); if (h) { a.toElementId = h.e.id; P[P.length - 1] = { x: schR(h.r.x, 2), y: schR(h.r.y, 2) }; } }
 }
+// Trait dessiné au doigt → droite (2 points) ou courbe de Bézier quadratique (3 points) qui épouse le tracé (moindres carrés, paramétrage par longueur)
+function schEdFit(pts, last) {
+  const P0 = pts[0], P1 = last || pts[pts.length - 1], dx = P1.x - P0.x, dy = P1.y - P0.y, L = Math.hypot(dx, dy);
+  if (pts.length < 3 || L < 0.7) return [P0, P1];
+  const S = pts.slice(); if (S[S.length - 1] !== P1) S.push(P1);
+  const cum = [0]; for (let i = 1; i < S.length; i++) cum.push(cum[i - 1] + Math.hypot(S[i].x - S[i - 1].x, S[i].y - S[i - 1].y));
+  const T = cum[cum.length - 1] || 1; let maxDev = 0;
+  S.forEach(q => { maxDev = Math.max(maxDev, Math.abs((q.x - P0.x) * dy - (q.y - P0.y) * dx) / L); });
+  if (maxDev < 0.55) return [P0, P1]; // trait quasi droit : on garde une droite
+  let num = { x: 0, y: 0 }, den = 0;
+  S.forEach((q, i) => { const t = cum[i] / T, b = 2 * t * (1 - t), rx = q.x - (1 - t) * (1 - t) * P0.x - t * t * P1.x, ry = q.y - (1 - t) * (1 - t) * P0.y - t * t * P1.y; num.x += b * rx; num.y += b * ry; den += b * b; });
+  if (!den) return [P0, P1];
+  const C = { x: num.x / den, y: num.y / den };
+  return [P0, { x: Math.max(-1, Math.min(41, C.x)), y: Math.max(-1, Math.min(21, C.y)) }, P1];
+}
 function schEdFinishAction(dr) {
   const S = schEd, d = schEdD(), els = d.elements;
   if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { schEdDraw(); schEdToast('Glisse le doigt pour tracer ' + (dr.type === 'MOVE' ? 'un déplacement' : 'l\'action')); return; }
   schEdPush();
-  const a = schNormElement({ type: dr.type, x: dr.p0.x, y: dr.p0.y, points: [{ x: schR(schSnap(dr.p0.x, 0.1), 2), y: schR(schSnap(dr.p0.y, 0.1), 2) }, { x: schR(schSnap(dr.p1.x, 0.1), 2), y: schR(schSnap(dr.p1.y, 0.1), 2) }], step: schAutoStep(els, dr.type), z: Math.max(0, ...els.map(e => e.z)) + 1 });
+  const fit = schEdFit(dr.pts, dr.p1).map(q => ({ x: schR(schSnap(q.x, 0.1), 2), y: schR(schSnap(q.y, 0.1), 2) }));
+  const a = schNormElement({ type: dr.type, x: dr.p0.x, y: dr.p0.y, points: fit, step: schAutoStep(els, dr.type), z: Math.max(0, ...els.map(e => e.z)) + 1 });
   schEdAttach(a, S.plan || schPlan(d), 'all');
   els.push(a); S.sel = a.id; schEdTools(); schEdChanged(true);
 }
@@ -6151,7 +6182,7 @@ function schEdDraw() {
   const S = schEd; if (!S) return;
   const d = schEdD(), els = d.elements, sc = schEdMap(S.vb).s, f = { els: els.filter(e => !schIsAction(e) && e.type !== 'BALL'), acts: els.filter(schIsAction).map(a => ({ a, badge: true })), balls: [], ghosts: [] };
   els.filter(e => e.type === 'BALL').forEach(b => { const st = schBallStart(b, els); f.balls.push({ x: st.x, y: st.y, s: b.scale }); });
-  if (S.drag && S.drag.kind === 'new') f.acts.push({ a: schNormElement({ type: S.drag.type, points: [S.drag.p0, S.drag.p1] }), badge: false });
+  if (S.drag && S.drag.kind === 'new') f.acts.push({ a: schNormElement({ type: S.drag.type, points: schEdFit(S.drag.pts, S.drag.p1) }), badge: false });
   let ov = '';
   const plan = schPlan(d); (plan.warnings || []).forEach(w => { const a = plan.byId[w.id]; if (a) ov += `<circle cx="${a.points[0].x}" cy="${a.points[0].y}" r="0.95" fill="none" stroke="#E74C3C" stroke-width="0.13" stroke-dasharray="0.35 0.25"/>`; });
   const sel = schEdSel();
