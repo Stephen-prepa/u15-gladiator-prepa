@@ -424,6 +424,47 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .sch-chk input{width:20px;height:20px;}
 .sch-svg{max-width:760px;margin:0 auto;}
 .sch-play{border:0;background:var(--jaune);color:#111;border-radius:10px;padding:12px 18px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;min-height:44px;}
+.sch-play.alt{background:transparent;color:var(--gris-clair);border:1px solid rgba(255,255,255,0.3);}
+/* Éditeur de schémas */
+.sche .sche-top{display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));}
+.sche .sche-btn{border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#fff;border-radius:10px;min-width:44px;height:44px;font-size:18px;cursor:pointer;font-family:inherit;}
+.sche .sche-name{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-size:16px;padding:0 10px;font-family:inherit;box-sizing:border-box;}
+.sche .sche-saved{font-size:11px;color:#8FA3BF;max-width:90px;text-align:right;line-height:1.2;}
+.sche .sche-bar{display:flex;align-items:center;gap:6px;padding:0 10px 6px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}
+.sche .sche-b{flex:none;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#C9D4E5;border-radius:9px;height:40px;min-width:40px;padding:0 11px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+.sche .sche-b.on{border-color:#F5C400;color:#F5C400;background:rgba(245,196,0,0.12);}
+.sche .sche-b.acc{background:#F5C400;color:#111;border-color:#F5C400;}
+.sche .sche-b.dis{opacity:.35;}
+.sche .sche-sep{flex:none;width:1px;height:24px;background:rgba(255,255,255,0.2);margin:0 2px;}
+.sche .sche-sel{flex:none;height:40px;border-radius:9px;border:1px solid rgba(255,255,255,0.25);background:#0B1220;color:#fff;font-size:13px;padding:0 6px;font-family:inherit;}
+.sche .sche-main{flex:1;min-height:0;position:relative;margin:0 8px;border-radius:10px;overflow:hidden;background:#fff;}
+.sche .sche-stage{position:absolute;inset:0;touch-action:none;}
+.sche .sche-warn{position:absolute;left:6px;right:6px;top:6px;background:rgba(255,244,214,0.96);color:#7A4B00;border:1px solid #F5C400;border-radius:9px;padding:6px 8px;font-size:12px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:2;}
+.sche .sche-warn button{border:0;background:#14213D;color:#fff;border-radius:8px;padding:8px 10px;font-weight:800;font-size:12px;font-family:inherit;cursor:pointer;min-height:36px;}
+.sche .sche-panel{position:absolute;left:0;right:0;bottom:0;background:rgba(11,18,32,0.97);border-top:2px solid #F5C400;padding:8px 10px 10px;z-index:3;max-height:55%;overflow-y:auto;touch-action:pan-y;-webkit-user-select:none;}
+.sche .sche-ph{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:14px;}
+.sche .sche-ph button{border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;border-radius:8px;height:40px;padding:0 12px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;}
+.sche .sche-ph button.red{border-color:#E8543A;color:#FF8A73;}
+.sche .sche-sp{flex:1;}
+.sche .sche-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;}
+.sche .sche-row{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.sche .sche-lab{font-size:11px;color:#8FA3BF;}
+.sche .sche-stp{display:flex;align-items:center;gap:6px;}
+.sche .sche-stp button{border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#fff;border-radius:8px;height:40px;width:44px;font-size:20px;font-weight:700;font-family:inherit;cursor:pointer;}
+.sche .sche-stp b{min-width:54px;text-align:center;font-size:14px;}
+.sche .sche-in,.sche .sche-sel2{height:40px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:#0B1220;color:#fff;font-size:16px;padding:0 8px;font-family:inherit;width:100%;box-sizing:border-box;}
+.sche .sche-tools{padding:6px 8px;padding-bottom:max(8px,env(safe-area-inset-bottom));}
+.sche .sche-tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:6px;}
+.sche .sche-tab{flex:none;border:0;background:transparent;color:#8FA3BF;font-weight:800;font-size:13px;padding:8px 12px;border-bottom:3px solid transparent;font-family:inherit;cursor:pointer;}
+.sche .sche-tab.on{color:#F5C400;border-bottom-color:#F5C400;}
+.sche .sche-tl{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+.sche .sche-tool{flex:none;min-width:70px;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.05);color:#C9D4E5;border-radius:10px;padding:5px 6px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.sche .sche-tool svg{background:#fff;border-radius:6px;}
+.sche .sche-tool.on{border-color:#F5C400;color:#F5C400;background:rgba(245,196,0,0.14);}
+.sche .sche-tool.acc{background:#F5C400;color:#111;border-color:#F5C400;}
+.sche .sche-tool.pre{border-style:dashed;}
+.sche .sche-ic{font-size:24px;line-height:34px;height:34px;}
+.sche .sche-toast{position:absolute;left:50%;transform:translateX(-50%);top:46px;background:#14213D;color:#fff;border-radius:18px;padding:8px 14px;font-size:12px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5;max-width:92%;text-align:center;}
 #sch-player .schp-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));}
 #sch-player .schp-title{font-size:17px;font-weight:800;}
 #sch-player .schp-stage{flex:1;min-height:0;padding:0 10px;display:flex;align-items:center;justify-content:center;}
@@ -1441,7 +1482,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 2 sur 4 (version 26-10-b) — affichage et animation des schémas (démonstration). L'éditeur et la sauvegarde arrivent aux étapes suivantes.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 3 sur 4 (version 26-10-c) — éditeur de schémas. Tes exercices sont gardés sur cet appareil ; la sauvegarde Supabase (partagée entre coachs) arrive à l'étape 4.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -5357,6 +5398,7 @@ function schActionOwner(a, els) {
   return schNearestPlayer(els, a.points[0], 1.8);
 }
 function schBallHolder(ball, els) {
+  if (ball.holderId === '-') return null; // « aucun porteur » : ballon au sol
   if (ball.holderId) { const h = els.find(e => e.id === ball.holderId); if (h) return h; }
   return schNearestPlayer(els, ball, 1.5);
 }
@@ -5517,18 +5559,27 @@ function schPlan(d0) {
   const gr = schGroups(d), sched = [];
   gr.groups.forEach(g => g.actions.forEach(a => sched.push({ a, ts: g.start + (a.delay || 0), step: a.step, idx: els.indexOf(a) })));
   sched.sort((p, q) => p.ts - q.ts || p.step - q.step || p.idx - q.idx);
-  const ownerOf = a => schActionOwner(a, els), isMove = a => a.type === 'MOVE' || a.type === 'RUN' || a.type === 'SCREEN';
-  const provSegs = id => sched.filter(s => isMove(s.a) && ownerOf(s.a) && ownerOf(s.a).id === id).map(s => ({ t0: s.ts, t1: s.ts + SCH_DUR, pts: s.a.points }));
+  const isMove = a => a.type === 'MOVE' || a.type === 'RUN' || a.type === 'SCREEN', isBall = a => a.type === 'PASS' || a.type === 'SHOT' || a.type === 'RUN';
+  const players = els.filter(schIsPlayer), pre = {}, own = {};
+  // pré-passe : à qui appartient chaque action ? (fromElementId, sinon joueur le plus proche du départ du tracé, à sa position du moment ou de départ)
+  const nearestAt = (pt, t) => { let best = null, bd = 1.8; players.forEach(e => { const q = schPosOn(e, pre[e.id] || [], t), dd = Math.min(Math.hypot(q.x - pt.x, q.y - pt.y), Math.hypot(e.x - pt.x, e.y - pt.y)); if (dd < bd) { bd = dd; best = e; } }); return best; };
+  sched.forEach(s => {
+    const a = s.a, f = a.fromElementId && byId[a.fromElementId];
+    const o = f && schIsPlayer(f) ? f : nearestAt(a.points[0], s.ts); own[a.id] = o;
+    if (isMove(a) && o) (pre[o.id] = pre[o.id] || []).push({ t0: s.ts, t1: s.ts + SCH_DUR, pts: a.points });
+  });
   const ball = els.find(e => e.type === 'BALL');
   const segs = {}, events = [], windows = {}, warnings = [];
   let poss = null, ground = null, tAvail = 0, maxEnd = 0;
   if (ball) { const st = schBallStart(ball, els); poss = st.holder ? st.holder.id : null; ground = poss ? null : { x: st.x, y: st.y }; }
   const addSeg = (id, t0, a) => { (segs[id] = segs[id] || []).push({ t0, t1: t0 + SCH_DUR, pts: a.points, a }); windows[a.id] = [t0, t0 + SCH_DUR]; maxEnd = Math.max(maxEnd, t0 + SCH_DUR); };
   sched.forEach(s => {
-    const a = s.a, o = ownerOf(a); let t0 = s.ts;
+    const a = s.a; let o = own[a.id], t0 = s.ts;
     const win = (w0) => { windows[a.id] = [w0, w0 + SCH_DUR]; maxEnd = Math.max(maxEnd, w0 + SCH_DUR); };
+    // une action de ballon sans joueur imposé revient au porteur s'il est près de son départ (même s'il s'est déplacé entre-temps)
+    if (ball && isBall(a) && !a.fromElementId && poss && (!o || o.id !== poss)) { const pe = byId[poss], pp = schPosOn(pe, segs[poss] || [], t0), P0 = a.points[0]; if (Math.min(Math.hypot(pp.x - P0.x, pp.y - P0.y), Math.hypot(pe.x - P0.x, pe.y - P0.y)) < 1.8) o = pe; }
     if (a.type === 'MOVE' || a.type === 'SCREEN') { if (o) addSeg(o.id, t0, a); else win(t0); return; }
-    if (a.type === 'RUN') { if (o) { if (ball && poss === o.id) t0 = Math.max(t0, tAvail); addSeg(o.id, t0, a); } else win(t0); return; }
+    if (a.type === 'RUN') { if (o) { if (ball && poss === o.id) t0 = Math.max(t0, tAvail); else if (ball) warnings.push({ id: a.id, owner: o.id, step: a.step }); addSeg(o.id, t0, a); } else win(t0); return; }
     // PASS / SHOT : n'est jouée que si son joueur a le ballon ; sinon la passe est signalée et le ballon ne bouge pas (pas de passe fantôme)
     if (!ball || !o) { win(t0); return; }
     if (poss !== o.id) { warnings.push({ id: a.id, owner: o.id, step: a.step }); win(t0); return; }
@@ -5538,7 +5589,7 @@ function schPlan(d0) {
     let to = a.toElementId && byId[a.toElementId] && schIsPlayer(byId[a.toElementId]) ? a.toElementId : null;
     if (!to) { // receveur : joueur le plus proche de la fin de la passe, à sa position au moment de l'arrivée
       let best = null, bd = 2.0;
-      els.forEach(e => { if (!schIsPlayer(e) || e.id === o.id) return; const p = schPosOn(e, provSegs(e.id), t1), dd = Math.hypot(p.x - endPt.x, p.y - endPt.y); if (dd < bd) { bd = dd; best = e.id; } });
+      players.forEach(e => { if (e.id === o.id) return; const q = schPosOn(e, pre[e.id] || [], t1), dd = Math.hypot(q.x - endPt.x, q.y - endPt.y); if (dd < bd) { bd = dd; best = e.id; } });
       to = best;
     }
     events.push({ type: 'PASS', t0, t1, a, from: o.id, to, end: { x: endPt.x, y: endPt.y } });
@@ -5546,7 +5597,7 @@ function schPlan(d0) {
   });
   Object.keys(segs).forEach(id => segs[id].sort((p, q) => p.t0 - q.t0));
   const D = Math.max(gr.total || SCH_EMPTY, maxEnd + 0.2);
-  return { d, els, byId, segs, events, windows, warnings, D, ball, init: ball ? (() => { const st = schBallStart(ball, els); return { poss: st.holder ? st.holder.id : null, ground: st.holder ? null : { x: st.x, y: st.y } }; })() : null };
+  return { d, els, byId, segs, pre, own, events, windows, warnings, D, ball, fin: { poss, ground }, init: ball ? (() => { const st = schBallStart(ball, els); return { poss: st.holder ? st.holder.id : null, ground: st.holder ? null : { x: st.x, y: st.y } }; })() : null };
 }
 function schPlanState(p, tau) {
   const pos = {};
@@ -5694,10 +5745,520 @@ function schPlDraw() {
   $('schp-play').textContent = p.playing ? '⏸' : (p.t >= p.tl.total - 0.001 ? '↻' : '▶');
   $('schp-seek').value = Math.round(p.t / p.tl.total * 1000);
   $('schp-time').textContent = schFmtT(p.t) + ' / ' + schFmtT(p.tl.total);
-  $('schp-warn').textContent = p.warned[r.k] ? '⚠ Une passe ou un tir de cette étape part d\'un joueur qui n\'a pas encore le ballon : il n\'est pas joué.' : '';
+  $('schp-warn').textContent = p.warned[r.k] ? '⚠ Une action de ballon (passe, tir, dribble) de cette étape part d\'un joueur qui n\'a pas encore le ballon : passe et tir ne sont pas joués.' : '';
 }
 
-// ----- Démonstration (étapes 1-2 : les vrais exercices viendront de Supabase) -----
+// ===================== ÉDITEUR =====================
+// Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
+const SCH_GROUPS = [
+  { id: 'tools', name: 'Outils', tools: [['select', 'Sélection'], ['pan', 'Déplacer la vue']] },
+  { id: 'players', name: 'Joueurs', tools: [['PLAYER', 'Attaquant'], ['DEFENDER', 'Défenseur'], ['GOALKEEPER', 'Gardien']] },
+  { id: 'actions', name: 'Actions', tools: [['MOVE', 'Déplacement'], ['PASS', 'Passe'], ['RUN', 'Dribble'], ['SHOT', 'Tir'], ['SCREEN', 'Écran']] },
+  { id: 'objects', name: 'Objets', tools: [['BALL', 'Ballon'], ['CONE', 'Plot'], ['DISC', 'Disque'], ['POLE', 'Jalon'], ['HOOP', 'Cerceau'], ['HURDLE', 'Haie'], ['POPUP_GOAL', 'Mini-but'], ['BALLOON', 'Baudruche'], ['BALL_BOX', 'Bac ballons']] },
+  { id: 'zones', name: 'Zones & texte', tools: [['ZONE_RECT', 'Zone'], ['ZONE_CIRCLE', 'Zone ronde'], ['TEXT', 'Texte']] },
+];
+const SCH_NAMES = { PLAYER: 'Attaquant', DEFENDER: 'Défenseur', GOALKEEPER: 'Gardien', PARENT: 'Parent', COACH: 'Coach', BALL: 'Ballon', CONE: 'Plot', DISC: 'Disque', POLE: 'Jalon', HOOP: 'Cerceau', HURDLE: 'Haie', POPUP_GOAL: 'Mini-but', BALLOON: 'Baudruche', BALL_BOX: 'Bac ballons', MOVE: 'Déplacement', RUN: 'Dribble', PASS: 'Passe', SHOT: 'Tir', SCREEN: 'Écran', ZONE_RECT: 'Zone', ZONE_CIRCLE: 'Zone ronde', TEXT: 'Texte' };
+const SCH_PRESETS = {
+  d06: { type: 'DEFENDER', name: 'Défense 0-6', pts: [[1.6, 2.4], [4.4, 5.6], [8.2, 6.9], [11.8, 6.9], [15.6, 5.6], [18.4, 2.4]] },
+  d15: { type: 'DEFENDER', name: 'Défense 1-5', pts: [[1.6, 2.4], [5, 6.2], [10, 6.9], [15, 6.2], [18.4, 2.4], [10, 9.8]] },
+  att: { type: 'PLAYER', name: 'Attaque placée', pts: [[1.2, 3.2], [4.2, 10.8], [10, 12], [15.8, 10.8], [18.8, 3.2], [10, 7.6]] },
+  gk: { type: 'GOALKEEPER', name: 'Gardien', pts: [[10, 0.9]] },
+};
+const SCH_LS = 'sch_user_ex_v1';
+function schUserLoad() {
+  try { const a = JSON.parse(localStorage.getItem(SCH_LS) || '[]'); return (Array.isArray(a) ? a : []).map(x => ({ id: x.id || schUid(), name: String(x.name || 'Sans nom').slice(0, 60), user: true, drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null })); } catch (e) { return []; }
+}
+let schSaveTimer = 0;
+function schUserSave() {
+  try { localStorage.setItem(SCH_LS, JSON.stringify((schDemo || []).filter(x => x.user).map(x => ({ id: x.id, name: x.name, drawings: x.drawings, updatedAt: x.updatedAt })))); return true; } catch (e) { return false; }
+}
+function schPlayerName(e) { return e ? (SCH_NAMES[e.type] || '') + (e.label ? ' ' + e.label : '') : ''; }
+function schNextLabel(els, type) {
+  if (type !== 'PLAYER' && type !== 'DEFENDER') return '';
+  const used = new Set(els.filter(e => e.type === type).map(e => e.label)); let n = 1; while (used.has(String(n))) n++; return String(n);
+}
+// Numéro d'étape proposé pour une nouvelle action : une action de ballon prend le numéro suivant de la chaîne, un déplacement reprend celui de la dernière action créée
+function schAutoStep(els, type) {
+  const acts = els.filter(schIsAction), isBall = t => t === 'PASS' || t === 'SHOT' || t === 'RUN';
+  if (!isBall(type)) return acts.length ? acts[acts.length - 1].step : 1;
+  return Math.max(0, ...acts.filter(a => isBall(a.type)).map(a => a.step)) + 1;
+}
+// Positions de référence d'un joueur : départ + fin de chacun de ses déplacements (là où il sera quand il reçoit / passe)
+function schPlayerRefs(e, plan) { const r = [{ x: e.x, y: e.y }]; ((plan && plan.pre[e.id]) || []).forEach(s => { const q = s.pts[s.pts.length - 1]; r.push({ x: q.x, y: q.y }); }); return r; }
+function schReceiverOf(a, plan) {
+  const endPt = a.points[a.points.length - 1];
+  if (a.toElementId && plan.byId[a.toElementId] && schIsPlayer(plan.byId[a.toElementId])) return plan.byId[a.toElementId];
+  const o = plan.own[a.id]; let best = null, bd = 2.0;
+  plan.els.forEach(e => { if (!schIsPlayer(e) || (o && e.id === o.id)) return; schPlayerRefs(e, plan).forEach(p => { const dd = Math.hypot(p.x - endPt.x, p.y - endPt.y); if (dd < bd) { bd = dd; best = e; } }); });
+  return best;
+}
+// Remet les numéros d'étape dans l'ordre logique de la chaîne de possession. Renvoie true si quelque chose a changé.
+function schReorder(d) {
+  const els = d.elements, ball = els.find(e => e.type === 'BALL'); if (!ball) return false;
+  const plan = schPlan(d), isBall = a => a.type === 'PASS' || a.type === 'SHOT' || a.type === 'RUN', acts = els.filter(schIsAction);
+  const ownerOf = a => { if (a.fromElementId && plan.byId[a.fromElementId]) return plan.byId[a.fromElementId]; let best = null, bd = 1.8; plan.els.forEach(e => { if (!schIsPlayer(e)) return; schPlayerRefs(e, plan).forEach(p => { const dd = Math.hypot(p.x - a.points[0].x, p.y - a.points[0].y); if (dd < bd) { bd = dd; best = e; } }); }); return best; };
+  const h0 = schBallHolder(ball, els); let poss = h0 ? h0.id : null;
+  const pending = acts.filter(isBall).sort((p, q) => p.step - q.step || els.indexOf(p) - els.indexOf(q)), newStep = {}; let n = 0;
+  while (pending.length) {
+    let i = pending.findIndex(a => a.type === 'RUN' && ownerOf(a) && ownerOf(a).id === poss); // un dribble précède la passe / le tir du même joueur
+    if (i < 0) i = pending.findIndex(a => { const o = ownerOf(a); return o && o.id === poss; }); if (i < 0) break;
+    const a = pending.splice(i, 1)[0]; newStep[a.id] = ++n;
+    if (a.type === 'SHOT') poss = null; else if (a.type === 'PASS') { const r = schReceiverOf(a, plan); poss = r ? r.id : null; }
+  }
+  pending.forEach(a => { newStep[a.id] = ++n; });
+  const before = acts.map(a => a.step).join();
+  // déplacements / écrans : restent simultanés avec l'action de ballon qui avait le même numéro
+  const oldSteps = [...new Set(acts.filter(isBall).map(a => a.step))].sort((a, b) => a - b), mapOld = {};
+  oldSteps.forEach(s => { mapOld[s] = Math.min(...acts.filter(a => isBall(a) && a.step === s).map(a => newStep[a.id])); });
+  acts.forEach(a => {
+    if (isBall(a)) { a.step = newStep[a.id]; return; }
+    const earlier = oldSteps.filter(s => s <= a.step); a.step = earlier.length ? mapOld[earlier[earlier.length - 1]] : 1;
+  });
+  // renumérotation continue (1, 2, 3…)
+  const used = [...new Set(acts.map(a => a.step))].sort((a, b) => a - b); acts.forEach(a => { a.step = used.indexOf(a.step) + 1; });
+  return acts.map(a => a.step).join() !== before;
+}
+// Étape suivante : joueurs à la fin de leur déplacement, ballon à sa position finale (les actions ne sont pas reprises)
+function schNextFrom(d0) {
+  const d = schNormDrawing(d0), plan = schPlan(d), st = schPlanState(plan, plan.D), out = [];
+  d.elements.forEach(e => {
+    if (schIsAction(e)) return;
+    const c = JSON.parse(JSON.stringify(e));
+    if (schIsPlayer(e)) { c.x = schR(st.pos[e.id].x, 2); c.y = schR(st.pos[e.id].y, 2); }
+    out.push(c);
+  });
+  const b = out.find(e => e.type === 'BALL');
+  if (b && plan.ball) {
+    const f = plan.fin;
+    if (f.poss && plan.byId[f.poss]) { const p = st.pos[f.poss]; b.holderId = f.poss; b.x = schR(p.x + SCH_BALL_OFF.x, 2); b.y = schR(p.y + SCH_BALL_OFF.y, 2); }
+    else if (f.ground) { b.holderId = '-'; b.x = schR(f.ground.x, 2); b.y = schR(f.ground.y, 2); }
+  }
+  return { id: schUid(), title: 'Étape', view: d.view, elements: out, updatedAt: null, validatedAt: null };
+}
+
+// ----- Icônes d'outils -----
+function schToolIcon(type) {
+  const k = { BALL: 2.3, CONE: 2.1, DISC: 2.3, POLE: 2.6, BALLOON: 2.1, HOOP: 1.5, POPUP_GOAL: 1.3, HURDLE: 1.3, BALL_BOX: 1.3 }[type] || 1;
+  let inner;
+  if (SCH_ACTIONS.includes(type)) inner = schActionSvg({ type, points: [{ x: -0.95, y: 0.65 }, { x: 0.95, y: -0.65 }], step: 1, scale: 0.75 }, false);
+  else if (type === 'ZONE_RECT' || type === 'ZONE_CIRCLE') inner = schElementSvg({ type, x: 0, y: 0, w: 2.2, h: 1.6, scale: 1 });
+  else if (type === 'TEXT') inner = schElementSvg({ type, x: 0, y: 0, label: 'Abc', scale: 1.2 });
+  else inner = schElementSvg({ type, x: 0, y: 0, label: type === 'PLAYER' || type === 'DEFENDER' ? '1' : '', scale: k });
+  return `<svg viewBox="-1.3 -1.3 2.6 2.6" width="34" height="34" style="display:block;margin:0 auto;">${inner}</svg>`;
+}
+
+// ----- État de l'éditeur -----
+let schEd = null;
+function schEdD() { return schEd.ex.drawings[schEd.k]; }
+function schEdSel() { const d = schEdD(); return schEd.sel ? d.elements.find(e => e.id === schEd.sel) || null : null; }
+function schEdSnapStr() { return JSON.stringify(schEd.ex.drawings); }
+function schEdPush(s) { schEd.undo.push(s || schEdSnapStr()); if (schEd.undo.length > 60) schEd.undo.shift(); schEd.redo = []; }
+function schEdBaseVb() { const v = schView(schEdD().view).vb; return { x: v[0], y: v[1], w: v[2], h: v[3] }; }
+function schEdToast(msg) {
+  const t = schEd && schEd.el.querySelector('#sche-toast'); if (!t) return;
+  t.textContent = msg; t.style.opacity = '1'; clearTimeout(schEd.toastT); schEd.toastT = setTimeout(() => { if (t) t.style.opacity = '0'; }, 2200);
+}
+function schEdTouch() {
+  const S = schEd, d = schEdD(); d.updatedAt = new Date().toISOString(); S.ex.updatedAt = d.updatedAt;
+  const sv = S.el.querySelector('#sche-saved'); if (sv) sv.textContent = 'Enregistrement…';
+  clearTimeout(schSaveTimer); schSaveTimer = setTimeout(() => { const ok = schUserSave(); const s2 = document.getElementById('sche-saved'); if (s2) s2.textContent = ok ? 'Enregistré sur cet appareil' : '⚠ Enregistrement impossible'; }, 350);
+}
+function schEdChanged(panel) { schEdDraw(); schEdWarn(); schEdTouch(); schEdBar(); if (panel) schEdPanel(); }
+
+// ----- Ouverture / fermeture -----
+function schEditorOpen(exIdx) {
+  schPlayerClose(); schEditorClose();
+  if (!schDemo) schDemo = schDemoData().concat(schUserLoad());
+  const ex = schDemo[exIdx]; if (!ex || !ex.user) return;
+  const el = document.createElement('div'); el.id = 'sch-editor'; el.className = 'sche';
+  el.style.cssText = 'position:fixed;inset:0;z-index:99990;background:#0B1220;display:flex;flex-direction:column;color:#fff;font-family:Arial,sans-serif;-webkit-user-select:none;user-select:none;overscroll-behavior:none;';
+  el.innerHTML = `<div class="sche-top"><button type="button" class="sche-btn" id="sche-close" aria-label="Fermer">✕</button><input id="sche-name" class="sche-name" maxlength="60" placeholder="Nom de l'exercice" style="-webkit-user-select:text;user-select:text;"><span class="sche-saved" id="sche-saved"></span></div>`
+    + `<div class="sche-bar" id="sche-bar"></div><div class="sche-main"><div class="sche-stage" id="sche-stage"></div><div class="sche-warn" id="sche-warn"></div><div class="sche-panel" id="sche-panel"></div><div class="sche-toast" id="sche-toast"></div></div><div class="sche-tools" id="sche-tools"></div>`;
+  document.documentElement.appendChild(el);
+  schEd = { ex, k: 0, tool: 'select', group: 'tools', sel: null, vb: null, undo: [], redo: [], ptrs: new Map(), drag: null, down: null, pinch: null, el, stage: el.querySelector('#sche-stage'), prevOverflow: document.documentElement.style.overflow, touch: false, penAt: 0 };
+  schEd.vb = schEdBaseVb(); document.documentElement.style.overflow = 'hidden';
+  const nm = el.querySelector('#sche-name'); nm.value = ex.name; nm.oninput = () => { ex.name = nm.value.slice(0, 60); schEdTouch(); };
+  el.querySelector('#sche-close').onclick = schEditorClose;
+  const st = schEd.stage;
+  st.style.touchAction = 'none';
+  st.addEventListener('pointerdown', schEdDown); st.addEventListener('pointermove', schEdMove); st.addEventListener('pointerup', schEdUp); st.addEventListener('pointercancel', schEdUp);
+  st.addEventListener('wheel', schEdWheel, { passive: false });
+  document.addEventListener('keydown', schEdKey, true);
+  window.addEventListener('resize', schEdResize);
+  schEdBar(); schEdTools(); schEdDraw(); schEdWarn(); schEdPanel(); schEdTouch();
+}
+function schEditorClose() {
+  if (!schEd) return;
+  document.removeEventListener('keydown', schEdKey, true); window.removeEventListener('resize', schEdResize);
+  clearTimeout(schSaveTimer); schUserSave();
+  document.documentElement.style.overflow = schEd.prevOverflow || ''; schEd.el.remove(); schEd = null;
+  try { schRenderDemo(); } catch (e) {}
+}
+function schEdResize() { if (schEd) schEdDraw(); }
+function schEdKey(e) {
+  if (!schEd || schPl) return;
+  const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? schEdRedo() : schEdUndo(); }
+  else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); schEdRedo(); }
+  else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && schEd.sel) { e.preventDefault(); schEdDel(); }
+  else if (e.key === 'Escape') { if (typing) document.activeElement.blur(); else { schEd.sel = null; schEd.drag = null; schEdDraw(); schEdPanel(); schEdTools(); } }
+}
+
+// ----- Barre d'étapes et d'actions générales -----
+function schEdBar() {
+  const S = schEd, bar = S.el.querySelector('#sche-bar'), d = schEdD(), ex = S.ex, sl = bar.scrollLeft;
+  const b = (fn, label, extra, title) => `<button type="button" class="sche-b ${extra || ''}" onclick="${fn}" ${title ? `aria-label="${title}" title="${title}"` : ''}>${label}</button>`;
+  bar.innerHTML = b('schEdUndo()', '↶', S.undo.length ? '' : 'dis', 'Annuler') + b('schEdRedo()', '↷', S.redo.length ? '' : 'dis', 'Rétablir') + '<span class="sche-sep"></span>'
+    + ex.drawings.map((x, i) => b(`schEdGo(${i})`, schEsc(x.title), i === S.k ? 'on' : '')).join('')
+    + b('schEdAddStep()', '＋', '', 'Ajouter une étape vide') + b('schEdNext()', '➜ Étape suivante', 'acc', 'Créer l\'étape suivante à partir de celle-ci') + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape') + '<span class="sche-sep"></span>'
+    + `<select class="sche-sel" onchange="schEdView(this.value)" aria-label="Terrain">${Object.keys(SCH_VIEWS).map(k => `<option value="${k}" ${d.view === k ? 'selected' : ''}>${SCH_VIEWS[k].name}</option>`).join('')}</select>`
+    + b('schEdRecenter()', '⤢', '', 'Recentrer la vue') + b(`schPlayerOpen(${schDemo.indexOf(ex)})`, '▶ Animer', 'acc');
+  bar.scrollLeft = sl;
+}
+function schEdGo(i) { const S = schEd; if (i < 0 || i >= S.ex.drawings.length) return; S.k = i; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdDraw(); schEdWarn(); schEdPanel(); }
+function schEdRetitle() { schEd.ex.drawings.forEach((d, i) => { if (/^Étape( \d+)?$/.test(d.title)) d.title = 'Étape ' + (i + 1); }); }
+function schEdAddStep() {
+  const S = schEd; schEdPush(); S.ex.drawings.push(schNormDrawing({ title: 'Étape', view: schEdD().view })); schEdRetitle(); S.k = S.ex.drawings.length - 1; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
+}
+function schEdNext() {
+  const S = schEd, d = schEdD(); schEdPush();
+  const nd = schNormDrawing(schNextFrom(d)); S.ex.drawings.splice(S.k + 1, 0, nd); schEdRetitle(); S.k++; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); schEdToast('Étape suivante créée : joueurs et ballon à leur position finale');
+}
+function schEdDupStep() {
+  const S = schEd, d = schEdD(); schEdPush(); const c = schNormDrawing(JSON.parse(JSON.stringify(d))); c.id = schUid(); c.validatedAt = null; S.ex.drawings.splice(S.k + 1, 0, c); schEdRetitle(); S.k++; S.sel = null; schEdBar(); schEdChanged(true);
+}
+function schEdDelStep() {
+  const S = schEd; if (S.ex.drawings.length < 2) { schEdToast('Il faut garder au moins une étape'); return; }
+  if (!confirm('Supprimer « ' + schEdD().title + ' » ?')) return;
+  schEdPush(); S.ex.drawings.splice(S.k, 1); schEdRetitle(); S.k = Math.min(S.k, S.ex.drawings.length - 1); S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
+}
+function schEdView(v) { if (!SCH_VIEWS[v]) return; schEdPush(); schEdD().view = v; schEd.vb = schEdBaseVb(); schEdChanged(false); schEdBar(); }
+function schEdRecenter() { schEd.vb = schEdBaseVb(); schEdDraw(); }
+function schEdUndo() {
+  const S = schEd; if (!S.undo.length) return; S.redo.push(schEdSnapStr()); S.ex.drawings = schNormDrawings(JSON.parse(S.undo.pop())); schEdAfterHistory();
+}
+function schEdRedo() {
+  const S = schEd; if (!S.redo.length) return; S.undo.push(schEdSnapStr()); S.ex.drawings = schNormDrawings(JSON.parse(S.redo.pop())); schEdAfterHistory();
+}
+function schEdAfterHistory() { const S = schEd; S.k = Math.min(S.k, S.ex.drawings.length - 1); if (!schEdSel()) S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); }
+
+// ----- Outils (barre du bas) -----
+function schEdTools() {
+  const S = schEd, box = S.el.querySelector('#sche-tools'), g = SCH_GROUPS.find(x => x.id === S.group) || SCH_GROUPS[0];
+  let h = `<div class="sche-tabs">${SCH_GROUPS.map(x => `<button type="button" class="sche-tab ${x.id === S.group ? 'on' : ''}" onclick="schEdGroup('${x.id}')">${x.name}</button>`).join('')}</div><div class="sche-tl">`;
+  if (S.sel && S.tool !== 'select') h += `<button type="button" class="sche-tool acc" onclick="schEdTool('select')"><span class="sche-ic">✎</span>Options</button>`;
+  g.tools.forEach(t => {
+    const id = t[0], icon = id === 'select' ? '<span class="sche-ic">☝</span>' : id === 'pan' ? '<span class="sche-ic">✥</span>' : schToolIcon(id);
+    h += `<button type="button" class="sche-tool ${S.tool === id ? 'on' : ''}" onclick="schEdTool('${id}')">${icon}${t[1]}</button>`;
+  });
+  if (g.id === 'players') Object.keys(SCH_PRESETS).forEach(k => { h += `<button type="button" class="sche-tool pre" onclick="schEdPreset('${k}')"><span class="sche-ic">⊞</span>${SCH_PRESETS[k].name}</button>`; });
+  box.innerHTML = h + '</div>';
+}
+function schEdGroup(id) { schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!SCH_GROUPS.find(x => x.id === id).tools.some(t => t[0] === schEd.tool)) schEd.tool = SCH_GROUPS.find(x => x.id === id).tools[0][0]; schEdTools(); schEdPanel(); }
+function schEdTool(t) {
+  schEd.tool = t; const g = SCH_GROUPS.find(x => x.tools.some(y => y[0] === t)); if (g) schEd.group = g.id; if (t !== 'select') schEd.drag = null;
+  schEdTools(); schEdPanel(); schEdDraw();
+}
+function schEdPreset(k) {
+  const S = schEd, d = schEdD(), P = SCH_PRESETS[k];
+  if (d.view !== 'half' && d.view !== 'full') { schEdToast('Placements disponibles sur « ½ terrain » ou « Terrain entier »'); return; }
+  schEdPush();
+  P.pts.forEach(pt => { const o = { type: P.type, x: d.view === 'full' ? pt[1] : pt[0], y: d.view === 'full' ? pt[0] : pt[1], label: schNextLabel(d.elements, P.type), z: Math.max(0, ...d.elements.map(e => e.z)) + 1 }; d.elements.push(schNormElement(o)); });
+  schEdChanged(true);
+}
+
+// ----- Géométrie écran ↔ terrain -----
+function schEdMap(vb) { const r = schEd.stage.getBoundingClientRect(), s = Math.min(r.width / vb.w, r.height / vb.h) || 1; return { r, s, ox: (r.width - vb.w * s) / 2, oy: (r.height - vb.h * s) / 2 }; }
+function schEdPt(e, vb) { vb = vb || schEd.vb; const m = schEdMap(vb); return { x: vb.x + (e.clientX - m.r.left - m.ox) / m.s, y: vb.y + (e.clientY - m.r.top - m.oy) / m.s, s: m.s }; }
+const schSnap = (v, g) => Math.round(v / g) * g;
+function schEdClampPt(p) { const v = SCH_VIEWS[schEdD().view]; return { x: Math.max(0, Math.min(v.w, p.x)), y: Math.max(0, Math.min(v.h, p.y)) }; }
+
+// ----- Sélection par toucher -----
+function schEdRad(e) {
+  if (schIsPlayer(e)) return SCH_PR * (e.scale || 1);
+  return ({ HURDLE: 0.85, BALL_BOX: 0.85, POPUP_GOAL: 0.85, BALL: 0.5 }[e.type] || 0.55) * (e.scale || 1);
+}
+function schEdPos(e, els) { return e.type === 'BALL' ? schBallStart(e, els) : { x: e.x, y: e.y }; }
+function schEdHandles(e) {
+  if (schIsAction(e)) {
+    const P = e.points, n = P.length, m = n === 3 ? schQuadAt(P[0], P[1], P[2], 0.5) : { x: (P[0].x + P[1].x) / 2, y: (P[0].y + P[1].y) / 2 };
+    return [{ k: 'pt', i: 0, x: P[0].x, y: P[0].y }, { k: 'pt', i: n - 1, x: P[n - 1].x, y: P[n - 1].y }, { k: 'mid', x: m.x, y: m.y }];
+  }
+  if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') return [{ k: 'zone', x: e.x + e.w / 2, y: e.y + e.h / 2 }];
+  return [];
+}
+function schDistSeg(p, a, b) { const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L)) : 0; return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy)); }
+// o : { zones, actions } (par défaut oui) ; renvoie { kind:'handle', h } | { kind:'el', e } | null
+function schEdHit(pt, o) {
+  o = o || {}; const d = schEdD(), els = d.elements, tol = (schEd.touch ? 26 : 12) / pt.s;
+  const sel = schEdSel();
+  if (sel && o.handles !== false) { let best = null, bd = tol * 1.15; schEdHandles(sel).forEach(h => { const dd = Math.hypot(h.x - pt.x, h.y - pt.y); if (dd < bd) { bd = dd; best = h; } }); if (best) return { kind: 'handle', h: best }; }
+  let best = null, bd = 1e9;
+  els.forEach(e => {
+    if (schIsAction(e) || e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') return;
+    const p = schEdPos(e, els); let dd;
+    if (e.type === 'TEXT') { const fs = 0.95 * (e.scale || 1), w = Math.max(1, e.label.length * fs * 0.62); if (Math.abs(p.x - pt.x) <= w / 2 + tol * 0.4 && Math.abs(p.y - pt.y) <= fs / 2 + tol * 0.4) dd = Math.hypot(p.x - pt.x, p.y - pt.y) * 0.5; else return; }
+    else { dd = Math.hypot(p.x - pt.x, p.y - pt.y); if (dd > Math.max(schEdRad(e) + 0.15, tol)) return; }
+    if (dd < bd) { bd = dd; best = e; }
+  });
+  if (best) return { kind: 'el', e: best };
+  if (o.actions !== false) {
+    let ba = null, bda = tol;
+    els.forEach(e => { if (!schIsAction(e)) return; const S = schSample(e.points, 24); let m = 1e9; for (let i = 1; i < S.length; i++) m = Math.min(m, schDistSeg(pt, S[i - 1], S[i])); if (m < bda) { bda = m; ba = e; } });
+    if (ba) return { kind: 'el', e: ba };
+  }
+  if (o.zones !== false) {
+    const zs = els.filter(e => e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE').reverse();
+    for (const z of zs) { const dx = (pt.x - z.x) / (z.w / 2), dy = (pt.y - z.y) / (z.h / 2); if (z.type === 'ZONE_RECT' ? (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) : (dx * dx + dy * dy <= 1)) return { kind: 'el', e: z }; }
+  }
+  return null;
+}
+
+// ----- Gestes -----
+function schEdSelect(id) { schEd.sel = id; schEdTools(); schEdPanel(); schEdDraw(); }
+function schEdDown(e) {
+  const S = schEd; if (!S) return;
+  if (e.pointerType === 'mouse' && e.button > 0) return;
+  if (e.pointerType === 'pen') S.penAt = performance.now();
+  if (e.pointerType === 'touch' && ((e.width > 45 && e.height > 45) || performance.now() - S.penAt < 800)) return; // paume / stylet en cours
+  try { S.stage.setPointerCapture(e.pointerId); } catch (x) {}
+  S.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  S.touch = e.pointerType !== 'mouse';
+  if (document.activeElement && /^(INPUT|SELECT)$/.test(document.activeElement.tagName)) document.activeElement.blur();
+  if (S.ptrs.size >= 2) { schEdCancelDrag(); const ps = [...S.ptrs.values()]; S.pinch = { d0: Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y) || 1, mid0: { x: (ps[0].x + ps[1].x) / 2, y: (ps[0].y + ps[1].y) / 2 }, vb0: { ...S.vb } }; S.pinch.m0 = schEdPt({ clientX: S.pinch.mid0.x, clientY: S.pinch.mid0.y }, S.pinch.vb0); return; }
+  const pt = schEdPt(e), tool = S.tool, d = schEdD();
+  S.down = { id: e.pointerId, cx: e.clientX, cy: e.clientY, moved: false, pt, hit: null };
+  if (tool === 'pan') { S.drag = { kind: 'pan', vb0: { ...S.vb } }; return; }
+  if (SCH_ACTIONS.includes(tool)) { S.plan = schPlan(d); S.drag = { kind: 'new', type: tool, p0: schEdClampPt(pt), p1: schEdClampPt(pt) }; return; }
+  const hit = tool === 'BALL' ? null : schEdHit(pt, tool === 'select' ? {} : { zones: false, actions: false, handles: false }); // le ballon se pose sur un joueur : pas de sélection
+  S.down.hit = hit;
+  if (hit && hit.kind === 'handle') { S.drag = { kind: 'handle', h: hit.h, snap0: schEdSnapStr() }; return; }
+  if (hit && hit.kind === 'el') {
+    if (tool !== 'select') { S.tool = 'select'; S.group = 'tools'; }
+    S.sel = hit.e.id; schEdTools(); schEdPanel();
+    const p = schEdPos(hit.e, d.elements); S.drag = { kind: 'move', id: hit.e.id, off: { x: pt.x - p.x, y: pt.y - p.y }, snap0: schEdSnapStr() }; schEdDraw(); return;
+  }
+  if (tool === 'select') { S.sel = null; schEdTools(); schEdPanel(); schEdDraw(); S.drag = { kind: 'pan', vb0: { ...S.vb } }; return; }
+  S.drag = { kind: 'place' }; // placement au relâchement s'il n'y a pas eu de glissement
+}
+function schEdCancelDrag() {
+  const S = schEd, dr = S.drag;
+  if (dr && dr.snap0 && dr.snap0 !== schEdSnapStr()) { S.ex.drawings = schNormDrawings(JSON.parse(dr.snap0)); }
+  S.drag = null; S.down = null; schEdDraw();
+}
+function schEdMove(e) {
+  const S = schEd; if (!S) return; const p = S.ptrs.get(e.pointerId); if (!p) return; p.x = e.clientX; p.y = e.clientY;
+  if (S.pinch) {
+    const ps = [...S.ptrs.values()]; if (ps.length < 2) return;
+    const dist = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y) || 1, mid = { x: (ps[0].x + ps[1].x) / 2, y: (ps[0].y + ps[1].y) / 2 }, base = schEdBaseVb(), pv = S.pinch;
+    const z = Math.max(1, Math.min(5, (base.w / pv.vb0.w) * dist / pv.d0)), nw = base.w / z, nh = base.h / z;
+    const r = S.stage.getBoundingClientRect(), s2 = Math.min(r.width / nw, r.height / nh) || 1, ox = (r.width - nw * s2) / 2, oy = (r.height - nh * s2) / 2;
+    schEdSetVb({ x: pv.m0.x - (mid.x - r.left - ox) / s2, y: pv.m0.y - (mid.y - r.top - oy) / s2, w: nw, h: nh }); return;
+  }
+  const dn = S.down, dr = S.drag; if (!dn || dn.id !== e.pointerId || !dr) return;
+  if (!dn.moved && Math.hypot(e.clientX - dn.cx, e.clientY - dn.cy) > 6) dn.moved = true;
+  if (dr.kind === 'pan') { if (!dn.moved) return; const m = schEdMap(dr.vb0); schEdSetVb({ ...dr.vb0, x: dr.vb0.x - (e.clientX - dn.cx) / m.s, y: dr.vb0.y - (e.clientY - dn.cy) / m.s }); return; }
+  const pt = schEdPt(e), d = schEdD(), els = d.elements;
+  if (dr.kind === 'new') { dr.p1 = schEdClampPt(pt); schEdDraw(); return; }
+  if (!dn.moved) return;
+  if (dr.kind === 'move') {
+    const el = els.find(x => x.id === dr.id); if (!el) return; const q = schEdClampPt({ x: pt.x - dr.off.x, y: pt.y - dr.off.y });
+    if (el.type === 'BALL') { el.holderId = '-'; el.x = schSnap(q.x, 0.25); el.y = schSnap(q.y, 0.25); }
+    else if (schIsAction(el)) { if (!dr.orig) dr.orig = el.points.map(a => ({ ...a })); const dx2 = schSnap(q.x, 0.1) - dr.orig[0].x, dy2 = schSnap(q.y, 0.1) - dr.orig[0].y; el.points = dr.orig.map(a => ({ x: schR(a.x + dx2, 2), y: schR(a.y + dy2, 2) })); }
+    else { el.x = schSnap(q.x, 0.25); el.y = schSnap(q.y, 0.25); }
+    schEdDraw(); return;
+  }
+  if (dr.kind === 'handle') {
+    const el = schEdSel(); if (!el) return; const h = dr.h, q = schEdClampPt(pt), g = { x: schSnap(q.x, 0.1), y: schSnap(q.y, 0.1) };
+    if (h.k === 'pt') el.points[h.i] = { x: schR(g.x, 2), y: schR(g.y, 2) };
+    else if (h.k === 'mid') { const P0 = el.points[0], P1 = el.points[el.points.length - 1]; el.points = [P0, { x: schR(2 * g.x - (P0.x + P1.x) / 2, 2), y: schR(2 * g.y - (P0.y + P1.y) / 2, 2) }, P1]; }
+    else if (h.k === 'zone') { el.w = Math.max(1, schR(schSnap(2 * Math.abs(q.x - el.x), 0.5), 1)); el.h = Math.max(1, schR(schSnap(2 * Math.abs(q.y - el.y), 0.5), 1)); }
+    schEdDraw();
+  }
+}
+function schEdSetVb(v) {
+  const b = schEdBaseVb(); v.w = Math.min(b.w, v.w); v.h = Math.min(b.h, v.h);
+  const cx = Math.max(b.x, Math.min(b.x + b.w, v.x + v.w / 2)), cy = Math.max(b.y, Math.min(b.y + b.h, v.y + v.h / 2));
+  schEd.vb = { x: cx - v.w / 2, y: cy - v.h / 2, w: v.w, h: v.h }; schEdDraw();
+}
+function schEdWheel(e) {
+  if (!schEd) return; e.preventDefault();
+  const b = schEdBaseVb(), pt = schEdPt(e), f = e.deltaY < 0 ? 1.15 : 1 / 1.15, nw = Math.max(b.w / 5, Math.min(b.w, schEd.vb.w / f)), nh = nw * b.h / b.w;
+  const r = schEd.stage.getBoundingClientRect(), s2 = Math.min(r.width / nw, r.height / nh) || 1, ox = (r.width - nw * s2) / 2, oy = (r.height - nh * s2) / 2;
+  schEdSetVb({ x: pt.x - (e.clientX - r.left - ox) / s2, y: pt.y - (e.clientY - r.top - oy) / s2, w: nw, h: nh });
+}
+function schEdUp(e) {
+  const S = schEd; if (!S) return; const had = S.ptrs.delete(e.pointerId);
+  if (!had) return;
+  try { S.stage.releasePointerCapture(e.pointerId); } catch (x) {}
+  if (S.pinch) { if (S.ptrs.size < 2) S.pinch = null; S.down = null; S.drag = null; return; }
+  const dn = S.down, dr = S.drag; S.down = null; S.drag = null;
+  if (!dn || dn.id !== e.pointerId || !dr || e.type === 'pointercancel') { if (dr && dr.snap0 && e.type === 'pointercancel') { S.drag = dr; schEdCancelDrag(); } return; }
+  const d = schEdD(), els = d.elements;
+  if (dr.kind === 'new') { schEdFinishAction(dr); return; }
+  if (dr.kind === 'place') { if (!dn.moved) schEdPlace(S.tool, schEdPt(e)); return; }
+  if (dr.kind === 'move') {
+    const el = els.find(x => x.id === dr.id);
+    if (el && el.type === 'BALL' && dn.moved) { const h = schNearestPlayer(els, el, 1.8); if (h) { el.holderId = h.id; el.x = h.x + SCH_BALL_OFF.x; el.y = h.y + SCH_BALL_OFF.y; } }
+    if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); }
+    else if (!dn.moved) { schEdPanel(); }
+    return;
+  }
+  if (dr.kind === 'handle') {
+    const el = schEdSel();
+    if (el && schIsAction(el)) {
+      const plan = schPlan(d), P = el.points;
+      if (P.length === 3) { const m = { x: (P[0].x + P[2].x) / 2, y: (P[0].y + P[2].y) / 2 }, b = schQuadAt(P[0], P[1], P[2], 0.5); if (Math.hypot(b.x - m.x, b.y - m.y) < 0.15) el.points = [P[0], P[2]]; }
+      schEdAttach(el, plan, dr.h.k === 'pt' ? dr.h.i : -1);
+    }
+    if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); }
+  }
+}
+// Rattache le début (joueur qui agit) et la fin (receveur d'une passe) d'une action à un joueur proche ; aimante sur sa position de référence
+function schEdAttach(a, plan, which) {
+  const tol = (schEd.touch ? 26 : 14) / schEdMap(schEd.vb).s, near = (pt, exceptId) => { let best = null, bd = Math.max(1.3, tol); plan.els.forEach(e => { if (!schIsPlayer(e) || e.id === exceptId) return; schPlayerRefs(e, plan).forEach(r => { const dd = Math.hypot(r.x - pt.x, r.y - pt.y); if (dd < bd) { bd = dd; best = { e, r }; } }); }); return best; };
+  const P = a.points;
+  if (which === 0 || which === 'all') { const h = near(P[0]); if (h) { a.fromElementId = h.e.id; P[0] = { x: schR(h.r.x, 2), y: schR(h.r.y, 2) }; } }
+  if ((which === P.length - 1 || which === 'all') && a.type === 'PASS') { const h = near(P[P.length - 1], a.fromElementId); if (h) { a.toElementId = h.e.id; P[P.length - 1] = { x: schR(h.r.x, 2), y: schR(h.r.y, 2) }; } }
+}
+function schEdFinishAction(dr) {
+  const S = schEd, d = schEdD(), els = d.elements;
+  if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { schEdDraw(); schEdToast('Glisse le doigt pour tracer ' + (dr.type === 'MOVE' ? 'un déplacement' : 'l\'action')); return; }
+  schEdPush();
+  const a = schNormElement({ type: dr.type, x: dr.p0.x, y: dr.p0.y, points: [{ x: schR(schSnap(dr.p0.x, 0.1), 2), y: schR(schSnap(dr.p0.y, 0.1), 2) }, { x: schR(schSnap(dr.p1.x, 0.1), 2), y: schR(schSnap(dr.p1.y, 0.1), 2) }], step: schAutoStep(els, dr.type), z: Math.max(0, ...els.map(e => e.z)) + 1 });
+  schEdAttach(a, S.plan || schPlan(d), 'all');
+  els.push(a); S.sel = a.id; schEdTools(); schEdChanged(true);
+}
+function schEdPlace(type, pt) {
+  const S = schEd, d = schEdD(), els = d.elements; schEdPush();
+  const q = schEdClampPt(pt), o = { type, x: schSnap(q.x, 0.25), y: schSnap(q.y, 0.25), label: schNextLabel(els, type), z: Math.max(0, ...els.map(e => e.z)) + 1 };
+  if (type === 'ZONE_RECT' || type === 'ZONE_CIRCLE') { o.w = 4; o.h = 3; }
+  if (type === 'TEXT') o.label = 'Texte';
+  let el;
+  if (type === 'BALL') {
+    el = els.find(e => e.type === 'BALL');
+    if (el) { el.x = o.x; el.y = o.y; delete el.holderId; } else { el = schNormElement(o); els.push(el); }
+    const h = schNearestPlayer(els, el, 1.8); if (h) { el.holderId = h.id; el.x = h.x + SCH_BALL_OFF.x; el.y = h.y + SCH_BALL_OFF.y; } else el.holderId = '-';
+  } else { el = schNormElement(o); els.push(el); }
+  S.sel = el.id;
+  if (type === 'TEXT') { S.tool = 'select'; S.group = 'tools'; }
+  schEdTools(); schEdChanged(true);
+  if (type === 'TEXT') { const inp = S.el.querySelector('#sche-label'); if (inp) { inp.focus(); inp.select(); } } // ouvre le clavier (dans le geste de relâchement)
+}
+
+// ----- Rendu -----
+function schEdDraw() {
+  const S = schEd; if (!S) return;
+  const d = schEdD(), els = d.elements, sc = schEdMap(S.vb).s, f = { els: els.filter(e => !schIsAction(e) && e.type !== 'BALL'), acts: els.filter(schIsAction).map(a => ({ a, badge: true })), balls: [], ghosts: [] };
+  els.filter(e => e.type === 'BALL').forEach(b => { const st = schBallStart(b, els); f.balls.push({ x: st.x, y: st.y, s: b.scale }); });
+  if (S.drag && S.drag.kind === 'new') f.acts.push({ a: schNormElement({ type: S.drag.type, points: [S.drag.p0, S.drag.p1] }), badge: false });
+  let ov = '';
+  const plan = schPlan(d); (plan.warnings || []).forEach(w => { const a = plan.byId[w.id]; if (a) ov += `<circle cx="${a.points[0].x}" cy="${a.points[0].y}" r="0.95" fill="none" stroke="#E74C3C" stroke-width="0.13" stroke-dasharray="0.35 0.25"/>`; });
+  const sel = schEdSel();
+  if (sel) {
+    const HY = '#F5C400', hr = 10 / sc;
+    if (schIsAction(sel)) { const Sm = schSample(sel.points, 24); ov += `<polyline points="${Sm.map(p => p.x + ',' + p.y).join(' ')}" fill="none" stroke="${HY}" stroke-opacity="0.5" stroke-width="${0.55}" stroke-linecap="round" stroke-linejoin="round"/>`; }
+    else if (sel.type === 'ZONE_RECT') ov += `<rect x="${sel.x - sel.w / 2}" y="${sel.y - sel.h / 2}" width="${sel.w}" height="${sel.h}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
+    else if (sel.type === 'ZONE_CIRCLE') ov += `<ellipse cx="${sel.x}" cy="${sel.y}" rx="${sel.w / 2}" ry="${sel.h / 2}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
+    else { const p = schEdPos(sel, els), r = sel.type === 'TEXT' ? Math.max(1, sel.label.length * 0.95 * (sel.scale || 1) * 0.35) + 0.3 : Math.max(0.9, schEdRad(sel) + 0.3); ov += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.45 0.3"/>`; }
+    schEdHandles(sel).forEach(h => { ov += `<circle cx="${h.x}" cy="${h.y}" r="${hr}" fill="${h.k === 'mid' ? HY : 'rgba(255,255,255,0.6)'}" stroke="#14213D" stroke-width="${hr * 0.2}"/>`; });
+  }
+  const vb = S.vb;
+  S.stage.innerHTML = `<svg viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;display:block;background:#fff;touch-action:none;">${schCourtSvg(d.view)}${schBodySvg(f)}${ov}</svg>`;
+}
+function schEdWarn() {
+  const S = schEd; if (!S) return; const d = schEdD(), plan = schPlan(d), box = S.el.querySelector('#sche-warn'), seen = {}, lines = [];
+  plan.warnings.forEach(w => { const o = plan.byId[w.owner], k = w.owner + '|' + w.step; if (seen[k]) return; seen[k] = 1; lines.push(`${schEsc(schPlayerName(o))} n'a pas encore le ballon à l'action ${w.step}`); });
+  const hasBallAct = d.elements.some(e => e.type === 'PASS' || e.type === 'SHOT'), hasBall = d.elements.some(e => e.type === 'BALL');
+  let h = '';
+  if (lines.length) h = `<span>⚠ ${lines.slice(0, 2).join(' · ')}${lines.length > 2 ? ' · +' + (lines.length - 2) : ''}</span><button type="button" onclick="schEdReorder()">Remettre dans l'ordre logique</button>`;
+  else if (hasBallAct && !hasBall) h = `<span>Ajoute un ballon (onglet Objets) pour que les passes et tirs s'animent.</span>`;
+  box.innerHTML = h; box.style.display = h ? '' : 'none';
+}
+function schEdReorder() {
+  const d = schEdD(), s0 = schEdSnapStr(), c = schNormDrawing(JSON.parse(JSON.stringify(d))), ch = schReorder(c);
+  if (!ch) { schEdToast('Impossible de réordonner : vérifie qui a le ballon au départ'); return; }
+  schEdPush(s0); d.elements.forEach(e => { const x = c.elements.find(y => y.id === e.id); if (x && schIsAction(e)) e.step = x.step; }); schEdChanged(true); schEdToast('Numéros remis dans l\'ordre logique');
+}
+
+// ----- Panneau d'options -----
+function schEdPanel() {
+  const S = schEd; if (!S) return; const e = schEdSel(), box = S.el.querySelector('#sche-panel');
+  if (!e || S.tool !== 'select') { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const d = schEdD(), players = d.elements.filter(schIsPlayer), isAct = schIsAction(e), isZone = e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE';
+  const row = (lab, body) => `<div class="sche-row"><span class="sche-lab">${lab}</span>${body}</div>`;
+  const stp = (val, a, b) => `<div class="sche-stp"><button type="button" onclick="${a}" aria-label="moins">−</button><b>${val}</b><button type="button" onclick="${b}" aria-label="plus">+</button></div>`;
+  const sel = (prop, cur, list) => `<select class="sche-sel2" onchange="schEdSet('${prop}',this.value)">${list.map(o => `<option value="${schEsc(o[0])}" ${String(cur || '') === String(o[0]) ? 'selected' : ''}>${schEsc(o[1])}</option>`).join('')}</select>`;
+  const plist = players.map(p => [p.id, schPlayerName(p)]);
+  let h = `<div class="sche-ph"><b>${SCH_NAMES[e.type] || e.type}</b><span class="sche-sp"></span><button type="button" onclick="schEdDup()">Dupliquer</button><button type="button" class="red" onclick="schEdDel()">Supprimer</button><button type="button" onclick="schEdSelect(null)" aria-label="Fermer le panneau">✕</button></div><div class="sche-grid">`;
+  if (e.type === 'TEXT') h += row('Texte', `<input id="sche-label" class="sche-in" maxlength="30" value="${schEsc(e.label)}" oninput="schEdLabel(this.value)" onfocus="schEdTxtFocus()" onchange="schEdTxtDone()" style="-webkit-user-select:text;user-select:text;">`);
+  else if (schIsPlayer(e)) {
+    h += row('Équipe / rôle', sel('type', e.type, [['PLAYER', 'Attaque'], ['DEFENDER', 'Défense'], ['GOALKEEPER', 'Gardien']].concat(e.type === 'PARENT' || e.type === 'COACH' ? [[e.type, SCH_NAMES[e.type]]] : [])));
+    h += row('Numéro', `<input id="sche-label" class="sche-in" maxlength="3" value="${schEsc(e.label)}" placeholder="${e.type === 'GOALKEEPER' ? 'GB' : ''}" oninput="schEdLabel(this.value)" onfocus="schEdTxtFocus()" onchange="schEdTxtDone()" style="-webkit-user-select:text;user-select:text;">`);
+  }
+  if (isAct) {
+    h += row('Étape (n°)', stp(e.step, `schEdAdd('step',-1,1,30)`, `schEdAdd('step',1,1,30)`));
+    h += row('Décalage', stp(e.delay ? '+' + String(e.delay).replace('.', ',') + ' s' : '0 s', `schEdAdd('delay',-0.25,0,2)`, `schEdAdd('delay',0.25,0,2)`));
+    h += row('Part de', sel('fromElementId', e.fromElementId, [['', 'Automatique']].concat(plist)));
+    if (e.type === 'PASS') h += row('Receveur', sel('toElementId', e.toElementId, [['', 'Automatique']].concat(plist.filter(p => p[0] !== e.fromElementId))));
+    h += row('Tracé', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdCurve()">${e.points.length === 3 ? 'Redresser' : 'Courber'}</button></div>`);
+  }
+  if (e.type === 'BALL') h += row('Porteur', sel('holderId', e.holderId, [['', 'Automatique (le plus proche)'], ['-', 'Aucun (au sol)']].concat(plist)));
+  if (!isAct && !isZone) { if (e.type !== 'BALL' && e.type !== 'CONE' && e.type !== 'DISC' && e.type !== 'POLE' && e.type !== 'BALLOON' && !schIsPlayer(e) || e.type === 'DEFENDER') h += row('Rotation', stp(Math.round(e.rotation) + '°', `schEdAdd('rotation',-15,0,360)`, `schEdAdd('rotation',15,0,360)`)); h += row('Taille', stp(schR(e.scale, 1) + '×', `schEdAdd('scale',-0.2,0.4,3)`, `schEdAdd('scale',0.2,0.4,3)`)); }
+  if (isZone) h += row('Taille', stp(e.w + ' × ' + e.h + ' m', `schEdZone(-0.5)`, `schEdZone(0.5)`));
+  box.innerHTML = h + '</div>'; box.style.display = '';
+}
+function schEdLabel(v) { const e = schEdSel(); if (!e) return; e.label = v.slice(0, e.type === 'TEXT' ? 30 : 3); schEdDraw(); schEdTouch(); }
+function schEdTxtFocus() { schEd.txtSnap = schEdSnapStr(); }
+function schEdTxtDone() { if (schEd.txtSnap && schEd.txtSnap !== schEdSnapStr()) { schEdPush(schEd.txtSnap); schEdBar(); } schEd.txtSnap = null; }
+function schEdSet(prop, val) {
+  const e = schEdSel(); if (!e) return; schEdPush();
+  if (val === '' || val == null) delete e[prop]; else e[prop] = val;
+  if (prop === 'type' && val === 'GOALKEEPER' && /^\d$/.test(e.label)) e.label = '';
+  schEdChanged(true); schEdBar();
+}
+function schEdAdd(prop, delta, lo, hi) {
+  const e = schEdSel(); if (!e) return; schEdPush(); let v = (e[prop] || 0) + delta;
+  if (prop === 'rotation') v = (v + 360) % 360; else v = Math.max(lo, Math.min(hi, v));
+  e[prop] = prop === 'step' ? Math.round(v) : schR(v, 2); schEdChanged(true); schEdBar();
+}
+function schEdZone(delta) { const e = schEdSel(); if (!e) return; schEdPush(); e.w = Math.max(1, schR(e.w + delta * 2, 1)); e.h = Math.max(1, schR(e.h + delta * 2, 1)); schEdChanged(true); schEdBar(); }
+function schEdCurve() {
+  const e = schEdSel(); if (!e || !schIsAction(e)) return; schEdPush(); const P = e.points;
+  if (P.length === 3) e.points = [P[0], P[2]]; else { const dx = P[1].x - P[0].x, dy = P[1].y - P[0].y, L = Math.hypot(dx, dy) || 1; e.points = [P[0], { x: schR((P[0].x + P[1].x) / 2 - dy / L * L * 0.3, 2), y: schR((P[0].y + P[1].y) / 2 + dx / L * L * 0.3, 2) }, P[1]]; }
+  schEdChanged(true); schEdBar();
+}
+function schEdDel() {
+  const S = schEd, e = schEdSel(); if (!e) return; schEdPush(); const d = schEdD();
+  d.elements = d.elements.filter(x => x !== e);
+  d.elements.forEach(x => { if (x.fromElementId === e.id) delete x.fromElementId; if (x.toElementId === e.id) delete x.toElementId; if (x.holderId === e.id) delete x.holderId; });
+  S.sel = null; schEdTools(); schEdChanged(true); schEdBar();
+}
+function schEdDup() {
+  const S = schEd, e = schEdSel(); if (!e) return; schEdPush(); const d = schEdD(), c = JSON.parse(JSON.stringify(e)); c.id = schUid(); c.z = Math.max(0, ...d.elements.map(x => x.z)) + 1;
+  if (schIsAction(e)) { c.points = c.points.map(p => ({ x: schR(p.x + 0.8, 2), y: schR(p.y + 0.8, 2) })); delete c.fromElementId; } else { c.x = schR(e.x + 0.8, 2); c.y = schR(e.y + 0.8, 2); if (schIsPlayer(e)) c.label = schNextLabel(d.elements, e.type) || e.label; }
+  if (e.type === 'BALL') { schEdToast('Un seul ballon par étape'); S.undo.pop(); return; }
+  const n = schNormElement(c); d.elements.push(n); S.sel = n.id; schEdChanged(true); schEdBar();
+}
+
+// ----- Liste d'exercices (démonstration) : nouvel exercice / copie / suppression -----
+function schNewEx() {
+  if (!schDemo) schDemo = schDemoData().concat(schUserLoad());
+  schDemo.push({ id: schUid(), name: 'Nouvel exercice', user: true, drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], updatedAt: null });
+  schUserSave(); schUi.ex = schDemo.length - 1; schUi.step = 0; schEditorOpen(schUi.ex);
+}
+function schEditCur() {
+  const ex = schDemo[schUi.ex]; if (!ex) return;
+  if (!ex.user) { schDemo.push({ id: schUid(), name: ('Copie – ' + ex.name).slice(0, 60), user: true, drawings: schNormDrawings(JSON.parse(JSON.stringify(ex.drawings))), updatedAt: null }); schUserSave(); schUi.ex = schDemo.length - 1; schUi.step = 0; }
+  schEditorOpen(schUi.ex);
+}
+function schDelCur() {
+  const ex = schDemo[schUi.ex]; if (!ex || !ex.user) return;
+  if (!confirm('Supprimer « ' + ex.name + ' » ?')) return;
+  schDemo.splice(schUi.ex, 1); schUserSave(); schUi.ex = 0; schUi.step = 0; schRenderDemo();
+}
+
+// ----- Liste d'exercices (démonstration + exercices créés sur cet appareil ; Supabase viendra à l'étape 4) -----
 function schDemoData() {
   const P = (id, type, x, y, label) => ({ id, type, x, y, label });
   const att = [[1.2, 3.2, '2'], [4.2, 10.8, '3'], [10, 12, '4'], [15.8, 10.8, '5'], [18.8, 3.2, '6'], [10, 7.6, '1']];
@@ -5725,18 +6286,18 @@ function schDemoData() {
 }
 let schDemo = null, schUi = { ex: 0, step: 0, view: '', ball: true };
 function schInit() {
-  if (!schDemo) schDemo = schDemoData();
+  if (!schDemo) schDemo = schDemoData().concat(schUserLoad());
   schRenderDemo();
 }
 function schRenderDemo() {
   const box = document.getElementById('sch-demo'); if (!box) return;
   const ex = schDemo[schUi.ex], d0 = ex.drawings[Math.min(schUi.step, ex.drawings.length - 1)], d = schUi.view ? { ...d0, view: schUi.view } : d0;
   const btn = (on, fn, label) => `<button type="button" class="sch-chip ${on ? 'on' : ''}" onclick="${fn}">${label}</button>`;
-  box.innerHTML = `<div class="sch-bar">${schDemo.map((e, i) => btn(i === schUi.ex, `schSet('ex',${i})`, schEsc(e.name))).join('')}</div>`
+  box.innerHTML = `<div class="sch-bar">${schDemo.map((e, i) => btn(i === schUi.ex, `schSet('ex',${i})`, (e.user ? '✎ ' : '') + schEsc(e.name))).join('')}</div>`
     + (ex.drawings.length > 1 ? `<div class="sch-bar">${ex.drawings.map((x, i) => btn(i === schUi.step, `schSet('step',${i})`, schEsc(x.title))).join('')}</div>` : '')
     + `<div class="sch-bar"><span>Terrain :</span>${btn(!schUi.view, `schSet('view','')`, 'Celui de l\'étape')}${Object.keys(SCH_VIEWS).map(k => btn(schUi.view === k, `schSet('view','${k}')`, SCH_VIEWS[k].name)).join('')}</div>`
     + `<label class="sch-chk"><input type="checkbox" ${schUi.ball ? 'checked' : ''} onchange="schSet('ball',this.checked)"> Afficher le départ du ballon</label>`
-    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button></div>`
+    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? '✏️ Modifier' : '✏️ Copier et modifier'}</button><button type="button" class="sch-play alt" onclick="schNewEx()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
     + `<div class="sch-svg">${schDrawingSvg(d, { showBallStart: schUi.ball })}</div>`;
 }
 function schSet(k, v) { schUi[k] = v; if (k === 'ex') schUi.step = 0; schRenderDemo(); }
