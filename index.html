@@ -424,6 +424,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .sch-chk input{width:20px;height:20px;}
 .sch-svg{max-width:760px;margin:0 auto;}
 .sch-play{border:0;background:var(--jaune);color:#111;border-radius:10px;padding:12px 18px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;min-height:44px;}
+.sch-sync{font-size:12px;color:var(--gris-texte);flex:1;min-width:180px;}
 .sch-play.alt{background:transparent;color:var(--gris-clair);border:1px solid rgba(255,255,255,0.3);}
 /* Éditeur de schémas */
 .sche .sche-top{display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));}
@@ -438,7 +439,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .sche .sche-sep{flex:none;width:1px;height:24px;background:rgba(255,255,255,0.2);margin:0 2px;}
 .sche .sche-sel{flex:none;height:40px;border-radius:9px;border:1px solid rgba(255,255,255,0.25);background:#0B1220;color:#fff;font-size:13px;padding:0 6px;font-family:inherit;}
 .sche .sche-main{flex:1;min-height:0;position:relative;margin:0 8px;border-radius:10px;overflow:hidden;background:#fff;}
-.sche .sche-stage{position:absolute;inset:0;touch-action:none;}
+.sche .sche-stage{position:absolute;inset:0;touch-action:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
 .sche .sche-warn{position:absolute;left:6px;right:6px;top:6px;background:rgba(255,244,214,0.96);color:#7A4B00;border:1px solid #F5C400;border-radius:9px;padding:6px 8px;font-size:12px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:2;}
 .sche .sche-warn button{border:0;background:#14213D;color:#fff;border-radius:8px;padding:8px 10px;font-weight:800;font-size:12px;font-family:inherit;cursor:pointer;min-height:36px;}
 .sche .sche-panel{position:absolute;left:0;right:0;bottom:0;background:rgba(11,18,32,0.97);border-top:2px solid #F5C400;padding:8px 10px 10px;z-index:3;max-height:55%;overflow-y:auto;touch-action:pan-y;-webkit-user-select:none;}
@@ -1482,7 +1483,7 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 3 sur 4 (version 26-10-e) — éditeur de schémas. Tes exercices sont gardés sur cet appareil ; la sauvegarde Supabase (partagée entre coachs) arrive à l'étape 4.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-f) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -5672,7 +5673,7 @@ function schAt(tl, t) {
 let schPl = null;
 function schFmtT(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
 function schPlayerOpen(exIdx) {
-  if (!schDemo) schDemo = schDemoData();
+  schEnsure();
   const ex = schDemo[exIdx == null ? schUi.ex : exIdx]; if (!ex) return;
   schPlayerClose();
   const tl = schTimeline(ex.drawings);
@@ -5764,14 +5765,106 @@ const SCH_PRESETS = {
   att: { type: 'PLAYER', name: 'Attaque placée', pts: [[1.2, 3.2], [4.2, 10.8], [10, 12], [15.8, 10.8], [18.8, 3.2], [10, 7.6]] },
   gk: { type: 'GOALKEEPER', name: 'Gardien', pts: [[10, 0.9]] },
 };
-const SCH_LS = 'sch_user_ex_v1';
+const SCH_LS = 'sch_ex_v2', SCH_LS_OLD = 'sch_user_ex_v1';
+function schUuid() { try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }); }
+// Exercices de la bibliothèque : { id (uuid), name, user:true, drawings, updatedAt, serverUpdatedAt, dirty (à envoyer), deleted (suppression à envoyer), rev }
+function schRec(x) { return { id: x.id, name: String(x.name || 'Sans nom').slice(0, 60), user: true, drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null, serverUpdatedAt: x.serverUpdatedAt || null, dirty: !!x.dirty, deleted: !!x.deleted, rev: x.rev || 0 }; }
 function schUserLoad() {
-  try { const a = JSON.parse(localStorage.getItem(SCH_LS) || '[]'); return (Array.isArray(a) ? a : []).map(x => ({ id: x.id || schUid(), name: String(x.name || 'Sans nom').slice(0, 60), user: true, drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null })); } catch (e) { return []; }
+  try {
+    const raw = localStorage.getItem(SCH_LS);
+    if (raw) { const a = JSON.parse(raw); return (Array.isArray(a) ? a : []).filter(x => x && x.id).map(schRec); }
+    const old = JSON.parse(localStorage.getItem(SCH_LS_OLD) || '[]'); // anciens exercices de l'étape 3 : à envoyer au serveur
+    return (Array.isArray(old) ? old : []).map(x => schRec({ id: schUuid(), name: x.name, drawings: x.drawings, updatedAt: x.updatedAt, dirty: true }));
+  } catch (e) { return []; }
 }
-let schSaveTimer = 0;
+let schSaveTimer = 0, schSyncTimer = 0, schBuiltin = null, schUserEx = [];
 function schUserSave() {
-  try { localStorage.setItem(SCH_LS, JSON.stringify((schDemo || []).filter(x => x.user).map(x => ({ id: x.id, name: x.name, drawings: x.drawings, updatedAt: x.updatedAt })))); return true; } catch (e) { return false; }
+  try { localStorage.setItem(SCH_LS, JSON.stringify(schUserEx.map(x => ({ id: x.id, name: x.name, drawings: x.drawings, updatedAt: x.updatedAt, serverUpdatedAt: x.serverUpdatedAt, dirty: x.dirty, deleted: x.deleted, rev: x.rev })))); return true; } catch (e) { return false; }
 }
+function schRebuild() { schDemo = (schBuiltin || []).concat(schUserEx.filter(x => !x.deleted)); }
+function schEnsure() { if (!schBuiltin) { schBuiltin = schDemoData(); schUserEx = schUserLoad(); schRebuild(); schUserSave(); } }
+function schMarkDirty(ex) { ex.dirty = true; ex.rev = (ex.rev || 0) + 1; }
+
+// ----- Synchronisation avec Supabase (table exercices_schemas) : local d'abord, envoi dès que possible -----
+// Règles : on envoie ce qui a changé ; si un autre coach a modifié le même exercice entre-temps, on ne perd rien : ta version est gardée comme copie « (ma version) ».
+const schSync = { state: 'idle', busy: false, at: 0 };
+function schPending() { return schUserEx.filter(x => x.dirty || x.deleted).length; }
+function schSyncLabel(short) {
+  const n = schPending(), st = schSync.state;
+  if (short) return st === 'syncing' ? 'Synchro…' : n ? 'Enregistré · ' + (st === 'offline' ? '📴 en attente' : st === 'error' ? '⚠ à renvoyer' : st === 'noauth' ? 'non connecté' : 'envoi…') : 'Enregistré · ☁ synchronisé';
+  if (st === 'syncing') return '⟳ Synchronisation…';
+  if (st === 'offline') return n ? `📴 Hors ligne — ${n} exercice${n > 1 ? 's' : ''} en attente d'envoi (rien n'est perdu)` : '📴 Hors ligne — tout est déjà synchronisé';
+  if (st === 'noauth') return 'Non connecté au serveur : exercices gardés sur cet appareil';
+  if (st === 'error') return `⚠ Synchronisation impossible pour l'instant — ${n} en attente (nouvel essai automatique)`;
+  return n ? `${n} en attente d'envoi` : '☁ Synchronisé avec les autres coachs';
+}
+function schSyncUi() {
+  const a = document.getElementById('sch-sync'); if (a) a.textContent = schSyncLabel(false);
+  const b = document.getElementById('sche-saved'); if (b) b.textContent = schSyncLabel(true);
+}
+function schSyncSoon(ms) { clearTimeout(schSyncTimer); schSyncTimer = setTimeout(schSyncAll, ms == null ? 2500 : ms); }
+async function schSyncAll() {
+  schEnsure();
+  if (schSync.busy) { schSyncSoon(3000); return; }
+  if (!navigator.onLine) { schSync.state = 'offline'; schSyncUi(); return; }
+  if (!coachSession) { schSync.state = 'noauth'; schSyncUi(); return; }
+  schSync.busy = true; schSync.state = 'syncing'; schSyncUi();
+  try {
+    const sess = (await ensureCoachSession()) || coachSession; if (!sess || !sess.access_token) { schSync.state = 'noauth'; return; }
+    const H = coachAuthHeaders(), base = SB_URL + '/rest/v1/exercices_schemas';
+    const r = await fetch(base + '?select=id,updated_at,deleted_at&limit=2000', { headers: H });
+    if (!r.ok) throw new Error('liste ' + r.status);
+    const remote = {}; (await r.json()).forEach(x => { remote[x.id] = x; });
+    const up = [], adopt = {}, newFromRemote = [];
+    schUserEx.slice().forEach(rec => {
+      const rm = remote[rec.id], open = !!(schEd && schEd.ex === rec);
+      if (!rm) { if (rec.deleted && !rec.serverUpdatedAt) { schUserEx.splice(schUserEx.indexOf(rec), 1); return; } up.push(rec); return; }
+      const changed = rm.updated_at !== rec.serverUpdatedAt;
+      if (rec.dirty || rec.deleted) {
+        if (!changed || rec.deleted) up.push(rec);
+        else { // double modification : on garde les deux
+          const c = schRec({ id: schUuid(), name: (rec.name + ' (ma version)').slice(0, 60), drawings: JSON.parse(JSON.stringify(rec.drawings)), updatedAt: rec.updatedAt, dirty: true });
+          schUserEx.push(c); up.push(c); rec.dirty = false; if (!rm.deleted_at) adopt[rec.id] = true; else schUserEx.splice(schUserEx.indexOf(rec), 1);
+        }
+      } else if (changed) { if (rm.deleted_at) schUserEx.splice(schUserEx.indexOf(rec), 1); else if (!open) adopt[rec.id] = true; }
+    });
+    Object.keys(remote).forEach(id => { if (!remote[id].deleted_at && !schUserEx.some(x => x.id === id)) newFromRemote.push(id); });
+    // envoi
+    if (up.length) {
+      const sent = up.map(x => ({ id: x.id, rev: x.rev, row: { id: x.id, name: x.name, drawings: x.drawings, deleted_at: x.deleted ? new Date().toISOString() : null } }));
+      const res = await fetch(base + '?on_conflict=id', { method: 'POST', headers: { ...H, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(sent.map(s => s.row)) });
+      if (!res.ok) throw new Error('envoi ' + res.status);
+      const rows = await res.json();
+      rows.forEach(row => {
+        const s = sent.find(x => x.id === row.id), rec = schUserEx.find(x => x.id === row.id); if (!rec || !s) return;
+        rec.serverUpdatedAt = row.updated_at;
+        if (rec.deleted) schUserEx.splice(schUserEx.indexOf(rec), 1); else if (rec.rev === s.rev) rec.dirty = false;
+      });
+    }
+    // récupération de ce qui a changé ailleurs
+    const ids = Object.keys(adopt).concat(newFromRemote);
+    for (let k = 0; k < ids.length; k += 20) {
+      const part = ids.slice(k, k + 20), rr = await fetch(base + '?select=id,name,drawings,updated_at&id=in.(' + part.join(',') + ')', { headers: H });
+      if (!rr.ok) throw new Error('lecture ' + rr.status);
+      (await rr.json()).forEach(row => {
+        let rec = schUserEx.find(x => x.id === row.id);
+        if (rec && (rec.dirty || (schEd && schEd.ex === rec))) return; // modifié entre-temps ici : on ne l'écrase pas
+        if (!rec) { rec = schRec({ id: row.id }); schUserEx.push(rec); }
+        rec.name = String(row.name || 'Sans nom').slice(0, 60); rec.drawings = schNormDrawings(row.drawings); rec.serverUpdatedAt = row.updated_at; rec.updatedAt = row.updated_at; rec.dirty = false;
+      });
+    }
+    schSync.state = 'ok'; schSync.at = Date.now();
+  } catch (e) { schSync.state = navigator.onLine ? 'error' : 'offline'; }
+  finally {
+    schSync.busy = false; schUserSave();
+    const cur = schDemo && schDemo[schUi.ex] ? schDemo[schUi.ex].id : null; schRebuild();
+    const ix = cur ? schDemo.findIndex(x => x.id === cur) : -1; schUi.ex = ix >= 0 ? ix : 0; if (schUi.step >= schDemo[schUi.ex].drawings.length) schUi.step = 0;
+    if (!schEd && !schPl) { try { schRenderDemo(); } catch (e) {} }
+    schSyncUi(); if (schSync.state === 'error' && schPending()) schSyncSoon(30000);
+  }
+}
+window.addEventListener('online', () => { try { if (coachSession) schSyncAll(); } catch (e) {} });
+window.addEventListener('offline', () => { schSync.state = 'offline'; schSyncUi(); });
 function schPlayerName(e) { return e ? (SCH_NAMES[e.type] || '') + (e.label ? ' ' + e.label : '') : ''; }
 function schNextLabel(els, type) {
   if (type !== 'PLAYER' && type !== 'DEFENDER') return '';
@@ -5860,15 +5953,16 @@ function schEdToast(msg) {
 }
 function schEdTouch() {
   const S = schEd, d = schEdD(); d.updatedAt = new Date().toISOString(); S.ex.updatedAt = d.updatedAt;
+  schMarkDirty(S.ex);
   const sv = S.el.querySelector('#sche-saved'); if (sv) sv.textContent = 'Enregistrement…';
-  clearTimeout(schSaveTimer); schSaveTimer = setTimeout(() => { const ok = schUserSave(); const s2 = document.getElementById('sche-saved'); if (s2) s2.textContent = ok ? 'Enregistré sur cet appareil' : '⚠ Enregistrement impossible'; }, 350);
+  clearTimeout(schSaveTimer); schSaveTimer = setTimeout(() => { const ok = schUserSave(); if (!ok) { const s2 = document.getElementById('sche-saved'); if (s2) s2.textContent = '⚠ Enregistrement impossible'; } else schSyncUi(); schSyncSoon(); }, 350);
 }
 function schEdChanged(panel) { schEdDraw(); schEdWarn(); schEdTouch(); schEdBar(); if (panel) schEdPanel(); }
 
 // ----- Ouverture / fermeture -----
 function schEditorOpen(exIdx) {
   schPlayerClose(); schEditorClose();
-  if (!schDemo) schDemo = schDemoData().concat(schUserLoad());
+  schEnsure();
   const ex = schDemo[exIdx]; if (!ex || !ex.user) return;
   const el = document.createElement('div'); el.id = 'sch-editor'; el.className = 'sche';
   el.style.cssText = 'position:fixed;inset:0;z-index:99990;background:#0B1220;display:flex;flex-direction:column;color:#fff;font-family:Arial,sans-serif;-webkit-user-select:none;user-select:none;overscroll-behavior:none;';
@@ -5880,7 +5974,7 @@ function schEditorOpen(exIdx) {
   const nm = el.querySelector('#sche-name'); nm.value = ex.name; nm.oninput = () => { ex.name = nm.value.slice(0, 60); schEdTouch(); };
   el.querySelector('#sche-close').onclick = schEditorClose;
   const st = schEd.stage;
-  st.style.touchAction = 'none';
+  st.style.touchAction = 'none'; st.addEventListener('contextmenu', ev => ev.preventDefault());
   st.addEventListener('pointerdown', schEdDown); st.addEventListener('pointermove', schEdMove); st.addEventListener('pointerup', schEdUp); st.addEventListener('pointercancel', schEdUp);
   st.addEventListener('wheel', schEdWheel, { passive: false });
   document.addEventListener('keydown', schEdKey, true);
@@ -5893,6 +5987,7 @@ function schEditorClose() {
   clearTimeout(schSaveTimer); schUserSave();
   document.documentElement.style.overflow = schEd.prevOverflow || ''; schEd.el.remove(); schEd = null;
   try { schRenderDemo(); } catch (e) {}
+  schSyncSoon(300);
 }
 function schEdResize() { if (schEd) schEdDraw(); }
 function schEdKey(e) {
@@ -5909,12 +6004,15 @@ function schEdBar() {
   const S = schEd, bar = S.el.querySelector('#sche-bar'), d = schEdD(), ex = S.ex, sl = bar.scrollLeft;
   const b = (fn, label, extra, title) => `<button type="button" class="sche-b ${extra || ''}" onclick="${fn}" ${title ? `aria-label="${title}" title="${title}"` : ''}>${label}</button>`;
   bar.innerHTML = b('schEdUndo()', '↶', S.undo.length ? '' : 'dis', 'Annuler') + b('schEdRedo()', '↷', S.redo.length ? '' : 'dis', 'Rétablir') + '<span class="sche-sep"></span>'
-    + ex.drawings.map((x, i) => b(`schEdGo(${i})`, schEsc(x.title), i === S.k ? 'on' : '')).join('')
-    + b('schEdAddStep()', '＋', '', 'Ajouter une étape vide') + b('schEdNext()', '➜ Étape suivante', 'acc', 'Créer l\'étape suivante à partir de celle-ci') + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape') + '<span class="sche-sep"></span>'
+    + ex.drawings.map((x, i) => b(`schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + schEsc(x.title), i === S.k ? 'on' : '')).join('')
+    + b('schEdAddStep()', '＋', '', 'Ajouter une étape vide') + b('schEdValidate()', schEdIsValid(d) ? '✓ Validée' : '✓ Valider', schEdIsValid(d) ? 'on' : '', 'Valider l\'étape') + b('schEdNext()', '➜ Étape suivante', 'acc', 'Valider cette étape et créer la suivante à partir de celle-ci') + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape') + '<span class="sche-sep"></span>'
     + `<select class="sche-sel" onchange="schEdView(this.value)" aria-label="Terrain">${Object.keys(SCH_VIEWS).map(k => `<option value="${k}" ${d.view === k ? 'selected' : ''}>${SCH_VIEWS[k].name}</option>`).join('')}</select>`
     + b('schEdRecenter()', '⤢', '', 'Recentrer la vue') + b(`schPlayerOpen(${schDemo.indexOf(ex)})`, '▶ Animer', 'acc');
   bar.scrollLeft = sl;
 }
+function schEdIsValid(d) { return !!(d.validatedAt && (!d.updatedAt || d.validatedAt >= d.updatedAt)); }
+function schEdValidate() { const d = schEdD(); if (schEdIsValid(d)) { d.validatedAt = null; } else { d.validatedAt = new Date().toISOString(); } schEdPush(); schMarkDirty(schEd.ex); schUserSave(); schEdBar(); schEdTouchKeep(); schEdToast(d.validatedAt ? 'Étape validée' : 'Validation retirée'); }
+function schEdTouchKeep() { clearTimeout(schSaveTimer); schSaveTimer = setTimeout(() => { schUserSave(); schSyncUi(); schSyncSoon(); }, 350); }
 function schEdGo(i) { const S = schEd; if (i < 0 || i >= S.ex.drawings.length) return; S.k = i; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdDraw(); schEdWarn(); schEdPanel(); }
 function schEdRetitle() { schEd.ex.drawings.forEach((d, i) => { if (/^Étape( \d+)?$/.test(d.title)) d.title = 'Étape ' + (i + 1); }); }
 function schEdAddStep() {
@@ -5922,6 +6020,7 @@ function schEdAddStep() {
 }
 function schEdNext() {
   const S = schEd, d = schEdD(); schEdPush();
+  if (!schEdIsValid(d)) d.validatedAt = new Date().toISOString();
   const nd = schNormDrawing(schNextFrom(d)); S.ex.drawings.splice(S.k + 1, 0, nd); schEdRetitle(); S.k++; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); schEdToast('Étape suivante créée : joueurs et ballon à leur position finale');
 }
 function schEdDupStep() {
@@ -6274,19 +6373,19 @@ function schEdDup() {
 
 // ----- Liste d'exercices (démonstration) : nouvel exercice / copie / suppression -----
 function schNewEx() {
-  if (!schDemo) schDemo = schDemoData().concat(schUserLoad());
-  schDemo.push({ id: schUid(), name: 'Nouvel exercice', user: true, drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], updatedAt: null });
-  schUserSave(); schUi.ex = schDemo.length - 1; schUi.step = 0; schEditorOpen(schUi.ex);
+  schEnsure();
+  const r = schRec({ id: schUuid(), name: 'Nouvel exercice', drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], dirty: true }); schUserEx.push(r); schRebuild();
+  schUserSave(); schUi.ex = schDemo.indexOf(r); schUi.step = 0; schEditorOpen(schUi.ex);
 }
 function schEditCur() {
-  const ex = schDemo[schUi.ex]; if (!ex) return;
-  if (!ex.user) { schDemo.push({ id: schUid(), name: ('Copie – ' + ex.name).slice(0, 60), user: true, drawings: schNormDrawings(JSON.parse(JSON.stringify(ex.drawings))), updatedAt: null }); schUserSave(); schUi.ex = schDemo.length - 1; schUi.step = 0; }
+  schEnsure(); const ex = schDemo[schUi.ex]; if (!ex) return;
+  if (!ex.user) { const r = schRec({ id: schUuid(), name: ('Copie – ' + ex.name).slice(0, 60), drawings: JSON.parse(JSON.stringify(ex.drawings)), dirty: true }); schUserEx.push(r); schRebuild(); schUserSave(); schUi.ex = schDemo.indexOf(r); schUi.step = 0; }
   schEditorOpen(schUi.ex);
 }
 function schDelCur() {
   const ex = schDemo[schUi.ex]; if (!ex || !ex.user) return;
-  if (!confirm('Supprimer « ' + ex.name + ' » ?')) return;
-  schDemo.splice(schUi.ex, 1); schUserSave(); schUi.ex = 0; schUi.step = 0; schRenderDemo();
+  if (!confirm('Supprimer « ' + ex.name + ' » ?\nL\'exercice disparaîtra aussi chez les autres coachs.')) return;
+  ex.deleted = true; schMarkDirty(ex); schUserSave(); schRebuild(); schUi.ex = 0; schUi.step = 0; schRenderDemo(); schSyncSoon(300);
 }
 
 // ----- Liste d'exercices (démonstration + exercices créés sur cet appareil ; Supabase viendra à l'étape 4) -----
@@ -6317,8 +6416,8 @@ function schDemoData() {
 }
 let schDemo = null, schUi = { ex: 0, step: 0, view: '', ball: true };
 function schInit() {
-  if (!schDemo) schDemo = schDemoData().concat(schUserLoad());
-  schRenderDemo();
+  schEnsure();
+  schRenderDemo(); schSyncAll();
 }
 function schRenderDemo() {
   const box = document.getElementById('sch-demo'); if (!box) return;
@@ -6328,6 +6427,7 @@ function schRenderDemo() {
     + (ex.drawings.length > 1 ? `<div class="sch-bar">${ex.drawings.map((x, i) => btn(i === schUi.step, `schSet('step',${i})`, schEsc(x.title))).join('')}</div>` : '')
     + `<div class="sch-bar"><span>Terrain :</span>${btn(!schUi.view, `schSet('view','')`, 'Celui de l\'étape')}${Object.keys(SCH_VIEWS).map(k => btn(schUi.view === k, `schSet('view','${k}')`, SCH_VIEWS[k].name)).join('')}</div>`
     + `<label class="sch-chk"><input type="checkbox" ${schUi.ball ? 'checked' : ''} onchange="schSet('ball',this.checked)"> Afficher le départ du ballon</label>`
+    + `<div class="sch-bar"><span id="sch-sync" class="sch-sync">${schSyncLabel(false)}</span><button type="button" class="sch-chip" onclick="schSyncAll()">↻ Synchroniser</button></div>`
     + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? '✏️ Modifier' : '✏️ Copier et modifier'}</button><button type="button" class="sch-play alt" onclick="schNewEx()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
     + `<div class="sch-svg">${schDrawingSvg(d, { showBallStart: schUi.ball })}</div>`;
 }
