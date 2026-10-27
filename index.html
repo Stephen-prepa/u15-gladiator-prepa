@@ -1750,7 +1750,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-n</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-o</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1823,7 +1823,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-n) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-o) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -8348,17 +8348,21 @@ const SCH_ZONES = ['ZONE_RECT', 'ZONE_CIRCLE', 'TEXT'];
 const SCH_TYPES = SCH_PLAYERS.concat(SCH_ACTIONS, SCH_OBJECTS, SCH_ZONES);
 const SCH_VIEWS = { half: { w: 20, h: 20, name: '½ terrain' }, full: { w: 40, h: 20, name: 'Terrain entier' }, goal: { w: 20, h: 11.5, name: 'Zone de but' }, free: { w: 30, h: 20, name: 'Espace libre' } };
 const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', stroke: '#14213D', att: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
-const SCH_MAX_BALLS = 4;
-const SCH_BALL_COLS = [['#F2B705', '#14213D'], ['#2F7DE1', '#FFFFFF'], ['#1FA35C', '#FFFFFF'], ['#8E5BD9', '#FFFFFF']]; // [fond, chiffre] du ballon 1 à 4
+const SCH_MAX_BALLS = Infinity; // aucun plafond : autant de ballons que voulu
+const SCH_BALL_COLS = [['#F2B705', '#14213D'], ['#2F7DE1', '#FFFFFF'], ['#1FA35C', '#FFFFFF'], ['#8E5BD9', '#FFFFFF'], ['#E8543A', '#FFFFFF'], ['#17A2B8', '#FFFFFF'], ['#E84393', '#FFFFFF'], ['#14213D', '#FFFFFF']]; // [fond, chiffre] du ballon 1 à 8 (au-delà, les couleurs se répètent : le chiffre les distingue)
 const SCH_BALL_OFFS = [{ x: 0.85, y: -0.55 }, { x: -0.85, y: -0.55 }, { x: 0.85, y: 0.55 }, { x: -0.85, y: 0.55 }]; // place du ballon porté, selon son numéro (deux ballons chez le même joueur ne se superposent pas)
 const SCH_BALL_OFF = SCH_BALL_OFFS[0];
-function schBallOff(i) { return SCH_BALL_OFFS[i || 0] || SCH_BALL_OFFS[0]; }
+function schBallOff(i) {
+  i = i || 0; if (SCH_BALL_OFFS[i]) return SCH_BALL_OFFS[i];
+  const a = ((i - 4) * 47 + 20) * Math.PI / 180, r = 1.15 + 0.2 * Math.floor((i - 4) / 8); // au-delà de 4 ballons chez un même joueur : couronne autour de lui
+  return { x: Math.round(Math.cos(a) * r * 100) / 100, y: Math.round(Math.sin(a) * r * 100) / 100 };
+}
 function schBallIdx(ball, els) { let i = 0; for (const e of els) { if (e === ball || e.id === ball.id) return i; if (e.type === 'BALL') i++; } return 0; }
 function schBallSvg(x, y, k, opacity, i, multi) {
   const o = opacity != null ? `opacity="${opacity}"` : '';
   if (multi) {
-    const r = 0.4 * k, c = SCH_BALL_COLS[i || 0] || SCH_BALL_COLS[0];
-    return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${c[0]}" stroke="${SCH_COL.stroke}" stroke-width="0.08"/><text x="${x}" y="${y + r * 0.46}" text-anchor="middle" font-size="${r * 1.35}" font-weight="800" fill="${c[1]}" style="font-family:Arial,sans-serif;pointer-events:none;">${(i || 0) + 1}</text></g>`;
+    const r = 0.4 * k, c = SCH_BALL_COLS[(i || 0) % SCH_BALL_COLS.length], lab = (i || 0) + 1;
+    return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${c[0]}" stroke="${SCH_COL.stroke}" stroke-width="0.08"/><text x="${x}" y="${y + r * (lab > 9 ? 0.36 : 0.46)}" text-anchor="middle" font-size="${r * (lab > 9 ? 1.0 : 1.35)}" font-weight="800" fill="${c[1]}" style="font-family:Arial,sans-serif;pointer-events:none;">${(i || 0) + 1}</text></g>`;
   }
   const r = 0.34 * k;
   return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${SCH_COL.ball}" stroke="${SCH_COL.stroke}" stroke-width="0.07"/><path d="M${x - r} ${y} Q${x} ${y - r * 0.55} ${x + r} ${y}" fill="none" stroke="${SCH_COL.stroke}" stroke-width="0.05"/></g>`;
