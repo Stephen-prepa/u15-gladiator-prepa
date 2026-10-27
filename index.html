@@ -547,14 +547,14 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .sche .sche-btn{border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#fff;border-radius:10px;min-width:44px;height:44px;font-size:18px;cursor:pointer;font-family:inherit;}
 .sche .sche-name{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-size:16px;padding:0 10px;font-family:inherit;box-sizing:border-box;}
 .sche .sche-saved{font-size:11px;color:#8FA3BF;max-width:90px;text-align:right;line-height:1.2;}
-.sche .sche-bar{display:flex;align-items:center;gap:6px;padding:0 10px 6px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}
-.sche .sche-b{flex:none;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#C9D4E5;border-radius:9px;height:40px;min-width:40px;padding:0 11px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+.sche .sche-bar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:0 8px 5px;}
+.sche .sche-b{flex:none;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#C9D4E5;border-radius:9px;height:38px;min-width:38px;padding:0 9px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
 .sche .sche-b.on{border-color:#F5C400;color:#F5C400;background:rgba(245,196,0,0.12);}
 .sche .sche-b.acc{background:#F5C400;color:#111;border-color:#F5C400;}
 .sche .sche-b.dis{opacity:.35;}
 .sche .sche-sep{flex:none;width:1px;height:24px;background:rgba(255,255,255,0.2);margin:0 2px;}
-.sche .sche-sel{flex:none;height:40px;border-radius:9px;border:1px solid rgba(255,255,255,0.25);background:#0B1220;color:#fff;font-size:13px;padding:0 6px;font-family:inherit;}
-.sche .sche-main{flex:1;min-height:0;position:relative;margin:0 8px;border-radius:10px;overflow:hidden;background:#fff;}
+.sche .sche-sel{flex:none;height:38px;border-radius:9px;border:1px solid rgba(255,255,255,0.25);background:#0B1220;color:#fff;font-size:13px;padding:0 6px;font-family:inherit;}
+.sche .sche-main{flex:1;min-height:0;position:relative;margin:0 4px;border-radius:8px;overflow:hidden;background:#D5DFEC;}
 .sche .sche-stage{position:absolute;inset:0;touch-action:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
 .sche .sche-warn{position:absolute;left:6px;right:6px;top:6px;background:rgba(255,244,214,0.96);color:#7A4B00;border:1px solid #F5C400;border-radius:9px;padding:6px 8px;font-size:12px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:2;}
 .sche .sche-warn button{border:0;background:#14213D;color:#fff;border-radius:8px;padding:8px 10px;font-weight:800;font-size:12px;font-family:inherit;cursor:pointer;min-height:36px;}
@@ -570,17 +570,23 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .sche .sche-stp button{border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#fff;border-radius:8px;height:40px;width:44px;font-size:20px;font-weight:700;font-family:inherit;cursor:pointer;}
 .sche .sche-stp b{min-width:54px;text-align:center;font-size:14px;}
 .sche .sche-in,.sche .sche-sel2{height:40px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:#0B1220;color:#fff;font-size:16px;padding:0 8px;font-family:inherit;width:100%;box-sizing:border-box;}
-.sche .sche-tools{padding:6px 8px;padding-bottom:max(8px,env(safe-area-inset-bottom));}
+.sche .sche-tools{padding:5px 8px;padding-bottom:max(6px,env(safe-area-inset-bottom));}
 .sche .sche-tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:6px;}
 .sche .sche-tab{flex:none;border:0;background:transparent;color:#8FA3BF;font-weight:800;font-size:13px;padding:8px 12px;border-bottom:3px solid transparent;font-family:inherit;cursor:pointer;}
 .sche .sche-tab.on{color:#F5C400;border-bottom-color:#F5C400;}
-.sche .sche-tl{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
-.sche .sche-tool{flex:none;min-width:70px;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.05);color:#C9D4E5;border-radius:10px;padding:5px 6px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;}
-.sche .sche-tool svg{background:#fff;border-radius:6px;}
+.sche .sche-tl{display:grid;gap:5px;}
+.sche .sche-tool{min-width:0;min-height:56px;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.05);color:#C9D4E5;border-radius:10px;padding:4px 2px;font-size:10px;line-height:1.1;text-align:center;justify-content:center;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.sche .sche-tool svg{background:#fff;border-radius:6px;width:30px;height:30px;}
+.sche .sche-sws{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.sche .sche-sw{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);cursor:pointer;padding:0;}
+.sche .sche-sw.on{border-color:#F5C400;box-shadow:0 0 0 2px #F5C400;}
+.sche .sche-sw.auto{background:conic-gradient(#F5C400 0 33%,#E8543A 0 66%,#0052B4 0);}
+.sche .sche-wide{grid-column:1 / -1;}
+.sche .sche-all{border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#fff;border-radius:8px;min-height:40px;padding:0 12px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;}
 .sche .sche-tool.on{border-color:#F5C400;color:#F5C400;background:rgba(245,196,0,0.14);}
 .sche .sche-tool.acc{background:#F5C400;color:#111;border-color:#F5C400;}
 .sche .sche-tool.pre{border-style:dashed;}
-.sche .sche-ic{font-size:24px;line-height:34px;height:34px;}
+.sche .sche-ic{font-size:22px;line-height:30px;height:30px;}
 .sche .sche-toast{position:absolute;left:50%;transform:translateX(-50%);top:46px;background:#14213D;color:#fff;border-radius:18px;padding:8px 14px;font-size:12px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5;max-width:92%;text-align:center;}
 #sch-player .schp-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));}
 #sch-player .schp-title{font-size:17px;font-weight:800;}
@@ -1744,7 +1750,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-m</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-n</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1817,7 +1823,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-m) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-n) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -8332,7 +8338,7 @@ function seanceGoToDate(dateVal) {
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt }
-// Element : { id, type, x, y, rotation, scale, label, team, z, step, fromElementId, points:[{x,y}], w, h, delay, holderId, toElementId, ballId (passe / tir / dribble : quel ballon, si plusieurs) }
+// Element : { id, type, x, y, rotation, scale, label, team, z, step, fromElementId, points:[{x,y}], w, h, delay, holderId, toElementId, ballId (passe / tir / dribble : quel ballon, si plusieurs), color (joueurs : couleur choisie, #RRGGBB) }
 //   - joueurs/objets : x,y = centre ; zones : x,y = centre, w,h = dimensions (m) ; actions : points (2 = droite, 3 = Bézier quadratique, le 2e = point de contrôle)
 //   - label : 3 caractères max (30 pour TEXT)
 const SCH_PLAYERS = ['PLAYER', 'DEFENDER', 'GOALKEEPER', 'PARENT', 'COACH'];
@@ -8358,6 +8364,8 @@ function schBallSvg(x, y, k, opacity, i, multi) {
   return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${SCH_COL.ball}" stroke="${SCH_COL.stroke}" stroke-width="0.07"/><path d="M${x - r} ${y} Q${x} ${y - r * 0.55} ${x + r} ${y}" fill="none" stroke="${SCH_COL.stroke}" stroke-width="0.05"/></g>`;
 }
 const SCH_PR = 0.62; // rayon d'un joueur (m)
+// Texte lisible (sombre ou clair) sur une couleur de fond choisie
+function schInk(hex, dark, light) { const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || ''); if (!m) return dark; const L = 0.299 * parseInt(m[1], 16) + 0.587 * parseInt(m[2], 16) + 0.114 * parseInt(m[3], 16); return L > 150 ? dark : light; }
 function schEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function schNum(v, d) { v = +v; return isFinite(v) ? v : d; }
 function schR(v, p) { const k = Math.pow(10, p == null ? 2 : p); return Math.round(v * k) / k; }
@@ -8379,6 +8387,7 @@ function schNormElement(e) {
   }
   if (o.type === 'ZONE_RECT' || o.type === 'ZONE_CIRCLE') { o.w = Math.max(0.5, schNum(e.w, 4)); o.h = Math.max(0.5, schNum(e.h, 3)); }
   if (o.type === 'BALL' && e.holderId) o.holderId = e.holderId;
+  if (SCH_PLAYERS.includes(o.type) && /^#[0-9a-fA-F]{6}$/.test(e.color || '')) o.color = e.color.toUpperCase();
   return o;
 }
 function schNormDrawing(d) {
@@ -8456,9 +8465,9 @@ function schElementSvg(e, k) {
   const C = SCH_COL, x = e.x, y = e.y, s = e.scale || 1, r = SCH_PR * s, tr = e.rotation ? ` transform="rotate(${e.rotation} ${x} ${y})"` : '';
   const txt = (t, col, fs, dy) => t ? `<text x="${x}" y="${y + (dy || 0) + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${col}" style="font-family:Arial,sans-serif;pointer-events:none;">${schEsc(t)}</text>` : '';
   switch (e.type) {
-    case 'PLAYER': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.att}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label, C.attLine, r * 1.15)}`;
-    case 'DEFENDER': return `<polygon${tr} points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${C.def}" stroke="${C.attLine}" stroke-width="0.12" stroke-linejoin="round"/>${txt(e.label, '#fff', r * 0.95, -r * 0.3)}`;
-    case 'GOALKEEPER': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.gk}" stroke="${C.att}" stroke-width="0.16"/>${txt(e.label || 'GB', '#fff', r * (e.label && e.label.length > 1 ? 0.95 : 0.9))}`;
+    case 'PLAYER': { const f = e.color || C.att; return `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label, schInk(f, C.attLine, '#fff'), r * 1.15)}`; }
+    case 'DEFENDER': return `<polygon${tr} points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${e.color || C.def}" stroke="${C.attLine}" stroke-width="0.12" stroke-linejoin="round"/>${txt(e.label, schInk(e.color || C.def, C.attLine, '#fff'), r * 0.95, -r * 0.3)}`;
+    case 'GOALKEEPER': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${e.color || C.gk}" stroke="${C.att}" stroke-width="0.16"/>${txt(e.label || 'GB', schInk(e.color || C.gk, C.attLine, '#fff'), r * (e.label && e.label.length > 1 ? 0.95 : 0.9))}`;
     case 'PARENT': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.parent}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'P', '#fff', r)}`;
     case 'COACH': return `<rect x="${x - r}" y="${y - r}" width="${r * 2}" height="${r * 2}" rx="${r * 0.3}" fill="${C.coach}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'C', C.attLine, r)}`;
     case 'BALL': return schBallSvg(x, y, s);
@@ -8988,7 +8997,7 @@ function schEdD() { return schEd.ex.drawings[schEd.k]; }
 function schEdSel() { const d = schEdD(); return schEd.sel ? d.elements.find(e => e.id === schEd.sel) || null : null; }
 function schEdSnapStr() { return JSON.stringify(schEd.ex.drawings); }
 function schEdPush(s) { schEd.undo.push(s || schEdSnapStr()); if (schEd.undo.length > 60) schEd.undo.shift(); schEd.redo = []; }
-function schEdBaseVb() { const v = schView(schEdD().view).vb; return { x: v[0], y: v[1], w: v[2], h: v[3] }; }
+function schEdBaseVb() { const d = schEdD(), v = SCH_VIEWS[d.view] || SCH_VIEWS.half, mx = 0.5, top = (d.view === 'half' || d.view === 'goal') ? 2 : 0.5, bot = 0.5; return { x: -mx, y: -top, w: v.w + mx * 2, h: v.h + top + bot }; }
 function schEdToast(msg) {
   const t = schEd && schEd.el.querySelector('#sche-toast'); if (!t) return;
   t.textContent = msg; t.style.opacity = '1'; clearTimeout(schEd.toastT); schEd.toastT = setTimeout(() => { if (t) t.style.opacity = '0'; }, 2200);
@@ -9033,7 +9042,7 @@ function schEditorClose() {
   schSyncSoon(300);
   if (cb) { try { cb(ex0); } catch (e) {} }
 }
-function schEdResize() { if (schEd) schEdDraw(); }
+function schEdResize() { if (schEd) { schEdDraw(); schEdTools(); } }
 function schEdKey(e) {
   if (!schEd || schPl) return;
   const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
@@ -9046,12 +9055,14 @@ function schEdKey(e) {
 // ----- Barre d'étapes et d'actions générales -----
 function schEdBar() {
   const S = schEd, bar = S.el.querySelector('#sche-bar'), d = schEdD(), ex = S.ex, sl = bar.scrollLeft;
+  const narrow = innerWidth < 600, stl = x => narrow ? schEsc(x.title).replace(/^Étape\s*/, '') || '1' : schEsc(x.title);
   const b = (fn, label, extra, title) => `<button type="button" class="sche-b ${extra || ''}" onclick="${fn}" ${title ? `aria-label="${title}" title="${title}"` : ''}>${label}</button>`;
-  bar.innerHTML = b('schEdUndo()', '↶', S.undo.length ? '' : 'dis', 'Annuler') + b('schEdRedo()', '↷', S.redo.length ? '' : 'dis', 'Rétablir') + '<span class="sche-sep"></span>'
-    + ex.drawings.map((x, i) => b(`schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + schEsc(x.title), i === S.k ? 'on' : '')).join('')
-    + b('schEdAddStep()', '＋', '', 'Ajouter une étape vide') + b('schEdValidate()', schEdIsValid(d) ? '✓ Validée' : '✓ Valider', schEdIsValid(d) ? 'on' : '', 'Valider l\'étape') + b('schEdNext()', '➜ Étape suivante', 'acc', 'Valider cette étape et créer la suivante à partir de celle-ci') + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape') + '<span class="sche-sep"></span>'
+  bar.innerHTML = b('schEdUndo()', '↶', S.undo.length ? '' : 'dis', 'Annuler') + b('schEdRedo()', '↷', S.redo.length ? '' : 'dis', 'Rétablir')
+    + ex.drawings.map((x, i) => b(`schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + stl(x), i === S.k ? 'on' : '', narrow ? 'Étape ' + stl(x) : '')).join('')
+    + b('schEdAddStep()', '＋', '', 'Ajouter une étape vide') + b('schEdNext()', '➜ Suivante', 'acc', 'Valider cette étape et créer la suivante à partir de celle-ci') + b(`schPlayerOpen(${schDemo.indexOf(ex)})`, '▶ Animer', 'acc')
+    + b('schEdValidate()', narrow ? '✓' : (schEdIsValid(d) ? '✓ Validée' : '✓ Valider'), schEdIsValid(d) ? 'on' : '', 'Valider l\'étape') + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape')
     + `<select class="sche-sel" onchange="schEdView(this.value)" aria-label="Terrain">${Object.keys(SCH_VIEWS).map(k => `<option value="${k}" ${d.view === k ? 'selected' : ''}>${SCH_VIEWS[k].name}</option>`).join('')}</select>`
-    + b('schEdRecenter()', '⤢', '', 'Recentrer la vue') + b(`schPlayerOpen(${schDemo.indexOf(ex)})`, '▶ Animer', 'acc');
+    + b('schEdRecenter()', '⤢', '', 'Recentrer la vue');
   bar.scrollLeft = sl;
 }
 function schEdIsValid(d) { return !!(d.validatedAt && (!d.updatedAt || d.validatedAt >= d.updatedAt)); }
@@ -9086,18 +9097,26 @@ function schEdRedo() {
 function schEdAfterHistory() { const S = schEd; S.k = Math.min(S.k, S.ex.drawings.length - 1); if (!schEdSel()) S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); }
 
 // ----- Outils (barre du bas) -----
+// Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
+const SCH_TOOL_ORDER = ['select', 'BALL', 'MOVE', 'PASS', 'PLAYER', 'DEFENDER', 'RUN', 'SHOT', 'GOALKEEPER', 'SCREEN', 'CONE', 'DISC', 'POLE', 'HOOP', 'HURDLE', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', '@d06', '@d15', '@att', 'pan'];
 function schEdTools() {
-  const S = schEd, box = S.el.querySelector('#sche-tools'), g = SCH_GROUPS.find(x => x.id === S.group) || SCH_GROUPS[0];
-  let h = `<div class="sche-tabs">${SCH_GROUPS.map(x => `<button type="button" class="sche-tab ${x.id === S.group ? 'on' : ''}" onclick="schEdGroup('${x.id}')">${x.name}</button>`).join('')}</div><div class="sche-tl">`;
+  const S = schEd, box = S.el.querySelector('#sche-tools'), names = {};
+  SCH_GROUPS.forEach(g => g.tools.forEach(t => { names[t[0]] = t[1]; }));
+  let items = SCH_TOOL_ORDER.map(id => id[0] === '@' ? { id, pre: id.slice(1), label: SCH_PRESETS[id.slice(1)].name } : { id, label: names[id] });
+  const cols = Math.max(4, Math.floor(((box.clientWidth || window.innerWidth) - 16 + 5) / 62)), slots = cols * 2 - (S.sel && S.tool !== 'select' ? 1 : 0);
+  let more = '';
+  if (items.length > slots) { if (S.more) more = `<button type="button" class="sche-tool" onclick="schEdMore(false)"><span class="sche-ic">▴</span>Moins</button>`; else { items = items.slice(0, slots - 1); more = `<button type="button" class="sche-tool" onclick="schEdMore(true)"><span class="sche-ic">⋯</span>Plus</button>`; } }
+  let h = `<div class="sche-tl" style="grid-template-columns:repeat(${cols},minmax(0,1fr));">`;
   if (S.sel && S.tool !== 'select') h += `<button type="button" class="sche-tool acc" onclick="schEdTool('select')"><span class="sche-ic">✎</span>Options</button>`;
-  g.tools.forEach(t => {
-    const id = t[0], icon = id === 'select' ? '<span class="sche-ic">☝</span>' : id === 'pan' ? '<span class="sche-ic">✥</span>' : schToolIcon(id);
-    h += `<button type="button" class="sche-tool ${S.tool === id ? 'on' : ''}" onclick="schEdTool('${id}')">${icon}${t[1]}</button>`;
+  items.forEach(t => {
+    if (t.pre) { h += `<button type="button" class="sche-tool pre" onclick="schEdPreset('${t.pre}')"><span class="sche-ic">⊞</span>${t.label}</button>`; return; }
+    const icon = t.id === 'select' ? '<span class="sche-ic">☝</span>' : t.id === 'pan' ? '<span class="sche-ic">✥</span>' : schToolIcon(t.id);
+    h += `<button type="button" class="sche-tool ${S.tool === t.id ? 'on' : ''}" onclick="schEdTool('${t.id}')">${icon}${t.label}</button>`;
   });
-  if (g.id === 'players') Object.keys(SCH_PRESETS).forEach(k => { h += `<button type="button" class="sche-tool pre" onclick="schEdPreset('${k}')"><span class="sche-ic">⊞</span>${SCH_PRESETS[k].name}</button>`; });
-  box.innerHTML = h + '</div>';
+  box.innerHTML = h + more + '</div>';
 }
-function schEdGroup(id) { schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!SCH_GROUPS.find(x => x.id === id).tools.some(t => t[0] === schEd.tool)) schEd.tool = SCH_GROUPS.find(x => x.id === id).tools[0][0]; schEdTools(); schEdPanel(); }
+function schEdMore(on) { schEd.more = !!on; schEdTools(); }
+function schEdGroup(id) { const g = SCH_GROUPS.find(x => x.id === id); if (!g) return; schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!g.tools.some(t => t[0] === schEd.tool)) schEd.tool = g.tools[0][0]; schEdTools(); schEdPanel(); }
 function schEdTool(t) {
   schEd.tool = t; const g = SCH_GROUPS.find(x => x.tools.some(y => y[0] === t)); if (g) schEd.group = g.id; if (t !== 'select') schEd.drag = null;
   schEdTools(); schEdPanel(); schEdDraw();
@@ -9340,7 +9359,7 @@ function schEdDraw() {
     schEdHandles(sel).forEach(h => { ov += `<circle cx="${h.x}" cy="${h.y}" r="${hr}" fill="${h.k === 'mid' ? HY : 'rgba(255,255,255,0.6)'}" stroke="#14213D" stroke-width="${hr * 0.2}"/>`; });
   }
   const vb = S.vb;
-  S.stage.innerHTML = `<svg viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;display:block;background:#fff;touch-action:none;">${schCourtSvg(d.view)}${schBodySvg(f)}${ov}</svg>`;
+  S.stage.innerHTML = `<svg viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;display:block;background:transparent;touch-action:none;">${schCourtSvg(d.view)}${schBodySvg(f)}${ov}</svg>`;
 }
 function schEdWarn() {
   const S = schEd; if (!S) return; const d = schEdD(), plan = schPlan(d), box = S.el.querySelector('#sche-warn'), seen = {}, lines = [];
@@ -9373,6 +9392,11 @@ function schEdPanel() {
     h += row('Équipe / rôle', sel('type', e.type, [['PLAYER', 'Attaque'], ['DEFENDER', 'Défense'], ['GOALKEEPER', 'Gardien']].concat(e.type === 'PARENT' || e.type === 'COACH' ? [[e.type, SCH_NAMES[e.type]]] : [])));
     h += row('Numéro', `<input id="sche-label" class="sche-in" maxlength="3" value="${schEsc(e.label)}" placeholder="${e.type === 'GOALKEEPER' ? 'GB' : ''}" oninput="schEdLabel(this.value)" onfocus="schEdTxtFocus()" onchange="schEdTxtDone()" style="-webkit-user-select:text;user-select:text;">`);
   }
+  if (schIsPlayer(e) && SCH_COLORS_OK.includes(e.type)) {
+    const cur = e.color || '', nm = e.type === 'PLAYER' ? 'les attaquants' : e.type === 'DEFENDER' ? 'les défenseurs' : 'les gardiens';
+    h += `<div class="sche-row sche-wide"><span class="sche-lab">Couleur</span><div class="sche-sws"><button type="button" class="sche-sw auto ${cur ? '' : 'on'}" onclick="schEdColor('')" aria-label="Couleur d'origine" title="Couleur d'origine"></button>${SCH_SWATCHES.map(c => `<button type="button" class="sche-sw ${cur === c ? 'on' : ''}" style="background:${c}" onclick="schEdColor('${c}')" aria-label="Couleur ${c}"></button>`).join('')}</div></div>`;
+    h += `<div class="sche-row sche-wide"><button type="button" class="sche-all" onclick="schEdApplyAll()">Appliquer couleur et taille à ${nm} de l'étape</button></div>`;
+  }
   if (isAct) {
     h += row('Étape (n°)', stp(e.step, `schEdAdd('step',-1,1,30)`, `schEdAdd('step',1,1,30)`));
     // passe / tir d'un joueur qui court dans la même étape : le décalage se lit en « moment de sa course » (Début, ¼, ½, ⅔, ⅚, Fin) plutôt qu'en secondes
@@ -9391,6 +9415,13 @@ function schEdPanel() {
   if (!isAct && !isZone) { if (e.type !== 'BALL' && e.type !== 'CONE' && e.type !== 'DISC' && e.type !== 'POLE' && e.type !== 'BALLOON' && !schIsPlayer(e) || e.type === 'DEFENDER') h += row('Rotation', stp(Math.round(e.rotation) + '°', `schEdAdd('rotation',-15,0,360)`, `schEdAdd('rotation',15,0,360)`)); h += row('Taille', stp(schR(e.scale, 1) + '×', `schEdAdd('scale',-0.2,0.4,3)`, `schEdAdd('scale',0.2,0.4,3)`)); }
   if (isZone) h += row('Taille', stp(e.w + ' × ' + e.h + ' m', `schEdZone(-0.5)`, `schEdZone(0.5)`));
   box.innerHTML = h + '</div>'; box.style.display = '';
+}
+const SCH_COLORS_OK = ['PLAYER', 'DEFENDER', 'GOALKEEPER'], SCH_SWATCHES = ['#F5C400', '#E8543A', '#0052B4', '#2ECC71', '#8E5BD9', '#F28C28', '#FFFFFF', '#14213D'];
+function schEdColor(c) { const e = schEdSel(); if (!e || !schIsPlayer(e)) return; schEdPush(); if (c) e.color = c; else delete e.color; schEdChanged(true); }
+function schEdApplyAll() {
+  const e = schEdSel(); if (!e || !schIsPlayer(e)) return; schEdPush(); let n = 0;
+  schEdD().elements.forEach(x => { if (x.type !== e.type || x === e) return; if (e.color) x.color = e.color; else delete x.color; x.scale = e.scale; n++; });
+  schEdChanged(true); schEdToast(n ? 'Appliqué à ' + n + ' autre' + (n > 1 ? 's' : '') : 'Aucun autre élément de ce type');
 }
 function schEdLabel(v) { const e = schEdSel(); if (!e) return; e.label = v.slice(0, e.type === 'TEXT' ? 30 : 3); schEdDraw(); schEdTouch(); }
 function schEdTxtFocus() { schEd.txtSnap = schEdSnapStr(); }
