@@ -656,7 +656,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 #cr-fiche.show{display:block;}
 .cr-fiche-bar{position:sticky;top:0;display:flex;gap:8px;align-items:center;padding:10px 14px;background:#fff;border-bottom:1px solid #dde4ee;z-index:2;}
 .cr-fiche-bar button{border:1px solid #c5d0e0;background:#fff;color:#0a2a4a;border-radius:8px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
-.cr-fiche-bar button.pdf{background:#0a6bb8;border-color:#0a6bb8;color:#fff;margin-left:auto;}
+.cr-fiche-bar button.pdf{background:#0a6bb8;border-color:#0a6bb8;color:#fff;}
 .cr-fiche-page{max-width:760px;margin:0 auto;padding:18px 18px 40px;font-family:'Barlow',Arial,sans-serif;}
 .cr-fiche-page h1{font-size:30px;margin:4px 0 10px;color:#0a2a4a;font-family:'Barlow Condensed','Barlow',Arial,sans-serif;}
 .cr-fiche-kicker{font-size:12px;font-weight:800;letter-spacing:2px;color:#0a6bb8;text-transform:uppercase;}
@@ -669,15 +669,55 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 .cr-fiche-table{border:1px solid #d5deea;border-radius:10px;overflow:hidden;}
 .cr-fiche-row{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid #e3e9f2;background:#f7f9fc;font-weight:800;font-size:15px;}
 .cr-fiche-row.tot{background:#003a78;color:#fff;border-bottom:none;}
-.cr-fiche-ex{padding:6px 14px 10px 26px;border-bottom:1px solid #e3e9f2;font-size:13px;color:#2c4260;}
-.cr-fiche-ex div{margin-top:4px;}
+.cr-fiche-sp{flex:1;}
+.cr-fiche-bar{flex-wrap:wrap;}
+.cr-fiche-bar .msg{font-size:12px;color:#6a7d95;}
+.cr-fiche-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;}
+.cr-fiche-head h1{margin:2px 0 6px;}
+.cr-fiche-sub{font-size:15px;font-weight:600;color:#2c4260;margin-bottom:2px;}
+.cr-fiche-logo{flex:none;width:62px;height:62px;object-fit:contain;border-radius:12px;}
+.cr-fiche-obj{border:1px solid #d5deea;border-left:5px solid #0a6bb8;border-radius:10px;background:#f7fafe;padding:10px 14px;margin-bottom:14px;}
+.cr-fiche-obj h3{margin:6px 0 3px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#0a6bb8;}
+.cr-fiche-obj h3:first-child{margin-top:0;}
+.cr-fiche-obj .main{font-weight:700;font-size:15px;}
+.cr-fiche-obj ul{margin:0;padding-left:20px;font-size:14px;}
+.cr-fiche-cols{display:grid;grid-template-columns:1fr;gap:4px 18px;}
+.cr-fiche-cols.two{grid-template-columns:1fr 1fr;}
+.cr-fiche-row.blk{background:#e9f1fb;}
+.cr-fiche-link{display:flex;justify-content:space-between;gap:10px;padding:9px 14px 9px 26px;border-bottom:1px solid #e3e9f2;font-size:14px;font-weight:600;color:#1d3a5c;text-decoration:none;}
+.cr-fiche-link:active{background:#eef4fb;}
+.cr-fiche-empty{padding:18px;border:1px dashed #b8c6d9;border-radius:10px;text-align:center;color:#6a7d95;}
+.cr-fx{margin-top:30px;scroll-margin-top:64px;font-size:13px;color:#2c4260;}
+.cr-fx-edit{flex:none;border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer;}
+.cr-fx-anim{margin:2px 0 6px;border:1px solid #0a6bb8;background:#fff;color:#0a6bb8;border-radius:8px;padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;}
+.cr-fig1{max-width:440px;margin-top:6px;}
+.cr-fx-gb .cr-fig1{max-width:300px;}
+.cr-figs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:6px;}
+.cr-fig{margin:0;break-inside:avoid;}
+.cr-fig figcaption{font-size:11px;font-weight:800;color:#0a2a4a;margin-bottom:2px;}
+.cr-fig-leg{font-size:10px;color:#6a7d95;margin-top:3px;}
+.cr-fx-facts.wide{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;}
+@media screen and (max-width:560px){.cr-fiche-cols.two{grid-template-columns:1fr;}.cr-fx-facts.wide{grid-template-columns:1fr;}}
 .cr-fiche-foot{text-align:center;color:#6a7d95;font-size:12px;margin-top:28px;}
+@page{size:A4;margin:12mm 12mm 14mm;}
 @media print{
+  html,body{background:#fff !important;height:auto !important;overflow:visible !important;}
+  body{zoom:1 !important;}
   body > *:not(#cr-fiche){display:none !important;}
   #cr-fiche{position:static !important;display:block !important;overflow:visible !important;}
-  .cr-fiche-bar{display:none !important;}
+  #cr-fiche,#cr-fiche *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cr-fiche-bar,.no-print{display:none !important;}
   .cr-fiche-page{padding:0;max-width:none;}
-  .cr-fiche-row,.cr-fiche-row.tot,.cr-fiche-rule{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cr-fiche-page h1{font-size:26px;}
+  .cr-fx{break-before:page;margin-top:0;}
+  .cr-fx-head,.cr-fx-list,.cr-fx-gb,.cr-fig,.cr-fig1,.cr-fiche-obj,.cr-fiche-grid,.cr-fiche-table,.cr-fiche-link{break-inside:avoid;}
+  .cr-fx-head{break-after:avoid;}
+  .cr-figs{grid-template-columns:repeat(3,1fr);gap:8px;}
+  .cr-fiche-body{display:grid !important;grid-template-columns:1fr 1fr;gap:16px;}
+  .cr-fiche-cols.two{grid-template-columns:1fr 1fr;}
+  .cr-fx-row.two{grid-template-columns:1fr 1fr;}
+  .cr-fx-facts.wide{grid-template-columns:1fr 1fr;}
+  a{color:inherit;text-decoration:none;}
 }
 /* Éditeur de schéma plein écran — charte de l'appli (marine / jaune / bleu / rouge) */
 #cr-draw{display:none;position:fixed;inset:0;z-index:1450;background:var(--noir);flex-direction:column;color:var(--blanc);font-family:'Barlow',Arial,sans-serif;}
@@ -1704,7 +1744,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-k</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-m</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1777,7 +1817,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-k) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-m) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -5826,46 +5866,81 @@ async function crDelete(id) {
   } catch (e) { alert('Suppression impossible (' + (e.message || e) + ').'); }
 }
 
-// ----- Fiche de séance (aperçu + PDF via impression) -----
+// ----- Fiche de séance (aperçu + impression A4 / PDF) -----
+let crFiche = null, crFicheTitleBak = null, crFicheAnimMap = {};
+const CR_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+function crDateLong(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); if (!m) return '';
+  return (+m[3]) + (m[3] === '01' ? 'er' : '') + ' ' + (CR_MONTHS[+m[2] - 1] || '') + ' ' + m[1];
+}
+function crCirc(n) { return n >= 1 && n <= 20 ? String.fromCharCode(0x2460 + n - 1) : '(' + n + ')'; }
+function crFicheSlug(t) { return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'fiche-de-seance'; }
 function crOpenFiche(id, exId) {
   const p = (crCur && crCur.id === id) ? crCur : crPlans.find(x => x.id === id);
   if (!p) return;
-  if (crCur && crCur.id === id) crSaveNow();
-  const cell = (l, v) => v ? `<div class="cr-fiche-cell"><small>${l}</small><b>${crEsc(v)}</b></div>` : '';
-  const dateFr = p.seance_date ? p.seance_date.split('-').reverse().join('/') : '';
-  const lines = t => (t || '').split('\n').map(s => s.trim()).filter(Boolean);
-  let exNum = 0;
-  const blocks = (p.blocks || []).map(b => {
-    const exs = (b.exercises || []).map(crNormEx).map(x => crFicheEx(x, ++exNum, b.name)).join('');
-    return `<div class="cr-fiche-row"><span>${crEsc(b.name)}</span><span>${crFmtDur(crBlockMin(b))}</span></div>${exs}`;
-  }).join('');
-  const eqAll = crEquipText(crEquipAgg(p));
-  const typeLbl = p.seance_type === 'babyhand' ? '🧸 BabyHand 3-5 ans' : 'Handball';
+  const live = !!(crCur && crCur.id === id); // séance modifiable : crayon ✎ sur les exercices
+  if (live) crSaveNow();
+  crFiche = { id, title: p.title }; crFicheAnimMap = {};
+  const cell = (l, v) => crTxt(v) ? `<div class="cr-fiche-cell"><small>${l}</small><b>${crEsc(v)}</b></div>` : '';
+  const lines = t => (t || '').split('\n').map(s => s.replace(/^\s*[-•·*]+\s*/, '').trim()).filter(Boolean);
+  const total = crTotal(p), pl = crTxt(p.nb_joueurs);
+  const cat = (p.seance_type === 'babyhand' ? ['BabyHand'] : []).concat([p.categorie, p.public_cible].map(crTxt).filter(Boolean)).join(' · ');
+  let exNum = 0, rows = '', arts = '';
+  (p.blocks || []).forEach((b, bi) => {
+    const list = b.exercises || [];
+    rows += `<div class="cr-fiche-row blk"><span>${crEsc(b.name || 'Bloc')}</span><span>${crFmtDur(crBlockMin(b))}</span></div>`;
+    list.forEach((raw, ei) => {
+      const x = crNormEx(raw), n = ++exNum;
+      rows += `<a class="cr-fiche-link" href="#crfx-${x.id}" onclick="crFicheGo('${x.id}');return false;"><span>${n}. ${crEsc(x.name || 'Exercice')}</span><span>${x.minutes ? crFmtDur(x.minutes) : ''}</span></a>`;
+      arts += crFicheEx(x, n, b.name, bi, ei, live);
+    });
+  });
+  const sec = lines(p.objectifs_secondaires), eqAll = crEquipText(crEquipAgg(p));
+  const obj = (crTxt(p.objectif_principal) || sec.length) ? `<div class="cr-fiche-obj">${crTxt(p.objectif_principal) ? `<h3>Objectif de la séance</h3><div class="main">${crEsc(p.objectif_principal).replace(/\n/g, '<br>')}</div>` : ''}${sec.length ? `<h3>Objectifs secondaires</h3><ul>${sec.map(l => `<li>${crEsc(l)}</li>`).join('')}</ul>` : ''}</div>` : '';
+  const ctx = crTxt(p.contexte) ? `<div><div class="cr-fiche-h">Contexte</div><div>${crEsc(p.contexte).replace(/\n/g, '<br>')}</div></div>` : '', mat = eqAll ? `<div><div class="cr-fiche-h">Matériel global</div><div>${crEsc(eqAll)}</div></div>` : '';
+  const vids = (p.videos || []).length ? `<div class="cr-fiche-h">Vidéos</div>${(p.videos || []).map(v => `<div style="font-size:13px;word-break:break-all;">▶ ${crEsc(v.title || '')} <a href="${crEsc(v.url)}">${crEsc(v.url)}</a></div>`).join('')}` : '';
   document.getElementById('cr-fiche').innerHTML = `
-    <div class="cr-fiche-bar"><button type="button" onclick="crCloseFiche()">← Retour</button><button type="button" class="pdf" onclick="window.print()">⬇ PDF / Imprimer</button></div>
+    <div class="cr-fiche-bar"><button type="button" onclick="crCloseFiche()">← Retour</button><span class="cr-fiche-sp"></span><span id="cr-fiche-msg" class="msg" role="status"></span>
+      <button type="button" onclick="crFichePrint(false)">🖨 Aperçu / Imprimer</button><button type="button" class="pdf" onclick="crFichePrint(true)">⬇ PDF</button></div>
     <div class="cr-fiche-page">
-      <div class="cr-fiche-kicker">Fiche de séance · HBCCS</div>
-      <h1>${crEsc(p.title)}</h1>
+      <div class="cr-fiche-head"><div><div class="cr-fiche-kicker">Fiche de séance</div><h1>${crEsc(p.title)}</h1>${crTxt(p.theme) ? `<div class="cr-fiche-sub">${crEsc(p.theme)}</div>` : ''}</div><img class="cr-fiche-logo" src="icon-192.png" alt="" onerror="this.style.display='none'"></div>
       <div class="cr-fiche-rule"></div>
-      <div class="cr-fiche-grid">
-        ${cell('Durée', crFmtDur(crTotal(p)))}${cell('Type', typeLbl)}${cell('Catégorie', p.categorie)}${cell('Public', p.public_cible)}
-        ${cell('Niveau', p.niveau)}${cell('Date', dateFr)}${cell('Joueurs', p.nb_joueurs)}${cell('Entraîneur', p.entraineur)}
-      </div>
-      ${p.theme ? `<div class="cr-fiche-h">Thème principal</div><div>${crEsc(p.theme)}</div>` : ''}
-      ${p.objectif_principal ? `<div class="cr-fiche-h">Objectif principal</div><div>${crEsc(p.objectif_principal).replace(/\n/g, '<br>')}</div>` : ''}
-      ${lines(p.objectifs_secondaires).length ? `<div class="cr-fiche-h">Objectifs secondaires</div><ul style="margin:0;padding-left:20px;">${lines(p.objectifs_secondaires).map(l => `<li>${crEsc(l)}</li>`).join('')}</ul>` : ''}
-      ${p.contexte ? `<div class="cr-fiche-h">Contexte</div><div>${crEsc(p.contexte).replace(/\n/g, '<br>')}</div>` : ''}
-      ${eqAll ? `<div class="cr-fiche-h">Matériel global</div><div>${crEsc(eqAll)}</div>` : ''}
+      <div class="cr-fiche-grid">${cell('Catégorie', cat)}${cell('Date', crDateLong(p.seance_date))}${cell('Durée', total ? crFmtDur(total) : '')}${cell('Effectif', pl ? (/^\d+$/.test(pl) ? pl + ' joueur' + (pl === '1' ? '' : 's') : pl) : '')}${cell('Entraîneur', p.entraineur)}${cell('Niveau', p.niveau)}</div>
+      ${obj}
+      ${ctx || mat ? `<div class="cr-fiche-cols${ctx && mat ? ' two' : ''}">${ctx}${mat}</div>` : ''}
       <div class="cr-fiche-h">Déroulé de la séance</div>
-      <div class="cr-fiche-table">${blocks}<div class="cr-fiche-row tot"><span>Durée totale</span><span>${crFmtDur(crTotal(p))}</span></div></div>
-      ${(p.videos || []).length ? `<div class="cr-fiche-h">Vidéos</div>${(p.videos || []).map(v => `<div style="font-size:13px;word-break:break-all;">▶ ${crEsc(v.title || '')} <a href="${crEsc(v.url)}">${crEsc(v.url)}</a></div>`).join('')}` : ''}
+      ${exNum || (p.blocks || []).length ? `<div class="cr-fiche-table">${rows}<div class="cr-fiche-row tot"><span>Durée totale</span><span>${crFmtDur(total)}</span></div></div>` : ''}
+      ${exNum ? '' : `<div class="cr-fiche-empty">Aucun exercice pour l'instant. <a href="#" onclick="crCloseFiche();return false;">Ajouter des exercices</a></div>`}
+      ${vids}
+      ${arts}
       <div class="cr-fiche-foot">Handball Club Clermont Salagou · Filière masculine</div>
     </div>`;
   document.getElementById('cr-fiche').classList.add('show');
   document.getElementById('cr-fiche').scrollTop = 0;
   if (exId) { const t = document.getElementById('crfx-' + exId); if (t) t.scrollIntoView(); }
 }
-function crCloseFiche() { document.getElementById('cr-fiche').classList.remove('show'); }
+function crCloseFiche() { document.getElementById('cr-fiche').classList.remove('show'); crFicheRestoreTitle(); }
+function crFicheGo(exId) { const t = document.getElementById('crfx-' + exId); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function crFicheEdit(bi, ei) { crCloseFiche(); crOpenEx(bi, ei); }
+function crFicheAnim(key) { const a = crFicheAnimMap[key]; if (a) schPlayerOpenData(a.name, a.drawings); }
+function crFicheRestoreTitle() { if (crFicheTitleBak != null) { document.title = crFicheTitleBak; crFicheTitleBak = null; } }
+window.addEventListener('afterprint', crFicheRestoreTitle);
+// Impression : feuille de style @media print (A4, un exercice par page, schémas en vectoriel). Le titre de la page devient le nom du fichier proposé pour le PDF.
+function crFichePrint(pdf) {
+  const msg = document.getElementById('cr-fiche-msg'), say = t => { if (msg) msg.textContent = t || ''; };
+  const touch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
+  try {
+    if (crFicheTitleBak == null) crFicheTitleBak = document.title;
+    document.title = crFicheSlug(crFiche && crFiche.title);
+    say(pdf ? 'Génération du PDF…' : '');
+    setTimeout(() => {
+      try {
+        window.print();
+        say(pdf ? (touch ? 'Dans la fenêtre : Partager (↑) → Enregistrer dans Fichiers' : 'Choisis « Enregistrer au format PDF » comme imprimante') : '');
+      } catch (e) { say('Impression impossible : ' + (e.message || e)); crFicheRestoreTitle(); }
+    }, 80);
+  } catch (e) { say('Impression impossible : ' + (e.message || e)); }
+}
 
 // ----- Exercice : page de détail -----
 const CR_EX_TABS = [
@@ -6124,7 +6199,7 @@ function crFicheList(title, arr, o) {
   }).join('');
   return `<div class="cr-fx-list ${o.cls || ''}"><h4>${title}</h4><${o.num ? 'ol' : 'ul'}>${li}</${o.num ? 'ol' : 'ul'}></div>`;
 }
-function crFicheEx(x, num, bname) {
+function crFicheEx(x, num, bname, bi, ei, live) {
   const fact = (l, v, cls) => crTxt(v) ? `<div class="${cls || ''}"><dt>${l}</dt><dd>${crEsc(v).replace(/\n/g, '<br>')}</dd></div>` : '';
   const eq = crEquipText(crNormEquip(x.equipment).concat(parseInt(x.balls, 10) > 0 ? [{ name: 'Ballons', qty: parseInt(x.balls, 10) }] : []));
   const theme = [crTxt(x.theme), crTxt(x.subTheme)].filter(Boolean).join(' · ');
@@ -6139,18 +6214,22 @@ function crFicheEx(x, num, bname) {
     + row(crFicheList('Points de vigilance', I.vigilance), '')
     + row(crFicheList('Corrections / régulations', I.corrections, { num: true }), '')
     + row(crFicheList('Progression', I.progression), crFicheList('Régression', I.regression));
+  const animBtn = (key, name, L) => { if (!crSchAnimOk(L)) return ''; crFicheAnimMap[key] = { name, drawings: L.drawings }; return `<button type="button" class="cr-fx-anim no-print" onclick="crFicheAnim('${key}')">▶ Animer l'enchaînement</button>`; };
   let gb = '';
   if (crHasGb(x)) {
     const g = x.gb, geq = crEquipText(g.equipment);
-    gb = `<div class="cr-fx-gb"><h4>🧤 Travail GB</h4>${crTxt(g.objective) ? `<div class="cr-fx-gbo">${crEsc(g.objective).replace(/\n/g, '<br>')}</div>` : ''}${g.schemaLib ? crFicheSchemaLib(g.schemaLib) : ''}`
-      + row(crFicheList('Consignes GB', g.instructions), crFicheList('Critères de réussite GB', g.success)) + (geq ? `<div class="cr-fx-gbe">Matériel GB : ${crEsc(geq)}</div>` : '') + '</div>';
+    gb = `<div class="cr-fx-gb"><h4>🧤 Travail GB</h4>${crTxt(g.objective) ? `<div class="cr-fx-gbo">${crEsc(g.objective).replace(/\n/g, '<br>')}</div>` : ''}`
+      + `<div class="cr-fiche-body">${g.schemaLib ? `<div>${animBtn(x.id + '-gb', (x.name || 'Exercice') + ' · GB', g.schemaLib)}${crFicheSchemaLib(g.schemaLib)}</div>` : ''}<div>${row(crFicheList('Consignes GB', g.instructions), '')}${row(crFicheList('Critères de réussite GB', g.success), '')}${geq ? `<div class="cr-fx-gbe">Matériel GB : ${crEsc(geq)}</div>` : ''}</div></div></div>`;
   }
   const vids = x.videos.map(v => `<div style="margin-top:4px;word-break:break-all;">▶ ${crEsc(v.title || '')} <a href="${crEsc(v.url)}">${crEsc(v.url)}</a></div>`).join('');
-  const sch = x.schemaLib ? crFicheSchemaLib(x.schemaLib) : crFicheSchema(x.schema);
-  return `<div class="cr-fiche-ex cr-fx" id="crfx-${x.id}"><div class="cr-fx-head"><span class="cr-fx-n">${num}</span><div><small>${crEsc(bname || '')}</small><b>${crEsc(x.name || 'Exercice')}</b></div><span class="cr-fx-d">${x.minutes ? crFmtDur(x.minutes) : ''}</span></div>
-    <div class="cr-fiche-body"><div>${sch}</div><div><dl class="cr-fx-facts">${facts}</dl></div></div>${lists}${gb}${vids}</div>`;
+  const L = x.schemaLib, multi = !!(L && L.drawings.length > 1);
+  const figs = (L ? animBtn(x.id, x.name || 'Exercice', L) + crFicheSchemaLib(L) : crFicheSchema(x.schema));
+  const factsBox = facts ? `<dl class="cr-fx-facts${multi ? ' wide' : ''}">${facts}</dl>` : '';
+  const top = multi ? `<div>${figs}</div>${factsBox ? `<div style="margin-top:10px;">${factsBox}</div>` : ''}`
+    : (figs ? `<div class="cr-fiche-body"><div>${figs}</div><div>${factsBox}</div></div>` : factsBox);
+  return `<article class="cr-fx" id="crfx-${x.id}"><div class="cr-fx-head"><span class="cr-fx-n">${num}</span><div><small>${crEsc(bname || '')}</small><b>${crEsc(x.name || 'Exercice')}</b></div><span class="cr-fx-d">${x.minutes ? crFmtDur(x.minutes) : ''}</span>${live ? `<button type="button" class="cr-fx-edit no-print" onclick="crFicheEdit(${bi},${ei})" aria-label="Modifier l'exercice">✎</button>` : ''}</div>
+    ${top}${lists}${gb}${vids}</article>`;
 }
-
 // ----- Schéma (terrain) : modèle, rendu, éditeur image par image -----
 const CR_COURT = { half: { w: 200, h: 200, vb: [-10, -10, 220, 220], k: 1 }, full: { w: 400, h: 200, vb: [-10, -10, 420, 220], k: 1.35 }, free: { w: 300, h: 200, vb: [-10, -10, 320, 220], k: 1.1 } };
 const CR_MAX_FRAMES = 40;
@@ -6223,11 +6302,13 @@ function crSchPickRender() {
     + `<div class="crsp-list">${list.length ? list.map(x => { const n = x.drawings.length; return `<button type="button" class="crsp-card ${x.id === cur ? 'on' : ''}" onclick="crSchAttach('${x.id}')"><div class="crsp-thumb">${schDrawingSvg(x.drawings[0], { showBallStart: false })}</div><div class="crsp-name">${schEsc(x.name)}</div><div class="crsp-meta">${n} étape${n > 1 ? 's' : ''}${x.id === cur ? ' · choisi' : ''}</div></button>`; }).join('') : '<div style="color:#8FA3BF;font-size:13px;padding:20px 4px;">La bibliothèque est vide pour l\'instant. Crée ton premier schéma ci-dessous.</div>'}</div>`
     + `<div style="padding-top:10px;"><button type="button" class="cr-btn primary" style="width:100%;padding:14px;" onclick="crSchNew(crSchTgt)">＋ Créer un nouveau schéma</button></div>`;
 }
+function crSchAnimOk(L) { return !!(L && L.drawings && L.drawings.length && (L.drawings.length > 1 || L.drawings.some(d => (d.elements || []).some(schIsAction)))); }
 function crFicheSchemaLib(L) {
   if (!L || !L.drawings || !L.drawings.length) return '';
   const n = L.drawings.length, one = d => schDrawingSvg(d, { showBallStart: false });
-  if (n === 1) return `<div style="max-width:420px;margin-top:6px;">${one(L.drawings[0])}</div><div style="font-size:10px;color:#6a7d95;margin-top:2px;">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe.</div>`;
-  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:560px;margin-top:6px;">${L.drawings.map(d => `<div><div style="font-size:10px;color:#6a7d95;margin-bottom:2px;">${crEsc(d.title)}</div>${one(d)}</div>`).join('')}</div><div style="font-size:10px;color:#6a7d95;margin-top:2px;">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe.</div>`;
+  const leg = `<div class="cr-fig-leg">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe.</div>`;
+  if (n === 1) return `<div class="cr-fig1">${one(L.drawings[0])}</div>${leg}`;
+  return `<div class="cr-figs">${L.drawings.map((d, i) => `<figure class="cr-fig"><figcaption>${crCirc(i + 1)} ${crEsc(d.title)}</figcaption>${one(d)}</figure>`).join('')}</div>${leg}`;
 }
 function crSchemaHas(x) { return !!(x && x.schema && x.schema.frames && x.schema.frames.some(f => f.els.length)); }
 function crSchemaFrames(x) { return (x && x.schema && x.schema.frames) ? x.schema.frames.length : 0; }
@@ -9294,7 +9375,13 @@ function schEdPanel() {
   }
   if (isAct) {
     h += row('Étape (n°)', stp(e.step, `schEdAdd('step',-1,1,30)`, `schEdAdd('step',1,1,30)`));
-    h += row('Décalage', stp(e.delay ? '+' + String(e.delay).replace('.', ',') + ' s' : '0 s', `schEdAdd('delay',-0.25,0,2)`, `schEdAdd('delay',0.25,0,2)`));
+    // passe / tir d'un joueur qui court dans la même étape : le décalage se lit en « moment de sa course » (Début, ¼, ½, ⅔, ⅚, Fin) plutôt qu'en secondes
+    let dLab = 'Décalage', dVal = e.delay ? '+' + String(e.delay).replace('.', ',') + ' s' : '0 s';
+    if (e.type === 'PASS' || e.type === 'SHOT') {
+      const pl = schPlan(d), w = pl.windows[e.id], o = pl.own[e.id], sg = o && w ? (pl.segs[o.id] || []).find(g => g.a.id !== e.id && g.a.step === e.step) : null;
+      if (sg) { const pc = Math.max(0, Math.min(100, Math.round((w[0] - sg.t0) / (sg.t1 - sg.t0) * 100))), pt = [[0, 'Début'], [25, '¼'], [50, '½'], [67, '⅔'], [83, '⅚'], [100, 'Fin']].reduce((m, q) => Math.abs(q[0] - pc) < Math.abs(m[0] - pc) ? q : m); dLab = (e.type === 'PASS' ? 'Passe' : 'Tir') + ' part à'; dVal = pt[0] === 0 || pt[0] === 100 ? pt[1] : pt[1] + ' · ' + pc + ' %'; }
+    }
+    h += row(dLab, stp(dVal, `schEdAdd('delay',-0.25,0,2)`, `schEdAdd('delay',0.25,0,2)`));
     h += row('Part de', sel('fromElementId', e.fromElementId, [['', 'Automatique']].concat(plist)));
     if (ballsAll.length > 1 && (e.type === 'PASS' || e.type === 'SHOT' || e.type === 'RUN')) h += row('Ballon', sel('ballId', e.ballId, [['', 'Automatique (celui du joueur)']].concat(ballsAll.map((b, i) => [b.id, 'Ballon ' + (i + 1)]))));
     if (e.type === 'PASS') h += row('Receveur', sel('toElementId', e.toElementId, [['', 'Automatique']].concat(plist.filter(p => p[0] !== e.fromElementId))));
