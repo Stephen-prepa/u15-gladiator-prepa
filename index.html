@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Prépa Estivale — U15 HBCCS</title>
 <meta name="theme-color" content="#003F8A">
+<script>
+(function(){try{var c=JSON.parse(localStorage.getItem('prepa_display_v1')||'null')||{};var t=c.theme||'dark';
+if(t==='auto')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.setAttribute('data-density',c.density);}catch(e){}})();
+</script>
 <meta name="description" content="Préparation physique autonome estivale pour les U15 du HBCCS">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -376,6 +381,107 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 @media (min-width:700px){ body{ zoom:1.08; } }
 @media (min-width:1100px){ body{ zoom:1.18; } }
 @media (min-width:1400px){ body{ zoom:1.3; } }
+/* ---- Créateur : page exercice, listes, matériel, GB, lignes d'exercice ---- */
+.cr-in.cr-grow{resize:none;overflow:hidden;min-height:42px;line-height:1.4;}
+.cr-2c{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cr-4c{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+@media (max-width:420px){.cr-4c{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.cr-nav{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gris-clair);white-space:nowrap;}
+.cr-nav button{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:var(--jaune);font-size:20px;font-weight:800;cursor:pointer;}
+.cr-nav button:disabled{opacity:.3;}
+.cr-list{margin-bottom:12px;}
+.cr-list-t{font-size:15px;font-weight:800;color:var(--blanc);margin:8px 0;}
+.cr-list.simplify .cr-list-t{color:#2ecc71;}
+.cr-list.complexify .cr-list-t{color:#ff6b6b;}
+.cr-two{display:grid;grid-template-columns:1fr;gap:14px;}
+@media (min-width:900px){.cr-two{grid-template-columns:1fr 1fr;}}
+.cr-li{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;}
+.cr-li-n{flex:none;width:26px;height:26px;border-radius:50%;background:rgba(245,196,0,0.15);color:var(--jaune);font-weight:800;font-size:12px;display:grid;place-items:center;margin-top:8px;}
+.cr-li-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+.cr-li-tag{width:auto !important;align-self:flex-start;padding:5px 8px !important;font-size:12px !important;font-weight:700;color:var(--jaune);}
+.cr-li-extra{border-style:dashed;}
+.cr-li-a{flex:none;display:flex;flex-direction:column;gap:4px;}
+.cr-li-a button{width:34px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);cursor:pointer;font-size:14px;}
+.cr-li-a button:disabled{opacity:.3;}
+.cr-sug{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.cr-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.cr-eq-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.cr-eq-row{display:flex;align-items:center;gap:8px;}
+.cr-eq-row span{flex:1;min-width:0;color:var(--blanc);font-size:14px;}
+.cr-eq-row input{width:76px;box-sizing:border-box;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:8px;color:#fff;font-size:14px;text-align:center;}
+.cr-gb-add{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:transparent;border:2px dashed rgba(245,196,0,0.5);border-radius:12px;padding:14px;margin-bottom:10px;color:var(--blanc);cursor:pointer;font-family:inherit;}
+.cr-gb-add small{display:block;font-size:12px;color:var(--gris-texte);font-weight:400;margin-top:2px;}
+.cr-gb{border-color:rgba(46,204,113,0.45);}
+.cr-bdur{color:var(--jaune);font-weight:800;white-space:nowrap;}
+.cr-ex2{display:flex;align-items:stretch;background:var(--gris-fonce);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.cr-ex2-main{flex:1;min-width:0;display:flex;gap:10px;align-items:center;padding:8px;cursor:pointer;}
+.cr-thumb{position:relative;flex:none;width:76px;height:76px;border-radius:8px;background:#0b1830;display:grid;place-items:center;font-size:10px;color:var(--gris-texte);text-align:center;overflow:hidden;}
+.cr-thumb svg{width:100%;height:100%;display:block;}
+.cr-thumb i{position:absolute;left:3px;bottom:3px;font-style:normal;background:#E8543A;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;}
+.cr-ex2-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.cr-ex2-info small{color:var(--jaune);font-weight:800;letter-spacing:.8px;text-transform:uppercase;font-size:10px;}
+.cr-ex2-info b{color:var(--blanc);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cr-ex2-info .o{color:var(--gris-clair);font-size:12px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.cr-ex2-info .m{color:var(--gris-texte);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cr-ex2-dur{flex:none;background:rgba(245,196,0,0.15);color:var(--jaune);font-weight:800;font-size:12px;padding:4px 10px;border-radius:99px;}
+.cr-ex2-act{flex:none;display:grid;grid-template-columns:1fr 1fr;border-left:1px solid rgba(255,255,255,0.1);}
+.cr-ex2-act button{width:36px;border:0;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent;color:var(--gris-clair);cursor:pointer;font-size:15px;}
+.cr-ex2-act button:disabled{opacity:.25;}
+@media (max-width:480px){.cr-thumb{width:60px;height:60px;}.cr-ex2-dur{display:none;}}
+/* fiche : exercice détaillé */
+.cr-fx-head{display:flex;align-items:center;gap:10px;background:#0a2a4a;color:#fff;border-radius:10px;padding:8px 12px;margin-bottom:8px;}
+.cr-fx-head small{display:block;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;opacity:.75;}
+.cr-fx-head b{font-size:15px;}
+.cr-fx-head > div{flex:1;min-width:0;}
+.cr-fx-n{flex:none;width:30px;height:30px;border-radius:50%;background:#e63323;color:#fff;font-weight:800;display:grid;place-items:center;}
+.cr-fx-d{font-weight:800;}
+.cr-fx-facts{margin:0;display:flex;flex-direction:column;gap:6px;}
+.cr-fx-facts dt{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#6a7d95;}
+.cr-fx-facts dd{margin:0;font-size:13px;color:#0a2a4a;}
+.cr-fx-facts .main dd{font-weight:800;font-size:14px;}
+.cr-fx-row{display:grid;grid-template-columns:1fr;gap:14px;margin-top:6px;}
+.cr-fx-row.two{grid-template-columns:1fr 1fr;}
+.cr-fx-list{break-inside:avoid;}
+.cr-fx-list h4{margin:8px 0 3px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#0a6bb8;}
+.cr-fx-list.simplify h4{color:#1e8e4f;}
+.cr-fx-list.complexify h4{color:#b3140a;}
+.cr-fx-list ul,.cr-fx-list ol{margin:0;padding-left:18px;font-size:13px;color:#2c4260;}
+.cr-fx-tag{display:inline-block;margin-right:6px;font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#0a6bb8;}
+.cr-fx-extra{display:block;color:#1e8e4f;font-weight:600;}
+.cr-fx-gb{margin-top:10px;border:1px solid #bfe3cc;background:#f4fbf7;border-radius:10px;padding:8px 12px;break-inside:avoid;}
+.cr-fx-gb h4{margin:0 0 4px;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#1e8e4f;}
+.cr-fx-gbo{font-weight:700;margin-bottom:6px;color:#0a2a4a;}
+.cr-fx-gbe{font-size:12px;margin-top:6px;color:#2c4260;}
+/* ---- Réglages d'affichage (cet appareil) ---- */
+html[data-theme=light]{color-scheme:light;--noir:#EEF2F8;--gris-fonce:#FFFFFF;--gris-moyen:#D5DFEE;--blanc:#0A1628;--gris-clair:#2E4468;--gris-texte:#5B7194;--jaune-dark:#8a6d00;}
+html[data-theme=light] .login-input{color:var(--blanc);}
+html[data-theme=light] .coachs2-subtabs-bottom{background:rgba(255,255,255,0.96);border-top-color:rgba(10,22,40,0.15);}
+html[data-theme=light] .cs-tab{border-color:rgba(10,22,40,0.2);}
+html[data-theme=light] [style*="rgba(255,255,255,0.1"],html[data-theme=light] [style*="rgba(255,255,255,0.0"]{border-color:rgba(10,22,40,0.14) !important;}
+html[data-theme=light] .header .club,html[data-theme=light] .header .reprise{color:#C9A000;}
+html[data-density=compact] body{line-height:1.3;}
+html[data-density=compact] .cs-box{padding:9px !important;}
+html[data-density=compact] .cs-tab{height:46px;}
+html[data-density=compact] .cs-tab-icon{font-size:16px;}
+html[data-density=compact] .coachs2-subtabs{gap:4px;}
+html[data-density=comfortable] body{line-height:1.7;}
+html[data-density=comfortable] .cs-box{padding:20px !important;}
+html[data-density=comfortable] .cs-tab{height:64px;}
+html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
+.cs-tab.disp-hide{display:none !important;}
+.coachs2-wrap.no-bottom-bar{padding-bottom:28px;}
+.disp-chip{padding:8px 12px;border-radius:20px;border:1px solid rgba(128,150,190,0.4);background:transparent;color:var(--gris-clair);font-size:12px;cursor:pointer;}
+.disp-chip.on{background:var(--jaune);color:#1a1a1a;border-color:var(--jaune);font-weight:800;}
+.disp-row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;background:var(--noir);margin-bottom:5px;font-size:13px;color:var(--blanc);}
+.disp-row .nm{flex:1;min-width:0;}
+.disp-mini{padding:5px 9px;border-radius:6px;border:1px solid rgba(128,150,190,0.4);background:transparent;color:var(--gris-clair);font-size:12px;cursor:pointer;}
+.disp-mini[disabled]{opacity:.3;cursor:default;}
+.pw-det{margin-top:8px;background:var(--noir);border-radius:8px;padding:0 10px;}
+.pw-det summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:var(--blanc);}
+.pw-det .pw-in{padding-bottom:12px;}
+.pw-msg{font-size:12px;margin-top:8px;min-height:16px;font-weight:700;}
+.pw-btn{width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;}
+.pw-btn[disabled]{opacity:.6;}
 /* ---- Fond graphique décoratif, sur tous les écrans de l'appli ---- */
 #screen-home, #screen-club, #screen-app{position:relative;}
 #screen-home::before, #screen-club::before, #screen-app::before{
@@ -1436,6 +1542,16 @@ textarea.cr-in{resize:vertical;min-height:44px;}
       <input type="password" id="coachs2-password" class="login-input" placeholder="Mot de passe" autocomplete="off" style="width:100%;box-sizing:border-box;margin-bottom:10px;">
       <button id="coachs2-login-btn" onclick="coachAuthLogin()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Se connecter</button>
       <div id="coachs2-login-error" style="color:#e74c3c;font-size:13px;margin-top:10px;min-height:16px;"></div>
+      <div style="text-align:center;margin-top:6px;"><a href="#" onclick="pwForgotToggle();return false;" style="color:var(--jaune);font-size:13px;text-decoration:underline;">Mot de passe oublié ?</a></div>
+      <div id="coachs2-forgot" style="display:none;margin-top:14px;padding:12px;border-radius:10px;background:var(--gris-fonce);">
+        <div style="font-size:13px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Retrouver mon mot de passe</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:10px;">Compte choisi ci-dessus : <b id="coachs2-forgot-who"></b>. Entre ton <b>code de secours</b> (généré dans Réglages › Mon compte) et choisis un nouveau mot de passe. Pas de code ? Demande à un autre coach de te définir un mot de passe provisoire.</div>
+        <input type="text" id="pw-f-code" class="login-input" placeholder="Code de secours (XXXX-XXXX-XXXX-XXXX)" autocomplete="off" style="font-size:14px;letter-spacing:1px;">
+        <input type="password" id="pw-f-new" class="login-input" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password" style="text-transform:none;letter-spacing:normal;font-size:14px;">
+        <input type="password" id="pw-f-new2" class="login-input" placeholder="Confirmer le nouveau mot de passe" autocomplete="new-password" style="text-transform:none;letter-spacing:normal;font-size:14px;">
+        <button id="pw-f-btn" class="pw-btn" onclick="pwForgotSubmit()">Changer mon mot de passe</button>
+        <div id="pw-f-msg" class="pw-msg"></div>
+      </div>
     </div>
 
     <div id="coachs2-app" style="display:none;">
@@ -1588,6 +1704,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-j</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1660,7 +1777,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-h) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-j) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -1732,6 +1849,40 @@ textarea.cr-in{resize:vertical;min-height:44px;}
       <div class="cs-box" id="cs-box-reglages" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">⚙️ Réglages</h3>
         <div style="font-size:11px;color:var(--gris-texte);margin-bottom:14px;">Accès et codes — s'appliquent immédiatement pour tous, sans mise à jour de l'appli.</div>
+
+        <div id="disp-box" style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(128,150,190,0.25);">
+          <div class="section-title" style="margin:0 0 4px;">🎨 Affichage de cet appareil</div>
+          <div style="font-size:11px;color:var(--gris-texte);margin-bottom:10px;">Ces choix ne concernent que cet appareil : ni les autres coachs, ni tes autres appareils.</div>
+          <div id="disp-ui"></div>
+        </div>
+
+        <div id="pw-box" style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(128,150,190,0.25);">
+          <div class="section-title" style="margin:0 0 4px;">🔐 Mon compte et mot de passe</div>
+          <details class="pw-det"><summary>Changer mon mot de passe</summary><div class="pw-in">
+            <input type="password" id="pw-old" class="login-input" placeholder="Mot de passe actuel" autocomplete="current-password" style="text-transform:none;letter-spacing:normal;font-size:14px;">
+            <input type="password" id="pw-new" class="login-input" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password" style="text-transform:none;letter-spacing:normal;font-size:14px;">
+            <input type="password" id="pw-new2" class="login-input" placeholder="Confirmer le nouveau mot de passe" autocomplete="new-password" style="text-transform:none;letter-spacing:normal;font-size:14px;">
+            <button id="pw-change-btn" class="pw-btn" onclick="pwChange()">Changer mon mot de passe</button>
+            <div id="pw-change-msg" class="pw-msg"></div>
+          </div></details>
+          <details class="pw-det"><summary>Mon code de secours (si j'oublie mon mot de passe)</summary><div class="pw-in">
+            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Un code à usage unique, affiché <b>une seule fois</b>. Note-le sur papier ou dans ton gestionnaire de mots de passe. Il te permet de choisir un nouveau mot de passe depuis l'écran de connexion (« Mot de passe oublié ? »). En générer un nouveau annule l'ancien.</div>
+            <button id="pw-code-btn" class="pw-btn" onclick="pwMakeCode()">Générer mon code de secours</button>
+            <div id="pw-code-box" style="display:none;margin-top:10px;text-align:center;">
+              <div id="pw-code-val" style="font-family:'Barlow Condensed',monospace;font-size:26px;font-weight:800;letter-spacing:2px;color:var(--jaune);user-select:all;-webkit-user-select:all;"></div>
+              <button class="disp-mini" style="margin-top:8px;" onclick="pwCopyCode()">Copier</button>
+              <div style="font-size:11px;color:#e67e22;margin-top:6px;">Ce code ne sera plus affiché. Garde-le maintenant.</div>
+            </div>
+            <div id="pw-code-msg" class="pw-msg"></div>
+          </div></details>
+          <details class="pw-det"><summary>Dépanner un collègue</summary><div class="pw-in">
+            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Définit un mot de passe provisoire pour un autre coach (il est déconnecté de ses appareils). Transmets-le-lui de vive voix ; il pourra le changer ici ensuite.</div>
+            <select id="pw-help-who" class="login-input" style="text-transform:none;letter-spacing:normal;font-size:14px;"></select>
+            <div style="display:flex;gap:6px;"><input type="text" id="pw-help-pw" class="login-input" placeholder="Mot de passe provisoire (8 min.)" autocomplete="off" style="text-transform:none;letter-spacing:normal;font-size:14px;margin-bottom:0;flex:1;min-width:0;"><button class="disp-mini" onclick="pwGen()">Générer</button></div>
+            <button id="pw-help-btn" class="pw-btn" style="margin-top:10px;" onclick="pwHelp()">Définir ce mot de passe</button>
+            <div id="pw-help-msg" class="pw-msg"></div>
+          </div></details>
+        </div>
 
         <div id="dash-ej-settings-box">
           <div class="section-title" style="margin:0 0 8px;">🏠 Espace Joueurs</div>
@@ -3688,6 +3839,7 @@ function pickCoachLogin(login) {
     b.style.fontWeight = active ? '800' : '400';
   });
   document.getElementById('coachs2-login-error').textContent = '';
+  try { pwForgotWho(); } catch (e) {}
 }
 
 function coachSubtabSwitch(name) {
@@ -3706,7 +3858,7 @@ function coachSubtabSwitch(name) {
   if (name === 'dashboard') dashboardLoad();
   if (name === 'outils') { outilsInit(); outilsPaneInit(); }
   if (name === 'evaluations') evaluationsInit();
-  if (name === 'reglages') loadAppSettings();
+  if (name === 'reglages') { loadAppSettings(); try { dispRenderUi(); pwUiInit(); } catch (e) {} }
   if (name === 'seance') seancePaneInit();
   if (name === 'schemas') schInit();
 }
@@ -4245,7 +4397,7 @@ function renderCoachs2View() {
   document.getElementById('coachs2-app').style.display = isIn ? 'block' : 'none';
   if (isIn) {
     document.getElementById('coachs2-name').textContent = coachSession.name || '';
-    coachSubtabSwitch('dashboard');
+    coachSubtabSwitch(dispFirstTab());
     presenceInit();
     statsLoad();
     programmeLoad();
@@ -4265,6 +4417,7 @@ function applyCoachPermissions() {
   if (evalTab) evalTab.style.display = restricted ? 'none' : '';
   const convocBtn = document.getElementById('convoc-btn');
   if (convocBtn) convocBtn.style.display = restricted ? 'none' : '';
+  try { dispApplyTabs(); } catch (e) {}
 }
 
 // ---------- Presences ----------
@@ -5129,31 +5282,31 @@ async function outilsSyncToSeance() {
 
 
 // ---------- Créateur de séances (coach) ----------
-const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-18 ans', 'Seniors'];
+const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-17 ans', '-18 ans', 'Seniors', 'Loisirs', 'Détection', 'Gardiens'];
 const CR_PUBLICS = ['Mixte', 'Garçons', 'Filles'];
 const CR_MATERIEL = ['Ballons', 'Chasubles', 'Plots', 'Coupelles', 'Jalons', 'Cerceaux', 'Haies', 'Échelles', 'Buts', 'Mini-buts', 'Tapis', 'Élastiques'];
 const CR_TEMPLATES = [
   { key: 'vierge', title: 'Séance vierge', desc: 'Partir de zéro', blocks: [] },
   { key: 'baby', title: 'Séance BabyHand 3-5 ans', desc: 'Une histoire dans un univers : entrée, 3 ateliers, rangement, thème du jour', type: 'babyhand', cat: 'Baby (3-5 ans)',
     blocks: [["Entrée dans l'histoire", 5], ['Échauffement ludique', 10], ['Atelier 1', 10], ['Atelier 2', 10], ['Atelier 3', 10], ['Thème du jour / jeu collectif', 10], ['Rangement & retour au calme', 5]] },
+  { key: '1h', title: 'Séance 1h', desc: 'Format court',
+    blocks: [['Échauffement', 10], ['Technique', 15], ['Situation', 20], ['Jeu', 10], ['Bilan', 5]] },
   { key: '1h30', title: 'Séance 1h30', desc: 'Échauffement · travail GB · technique · tactique · jeu · bilan',
     blocks: [['Accueil / mise en route', 5], ['Échauffement', 15], ['Travail GB', 10], ['Technique', 15], ['Tactique collective', 25], ['Jeu', 15], ['Retour au calme / bilan', 5]] },
-  { key: '1h', title: 'Séance 1h', desc: 'Format court',
-    blocks: [['Accueil / mise en route', 5], ['Échauffement', 10], ['Technique', 15], ['Jeu', 25], ['Retour au calme / bilan', 5]] },
   { key: '2h', title: 'Séance 2h', desc: 'Séance complète',
-    blocks: [['Accueil / mise en route', 5], ['Échauffement', 15], ['Travail GB', 10], ['Technique', 20], ['Tactique collective', 25], ['Jeu', 25], ['Renforcement / physique', 15], ['Retour au calme / bilan', 5]] },
-  { key: 'detection', title: 'Séance détection', desc: "Ateliers d'observation + jeu",
-    blocks: [['Accueil', 10], ['Échauffement', 15], ['Atelier technique', 20], ['Atelier coordination / physique', 20], ['Atelier tactique', 20], ['Jeu réduit', 25], ['Bilan', 10]] },
+    blocks: [['Accueil', 5], ['Échauffement', 15], ['Motricité', 15], ['Technique', 20], ['Tactique individuelle', 20], ['Tactique collective', 25], ['Jeu', 15], ['Retour au calme / bilan', 5]] },
+  { key: 'detection', title: 'Séance détection', desc: "Ateliers d'observation + match",
+    blocks: [['Accueil / présentation', 10], ['Échauffement', 15], ['Ateliers motricité', 20], ['Ateliers technique', 20], ['Situations de jeu réduit', 25], ['Match', 20], ['Bilan', 10]] },
   { key: 'defense', title: 'Séance défense', desc: 'Individuel → collectif',
-    blocks: [['Échauffement', 15], ['Travail défensif individuel', 20], ['Duels 1c1', 20], ['Défense à plusieurs', 20], ['Défense collective', 20], ['Retour au calme / bilan', 5]] },
-  { key: 'attaque', title: 'Séance attaque', desc: 'Montée de balle / attaque placée',
-    blocks: [['Échauffement', 15], ['Technique : passes / tirs', 20], ['Montée de balle', 20], ['Attaque placée', 25], ['Jeu', 15], ['Retour au calme / bilan', 5]] },
+    blocks: [['Échauffement', 15], ['Duels défensifs', 20], ['Coopération à 2 / 3', 20], ['Système défensif', 25], ['Jeu à thème', 15], ['Bilan', 5]] },
+  { key: 'attaque', title: 'Séance attaque', desc: 'Passe / tir, jeu à 2-3, attaque placée',
+    blocks: [['Échauffement', 15], ['Technique de passe / tir', 20], ['Jeu à 2 / 3', 20], ['Attaque placée', 25], ['Jeu', 15], ['Bilan', 5]] },
   { key: 'gardiens', title: 'Séance gardiens', desc: 'Spécifique GB',
-    blocks: [['Échauffement général', 10], ['Échauffement spécifique GB', 15], ['Technique GB', 20], ['Ateliers de tirs', 20], ['Mise en situation', 20], ['Retour au calme / bilan', 5]] },
-  { key: 'match', title: 'Préparation match', desc: 'Rappels + mises en place',
-    blocks: [['Échauffement', 15], ['Rappels tactiques', 10], ['Mises en place attaque', 20], ['Mises en place défense', 20], ['Situations de jeu', 10], ['Retour au calme / bilan', 5]] },
-  { key: 'motricite', title: 'Séance motricité', desc: 'Coordination / appuis',
-    blocks: [['Accueil', 5], ['Échauffement', 10], ['Coordination', 15], ['Appuis & vitesse', 15], ['Jeux de motricité', 20], ['Retour au calme / bilan', 10]] },
+    blocks: [['Échauffement spécifique', 15], ['Placement / déplacements', 20], ['Parades', 20], ['Relances', 15], ['Situations de tir', 15], ['Bilan', 5]] },
+  { key: 'match', title: 'Préparation match', desc: 'Rappels + opposition',
+    blocks: [['Échauffement', 15], ['Rappels défensifs', 15], ['Rappels offensifs', 15], ['Opposition', 20], ['Situations spéciales', 10], ['Bilan', 5]] },
+  { key: 'motricite', title: 'Séance motricité', desc: 'Coordination / appuis / parcours',
+    blocks: [['Échauffement', 10], ['Coordination', 15], ['Appuis / vitesse', 15], ['Parcours', 15], ['Jeu', 15], ['Bilan', 5]] },
 ];
 let crPlans = [];
 let crFilter = 'toutes';
@@ -5168,7 +5321,6 @@ function crFmtDur(min) {
   if (h === 0) return m + ' min';
   return m === 0 ? h + 'h' : h + 'h' + String(m).padStart(2, '0');
 }
-function crTotal(p) { return (p.blocks || []).reduce((s, b) => s + (parseInt(b.minutes, 10) || 0), 0); }
 function crExCount(p) { return (p.blocks || []).reduce((s, b) => s + (b.exercises || []).length, 0); }
 function crUid() { return 'b' + Math.random().toString(36).slice(2, 9); }
 
@@ -5212,12 +5364,11 @@ function crRenderFilters() {
 }
 function crSetFilter(k) { crFilter = k; crRenderFilters(); crRenderList(); }
 function crRenderList() {
-  const q = (document.getElementById('cr-search').value || '').trim().toLowerCase();
+  const q = crFold((document.getElementById('cr-search').value || '').trim());
   const cat = document.getElementById('cr-cat-filter').value;
   const rows = crPlans.filter(p => crMatchFilter(p, crFilter)).filter(p => !cat || p.categorie === cat).filter(p => {
     if (!q) return true;
-    const hay = [p.title, p.theme, p.objectif_principal, p.categorie, p.niveau, p.contexte, (p.blocks || []).map(b => b.name + ' ' + (b.exercises || []).map(e => e.name).join(' ')).join(' ')].join(' ').toLowerCase();
-    return hay.includes(q);
+    return crPlanText(p).includes(q);
   });
   const el = document.getElementById('cr-list');
   if (!rows.length) {
@@ -5273,7 +5424,7 @@ async function crCreate(key) {
     const src = crPlans.find(p => p.id === key.slice(5));
     if (!src) return;
     base = { title: src.title, seance_type: src.seance_type, categorie: src.categorie, public_cible: src.public_cible, niveau: src.niveau || '', theme: src.theme, objectif_principal: src.objectif_principal, objectifs_secondaires: src.objectifs_secondaires, contexte: src.contexte,
-      materiel: JSON.parse(JSON.stringify(src.materiel || [])), blocks: JSON.parse(JSON.stringify(src.blocks || [])).map(b => ({ ...b, id: crUid() })) };
+      materiel: JSON.parse(JSON.stringify(src.materiel || [])), blocks: (src.blocks || []).map(crCloneBlock) };
   } else {
     const t = CR_TEMPLATES.find(x => x.key === key);
     if (!t) return;
@@ -5284,7 +5435,7 @@ async function crCreate(key) {
   base.entraineur = (coachSession && coachSession.name) || '';
   base.status = 'brouillon';
   base.is_template = false;
-  base.total_minutes = base.blocks.reduce((s, b) => s + (parseInt(b.minutes, 10) || 0), 0);
+  base.total_minutes = crTotal(base);
   crCloseModal();
   try {
     await ensureCoachSession();
@@ -5309,6 +5460,7 @@ function crSetStatus(txt, err) {
 }
 function crTouch() {
   if (!crCur) return;
+  crSyncBlockMinutes(crCur);
   crCur.total_minutes = crTotal(crCur);
   crSetStatus('Enregistrement…', false);
   clearTimeout(crSaveTimer);
@@ -5318,6 +5470,7 @@ async function crSaveNow() {
   if (!crCur) return;
   const p = crCur;
   clearTimeout(crSaveTimer);
+  crSyncBlockMinutes(p);
   const body = { title: p.title || 'Sans titre', seance_type: p.seance_type, status: p.status, is_template: !!p.is_template, categorie: p.categorie || null, public_cible: p.public_cible || null, niveau: p.niveau || null,
     seance_date: p.seance_date || null, nb_joueurs: p.nb_joueurs || null, entraineur: p.entraineur || null, theme: p.theme || null, objectif_principal: p.objectif_principal || null,
     objectifs_secondaires: p.objectifs_secondaires || null, contexte: p.contexte || null, materiel: p.materiel || [], blocks: p.blocks || [], videos: p.videos || [], total_minutes: crTotal(p), updated_at: new Date().toISOString() };
@@ -5325,9 +5478,12 @@ async function crSaveNow() {
     await ensureCoachSession();
     const res = await fetch(SB_URL + '/rest/v1/seance_plans?id=eq.' + p.id, { method: 'PATCH', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    crSaveFailed = false;
     crSetStatus('✓ Enregistré', false);
-  } catch (e) { crSetStatus('⚠ Non enregistré', true); }
+  } catch (e) { crSaveFailed = true; crSetStatus(navigator.onLine === false ? '⚠ Hors connexion : à enregistrer au retour du réseau' : '⚠ Non enregistré', true); }
 }
+let crSaveFailed = false;
+window.addEventListener('online', () => { if (crSaveFailed && crCur) crSaveNow(); });
 function crSel(opts, val, cb) {
   return '<select class="cr-in" onchange="' + cb + '"><option value="">—</option>' + opts.map(o => `<option ${o === val ? 'selected' : ''}>${crEsc(o)}</option>`).join('') + '</select>';
 }
@@ -5397,6 +5553,10 @@ function crRenderEditor(p) {
     <div id="cr-blocks"></div>
     <button type="button" class="cr-add" style="margin-bottom:12px;" onclick="crAddBlock()">＋ Ajouter un bloc</button>
     <div class="cr-card">
+      <div style="font-size:16px;font-weight:800;color:var(--blanc);margin-bottom:6px;">Matériel nécessaire</div>
+      <div id="cr-mat-agg" style="font-size:14px;"></div>
+    </div>
+    <div class="cr-card">
       <div style="font-size:16px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Vidéos de la séance</div>
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:8px;">Ajoute un lien (YouTube, Drive…) vers une démonstration filmée.</div>
       <div id="cr-videos"></div>
@@ -5413,6 +5573,9 @@ function crRenderEditor(p) {
 function crUpdateTotals() {
   const t = crFmtDur(crTotal(crCur));
   document.querySelectorAll('#cr-edit-view .cr-total').forEach(e => { e.textContent = t; });
+  crCur.blocks.forEach((b, bi) => { const e = document.getElementById('cr-bd-' + bi); if (e) e.textContent = crFmtDur(crBlockMin(b)); });
+  const m = document.getElementById('cr-mat-agg');
+  if (m) { const tx = crEquipText(crEquipAgg(crCur)); m.textContent = tx || 'Aucun matériel renseigné pour l\u2019instant.'; m.style.color = tx ? 'var(--blanc)' : 'var(--gris-texte)'; }
 }
 function crBack() { crSaveNow(); crShowList(); crRenderFilters(); crRenderList(); }
 function crSetType(t) {
@@ -5443,15 +5606,47 @@ function crAddMat() {
   crTouch();
   const sy = window.scrollY; crRenderEditor(crCur); window.scrollTo(0, sy);
 }
+function crBlockMin(b) {
+  const ex = b.exercises || [];
+  return ex.length ? ex.reduce((s, x) => s + (parseInt(x.minutes, 10) || 0), 0) : (parseInt(b.minutes, 10) || 0);
+}
+function crTotal(p) { return (p.blocks || []).reduce((s, b) => s + crBlockMin(b), 0); }
+function crSyncBlockMinutes(p) { (p.blocks || []).forEach(b => { if ((b.exercises || []).length) b.minutes = crBlockMin(b); }); }
+function crThumb(x) {
+  const n = x.schemaLib && x.schemaLib.drawings ? x.schemaLib.drawings.length : 0;
+  let inner = '<span>Pas de schéma</span>';
+  try {
+    if (n) inner = schDrawingSvg(x.schemaLib.drawings[0], { showBallStart: false });
+    else if (crSchemaHas(x)) inner = crSvgStatic(x.schema, 0);
+  } catch (e) {}
+  return `<div class="cr-thumb">${inner}${n > 1 ? `<i>${n} étapes</i>` : ''}</div>`;
+}
 function crRenderBlocks() {
   const p = crCur;
   const el = document.getElementById('cr-blocks');
   if (!p.blocks.length) { el.innerHTML = '<div style="text-align:center;color:var(--gris-texte);font-size:13px;padding:12px;">Aucun bloc — ajoute le premier ci-dessous.</div>'; crUpdateTotals(); return; }
-  el.innerHTML = p.blocks.map((b, bi) => `
+  let num = 0;
+  el.innerHTML = p.blocks.map((b, bi) => {
+    const nEx = (b.exercises || []).length;
+    const dur = nEx ? `<span class="cr-bdur" id="cr-bd-${bi}">${crFmtDur(crBlockMin(b))}</span>`
+      : `<div class="cr-step"><button type="button" onclick="crStep(${bi},-5)">−</button><input type="number" inputmode="numeric" min="0" id="cr-min-${bi}" value="${parseInt(b.minutes, 10) || 0}" oninput="crBlockField(${bi},'minutes',this.value)"><span style="font-size:12px;color:var(--gris-texte);">min</span><button type="button" onclick="crStep(${bi},5)">+</button></div>`;
+    const exs = (b.exercises || []).map((x, ei) => {
+      num++;
+      const first = crFlatIdx(bi, ei) === 0, last = crFlatIdx(bi, ei) === crExFlat().length - 1;
+      const meta = [crHeadcountText(x), crEquipText(crNormEquip(x.equipment))].filter(Boolean).join(' · ');
+      const obj = crTxt(x.objective);
+      return `<div class="cr-ex2">
+        <div class="cr-ex2-main" onclick="crOpenEx(${bi},${ei})">${crThumb(x)}
+          <div class="cr-ex2-info"><small>Exercice ${num}</small><b>${crEsc(x.name || 'Exercice')}</b>${obj ? `<span class="o">${crEsc(obj)}</span>` : ''}${meta ? `<span class="m">${crEsc(meta)}</span>` : ''}${crHasGb(x) ? '<span class="m">🧤 travail GB</span>' : ''}</div>
+          <span class="cr-ex2-dur">${x.minutes ? x.minutes + ' min' : '—'}</span></div>
+        <div class="cr-ex2-act"><button type="button" ${first ? 'disabled' : ''} onclick="crMoveEx(${bi},${ei},-1)" title="Monter (passe dans le bloc précédent en haut de bloc)">↑</button><button type="button" ${last ? 'disabled' : ''} onclick="crMoveEx(${bi},${ei},1)" title="Descendre (passe dans le bloc suivant en bas de bloc)">↓</button><button type="button" onclick="crDupEx(${bi},${ei})" title="Dupliquer">⧉</button><button type="button" style="color:#ff6b6b;" onclick="crDelEx(${bi},${ei})" title="Supprimer">✕</button></div>
+      </div>`;
+    }).join('');
+    return `
     <div class="cr-block">
       <div class="cr-block-head">
         <input class="cr-block-name" value="${crEsc(b.name)}" placeholder="Nom du bloc" oninput="crBlockField(${bi},'name',this.value)">
-        <div class="cr-step"><button type="button" onclick="crStep(${bi},-5)">−</button><input type="number" inputmode="numeric" min="0" id="cr-min-${bi}" value="${parseInt(b.minutes, 10) || 0}" oninput="crBlockField(${bi},'minutes',this.value)"><span style="font-size:12px;color:var(--gris-texte);">min</span><button type="button" onclick="crStep(${bi},5)">+</button></div>
+        ${dur}
       </div>
       <div class="cr-actions">
         <button type="button" ${bi === 0 ? 'disabled' : ''} onclick="crMoveBlock(${bi},-1)">↑</button>
@@ -5459,19 +5654,13 @@ function crRenderBlocks() {
         <button type="button" onclick="crDupBlock(${bi})" title="Dupliquer">⧉</button>
         <button type="button" style="color:#ff6b6b;" onclick="crDelBlock(${bi})" title="Supprimer">✕</button>
       </div>
-      ${(b.exercises || []).map((x, ei) => `
-        <div class="cr-ex" style="display:flex;gap:8px;align-items:center;">
-          <div style="flex:1;min-width:0;cursor:pointer;" onclick="crOpenEx(${bi},${ei})">
-            <div style="font-weight:700;color:var(--blanc);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${crEsc(x.name || 'Exercice')}</div>
-            <div style="font-size:11px;color:var(--gris-texte);">${x.minutes ? x.minutes + ' min' : ''}${x.schemaLib ? ' · 🎬 schéma tactique' + (x.schemaLib.drawings.length > 1 ? ' (' + x.schemaLib.drawings.length + ' étapes)' : '') : crSchemaHas(x) ? ' · ✏️ schéma' + (crSchemaFrames(x) > 1 ? ' animé (' + crSchemaFrames(x) + ' images)' : '') : ''}${crExSectionCount(x) ? ' · ' + crExSectionCount(x) + ' notes' : ''}</div>
-          </div>
-          <button type="button" class="cr-btn sm" onclick="crOpenEx(${bi},${ei})">Ouvrir</button>
-          <button type="button" class="cr-btn sm danger" onclick="crDelEx(${bi},${ei})">✕</button>
-        </div>`).join('')}
+      ${exs}
       <button type="button" class="cr-add" onclick="crAddEx(${bi})">＋ Ajouter un exercice</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   crUpdateTotals();
 }
+function crFlatIdx(bi, ei) { return crExFlat().findIndex(a => a[0] === bi && a[1] === ei); }
 function crBlockField(bi, k, v) {
   if (k === 'minutes') { crCur.blocks[bi].minutes = Math.max(0, parseInt(v, 10) || 0); crUpdateTotals(); }
   else crCur.blocks[bi][k] = v;
@@ -5488,9 +5677,34 @@ function crMoveBlock(bi, d) {
   const j = bi + d; if (j < 0 || j >= crCur.blocks.length) return;
   const a = crCur.blocks; [a[bi], a[j]] = [a[j], a[bi]]; crTouch(); crRenderBlocks();
 }
-function crDupBlock(bi) {
-  const c = JSON.parse(JSON.stringify(crCur.blocks[bi])); c.id = crUid();
-  crCur.blocks.splice(bi + 1, 0, c); crTouch(); crRenderBlocks();
+// Copies : tout ce qui est imbriqué reçoit de nouveaux identifiants (éléments de schéma et liens compris)
+function crCloneDrawings(L) {
+  const map = {};
+  L.drawings.forEach(d => { d.id = schUid(); (d.elements || []).forEach(e => { const n = schUid(); map[e.id] = n; e.id = n; }); });
+  L.drawings.forEach(d => (d.elements || []).forEach(e => ['fromElementId', 'toElementId', 'holderId'].forEach(k => { if (e[k] && map[e[k]]) e[k] = map[e[k]]; })));
+}
+function crCloneEx(x) {
+  const c = JSON.parse(JSON.stringify(crNormEx(x)));
+  c.id = crUid();
+  Object.keys(c.items).forEach(k => c.items[k].forEach(it => { it.id = crUid(); }));
+  c.equipment.forEach(e => { e.id = crUid(); });
+  if (c.gb) { c.gb.instructions.forEach(it => { it.id = crUid(); }); c.gb.success.forEach(it => { it.id = crUid(); }); c.gb.equipment.forEach(e => { e.id = crUid(); }); if (c.gb.schemaLib) crCloneDrawings(c.gb.schemaLib); }
+  if (c.schemaLib) crCloneDrawings(c.schemaLib);
+  return c;
+}
+function crCloneBlock(b) { const c = JSON.parse(JSON.stringify(b)); c.id = crUid(); c.exercises = (b.exercises || []).map(crCloneEx); return c; }
+function crNextTitle(t) { t = t || ''; const m = /^(.*?)(\d+)\s*$/.exec(t); return m ? m[1] + (parseInt(m[2], 10) + 1) : t + ' (copie)'; }
+function crDupBlock(bi) { crCur.blocks.splice(bi + 1, 0, crCloneBlock(crCur.blocks[bi])); crTouch(); crRenderBlocks(); }
+function crDupEx(bi, ei) { const a = crCur.blocks[bi].exercises; a.splice(ei + 1, 0, crCloneEx(a[ei])); crTouch(); crRenderBlocks(); }
+function crMoveEx(bi, ei, d) {
+  const bl = crCur.blocks, a = bl[bi].exercises, j = ei + d;
+  if (j >= 0 && j < a.length) { [a[ei], a[j]] = [a[j], a[ei]]; }
+  else {
+    const nb = bi + d; if (nb < 0 || nb >= bl.length) return;
+    const x = a.splice(ei, 1)[0];
+    if (d < 0) bl[nb].exercises.push(x); else bl[nb].exercises.unshift(x);
+  }
+  crTouch(); crRenderBlocks();
 }
 function crDelBlock(bi) {
   const b = crCur.blocks[bi];
@@ -5498,15 +5712,62 @@ function crDelBlock(bi) {
   crCur.blocks.splice(bi, 1); crTouch(); crRenderBlocks();
 }
 function crAddEx(bi) {
-  const n = crCur.blocks.reduce((t, b) => t + b.exercises.length, 0) + 1;
-  const x = crNormEx({ name: 'Exercice ' + n, minutes: 10 });
+  const x = crNormEx({ name: 'Nouvel exercice', minutes: 10 });
   crCur.blocks[bi].exercises.push(x);
   crTouch();
-  crOpenEx(bi, crCur.blocks[bi].exercises.length - 1);
+  crOpenEx(bi, crCur.blocks[bi].exercises.length - 1, true);
 }
 function crDelEx(bi, ei) {
   if (!confirm('Supprimer cet exercice ?')) return;
   crCur.blocks[bi].exercises.splice(ei, 1); crTouch(); crRenderBlocks();
+}
+// Matériel global : matériel de la séance + de chaque exercice (ballons, GB inclus), fusionné par nom, quantité maximale
+function crEquipAgg(p) {
+  const map = new Map();
+  const add = (name, qty) => { name = crTxt(name); if (!name) return; const k = crFold(name), q = parseInt(qty, 10) || 0, c = map.get(k); if (!c) map.set(k, { name, qty: q }); else c.qty = Math.max(c.qty, q); };
+  (p.materiel || []).forEach(n => add(n, 0));
+  (p.blocks || []).forEach(b => (b.exercises || []).forEach(raw => {
+    const x = crNormEx(raw);
+    x.equipment.forEach(e => add(e.name, e.qty));
+    const bl = parseInt(x.balls, 10); if (bl > 0) add('Ballons', bl);
+    if (x.gb) x.gb.equipment.forEach(e => add(e.name, e.qty));
+  }));
+  return Array.from(map.values());
+}
+function crEquipText(list) { return (list || []).map(e => (e.qty > 0 ? e.qty + ' ' : '') + e.name.toLowerCase()).join(' · '); }
+// Recherche plein texte (sans accents ni casse) : séance, blocs, exercices et tous les textes des listes
+function crPlanText(p) {
+  const parts = [p.title, p.categorie, p.public_cible, p.theme, p.objectif_principal, p.objectifs_secondaires, p.contexte, p.niveau, p.entraineur, p.nb_joueurs].concat(p.materiel || []);
+  (p.blocks || []).forEach(b => {
+    parts.push(b.name);
+    (b.exercises || []).forEach(raw => {
+      const x = crNormEx(raw);
+      parts.push(x.name, x.objective, x.theme, x.subTheme, x.space, x.headcount.players);
+      CR_ORG_FIELDS.forEach(([k]) => parts.push(x.org[k]));
+      CR_LIST_KEYS.forEach(k => x.items[k].forEach(it => parts.push(it.text, it.extra, it.tag)));
+      x.equipment.forEach(e => parts.push(e.name));
+      if (x.gb) { parts.push(x.gb.objective); x.gb.instructions.concat(x.gb.success).forEach(it => parts.push(it.text)); x.gb.equipment.forEach(e => parts.push(e.name)); }
+    });
+  });
+  return crFold(parts.filter(Boolean).join(' '));
+}
+function crDownloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+function crBackup() {
+  const data = { app: 'PrepaU15', type: 'seances', exported_at: new Date().toISOString(), count: crPlans.length, plans: crPlans };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const name = 'sauvegarde-seances-' + dateStr(new Date()) + '.json';
+  try {
+    const file = new File([blob], name, { type: 'application/json' });
+    if (('ontouchstart' in window) && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: name }).catch(e => { if (!e || e.name !== 'AbortError') crDownloadBlob(blob, name); });
+      return;
+    }
+  } catch (e) {}
+  crDownloadBlob(blob, name);
 }
 function crRenderVideos() {
   const el = document.getElementById('cr-videos');
@@ -5532,9 +5793,9 @@ async function crPatch(id, fields) {
 }
 async function crDuplicate(id) {
   const s = crPlans.find(p => p.id === id); if (!s) return;
-  const copy = { title: s.title + ' (copie)', seance_type: s.seance_type, status: 'brouillon', is_template: false, categorie: s.categorie, public_cible: s.public_cible, niveau: s.niveau, seance_date: null, nb_joueurs: s.nb_joueurs,
+  const copy = { title: crNextTitle(s.title), seance_type: s.seance_type, status: 'brouillon', is_template: false, categorie: s.categorie, public_cible: s.public_cible, niveau: s.niveau, seance_date: null, nb_joueurs: s.nb_joueurs,
     entraineur: s.entraineur, theme: s.theme, objectif_principal: s.objectif_principal, objectifs_secondaires: s.objectifs_secondaires, contexte: s.contexte, materiel: s.materiel || [],
-    blocks: JSON.parse(JSON.stringify(s.blocks || [])).map(b => ({ ...b, id: crUid() })), videos: s.videos || [], total_minutes: s.total_minutes };
+    blocks: (s.blocks || []).map(crCloneBlock), videos: s.videos || [], total_minutes: crTotal(s) };
   try {
     await ensureCoachSession();
     const res = await fetch(SB_URL + '/rest/v1/seance_plans', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify([copy]) });
@@ -5566,17 +5827,19 @@ async function crDelete(id) {
 }
 
 // ----- Fiche de séance (aperçu + PDF via impression) -----
-function crOpenFiche(id) {
+function crOpenFiche(id, exId) {
   const p = (crCur && crCur.id === id) ? crCur : crPlans.find(x => x.id === id);
   if (!p) return;
   if (crCur && crCur.id === id) crSaveNow();
   const cell = (l, v) => v ? `<div class="cr-fiche-cell"><small>${l}</small><b>${crEsc(v)}</b></div>` : '';
   const dateFr = p.seance_date ? p.seance_date.split('-').reverse().join('/') : '';
   const lines = t => (t || '').split('\n').map(s => s.trim()).filter(Boolean);
+  let exNum = 0;
   const blocks = (p.blocks || []).map(b => {
-    const exs = (b.exercises || []).map(crNormEx).map(crFicheEx).join('');
-    return `<div class="cr-fiche-row"><span>${crEsc(b.name)}</span><span>${crFmtDur(parseInt(b.minutes, 10) || 0)}</span></div>${exs}`;
+    const exs = (b.exercises || []).map(crNormEx).map(x => crFicheEx(x, ++exNum, b.name)).join('');
+    return `<div class="cr-fiche-row"><span>${crEsc(b.name)}</span><span>${crFmtDur(crBlockMin(b))}</span></div>${exs}`;
   }).join('');
+  const eqAll = crEquipText(crEquipAgg(p));
   const typeLbl = p.seance_type === 'babyhand' ? '🧸 BabyHand 3-5 ans' : 'Handball';
   document.getElementById('cr-fiche').innerHTML = `
     <div class="cr-fiche-bar"><button type="button" onclick="crCloseFiche()">← Retour</button><button type="button" class="pdf" onclick="window.print()">⬇ PDF / Imprimer</button></div>
@@ -5592,7 +5855,7 @@ function crOpenFiche(id) {
       ${p.objectif_principal ? `<div class="cr-fiche-h">Objectif principal</div><div>${crEsc(p.objectif_principal).replace(/\n/g, '<br>')}</div>` : ''}
       ${lines(p.objectifs_secondaires).length ? `<div class="cr-fiche-h">Objectifs secondaires</div><ul style="margin:0;padding-left:20px;">${lines(p.objectifs_secondaires).map(l => `<li>${crEsc(l)}</li>`).join('')}</ul>` : ''}
       ${p.contexte ? `<div class="cr-fiche-h">Contexte</div><div>${crEsc(p.contexte).replace(/\n/g, '<br>')}</div>` : ''}
-      ${(p.materiel || []).length ? `<div class="cr-fiche-h">Matériel</div><div>${(p.materiel || []).map(crEsc).join(' · ')}</div>` : ''}
+      ${eqAll ? `<div class="cr-fiche-h">Matériel global</div><div>${crEsc(eqAll)}</div>` : ''}
       <div class="cr-fiche-h">Déroulé de la séance</div>
       <div class="cr-fiche-table">${blocks}<div class="cr-fiche-row tot"><span>Durée totale</span><span>${crFmtDur(crTotal(p))}</span></div></div>
       ${(p.videos || []).length ? `<div class="cr-fiche-h">Vidéos</div>${(p.videos || []).map(v => `<div style="font-size:13px;word-break:break-all;">▶ ${crEsc(v.title || '')} <a href="${crEsc(v.url)}">${crEsc(v.url)}</a></div>`).join('')}` : ''}
@@ -5600,73 +5863,238 @@ function crOpenFiche(id) {
     </div>`;
   document.getElementById('cr-fiche').classList.add('show');
   document.getElementById('cr-fiche').scrollTop = 0;
+  if (exId) { const t = document.getElementById('crfx-' + exId); if (t) t.scrollIntoView(); }
 }
 function crCloseFiche() { document.getElementById('cr-fiche').classList.remove('show'); }
 
 // ----- Exercice : page de détail -----
-const CR_SECTIONS = [['consignes', 'Consignes'], ['realisation', 'Réalisation'], ['reussite', 'Réussite'], ['comportements', 'Comportements'], ['organisation', 'Organisation'], ['materiel', 'Matériel'], ['variables', 'Variables'], ['vigilance', 'Vigilance'], ['corrections', 'Corrections']];
+const CR_EX_TABS = [
+  { k: 'consignes', label: 'Consignes', lists: [{ k: 'consignes', title: 'Consignes', tags: ['Principale', 'Secondaire', 'Fonctionnement', 'Sécurité'], auto: true }] },
+  { k: 'realisation', label: 'Réalisation', lists: [{ k: 'realisation', title: 'Critères de réalisation', sug: ['Orientation du corps', 'Prise d’information', 'Timing', 'Distance', 'Vitesse', 'Coordination', 'Placement', 'Déplacement', 'Communication', 'Intention tactique'] }] },
+  { k: 'reussite', label: 'Réussite', lists: [{ k: 'reussite', title: 'Critères de réussite', sug: ['X tirs réussis sur X', 'Conservation de balle', 'Réalisation dans le temps imparti', 'Respect de la contrainte'] }] },
+  { k: 'comportements', label: 'Comportements', lists: [{ k: 'comportements', title: 'Comportements attendus' }] },
+  { k: 'organisation', label: 'Organisation', org: true },
+  { k: 'materiel', label: 'Matériel', equip: true },
+  { k: 'variables', label: 'Variables', lists: [
+    { k: 'simplify', title: 'Simplifier ↓', cls: 'simplify', sug: ['Augmenter l’espace', 'Supprimer un défenseur', 'Supprimer une contrainte', 'Défense passive'] },
+    { k: 'complexify', title: 'Complexifier ↑', cls: 'complexify', sug: ['Réduire l’espace', 'Ajouter un défenseur', 'Limiter le nombre de passes', 'Imposer un temps'] }] },
+  { k: 'vigilance', label: 'Vigilance', lists: [{ k: 'vigilance', title: 'Points de vigilance', tags: ['Sécurité', 'Organisation', 'Comportement', 'Technique', 'Tactique', 'Gestion du groupe'] }] },
+  { k: 'corrections', label: 'Corrections', lists: [{ k: 'corrections', title: 'Corrections / régulations', extra: true }] },
+  { k: 'progression', label: 'Progression', lists: [{ k: 'progression', title: 'Progression' }, { k: 'regression', title: 'Régression' }] },
+];
+const CR_ORG_FIELDS = [['setup', 'Disposition initiale', 'Où sont les joueurs au départ ?'], ['groups', 'Groupes', 'Composition des groupes'], ['rotations', 'Rotations / ordre de passage', 'Qui passe quand, changements de rôle'], ['roles', 'Rôle des joueurs', 'Attaquants, défenseurs, passeurs…']];
+const CR_LIST_KEYS = ['consignes', 'realisation', 'reussite', 'comportements', 'simplify', 'complexify', 'vigilance', 'corrections', 'progression', 'regression'];
+const CR_GB_SUG = { instructions: ['Se placer sur la bissectrice du tir', 'Appuis actifs au moment de l’armé', 'Fermer le premier poteau', 'Se replacer avant le tir suivant', 'Relancer vite après l’arrêt', 'Annoncer à la défense (« j’ai le tireur »)'],
+  success: ['X arrêts sur X tirs', 'Relance réussie en moins de 3 s', 'Replacé avant chaque tir', 'Annonce faite à chaque tir'] };
 let crEx = { bi: 0, ei: 0, tab: 'consignes' };
+function crFold(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function crNormItem(t) {
+  if (t && typeof t === 'object') { if (!t.id) t.id = crUid(); if (typeof t.text !== 'string') t.text = t.text == null ? '' : String(t.text); return t; }
+  return { id: crUid(), text: t == null ? '' : String(t) };
+}
+function crNormList(a) { return (Array.isArray(a) ? a : []).map(crNormItem); }
+function crNormEquip(a) { return (Array.isArray(a) ? a : []).map(e => (typeof e === 'string' ? { id: crUid(), name: e } : e)).filter(e => e && String(e.name || '').trim()).map(e => { if (!e.id) e.id = crUid(); e.name = String(e.name); if (e.qty != null && e.qty !== '') e.qty = Math.max(0, parseInt(e.qty, 10) || 0); else delete e.qty; return e; }); }
 function crNormEx(x) {
   x = x || {};
   if (!x.id) x.id = crUid();
   if (x.name == null) x.name = '';
   x.minutes = parseInt(x.minutes, 10) || 0;
-  if (!x.sections || typeof x.sections !== 'object') x.sections = {};
-  CR_SECTIONS.forEach(([k]) => { if (!Array.isArray(x.sections[k])) x.sections[k] = []; });
-  if (x.desc && !x.sections.consignes.length) { x.sections.consignes = [x.desc]; }
+  ['objective', 'theme', 'subTheme', 'space'].forEach(k => { if (typeof x[k] !== 'string') x[k] = x[k] == null ? '' : String(x[k]); });
+  if (!x.headcount || typeof x.headcount !== 'object') x.headcount = {};
+  ['players', 'goalkeepers', 'groups', 'perGroup'].forEach(k => { if (x.headcount[k] == null) x.headcount[k] = ''; });
+  if (x.balls == null) x.balls = '';
+  if (!x.org || typeof x.org !== 'object') x.org = {};
+  CR_ORG_FIELDS.forEach(([k]) => { if (typeof x.org[k] !== 'string') x.org[k] = ''; });
+  if (!x.items || typeof x.items !== 'object') x.items = {};
+  // anciennes données (x.sections : listes de textes) → nouveau format ; l'ancienne clé « variables » devient « Simplifier » (pas d'information pour trancher)
+  const old = (x.sections && typeof x.sections === 'object') ? x.sections : {};
+  const legacy = { consignes: old.consignes, realisation: old.realisation, reussite: old.reussite, comportements: old.comportements, vigilance: old.vigilance, corrections: old.corrections, simplify: old.variables };
+  CR_LIST_KEYS.forEach(k => { x.items[k] = crNormList(x.items[k]); if (!x.items[k].length && legacy[k]) x.items[k] = crNormList(legacy[k]); });
+  if (Array.isArray(old.organisation) && old.organisation.length && !CR_ORG_FIELDS.some(([k]) => x.org[k].trim())) x.org.setup = old.organisation.filter(t => String(t || '').trim()).join('\n');
+  x.equipment = crNormEquip(x.equipment);
+  if (!x.equipment.length && Array.isArray(old.materiel)) x.equipment = crNormEquip(old.materiel.filter(t => String(t || '').trim()));
+  delete x.sections;
+  if (x.desc && !x.items.consignes.length) x.items.consignes = [crNormItem(x.desc)];
   delete x.desc;
   if (!Array.isArray(x.videos)) x.videos = [];
   x.schema = crNormSchema(x.schema);
   if (x.schemaLib) { x.schemaLib.drawings = schNormDrawings(x.schemaLib.drawings); if (!x.schemaLib.drawings.length) delete x.schemaLib; }
+  if (x.gb && typeof x.gb === 'object') {
+    const g = x.gb;
+    if (typeof g.objective !== 'string') g.objective = g.objective == null ? '' : String(g.objective);
+    g.instructions = crNormList(g.instructions); g.success = crNormList(g.success); g.equipment = crNormEquip(g.equipment);
+    if (g.schemaLib) { g.schemaLib.drawings = schNormDrawings(g.schemaLib.drawings); if (!g.schemaLib.drawings.length) delete g.schemaLib; }
+  } else delete x.gb;
   return x;
 }
-function crExSectionCount(x) { return CR_SECTIONS.reduce((n, [k]) => n + ((x.sections && x.sections[k]) || []).filter(t => (t || '').trim()).length, 0); }
+function crTxt(v) { return String(v == null ? '' : v).trim(); }
+function crTabCount(x, tab) {
+  const nb = a => (a || []).filter(it => crTxt(it.text) || crTxt(it.extra)).length;
+  if (tab.org) return CR_ORG_FIELDS.filter(([k]) => crTxt(x.org[k])).length;
+  if (tab.equip) return x.equipment.length;
+  return tab.lists.reduce((n, l) => n + nb(x.items[l.k]), 0);
+}
+function crHasGb(x) {
+  const g = x.gb; if (!g) return false;
+  return !!(crTxt(g.objective) || g.instructions.some(i => crTxt(i.text)) || g.success.some(i => crTxt(i.text)) || g.equipment.length || (g.schemaLib && g.schemaLib.drawings.length));
+}
+function crHeadcountText(x) {
+  const h = x.headcount || {}, out = [];
+  const pl = crTxt(h.players);
+  if (pl) out.push(/^\d+$/.test(pl) ? pl + ' joueur' + (pl === '1' ? '' : 's') : pl);
+  const gk = parseInt(h.goalkeepers, 10); if (gk > 0) out.push(gk + ' GB');
+  const gr = parseInt(h.groups, 10), pg = parseInt(h.perGroup, 10);
+  if (gr > 0) out.push(gr + ' groupe' + (gr > 1 ? 's' : '') + (pg > 0 ? ' de ' + pg : ''));
+  else if (pg > 0) out.push(pg + ' par groupe');
+  return out.join(' · ');
+}
 function crCurEx() { return crCur.blocks[crEx.bi].exercises[crEx.ei]; }
-function crOpenEx(bi, ei) {
+function crExFlat() { const out = []; crCur.blocks.forEach((b, bi) => (b.exercises || []).forEach((x, ei) => out.push([bi, ei]))); return out; }
+function crExNum(bi, ei) { return crExFlat().findIndex(a => a[0] === bi && a[1] === ei) + 1; }
+function crOpenEx(bi, ei, fresh) {
   crPlayStop();
   crEx = { bi, ei, tab: 'consignes' };
   document.getElementById('cr-edit-view').style.display = 'none';
   document.getElementById('cr-ex-view').style.display = '';
   crRenderExView();
   window.scrollTo(0, 0);
+  if (fresh) { const el = document.getElementById('cr-ex-name'); if (el) { el.focus(); el.select(); } }
 }
 function crCloseEx() {
   crPlayStop();
   document.getElementById('cr-ex-view').style.display = 'none';
-  const sy = 0;
   crRenderEditor(crCur);
 }
-function crRenderExView() {
+function crExNav(d) {
+  const f = crExFlat(), i = f.findIndex(a => a[0] === crEx.bi && a[1] === crEx.ei), j = i + d;
+  if (j < 0 || j >= f.length) return;
+  crPlayStop();
+  crEx = { bi: f[j][0], ei: f[j][1], tab: crEx.tab };
+  crRenderExView(); window.scrollTo(0, 0);
+}
+function crGrow(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(el.scrollHeight, 42) + 'px'; }
+function crGrowAll() { document.querySelectorAll('#cr-ex-view textarea.cr-grow').forEach(crGrow); }
+function crListRef(path) {
+  const x = crCurEx(), k = path.slice(2);
+  return path[0] === 'i' ? x.items[k] : x.gb[k];
+}
+function crListHtml(path, def) {
+  const arr = crListRef(path);
+  const rows = arr.map((it, i) => {
+    let tag = '';
+    if (def.tags) {
+      const autoLbl = def.auto ? (i === 0 ? 'Principale' : 'Secondaire') : '';
+      tag = `<select class="cr-in cr-li-tag" onchange="crLiSet('${path}',${i},'tag',this.value)"><option value="">${def.auto ? 'Auto (' + autoLbl + ')' : '— étiquette —'}</option>${def.tags.map(t => `<option ${it.tag === t ? 'selected' : ''}>${crEsc(t)}</option>`).join('')}</select>`;
+    }
+    const ph = def.extra ? 'Erreur observée' : 'Écrire ici…';
+    return `<div class="cr-li"><span class="cr-li-n">${i + 1}</span><div class="cr-li-b">${tag}
+      <textarea class="cr-in cr-grow" rows="1" id="cr-li-${path.replace(':', '-')}-${i}" placeholder="${ph}" oninput="crLiSet('${path}',${i},'text',this.value);crGrow(this)">${crEsc(it.text)}</textarea>
+      ${def.extra ? `<textarea class="cr-in cr-grow cr-li-extra" rows="1" placeholder="Correction / consigne corrective" oninput="crLiSet('${path}',${i},'extra',this.value);crGrow(this)">${crEsc(it.extra || '')}</textarea>` : ''}</div>
+      <div class="cr-li-a"><button type="button" ${i === 0 ? 'disabled' : ''} onclick="crLiMove('${path}',${i},-1)">↑</button><button type="button" ${i === arr.length - 1 ? 'disabled' : ''} onclick="crLiMove('${path}',${i},1)">↓</button><button type="button" style="color:#ff6b6b;" onclick="crLiDel('${path}',${i})">✕</button></div></div>`;
+  }).join('');
+  const sug = (def.sug || []).filter(s => !arr.some(it => crFold(it.text).trim() === crFold(s).trim()));
+  return `<div class="cr-list ${def.cls || ''}"><div class="cr-list-t">${def.title}</div>${rows}
+    <button type="button" class="cr-btn" onclick="crLiAdd('${path}')">＋ Ajouter</button>
+    ${sug.length ? `<div class="cr-sug">${sug.map((s, si) => `<button type="button" class="cr-chip" data-s="${crEsc(s)}" onclick="crLiSug('${path}',this.dataset.s)">＋ ${crEsc(s)}</button>`).join('')}</div>` : ''}</div>`;
+}
+function crLiAdd(path) { const a = crListRef(path); a.push({ id: crUid(), text: '' }); crTouch(); crRenderExView(); const el = document.getElementById('cr-li-' + path.replace(':', '-') + '-' + (a.length - 1)); if (el) el.focus(); }
+function crLiSug(path, text) { const a = crListRef(path); a.push({ id: crUid(), text }); crTouch(); crRenderExView(); }
+function crLiSet(path, i, f, v) { const it = crListRef(path)[i]; if (!it) return; if (f === 'tag') { if (v) it.tag = v; else delete it.tag; } else it[f] = v; crTouch(); }
+function crLiDel(path, i) { crListRef(path).splice(i, 1); crTouch(); crRenderExView(); }
+function crLiMove(path, i, d) { const a = crListRef(path), j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; crTouch(); crRenderExView(); }
+// matériel (exercice ou GB) : owner = 'x' | 'g'
+function crEqRef(o) { const x = crCurEx(); return o === 'g' ? x.gb.equipment : x.equipment; }
+function crEquipHtml(o) {
+  const arr = crEqRef(o), has = n => arr.some(e => crFold(e.name) === crFold(n));
+  const chips = CR_MATERIEL.map(m => `<button type="button" class="cr-chip ${has(m) ? 'on' : ''}" onclick="crEqToggle('${o}','${m}')">${has(m) ? '✓' : '＋'} ${m}</button>`).join(' ');
+  const rows = arr.map(e => `<div class="cr-eq-row"><span>${crEsc(e.name)}</span><input type="number" inputmode="numeric" min="0" placeholder="Qté" value="${e.qty != null ? e.qty : ''}" oninput="crEqQty('${o}','${e.id}',this.value)"><button type="button" class="cr-btn sm danger" onclick="crEqDel('${o}','${e.id}')">✕</button></div>`).join('');
+  return `<div class="cr-eq"><div class="cr-chips">${chips}</div>${rows ? `<div class="cr-eq-list">${rows}</div>` : ''}
+    <div style="display:flex;gap:6px;margin-top:8px;"><input class="cr-in" id="cr-eq-free-${o}" placeholder="Autre matériel…"><button type="button" class="cr-btn" onclick="crEqAdd('${o}')">Ajouter</button></div></div>`;
+}
+function crEqToggle(o, n) { const a = crEqRef(o), i = a.findIndex(e => crFold(e.name) === crFold(n)); if (i >= 0) a.splice(i, 1); else a.push({ id: crUid(), name: n }); crTouch(); crRenderExView(); }
+function crEqQty(o, id, v) { const e = crEqRef(o).find(z => z.id === id); if (!e) return; if (v === '') delete e.qty; else e.qty = Math.max(0, parseInt(v, 10) || 0); crTouch(); }
+function crEqDel(o, id) { const a = crEqRef(o), i = a.findIndex(e => e.id === id); if (i >= 0) a.splice(i, 1); crTouch(); crRenderExView(); }
+function crEqAdd(o) { const inp = document.getElementById('cr-eq-free-' + o), v = crTxt(inp.value); if (!v) return; const a = crEqRef(o); if (!a.some(e => crFold(e.name) === crFold(v))) a.push({ id: crUid(), name: v }); crTouch(); crRenderExView(); }
+// GB
+function crGbAdd() { crCurEx().gb = { objective: '', instructions: [], success: [], equipment: [] }; crTouch(); crRenderExView(); }
+function crGbRemove() {
   const x = crCurEx();
+  if (crHasGb(x) && !confirm('Retirer le travail GB ? (objectif, consignes, critères, matériel et schéma GB seront effacés)')) return;
+  delete x.gb; crTouch(); crRenderExView();
+}
+function crGbSet(k, v) { crCurEx().gb[k] = v; crTouch(); }
+function crExHeadSet(k, v) {
+  const x = crCurEx();
+  if (k.startsWith('hc.')) x.headcount[k.slice(3)] = v; else if (k.startsWith('org.')) x.org[k.slice(4)] = v; else x[k] = (k === 'minutes') ? Math.max(0, parseInt(v, 10) || 0) : v;
+  if (k === 'name') { const h = document.getElementById('cr-ex-head'); if (h) h.textContent = v || 'Exercice'; }
+  crTouch();
+}
+function crExSet(k, v) { crExHeadSet(k, v); }
+function crExMin(d) {
+  const x = crCurEx(); x.minutes = Math.max(0, x.minutes + d);
+  document.getElementById('cr-ex-min').value = x.minutes; crTouch();
+}
+function crExTab(k) { crEx.tab = k; crRenderExView(); }
+function crRenderExView() {
+  const x = crCurEx(), p = crCur, b = p.blocks[crEx.bi];
+  const flat = crExFlat(), idx = flat.findIndex(a => a[0] === crEx.bi && a[1] === crEx.ei), tot = flat.length;
   const ev = document.getElementById('cr-ex-view');
-  const items = x.sections[crEx.tab];
-  const tabs = CR_SECTIONS.map(([k, l]) => `<button type="button" class="cr-chip ${crEx.tab === k ? 'on' : ''}" style="flex-shrink:0;" onclick="crExTab('${k}')">${l}${x.sections[k].some(t => (t || '').trim()) ? '<span class="n">●</span>' : ''}</button>`).join('');
+  const tabDef = CR_EX_TABS.find(t => t.k === crEx.tab) || CR_EX_TABS[0];
+  const tabs = CR_EX_TABS.map(t => { const n = crTabCount(x, t); return `<button type="button" class="cr-chip ${crEx.tab === t.k ? 'on' : ''}" style="flex-shrink:0;" onclick="crExTab('${t.k}')">${t.label}${n ? `<span class="n">${n}</span>` : ''}</button>`; }).join('');
+  let body = '';
+  if (tabDef.org) body = CR_ORG_FIELDS.map(([k, l, ph]) => `<label class="cr-lbl">${l}</label><textarea class="cr-in cr-grow" rows="2" placeholder="${crEsc(ph)}" oninput="crExHeadSet('org.${k}',this.value);crGrow(this)">${crEsc(x.org[k])}</textarea>`).join('');
+  else if (tabDef.equip) body = `<div class="cr-list-t">Matériel de l’exercice</div>${crEquipHtml('x')}`;
+  else body = `<div class="${tabDef.lists.length > 1 ? 'cr-two' : ''}">${tabDef.lists.map(l => crListHtml('i:' + l.k, l)).join('')}</div>`;
+  const gbHtml = !x.gb
+    ? `<button type="button" class="cr-gb-add" onclick="crGbAdd()"><span style="font-size:26px;">🧤</span><span><b>Ajouter un travail GB</b><small>Objectif, consignes et schéma spécifiques au gardien de but</small></span></button>`
+    : `<div class="cr-card cr-gb"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="font-size:15px;font-weight:800;color:var(--blanc);">🧤 Travail GB</div><button type="button" class="cr-btn sm danger" onclick="crGbRemove()">Retirer</button></div>
+      <label class="cr-lbl" style="margin-top:4px;">Objectif pour le gardien</label>
+      <textarea class="cr-in cr-grow" rows="2" placeholder="Ex. Se replacer vite après une parade, lire l’épaule du tireur" oninput="crGbSet('objective',this.value);crGrow(this)">${crEsc(x.gb.objective)}</textarea>
+      ${crListHtml('g:instructions', { title: 'Consignes GB', sug: CR_GB_SUG.instructions })}
+      ${crListHtml('g:success', { title: 'Critères de réussite GB', sug: CR_GB_SUG.success })}
+      <div class="cr-list-t">Matériel spécifique</div>${crEquipHtml('g')}
+      <div class="cr-list-t" style="margin-top:14px;">Schéma GB${x.gb.schemaLib && x.gb.schemaLib.drawings.length > 1 ? ' · ' + x.gb.schemaLib.drawings.length + ' étapes' : ''}</div>${crSchemaCard(x.gb, 'gb')}</div>`;
+  const nSteps = x.schemaLib && x.schemaLib.drawings ? x.schemaLib.drawings.length : 0;
   ev.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button type="button" class="cr-btn" onclick="crCloseEx()">←</button>
-      <div id="cr-ex-head" style="flex:1;font-size:17px;font-weight:800;color:var(--blanc);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${crEsc(x.name || 'Exercice')}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button type="button" class="cr-btn" onclick="crCloseEx()">← Séance</button>
+      <div style="flex:1;min-width:140px;"><div style="font-size:11px;color:var(--gris-texte);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${crEsc(p.title || 'Sans titre')} › ${crEsc(b.name || 'Bloc')}</div>
+        <div id="cr-ex-head" style="font-size:17px;font-weight:800;color:var(--blanc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${crEsc(x.name || 'Exercice')}</div></div>
+      <div class="cr-nav"><button type="button" ${idx <= 0 ? 'disabled' : ''} onclick="crExNav(-1)" aria-label="Exercice précédent">‹</button><span>Exercice ${idx + 1} / ${tot}</span><button type="button" ${idx >= tot - 1 ? 'disabled' : ''} onclick="crExNav(1)" aria-label="Exercice suivant">›</button></div>
       <span class="cr-save-status" style="font-size:12px;color:#2ecc71;white-space:nowrap;">✓ Enregistré</span>
     </div>
     <div class="cr-ex-grid"><div>
     <div class="cr-card">
-      <label class="cr-lbl" style="margin-top:0;">Nom de l'exercice</label>
-      <input class="cr-in" value="${crEsc(x.name)}" oninput="crExSet('name',this.value)">
+      <label class="cr-lbl" style="margin-top:0;">Nom de l’exercice</label>
+      <input class="cr-in" id="cr-ex-name" value="${crEsc(x.name)}" oninput="crExHeadSet('name',this.value)">
+      <label class="cr-lbl">Objectif</label>
+      <textarea class="cr-in cr-grow" rows="2" placeholder="Ce que les joueurs doivent savoir faire à la fin de l’exercice" oninput="crExHeadSet('objective',this.value);crGrow(this)">${crEsc(x.objective)}</textarea>
+      <div class="cr-2c"><div><label class="cr-lbl">Thème</label><input class="cr-in" placeholder="Attaque, défense, GB…" value="${crEsc(x.theme)}" oninput="crExHeadSet('theme',this.value)"></div>
+        <div><label class="cr-lbl">Sous-thème</label><input class="cr-in" value="${crEsc(x.subTheme)}" oninput="crExHeadSet('subTheme',this.value)"></div></div>
       <label class="cr-lbl">Durée (minutes)</label>
-      <div class="cr-step" style="justify-content:flex-start;"><button type="button" onclick="crExMin(-5)">−</button><input type="number" inputmode="numeric" id="cr-ex-min" value="${x.minutes}" oninput="crExSet('minutes',this.value)"><span style="font-size:12px;color:var(--gris-texte);">min</span><button type="button" onclick="crExMin(5)">+</button></div>
+      <div class="cr-step" style="justify-content:flex-start;"><button type="button" onclick="crExMin(-5)">−</button><input type="number" inputmode="numeric" id="cr-ex-min" value="${x.minutes}" oninput="crExHeadSet('minutes',this.value)"><button type="button" onclick="crExMin(5)">+</button><span style="font-size:12px;color:var(--gris-texte);margin-left:4px;">min</span></div>
+      <label class="cr-lbl">Joueurs</label>
+      <input class="cr-in" placeholder="14 · 12 à 16 · à partir de 10" value="${crEsc(x.headcount.players)}" oninput="crExHeadSet('hc.players',this.value)">
+      <div class="cr-4c">
+        <div><label class="cr-lbl">Gardiens</label><input type="number" inputmode="numeric" min="0" class="cr-in" value="${crEsc(x.headcount.goalkeepers)}" oninput="crExHeadSet('hc.goalkeepers',this.value)"></div>
+        <div><label class="cr-lbl">Groupes</label><input type="number" inputmode="numeric" min="0" class="cr-in" value="${crEsc(x.headcount.groups)}" oninput="crExHeadSet('hc.groups',this.value)"></div>
+        <div><label class="cr-lbl">Par groupe</label><input type="number" inputmode="numeric" min="0" class="cr-in" value="${crEsc(x.headcount.perGroup)}" oninput="crExHeadSet('hc.perGroup',this.value)"></div>
+        <div><label class="cr-lbl">Ballons</label><input type="number" inputmode="numeric" min="0" class="cr-in" value="${crEsc(x.balls)}" oninput="crExHeadSet('balls',this.value)"></div></div>
+      <label class="cr-lbl">Espace</label>
+      <input class="cr-in" placeholder="½ terrain, 20 x 20 m…" value="${crEsc(x.space)}" oninput="crExHeadSet('space',this.value)">
     </div>
     <div class="cr-card">
-      <div style="font-size:15px;font-weight:800;color:var(--blanc);margin-bottom:8px;">Schéma de la situation</div>
-      ${crSchemaCard(x)}
+      <div style="font-size:15px;font-weight:800;color:var(--blanc);margin-bottom:8px;">Place tactique${nSteps > 1 ? ' · ' + nSteps + ' étapes' : ''}</div>
+      ${crSchemaCard(x, 'main')}
     </div>
+    ${gbHtml}
     </div><div>
     <div class="cr-card">
       <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;">${tabs}</div>
-      <div style="font-size:15px;font-weight:800;color:var(--blanc);margin:8px 0;">${CR_SECTIONS.find(s => s[0] === crEx.tab)[1]}</div>
-      ${items.map((t, i) => `<div style="display:flex;gap:6px;margin-bottom:6px;"><textarea class="cr-in" rows="2" id="cr-item-${i}" oninput="crExItem(${i},this.value)">${crEsc(t)}</textarea><button type="button" class="cr-btn sm danger" onclick="crExDelItem(${i})">✕</button></div>`).join('')}
-      <button type="button" class="cr-btn" onclick="crExAddItem()">＋ Ajouter</button>
+      ${body}
     </div>
     <div class="cr-card">
-      <div style="font-size:15px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Vidéos de l'exercice</div>
+      <div style="font-size:15px;font-weight:800;color:var(--blanc);margin-bottom:4px;">Vidéos de l’exercice</div>
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:8px;">Ajoute un lien vers une démonstration filmée.</div>
       ${x.videos.map((v, i) => `<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><a href="${crEsc(v.url)}" target="_blank" rel="noopener" style="flex:1;min-width:0;color:var(--jaune);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">▶ ${crEsc(v.title || v.url)}</a><button type="button" class="cr-btn sm danger" onclick="crExDelVideo(${i})">✕</button></div>`).join('')}
       <input class="cr-in" id="cr-exvid-title" placeholder="Titre de la vidéo" style="margin-bottom:6px;">
@@ -5674,25 +6102,9 @@ function crRenderExView() {
     </div>
     </div></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px;"><button type="button" class="cr-btn" onclick="crCloseEx()">← Retour à la séance</button><span style="color:var(--gris-texte);">${x.minutes ? x.minutes + ' min' : ''}</span></div>
-    <button type="button" class="cr-btn primary" style="padding:13px 16px;" onclick="crOpenFiche(crCur.id)">Voir dans la fiche →</button>`;
+    <button type="button" class="cr-btn primary" style="padding:13px 16px;" onclick="crOpenFiche(crCur.id,crCurEx().id)">Voir dans la fiche →</button>`;
+  crGrowAll();
 }
-function crExSet(k, v) {
-  const x = crCurEx();
-  x[k] = k === 'minutes' ? Math.max(0, parseInt(v, 10) || 0) : v;
-  if (k === 'name') { const h = document.getElementById('cr-ex-head'); if (h) h.textContent = v || 'Exercice'; }
-  crTouch();
-}
-function crExMin(d) {
-  const x = crCurEx(); x.minutes = Math.max(0, x.minutes + d);
-  document.getElementById('cr-ex-min').value = x.minutes; crTouch();
-}
-function crExTab(k) { crEx.tab = k; crRenderExView(); }
-function crExAddItem() {
-  const items = crCurEx().sections[crEx.tab]; items.push(''); crTouch(); crRenderExView();
-  const el = document.getElementById('cr-item-' + (items.length - 1)); if (el) el.focus();
-}
-function crExItem(i, v) { crCurEx().sections[crEx.tab][i] = v; crTouch(); }
-function crExDelItem(i) { crCurEx().sections[crEx.tab].splice(i, 1); crTouch(); crRenderExView(); }
 function crExAddVideo() {
   const t = document.getElementById('cr-exvid-title'), u = document.getElementById('cr-exvid-url');
   let url = (u.value || '').trim(); if (!url) return;
@@ -5700,13 +6112,43 @@ function crExAddVideo() {
   crCurEx().videos.push({ title: (t.value || '').trim(), url }); crTouch(); crRenderExView();
 }
 function crExDelVideo(i) { crCurEx().videos.splice(i, 1); crTouch(); crRenderExView(); }
-function crFicheEx(x) {
-  const secs = CR_SECTIONS.map(([k, l]) => {
-    const it = (x.sections[k] || []).filter(t => (t || '').trim());
-    return it.length ? `<div style="margin-top:6px;"><b>${l}</b><ul style="margin:2px 0 0;padding-left:18px;">${it.map(t => `<li>${crEsc(t).replace(/\n/g, '<br>')}</li>`).join('')}</ul></div>` : '';
+function crFicheList(title, arr, o) {
+  o = o || {};
+  const it = (arr || []).filter(i => crTxt(i.text) || crTxt(i.extra));
+  if (!it.length) return '';
+  const li = it.map((i, k) => {
+    let tag = i.tag || (o.auto ? (k === 0 ? 'Principale' : 'Secondaire') : '');
+    const txt = crEsc(i.text).replace(/\n/g, '<br>');
+    const ex = crTxt(i.extra) ? `<span class="cr-fx-extra">→ ${crEsc(i.extra).replace(/\n/g, '<br>')}</span>` : '';
+    return `<li>${tag ? `<span class="cr-fx-tag">${crEsc(tag)}</span>` : ''}${txt}${ex}</li>`;
   }).join('');
+  return `<div class="cr-fx-list ${o.cls || ''}"><h4>${title}</h4><${o.num ? 'ol' : 'ul'}>${li}</${o.num ? 'ol' : 'ul'}></div>`;
+}
+function crFicheEx(x, num, bname) {
+  const fact = (l, v, cls) => crTxt(v) ? `<div class="${cls || ''}"><dt>${l}</dt><dd>${crEsc(v).replace(/\n/g, '<br>')}</dd></div>` : '';
+  const eq = crEquipText(crNormEquip(x.equipment).concat(parseInt(x.balls, 10) > 0 ? [{ name: 'Ballons', qty: parseInt(x.balls, 10) }] : []));
+  const theme = [crTxt(x.theme), crTxt(x.subTheme)].filter(Boolean).join(' · ');
+  const facts = fact('Objectif', x.objective, 'main') + fact('Thème', theme) + fact('Effectif', crHeadcountText(x)) + fact('Espace', x.space) + fact('Matériel', eq)
+    + fact('Disposition', x.org.setup) + fact('Groupes', x.org.groups) + fact('Rotations', x.org.rotations) + fact('Rôles', x.org.roles);
+  const I = x.items;
+  const row = (a, b) => (a || b) ? `<div class="cr-fx-row${a && b ? ' two' : ''}">${a}${b}</div>` : '';
+  const lists = row(crFicheList('Consignes', I.consignes, { auto: true }), '')
+    + row(crFicheList('Critères de réalisation', I.realisation), crFicheList('Critères de réussite', I.reussite))
+    + row(crFicheList('Comportements attendus', I.comportements), '')
+    + row(crFicheList('Simplifier ↓', I.simplify, { cls: 'simplify' }), crFicheList('Complexifier ↑', I.complexify, { cls: 'complexify' }))
+    + row(crFicheList('Points de vigilance', I.vigilance), '')
+    + row(crFicheList('Corrections / régulations', I.corrections, { num: true }), '')
+    + row(crFicheList('Progression', I.progression), crFicheList('Régression', I.regression));
+  let gb = '';
+  if (crHasGb(x)) {
+    const g = x.gb, geq = crEquipText(g.equipment);
+    gb = `<div class="cr-fx-gb"><h4>🧤 Travail GB</h4>${crTxt(g.objective) ? `<div class="cr-fx-gbo">${crEsc(g.objective).replace(/\n/g, '<br>')}</div>` : ''}${g.schemaLib ? crFicheSchemaLib(g.schemaLib) : ''}`
+      + row(crFicheList('Consignes GB', g.instructions), crFicheList('Critères de réussite GB', g.success)) + (geq ? `<div class="cr-fx-gbe">Matériel GB : ${crEsc(geq)}</div>` : '') + '</div>';
+  }
   const vids = x.videos.map(v => `<div style="margin-top:4px;word-break:break-all;">▶ ${crEsc(v.title || '')} <a href="${crEsc(v.url)}">${crEsc(v.url)}</a></div>`).join('');
-  return `<div class="cr-fiche-ex"><div style="font-weight:800;color:#0a2a4a;font-size:14px;">${crEsc(x.name || 'Exercice')}${x.minutes ? ' <span style="font-weight:400;color:#6a7d95;">· ' + x.minutes + ' min</span>' : ''}</div><div class="cr-fiche-body"><div>${x.schemaLib ? crFicheSchemaLib(x.schemaLib) : crFicheSchema(x.schema)}</div><div>${secs}${vids}</div></div></div>`;
+  const sch = x.schemaLib ? crFicheSchemaLib(x.schemaLib) : crFicheSchema(x.schema);
+  return `<div class="cr-fiche-ex cr-fx" id="crfx-${x.id}"><div class="cr-fx-head"><span class="cr-fx-n">${num}</span><div><small>${crEsc(bname || '')}</small><b>${crEsc(x.name || 'Exercice')}</b></div><span class="cr-fx-d">${x.minutes ? crFmtDur(x.minutes) : ''}</span></div>
+    <div class="cr-fiche-body"><div>${sch}</div><div><dl class="cr-fx-facts">${facts}</dl></div></div>${lists}${gb}${vids}</div>`;
 }
 
 // ----- Schéma (terrain) : modèle, rendu, éditeur image par image -----
@@ -5728,40 +6170,46 @@ function crSchemaCardLegacy(x) {
       ${crSchemaHas(x) ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><button type="button" class="cr-btn sm" onclick="crOpenDraw()">✏️ Modifier le schéma</button><button type="button" class="cr-btn sm" id="cr-ex-share" onclick="crShareAnim()">📤 Partager</button>${crSchemaFrames(x) > 1 ? `<button type="button" class="cr-btn sm primary" id="cr-ex-play" onclick="crExTogglePlay()">▶ Lecture</button><span style="font-size:11px;color:var(--gris-texte);">${crSchemaFrames(x)} images</span>` : ''}</div>` : ''}`;
 }
 function crSchLibRec(L) { schEnsure(); return L ? schUserEx.find(r => r.id === L.id && !r.deleted) || null : null; }
-function crSchemaCard(x) {
-  const L = x.schemaLib;
+function crSchHolder(t) { const x = crCurEx(); return t === 'gb' ? x.gb : x; }
+let crSchTgt = 'main';
+function crSchemaCard(h, t) {
+  t = t || 'main';
+  const L = h.schemaLib, q = "'" + t + "'";
   if (L && L.drawings && L.drawings.length) {
     const n = L.drawings.length, rec = crSchLibRec(L), newer = rec && rec.updatedAt && (!L.at || rec.updatedAt > L.at);
-    const prev = n === 1 ? `<div id="cr-ex-schema" style="max-width:520px;">${schDrawingSvg(L.drawings[0], { showBallStart: false })}</div>`
-      : `<div id="cr-ex-schema" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:640px;">${L.drawings.map(d => `<div><div style="font-size:11px;color:var(--gris-texte);margin-bottom:2px;">${crEsc(d.title)}</div>${schDrawingSvg(d, { showBallStart: false })}</div>`).join('')}</div>`;
+    const prev = n === 1 ? `<div class="cr-ex-schema" style="max-width:520px;">${schDrawingSvg(L.drawings[0], { showBallStart: false })}</div>`
+      : `<div class="cr-ex-schema" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:640px;">${L.drawings.map(d => `<div><div style="font-size:11px;color:var(--gris-texte);margin-bottom:2px;">${crEsc(d.title)}</div>${schDrawingSvg(d, { showBallStart: false })}</div>`).join('')}</div>`;
     return prev + `<div style="margin-top:8px;font-size:12px;color:var(--gris-texte);">🎬 ${crEsc(L.name)} · ${n} étape${n > 1 ? 's' : ''}${rec ? '' : ' · ⚠ plus dans la bibliothèque (la copie est conservée)'}${newer ? ' · <b style="color:var(--jaune);">version plus récente dans la bibliothèque</b>' : ''}</div>`
-      + `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="cr-btn sm primary" onclick="crSchPlay()">▶ Animer</button>${rec ? '<button type="button" class="cr-btn sm" onclick="crSchEdit()">✏️ Modifier</button>' : ''}${newer ? '<button type="button" class="cr-btn sm" onclick="crSchUpdate()">↻ Mettre à jour</button>' : ''}<button type="button" class="cr-btn sm" onclick="crSchPick()">Changer</button><button type="button" class="cr-btn sm danger" onclick="crSchDetach()">Retirer</button></div>`;
+      + `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="cr-btn sm primary" onclick="crSchPlay(${q})">▶ Animer</button>${rec ? `<button type="button" class="cr-btn sm" onclick="crSchEdit(${q})">✏️ Modifier</button>` : ''}${newer ? `<button type="button" class="cr-btn sm" onclick="crSchUpdate(${q})">↻ Mettre à jour</button>` : ''}<button type="button" class="cr-btn sm" onclick="crSchPick(${q})">Changer</button><button type="button" class="cr-btn sm danger" onclick="crSchDetach(${q})">Retirer</button></div>`;
   }
-  if (crSchemaHas(x)) return crSchemaCardLegacy(x) + `<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:var(--gris-texte);">Ancien schéma (ancien éditeur). Tu peux le remplacer par un schéma de la bibliothèque ; l'ancien est conservé si tu le retires ensuite.</div><div style="margin-top:6px;"><button type="button" class="cr-btn sm" onclick="crSchPick()">🎬 Remplacer par un schéma de la bibliothèque</button></div>`;
-  return `<div style="border:2px dashed rgba(245,196,0,0.5);border-radius:12px;padding:22px 10px;text-align:center;"><div style="font-size:30px;color:var(--jaune);">＋</div><div style="font-weight:800;color:var(--blanc);">Schéma de la situation</div><div style="font-size:12px;color:var(--gris-texte);margin:4px 0 12px;">Joueurs, ballon, passes, déplacements, tirs… avec animation</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"><button type="button" class="cr-btn primary" onclick="crSchPick()">Choisir dans la bibliothèque</button><button type="button" class="cr-btn" onclick="crSchNew()">✏️ Créer un nouveau schéma</button></div></div>`;
+  if (t === 'main' && crSchemaHas(h)) return crSchemaCardLegacy(h) + `<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:var(--gris-texte);">Ancien schéma (ancien éditeur). Tu peux le remplacer par un schéma de la bibliothèque ; l'ancien est conservé si tu le retires ensuite.</div><div style="margin-top:6px;"><button type="button" class="cr-btn sm" onclick="crSchPick('main')">🎬 Remplacer par un schéma de la bibliothèque</button></div>`;
+  return `<div style="border:2px dashed rgba(245,196,0,0.5);border-radius:12px;padding:22px 10px;text-align:center;"><div style="font-size:30px;color:var(--jaune);">＋</div><div style="font-weight:800;color:var(--blanc);">${t === 'gb' ? 'Schéma du travail GB' : 'Dessiner la situation'}</div><div style="font-size:12px;color:var(--gris-texte);margin:4px 0 12px;">Joueurs, ballon, passes, déplacements, tirs… avec animation</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"><button type="button" class="cr-btn primary" onclick="crSchPick(${q})">Choisir dans la bibliothèque</button><button type="button" class="cr-btn" onclick="crSchNew(${q})">✏️ Créer un nouveau schéma</button></div></div>`;
 }
 function crSchSnap(rec) { return { id: rec.id, name: rec.name, at: rec.updatedAt || null, drawings: JSON.parse(JSON.stringify(rec.drawings)) }; }
 function crSchAttach(id) {
   schEnsure(); const rec = schUserEx.find(r => r.id === id && !r.deleted); if (!rec) return;
-  crCurEx().schemaLib = crSchSnap(rec); crSchPickClose(); crTouch(); crRenderExView();
+  const h = crSchHolder(crSchTgt); if (!h) return;
+  h.schemaLib = crSchSnap(rec); crSchPickClose(); crTouch(); crRenderExView();
 }
-function crSchUpdate() { const x = crCurEx(), rec = crSchLibRec(x.schemaLib); if (!rec) return; x.schemaLib = crSchSnap(rec); crTouch(); crRenderExView(); }
-function crSchDetach() { if (!confirm('Retirer le schéma de cet exercice ? (Il reste dans la bibliothèque.)')) return; delete crCurEx().schemaLib; crTouch(); crRenderExView(); }
-function crSchPlay() { const L = crCurEx().schemaLib; if (L) schPlayerOpenData(L.name, L.drawings); }
-function crSchEdit() {
-  const x = crCurEx(), rec = crSchLibRec(x.schemaLib); if (!rec) { alert('Ce schéma n\'est plus dans la bibliothèque.'); return; }
-  schEditorOpen(schDemo.indexOf(rec), ex => { const y = crCurEx(); if (y && y.schemaLib && y.schemaLib.id === ex.id && !ex.deleted) { y.schemaLib = crSchSnap(ex); crTouch(); } crRenderExView(); });
+function crSchUpdate(t) { const h = crSchHolder(t), rec = crSchLibRec(h.schemaLib); if (!rec) return; h.schemaLib = crSchSnap(rec); crTouch(); crRenderExView(); }
+function crSchDetach(t) { if (!confirm('Retirer le schéma de cet exercice ? (Il reste dans la bibliothèque.)')) return; delete crSchHolder(t).schemaLib; crTouch(); crRenderExView(); }
+function crSchPlay(t) { const L = crSchHolder(t).schemaLib; if (L) schPlayerOpenData(L.name, L.drawings); }
+function crSchEdit(t) {
+  const rec = crSchLibRec(crSchHolder(t).schemaLib); if (!rec) { alert('Ce schéma n\'est plus dans la bibliothèque.'); return; }
+  schEditorOpen(schDemo.indexOf(rec), ex => { const y = crSchHolder(t); if (y && y.schemaLib && y.schemaLib.id === ex.id && !ex.deleted) { y.schemaLib = crSchSnap(ex); crTouch(); } crRenderExView(); });
 }
-function crSchNew() {
+function crSchNew(t) {
+  t = t || 'main';
   const x = crCurEx(); schEnsure(); crSchPickClose();
-  const r = schRec({ id: schUuid(), name: (x.name || 'Schéma').slice(0, 60), drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], dirty: true }); schUserEx.push(r); schRebuild(); schUserSave();
+  const r = schRec({ id: schUuid(), name: ((t === 'gb' ? 'GB · ' : '') + (x.name || 'Schéma')).slice(0, 60), drawings: [schNormDrawing({ title: 'Étape 1', view: t === 'gb' ? 'goal' : 'half' })], dirty: true }); schUserEx.push(r); schRebuild(); schUserSave();
   schEditorOpen(schDemo.indexOf(r), ex => {
     if (ex.drawings.every(d => !d.elements.length)) { ex.deleted = true; schMarkDirty(ex); schUserSave(); schRebuild(); crRenderExView(); return; } // rien dessiné : on ne garde pas un schéma vide
-    crCurEx().schemaLib = crSchSnap(ex); crTouch(); crRenderExView();
+    const h = crSchHolder(t); if (h) { h.schemaLib = crSchSnap(ex); crTouch(); } crRenderExView();
   });
 }
 let crSchPickEl = null;
-function crSchPick() {
+function crSchPick(t) {
+  crSchTgt = t || 'main';
   schEnsure(); schSyncAll(); crSchPickClose();
   const el = document.createElement('div'); el.id = 'cr-schpick'; el.className = 'crsp';
   el.style.cssText = 'position:fixed;inset:0;z-index:99970;background:rgba(5,10,20,0.92);display:flex;flex-direction:column;padding:12px;padding-top:max(12px,env(safe-area-inset-top));color:#fff;font-family:Arial,sans-serif;';
@@ -5770,10 +6218,10 @@ function crSchPick() {
 function crSchPickClose() { if (crSchPickEl) { crSchPickEl.remove(); crSchPickEl = null; } }
 function crSchPickRefresh() { if (crSchPickEl) crSchPickRender(); }
 function crSchPickRender() {
-  const el = crSchPickEl; if (!el) return; const list = schUserEx.filter(x => !x.deleted && x.drawings.length), cur = (crCurEx().schemaLib || {}).id;
+  const el = crSchPickEl; if (!el) return; const list = schUserEx.filter(x => !x.deleted && x.drawings.length), cur = ((crSchHolder(crSchTgt) || {}).schemaLib || {}).id;
   el.innerHTML = `<div class="crsp-top"><b style="font-size:17px;">Schémas de la bibliothèque</b><button type="button" onclick="crSchPickClose()" aria-label="Fermer">✕</button></div><div style="font-size:11px;color:#8FA3BF;margin:2px 0 8px;">${schEsc(schSyncLabel(false))}</div>`
     + `<div class="crsp-list">${list.length ? list.map(x => { const n = x.drawings.length; return `<button type="button" class="crsp-card ${x.id === cur ? 'on' : ''}" onclick="crSchAttach('${x.id}')"><div class="crsp-thumb">${schDrawingSvg(x.drawings[0], { showBallStart: false })}</div><div class="crsp-name">${schEsc(x.name)}</div><div class="crsp-meta">${n} étape${n > 1 ? 's' : ''}${x.id === cur ? ' · choisi' : ''}</div></button>`; }).join('') : '<div style="color:#8FA3BF;font-size:13px;padding:20px 4px;">La bibliothèque est vide pour l\'instant. Crée ton premier schéma ci-dessous.</div>'}</div>`
-    + `<div style="padding-top:10px;"><button type="button" class="cr-btn primary" style="width:100%;padding:14px;" onclick="crSchNew()">＋ Créer un nouveau schéma</button></div>`;
+    + `<div style="padding-top:10px;"><button type="button" class="cr-btn primary" style="width:100%;padding:14px;" onclick="crSchNew(crSchTgt)">＋ Créer un nouveau schéma</button></div>`;
 }
 function crFicheSchemaLib(L) {
   if (!L || !L.drawings || !L.drawings.length) return '';
@@ -7763,7 +8211,7 @@ function seancePlanText(p) {
   if (meta.length) t += '\n' + meta.join(' · ');
   (p.blocks || []).forEach(b => {
     const ex = (b.exercises || []).map(x => x.name).filter(Boolean).join(', ');
-    t += '\n• ' + b.name + ' — ' + (parseInt(b.minutes, 10) || 0) + ' min' + (ex ? ' : ' + ex : '');
+    t += '\n• ' + b.name + ' — ' + crBlockMin(b) + ' min' + (ex ? ' : ' + ex : '');
   });
   return t;
 }
@@ -9073,6 +9521,7 @@ async function coachAuthLogin() {
   const btn = document.getElementById('coachs2-login-btn');
   const login = coachAuthSelectedLogin || COACH_LOGINS[0].login;
   const pw = pwInput.value;
+  errEl.style.color = '#e74c3c';
   if (!pw) { errEl.textContent = 'Entre ton mot de passe.'; return; }
   btn.disabled = true; btn.textContent = 'Connexion...';
   try {
@@ -9768,8 +10217,327 @@ if ('serviceWorker' in navigator) {
 }
 window.addEventListener('online', () => { flushPendingSync(); });
 
+
+// ===================== AFFICHAGE (cet appareil) + MOT DE PASSE COACH =====================
+const DISP_KEY = 'prepa_display_v1';
+const DISP_TABS = {
+  dashboard: '🏠 Accueil', presence: '📋 Présences', seance: '📝 Séance', schemas: '✏️ Schémas', outils: '🧩 Éq./Match',
+  composition: '🎽 Compos', stats: '📊 Stats', programme: '🗓️ Programme', evaluations: '🎯 Évals', reglages: '⚙️ Réglages',
+};
+const DISP_DEFAULT_TABS = [
+  ['dashboard', 'top'], ['presence', 'top'], ['seance', 'top'], ['schemas', 'top'], ['outils', 'top'], ['composition', 'top'],
+  ['stats', 'bottom'], ['programme', 'bottom'], ['evaluations', 'bottom'], ['reglages', 'bottom'],
+];
+const DISP_SCALES = [['0.9', 'Petit'], ['1', 'Normal'], ['1.15', 'Grand'], ['1.3', 'Très grand']];
+let dispCfg = null;
+
+function dispDefaults() {
+  return { theme: 'dark', scale: 1, density: 'normal', tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
+}
+function dispNormalize(c) {
+  const d = dispDefaults();
+  c = (c && typeof c === 'object') ? c : {};
+  const out = {
+    theme: ['auto', 'light', 'dark'].includes(c.theme) ? c.theme : d.theme,
+    scale: [0.9, 1, 1.15, 1.3].includes(Number(c.scale)) ? Number(c.scale) : 1,
+    density: ['compact', 'normal', 'comfortable'].includes(c.density) ? c.density : 'normal',
+    tabs: [],
+  };
+  const seen = {};
+  (Array.isArray(c.tabs) ? c.tabs : []).forEach(t => {
+    if (!t || !DISP_TABS[t.id] || seen[t.id]) return;
+    seen[t.id] = 1;
+    out.tabs.push({ id: t.id, bar: t.bar === 'bottom' ? 'bottom' : 'top', vis: t.vis !== false });
+  });
+  d.tabs.forEach(t => { if (!seen[t.id]) out.tabs.push(t); });
+  out.tabs.forEach(t => { if (t.id === 'reglages') t.vis = true; });
+  return out;
+}
+function dispLoad() {
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(DISP_KEY) || 'null'); } catch (e) {}
+  dispCfg = dispNormalize(raw);
+}
+function dispSave() {
+  try { localStorage.setItem(DISP_KEY, JSON.stringify(dispCfg)); } catch (e) {}
+}
+function dispBaseZoom() {
+  const w = window.innerWidth;
+  return w >= 1400 ? 1.3 : w >= 1100 ? 1.18 : w >= 700 ? 1.08 : 1;
+}
+function dispApplyTheme() {
+  let t = dispCfg.theme;
+  if (t === 'auto') t = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', t === 'light' ? '#EEF2F8' : '#003F8A');
+}
+function dispApplyScale() {
+  if (!document.body) return;
+  document.body.style.zoom = dispCfg.scale === 1 ? '' : String(Math.round(dispBaseZoom() * dispCfg.scale * 1000) / 1000);
+}
+function dispApplyDensity() {
+  document.documentElement.setAttribute('data-density', dispCfg.density);
+}
+function dispTabVisible(b) {
+  return b && !b.classList.contains('disp-hide') && b.style.display !== 'none';
+}
+function dispApplyTabs() {
+  const top = document.querySelector('.coachs2-subtabs-top');
+  const bot = document.querySelector('.coachs2-subtabs-bottom');
+  if (!top || !bot) return;
+  dispCfg.tabs.forEach(t => {
+    const b = document.getElementById('cs-subtab-' + t.id);
+    if (!b) return;
+    (t.bar === 'bottom' ? bot : top).appendChild(b);
+    b.classList.toggle('disp-hide', !t.vis);
+  });
+  const any = bar => Array.from(bar.children).some(dispTabVisible);
+  top.style.display = any(top) ? '' : 'none';
+  bot.style.display = any(bot) ? '' : 'none';
+  const wrap = document.querySelector('.coachs2-wrap');
+  if (wrap) wrap.classList.toggle('no-bottom-bar', !any(bot));
+}
+function dispFirstTab() {
+  const t = dispCfg && dispCfg.tabs.find(x => x.vis && dispTabVisible(document.getElementById('cs-subtab-' + x.id)));
+  return t ? t.id : 'reglages';
+}
+function dispApply() {
+  dispApplyTheme(); dispApplyScale(); dispApplyDensity(); dispApplyTabs();
+}
+function dispInit() {
+  dispLoad();
+  dispApply();
+  window.addEventListener('resize', dispApplyScale);
+  window.addEventListener('orientationchange', () => setTimeout(dispApplyScale, 200));
+  try {
+    const mq = matchMedia('(prefers-color-scheme: light)');
+    const h = () => { if (dispCfg.theme === 'auto') dispApplyTheme(); };
+    if (mq.addEventListener) mq.addEventListener('change', h); else if (mq.addListener) mq.addListener(h);
+  } catch (e) {}
+}
+function dispSet(key, val) {
+  dispCfg[key] = val;
+  dispSave(); dispApply(); dispRenderUi();
+}
+function dispTabSet(id, key, val) {
+  const t = dispCfg.tabs.find(x => x.id === id);
+  if (!t) return;
+  if (id === 'reglages' && key === 'vis') return;
+  t[key] = val;
+  dispSave(); dispApplyTabs();
+  const act = Object.keys(DISP_TABS).find(k => { const bx = document.getElementById('cs-box-' + k); return bx && !bx.classList.contains('cs-hide'); });
+  if (act !== 'reglages' && act && !dispTabVisible(document.getElementById('cs-subtab-' + act))) coachSubtabSwitch(dispFirstTab());
+  dispRenderUi();
+}
+function dispTabMove(id, dir) {
+  const arr = dispCfg.tabs;
+  const i = arr.findIndex(x => x.id === id);
+  if (i < 0) return;
+  let j = i + dir;
+  while (j >= 0 && j < arr.length && arr[j].bar !== arr[i].bar) j += dir;
+  if (j < 0 || j >= arr.length) return;
+  const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  dispSave(); dispApplyTabs(); dispRenderUi();
+}
+function dispReset() {
+  if (!window.confirm("Rétablir l'affichage par défaut sur cet appareil ?")) return;
+  dispCfg = dispDefaults();
+  dispSave(); dispApply(); dispRenderUi();
+}
+function dispRenderUi() {
+  const el = document.getElementById('disp-ui');
+  if (!el || !dispCfg) return;
+  const chip = (on, label, fn) => `<button type="button" class="disp-chip${on ? ' on' : ''}" onclick="${fn}">${label}</button>`;
+  const lab = t => `<div style="font-size:12px;font-weight:700;color:var(--gris-clair);margin:12px 0 6px;">${t}</div>`;
+  let h = '';
+  h += lab('Thème');
+  h += `<div style="display:flex;gap:6px;flex-wrap:wrap;">` +
+    chip(dispCfg.theme === 'auto', '🌗 Auto', "dispSet('theme','auto')") +
+    chip(dispCfg.theme === 'light', '☀️ Clair', "dispSet('theme','light')") +
+    chip(dispCfg.theme === 'dark', '🌙 Sombre', "dispSet('theme','dark')") + `</div>`;
+  h += `<div style="font-size:10px;color:var(--gris-texte);margin-top:5px;">Auto suit le réglage de l'appareil. Le thème clair est en test : quelques écrans peuvent rester à peaufiner.</div>`;
+  h += lab('Taille du texte et des éléments');
+  h += `<div style="display:flex;gap:6px;flex-wrap:wrap;">` +
+    DISP_SCALES.map(s => chip(dispCfg.scale === Number(s[0]), s[1], `dispSet('scale',${s[0]})`)).join('') + `</div>`;
+  h += lab('Densité');
+  h += `<div style="display:flex;gap:6px;flex-wrap:wrap;">` +
+    chip(dispCfg.density === 'compact', 'Compact', "dispSet('density','compact')") +
+    chip(dispCfg.density === 'normal', 'Normal', "dispSet('density','normal')") +
+    chip(dispCfg.density === 'comfortable', 'Confortable', "dispSet('density','comfortable')") + `</div>`;
+  h += lab('Onglets de l’espace coach');
+  h += `<div style="font-size:10px;color:var(--gris-texte);margin-bottom:6px;">Coche pour afficher · choisis la barre (haut ou bas) · flèches pour l'ordre. Réglages reste toujours visible.</div>`;
+  dispCfg.tabs.forEach(t => {
+    const sameBar = dispCfg.tabs.filter(x => x.bar === t.bar);
+    const k = sameBar.findIndex(x => x.id === t.id);
+    h += `<div class="disp-row" data-tab="${t.id}">
+      <input type="checkbox" ${t.vis ? 'checked' : ''} ${t.id === 'reglages' ? 'disabled' : ''} onchange="dispTabSet('${t.id}','vis',this.checked)" style="width:18px;height:18px;">
+      <span class="nm">${DISP_TABS[t.id]}</span>
+      <button type="button" class="disp-mini" onclick="dispTabSet('${t.id}','bar','${t.bar === 'top' ? 'bottom' : 'top'}')">${t.bar === 'top' ? 'Haut' : 'Bas'}</button>
+      <button type="button" class="disp-mini" ${k <= 0 ? 'disabled' : ''} onclick="dispTabMove('${t.id}',-1)">↑</button>
+      <button type="button" class="disp-mini" ${k >= sameBar.length - 1 ? 'disabled' : ''} onclick="dispTabMove('${t.id}',1)">↓</button>
+    </div>`;
+  });
+  h += `<button type="button" class="disp-mini" style="margin-top:10px;width:100%;padding:9px;" onclick="dispReset()">Rétablir l'affichage par défaut</button>`;
+  el.innerHTML = h;
+}
+
+// ---------- Mot de passe des coachs ----------
+function pwVal(id) { const e = document.getElementById(id); return e ? e.value : ''; }
+function pwMsg(id, text, ok) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = text || '';
+  e.style.color = ok ? '#2ecc71' : '#e74c3c';
+}
+async function pwRpc(fn, args, withCoach) {
+  const headers = { apikey: SB_KEY, 'Content-Type': 'application/json' };
+  if (withCoach) {
+    const sess = await ensureCoachSession();
+    if (!sess) { const er = new Error('session'); er.status = 401; throw er; }
+    headers.Authorization = 'Bearer ' + sess.access_token;
+  } else {
+    headers.Authorization = 'Bearer ' + SB_KEY;
+  }
+  const res = await fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers, body: JSON.stringify(args) });
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) {
+    const er = new Error((data && (data.message || data.hint)) || ('HTTP ' + res.status));
+    er.status = res.status; er.code = data && data.code;
+    throw er;
+  }
+  return data;
+}
+function pwErrText(e) {
+  if (e && (e.code === 'PGRST202' || e.status === 404)) return "Fonction pas encore installée côté Supabase (le SQL de récupération n'a pas été exécuté).";
+  if (e && e.status === 401) return 'Session expirée : reconnecte-toi.';
+  if (e && /trop court/.test(e.message || '')) return 'Mot de passe trop court (8 caractères minimum).';
+  if (e && /introuvable/.test(e.message || '')) return 'Coach introuvable.';
+  if (e && /non autoris/.test(e.message || '')) return 'Action non autorisée pour ce compte.';
+  if (e instanceof TypeError) return 'Connexion impossible — vérifie ta connexion internet.';
+  return 'Échec : ' + ((e && e.message) || 'erreur inconnue');
+}
+function pwGenValue() {
+  const al = 'abcdefghjkmnpqrstuvwxyz23456789';
+  const a = new Uint32Array(10);
+  (window.crypto || window.msCrypto).getRandomValues(a);
+  return Array.from(a).map(x => al[x % al.length]).join('');
+}
+function pwGen() { const e = document.getElementById('pw-help-pw'); if (e) e.value = pwGenValue(); }
+function pwUiInit() {
+  const sel = document.getElementById('pw-help-who');
+  if (sel) {
+    const me = coachSession && coachSession.login;
+    sel.innerHTML = COACH_LOGINS.filter(c => c.login !== me).map(c => `<option value="${c.login}">${c.name}</option>`).join('');
+  }
+}
+async function pwChange() {
+  const o = pwVal('pw-old'), n = pwVal('pw-new'), c = pwVal('pw-new2');
+  const btn = document.getElementById('pw-change-btn');
+  if (!coachSession) { pwMsg('pw-change-msg', 'Reconnecte-toi.', false); return; }
+  if (!o) { pwMsg('pw-change-msg', 'Entre ton mot de passe actuel.', false); return; }
+  if (n.length < 8) { pwMsg('pw-change-msg', 'Nouveau mot de passe : 8 caractères minimum.', false); return; }
+  if (n !== c) { pwMsg('pw-change-msg', 'La confirmation ne correspond pas.', false); return; }
+  if (n === o) { pwMsg('pw-change-msg', "Le nouveau mot de passe doit être différent de l'actuel.", false); return; }
+  btn.disabled = true; pwMsg('pw-change-msg', 'Vérification...', true);
+  try {
+    const r1 = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: coachSession.login + '@hbccs.local', password: o }),
+    });
+    const d1 = await r1.json();
+    if (!r1.ok || !d1.access_token) { pwMsg('pw-change-msg', 'Mot de passe actuel incorrect.', false); return; }
+    const r2 = await fetch(SB_URL + '/auth/v1/user', {
+      method: 'PUT', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + d1.access_token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: n }),
+    });
+    if (!r2.ok) {
+      let d2 = {}; try { d2 = await r2.json(); } catch (e) {}
+      pwMsg('pw-change-msg', 'Refusé : ' + (d2.msg || d2.message || ('HTTP ' + r2.status)), false);
+      return;
+    }
+    coachSession.access_token = d1.access_token;
+    coachSession.refresh_token = d1.refresh_token;
+    coachSession.expires_at = Date.now() + (d1.expires_in || 3600) * 1000;
+    saveCoachSession();
+    ['pw-old', 'pw-new', 'pw-new2'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    pwMsg('pw-change-msg', 'Mot de passe changé ✓', true);
+  } catch (e) {
+    pwMsg('pw-change-msg', pwErrText(e), false);
+  } finally { btn.disabled = false; }
+}
+async function pwMakeCode() {
+  if (!window.confirm("Générer un nouveau code de secours ? L'ancien (s'il existe) ne fonctionnera plus.")) return;
+  const btn = document.getElementById('pw-code-btn');
+  btn.disabled = true; pwMsg('pw-code-msg', '', true);
+  try {
+    const code = await pwRpc('coach_make_recovery_code', {}, true);
+    document.getElementById('pw-code-val').textContent = String(code);
+    document.getElementById('pw-code-box').style.display = 'block';
+    pwMsg('pw-code-msg', 'Code généré ✓', true);
+  } catch (e) {
+    pwMsg('pw-code-msg', pwErrText(e), false);
+  } finally { btn.disabled = false; }
+}
+function pwCopyCode() {
+  const t = (document.getElementById('pw-code-val') || {}).textContent || '';
+  try { navigator.clipboard.writeText(t).then(() => pwMsg('pw-code-msg', 'Copié ✓', true), () => pwMsg('pw-code-msg', 'Copie impossible : note-le à la main.', false)); }
+  catch (e) { pwMsg('pw-code-msg', 'Copie impossible : note-le à la main.', false); }
+}
+async function pwHelp() {
+  const who = pwVal('pw-help-who'), pw = pwVal('pw-help-pw');
+  const btn = document.getElementById('pw-help-btn');
+  if (!who) { pwMsg('pw-help-msg', 'Choisis un coach.', false); return; }
+  if (pw.length < 8) { pwMsg('pw-help-msg', 'Mot de passe provisoire : 8 caractères minimum.', false); return; }
+  const name = (COACH_LOGINS.find(c => c.login === who) || {}).name || who;
+  if (!window.confirm('Définir ce mot de passe provisoire pour ' + name + ' ? Il sera déconnecté de ses appareils.')) return;
+  btn.disabled = true;
+  try {
+    await pwRpc('coach_set_password', { target_login: who, new_password: pw }, true);
+    pwMsg('pw-help-msg', 'Fait ✓ Donne ce mot de passe à ' + name + ' : ' + pw + ' — il pourra le changer dans Réglages.', true);
+  } catch (e) {
+    pwMsg('pw-help-msg', pwErrText(e), false);
+  } finally { btn.disabled = false; }
+}
+function pwForgotWho() {
+  const w = document.getElementById('coachs2-forgot-who');
+  if (w) w.textContent = (COACH_LOGINS.find(c => c.login === coachAuthSelectedLogin) || {}).name || '';
+}
+function pwForgotToggle() {
+  const b = document.getElementById('coachs2-forgot');
+  if (!b) return;
+  b.style.display = b.style.display === 'none' ? 'block' : 'none';
+  pwForgotWho();
+}
+async function pwForgotSubmit() {
+  const code = pwVal('pw-f-code').trim(), n = pwVal('pw-f-new'), c = pwVal('pw-f-new2');
+  const btn = document.getElementById('pw-f-btn');
+  const login = coachAuthSelectedLogin || COACH_LOGINS[0].login;
+  if (!code) { pwMsg('pw-f-msg', 'Entre ton code de secours.', false); return; }
+  if (n.length < 8) { pwMsg('pw-f-msg', 'Nouveau mot de passe : 8 caractères minimum.', false); return; }
+  if (n !== c) { pwMsg('pw-f-msg', 'La confirmation ne correspond pas.', false); return; }
+  btn.disabled = true; pwMsg('pw-f-msg', 'Vérification...', true);
+  try {
+    const ok = await pwRpc('coach_reset_with_code', { target_login: login, code, new_password: n }, false);
+    if (ok === true) {
+      ['pw-f-code', 'pw-f-new', 'pw-f-new2'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+      document.getElementById('coachs2-forgot').style.display = 'none';
+      pwMsg('pw-f-msg', '', true);
+      const er = document.getElementById('coachs2-login-error');
+      er.style.color = '#2ecc71';
+      er.textContent = 'Mot de passe changé ✓ Connecte-toi avec le nouveau. Pense à générer un nouveau code de secours (Réglages).';
+    } else {
+      pwMsg('pw-f-msg', 'Code invalide, déjà utilisé, ou compte bloqué 15 min après 5 essais ratés. Sinon, demande à un autre coach de te dépanner.', false);
+    }
+  } catch (e) {
+    pwMsg('pw-f-msg', pwErrText(e), false);
+  } finally { btn.disabled = false; }
+}
+
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded', () => {
+  try { dispInit(); } catch (e) { console.error(e); }
   applyRole();
   initInstallBanner();
   injectExerciseImageIcons();
