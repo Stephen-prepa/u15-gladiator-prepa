@@ -1704,7 +1704,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-j</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-k</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1777,7 +1777,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-j) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-k) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -5681,7 +5681,7 @@ function crMoveBlock(bi, d) {
 function crCloneDrawings(L) {
   const map = {};
   L.drawings.forEach(d => { d.id = schUid(); (d.elements || []).forEach(e => { const n = schUid(); map[e.id] = n; e.id = n; }); });
-  L.drawings.forEach(d => (d.elements || []).forEach(e => ['fromElementId', 'toElementId', 'holderId'].forEach(k => { if (e[k] && map[e[k]]) e[k] = map[e[k]]; })));
+  L.drawings.forEach(d => (d.elements || []).forEach(e => ['fromElementId', 'toElementId', 'holderId', 'ballId'].forEach(k => { if (e[k] && map[e[k]]) e[k] = map[e[k]]; })));
 }
 function crCloneEx(x) {
   const c = JSON.parse(JSON.stringify(crNormEx(x)));
@@ -8251,7 +8251,7 @@ function seanceGoToDate(dateVal) {
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt }
-// Element : { id, type, x, y, rotation, scale, label, team, z, step, fromElementId, points:[{x,y}], w, h, delay, holderId, toElementId }
+// Element : { id, type, x, y, rotation, scale, label, team, z, step, fromElementId, points:[{x,y}], w, h, delay, holderId, toElementId, ballId (passe / tir / dribble : quel ballon, si plusieurs) }
 //   - joueurs/objets : x,y = centre ; zones : x,y = centre, w,h = dimensions (m) ; actions : points (2 = droite, 3 = Bézier quadratique, le 2e = point de contrôle)
 //   - label : 3 caractères max (30 pour TEXT)
 const SCH_PLAYERS = ['PLAYER', 'DEFENDER', 'GOALKEEPER', 'PARENT', 'COACH'];
@@ -8261,7 +8261,21 @@ const SCH_ZONES = ['ZONE_RECT', 'ZONE_CIRCLE', 'TEXT'];
 const SCH_TYPES = SCH_PLAYERS.concat(SCH_ACTIONS, SCH_OBJECTS, SCH_ZONES);
 const SCH_VIEWS = { half: { w: 20, h: 20, name: '½ terrain' }, full: { w: 40, h: 20, name: 'Terrain entier' }, goal: { w: 20, h: 11.5, name: 'Zone de but' }, free: { w: 30, h: 20, name: 'Espace libre' } };
 const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', stroke: '#14213D', att: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
-const SCH_BALL_OFF = { x: 0.85, y: -0.55 }; // position du ballon porté, par rapport au porteur
+const SCH_MAX_BALLS = 4;
+const SCH_BALL_COLS = [['#F2B705', '#14213D'], ['#2F7DE1', '#FFFFFF'], ['#1FA35C', '#FFFFFF'], ['#8E5BD9', '#FFFFFF']]; // [fond, chiffre] du ballon 1 à 4
+const SCH_BALL_OFFS = [{ x: 0.85, y: -0.55 }, { x: -0.85, y: -0.55 }, { x: 0.85, y: 0.55 }, { x: -0.85, y: 0.55 }]; // place du ballon porté, selon son numéro (deux ballons chez le même joueur ne se superposent pas)
+const SCH_BALL_OFF = SCH_BALL_OFFS[0];
+function schBallOff(i) { return SCH_BALL_OFFS[i || 0] || SCH_BALL_OFFS[0]; }
+function schBallIdx(ball, els) { let i = 0; for (const e of els) { if (e === ball || e.id === ball.id) return i; if (e.type === 'BALL') i++; } return 0; }
+function schBallSvg(x, y, k, opacity, i, multi) {
+  const o = opacity != null ? `opacity="${opacity}"` : '';
+  if (multi) {
+    const r = 0.4 * k, c = SCH_BALL_COLS[i || 0] || SCH_BALL_COLS[0];
+    return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${c[0]}" stroke="${SCH_COL.stroke}" stroke-width="0.08"/><text x="${x}" y="${y + r * 0.46}" text-anchor="middle" font-size="${r * 1.35}" font-weight="800" fill="${c[1]}" style="font-family:Arial,sans-serif;pointer-events:none;">${(i || 0) + 1}</text></g>`;
+  }
+  const r = 0.34 * k;
+  return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${SCH_COL.ball}" stroke="${SCH_COL.stroke}" stroke-width="0.07"/><path d="M${x - r} ${y} Q${x} ${y - r * 0.55} ${x + r} ${y}" fill="none" stroke="${SCH_COL.stroke}" stroke-width="0.05"/></g>`;
+}
 const SCH_PR = 0.62; // rayon d'un joueur (m)
 function schEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function schNum(v, d) { v = +v; return isFinite(v) ? v : d; }
@@ -8280,6 +8294,7 @@ function schNormElement(e) {
     if (o.points.length < 2) o.points = [{ x: o.x, y: o.y }, { x: o.x + 3, y: o.y }];
     o.delay = Math.max(0, Math.min(2, Math.round(schNum(e.delay, 0) / 0.25) * 0.25));
     if (o.type === 'PASS' && e.toElementId) o.toElementId = e.toElementId;
+    if ((o.type === 'PASS' || o.type === 'SHOT' || o.type === 'RUN') && e.ballId) o.ballId = e.ballId;
   }
   if (o.type === 'ZONE_RECT' || o.type === 'ZONE_CIRCLE') { o.w = Math.max(0.5, schNum(e.w, 4)); o.h = Math.max(0.5, schNum(e.h, 3)); }
   if (o.type === 'BALL' && e.holderId) o.holderId = e.holderId;
@@ -8309,8 +8324,8 @@ function schBallHolder(ball, els) {
 }
 // Position de départ du ballon pour l'étape : à côté du porteur s'il y en a un, sinon à sa propre position
 function schBallStart(ball, els) {
-  const h = schBallHolder(ball, els);
-  return h ? { x: h.x + SCH_BALL_OFF.x, y: h.y + SCH_BALL_OFF.y, holder: h } : { x: ball.x, y: ball.y, holder: null };
+  const h = schBallHolder(ball, els), o = schBallOff(schBallIdx(ball, els));
+  return h ? { x: h.x + o.x, y: h.y + o.y, holder: h } : { x: ball.x, y: ball.y, holder: null };
 }
 
 // ----- Géométrie des tracés -----
@@ -8356,10 +8371,6 @@ function schCourtSvg(view) {
 }
 
 // ----- Éléments -----
-function schBallSvg(x, y, k, opacity) {
-  const r = 0.34 * k;
-  return `<g ${opacity != null ? `opacity="${opacity}"` : ''}><circle cx="${x}" cy="${y}" r="${r}" fill="${SCH_COL.ball}" stroke="${SCH_COL.stroke}" stroke-width="0.07"/><path d="M${x - r} ${y} Q${x} ${y - r * 0.55} ${x + r} ${y}" fill="none" stroke="${SCH_COL.stroke}" stroke-width="0.05"/></g>`;
-}
 function schElementSvg(e, k) {
   const C = SCH_COL, x = e.x, y = e.y, s = e.scale || 1, r = SCH_PR * s, tr = e.rotation ? ` transform="rotate(${e.rotation} ${x} ${y})"` : '';
   const txt = (t, col, fs, dy) => t ? `<text x="${x}" y="${y + (dy || 0) + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${col}" style="font-family:Arial,sans-serif;pointer-events:none;">${schEsc(t)}</text>` : '';
@@ -8421,8 +8432,8 @@ function schBodySvg(f) {
   f.acts.forEach(x => { body += schActionSvg(x.a, x.badge); });
   sorted(els.filter(schIsPlayer)).forEach(e => { body += withO(e, schElementSvg(e)); });
   sorted(els.filter(e => SCH_OBJECTS.includes(e.type) && e.type !== 'HOOP')).forEach(e => { body += withO(e, schElementSvg(e)); });
-  f.ghosts.forEach(g => { body += schBallSvg(g.x, g.y, g.s || 1, schR(0.3 * (g.o == null ? 1 : g.o), 2)); });
-  f.balls.forEach(b => { body += schBallSvg(b.x, b.y, b.s || 1, b.o != null && b.o < 1 ? schR(b.o, 2) : null); });
+  f.ghosts.forEach(g => { body += schBallSvg(g.x, g.y, g.s || 1, schR(0.3 * (g.o == null ? 1 : g.o), 2), g.i, g.m); });
+  f.balls.forEach(b => { body += schBallSvg(b.x, b.y, b.s || 1, b.o != null && b.o < 1 ? schR(b.o, 2) : null, b.i, b.m); });
   sorted(els.filter(e => e.type === 'TEXT')).forEach(e => { body += withO(e, schElementSvg(e)); });
   return body;
 }
@@ -8431,7 +8442,7 @@ function schDrawingSvg(d, o) {
   o = o || {}; d = schNormDrawing(d);
   const vw = schView(d.view), els = d.elements, balls = els.filter(e => e.type === 'BALL');
   const f = { els: els.filter(e => !schIsAction(e) && e.type !== 'BALL'), acts: o.hideActions ? [] : els.filter(schIsAction).map(a => ({ a, badge: true })), balls: [], ghosts: [] };
-  balls.forEach(b => { const st = schBallStart(b, els); if (o.showBallStart !== false) f.ghosts.push({ x: st.x, y: st.y, s: b.scale }); if (!o.hideBall) f.balls.push({ x: st.x, y: st.y, s: b.scale }); });
+  balls.forEach((b, i) => { const st = schBallStart(b, els), m = balls.length > 1; if (o.showBallStart !== false) f.ghosts.push({ x: st.x, y: st.y, s: b.scale, i, m }); if (!o.hideBall) f.balls.push({ x: st.x, y: st.y, s: b.scale, i, m }); });
   return `<svg viewBox="${vw.vb.join(' ')}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;border-radius:10px;background:#fff;touch-action:manipulation;">${schCourtSvg(d.view)}${schBodySvg(f)}</svg>`;
 }
 
@@ -8458,7 +8469,7 @@ function schPosOn(base, segs, t) {
   }
   return pos;
 }
-// Plan d'un schéma : mouvements des joueurs, trajets du ballon, fenêtres de temps de chaque action, incohérences
+// Plan d'un schéma : mouvements des joueurs, trajets de CHAQUE ballon (4 au plus), fenêtres de temps de chaque action, incohérences
 function schPlan(d0) {
   const d = schNormDrawing(d0), els = d.elements, byId = {}; els.forEach(e => { byId[e.id] = e; });
   const gr = schGroups(d), sched = [];
@@ -8473,61 +8484,80 @@ function schPlan(d0) {
     const o = f && schIsPlayer(f) ? f : nearestAt(a.points[0], s.ts); own[a.id] = o;
     if (isMove(a) && o) (pre[o.id] = pre[o.id] || []).push({ t0: s.ts, t1: s.ts + SCH_DUR, pts: a.points });
   });
-  const ball = els.find(e => e.type === 'BALL');
-  const segs = {}, events = [], windows = {}, warnings = [];
-  let poss = null, ground = null, tAvail = 0, maxEnd = 0;
-  if (ball) { const st = schBallStart(ball, els); poss = st.holder ? st.holder.id : null; ground = poss ? null : { x: st.x, y: st.y }; }
+  // un état de possession PAR ballon : porteur (ou position au sol) et instant à partir duquel il peut être rejoué
+  const bs = els.filter(e => e.type === 'BALL').slice(0, SCH_MAX_BALLS).map((b, i) => {
+    const st = schBallStart(b, els), g = st.holder ? null : { x: st.x, y: st.y };
+    return { el: b, id: b.id, i, poss: st.holder ? st.holder.id : null, ground: g, tAvail: 0, init: { poss: st.holder ? st.holder.id : null, ground: g } };
+  });
+  const segs = {}, events = [], windows = {}, warnings = [], ballOf = {};
+  let maxEnd = 0;
   const addSeg = (id, t0, a) => { (segs[id] = segs[id] || []).push({ t0, t1: t0 + SCH_DUR, pts: a.points, a }); windows[a.id] = [t0, t0 + SCH_DUR]; maxEnd = Math.max(maxEnd, t0 + SCH_DUR); };
+  // quel ballon cette action déplace-t-elle ? celui qui est choisi à la main, sinon celui que tient son joueur
+  const ballFor = (a, o) => { if (a.ballId) { const z = bs.find(q => q.id === a.ballId); if (z) return z; } return o ? (bs.find(q => q.poss === o.id) || null) : null; };
   sched.forEach(s => {
     const a = s.a; let o = own[a.id], t0 = s.ts;
     const win = (w0) => { windows[a.id] = [w0, w0 + SCH_DUR]; maxEnd = Math.max(maxEnd, w0 + SCH_DUR); };
     // une action de ballon sans joueur imposé revient au porteur s'il est près de son départ (même s'il s'est déplacé entre-temps)
-    if (ball && isBall(a) && !a.fromElementId && poss && (!o || o.id !== poss)) { const pe = byId[poss], pp = schPosOn(pe, segs[poss] || [], t0), P0 = a.points[0]; if (Math.min(Math.hypot(pp.x - P0.x, pp.y - P0.y), Math.hypot(pe.x - P0.x, pe.y - P0.y)) < 1.8) o = pe; }
+    if (bs.length && isBall(a) && !a.fromElementId) {
+      const cands = a.ballId ? bs.filter(q => q.id === a.ballId) : bs;
+      if (!(o && cands.some(q => q.poss === o.id))) {
+        for (const q of cands) { if (!q.poss) continue; const pe = byId[q.poss], pp = schPosOn(pe, segs[q.poss] || [], t0), P0 = a.points[0]; if (Math.min(Math.hypot(pp.x - P0.x, pp.y - P0.y), Math.hypot(pe.x - P0.x, pe.y - P0.y)) < 1.8) { o = pe; break; } }
+      }
+    }
     if (a.type === 'MOVE' || a.type === 'SCREEN') { if (o) addSeg(o.id, t0, a); else win(t0); return; }
-    if (a.type === 'RUN') { if (o) { if (ball && poss === o.id) t0 = Math.max(t0, tAvail); else if (ball) warnings.push({ id: a.id, owner: o.id, step: a.step }); addSeg(o.id, t0, a); } else win(t0); return; }
+    if (a.type === 'RUN') {
+      if (o) { const z = ballFor(a, o); if (bs.length && z && z.poss === o.id) { t0 = Math.max(t0, z.tAvail); ballOf[a.id] = z.id; } else if (bs.length) warnings.push({ id: a.id, owner: o.id, step: a.step }); addSeg(o.id, t0, a); } else win(t0);
+      return;
+    }
     // PASS / SHOT : n'est jouée que si son joueur a le ballon ; sinon la passe est signalée et le ballon ne bouge pas (pas de passe fantôme)
-    if (!ball || !o) { win(t0); return; }
-    if (poss !== o.id) { warnings.push({ id: a.id, owner: o.id, step: a.step }); win(t0); return; }
-    t0 = Math.max(t0, tAvail); win(t0);
+    if (!bs.length || !o) { win(t0); return; }
+    const z = ballFor(a, o);
+    if (!z || z.poss !== o.id) { warnings.push({ id: a.id, owner: o.id, step: a.step }); win(t0); return; }
+    ballOf[a.id] = z.id;
+    t0 = Math.max(t0, z.tAvail); win(t0);
     const t1 = t0 + SCH_DUR, endPt = a.points[a.points.length - 1];
-    if (a.type === 'SHOT') { events.push({ type: 'SHOT', t0, t1, a, from: o.id, end: { x: endPt.x, y: endPt.y } }); poss = null; ground = { x: endPt.x, y: endPt.y }; tAvail = t1; return; }
+    if (a.type === 'SHOT') { events.push({ type: 'SHOT', t0, t1, a, from: o.id, end: { x: endPt.x, y: endPt.y }, ball: z.id }); z.poss = null; z.ground = { x: endPt.x, y: endPt.y }; z.tAvail = t1; return; }
     let to = a.toElementId && byId[a.toElementId] && schIsPlayer(byId[a.toElementId]) ? a.toElementId : null;
     if (!to) { // receveur : joueur le plus proche de la fin de la passe, à sa position au moment de l'arrivée
       let best = null, bd = 2.0;
       players.forEach(e => { if (e.id === o.id) return; const q = schPosOn(e, pre[e.id] || [], t1), dd = Math.hypot(q.x - endPt.x, q.y - endPt.y); if (dd < bd) { bd = dd; best = e.id; } });
       to = best;
     }
-    events.push({ type: 'PASS', t0, t1, a, from: o.id, to, end: { x: endPt.x, y: endPt.y } });
-    poss = to; ground = to ? null : { x: endPt.x, y: endPt.y }; tAvail = t1;
+    events.push({ type: 'PASS', t0, t1, a, from: o.id, to, end: { x: endPt.x, y: endPt.y }, ball: z.id });
+    z.poss = to; z.ground = to ? null : { x: endPt.x, y: endPt.y }; z.tAvail = t1;
   });
   Object.keys(segs).forEach(id => segs[id].sort((p, q) => p.t0 - q.t0));
   const D = Math.max(gr.total || SCH_EMPTY, maxEnd + 0.2);
-  return { d, els, byId, segs, pre, own, events, windows, warnings, D, ball, fin: { poss, ground }, init: ball ? (() => { const st = schBallStart(ball, els); return { poss: st.holder ? st.holder.id : null, ground: st.holder ? null : { x: st.x, y: st.y } }; })() : null };
+  const balls = bs.map(z => ({ el: z.el, id: z.id, i: z.i, init: z.init, fin: { poss: z.poss, ground: z.ground } }));
+  // ball / fin / init : premier ballon (compatibilité)
+  return { d, els, byId, segs, pre, own, events, windows, warnings, D, balls, ballOf, ball: balls[0] ? balls[0].el : undefined, fin: balls[0] ? balls[0].fin : { poss: null, ground: null }, init: balls[0] ? balls[0].init : null };
 }
 function schPlanState(p, tau) {
   const pos = {};
   p.els.forEach(e => { if (!schIsAction(e)) pos[e.id] = (schIsPlayer(e) ? schPosOn(e, p.segs[e.id] || [], tau) : { x: e.x, y: e.y }); });
-  const heldAt = (id, t) => { const q = schPosOn(p.byId[id], p.segs[id] || [], t); return { x: q.x + SCH_BALL_OFF.x, y: q.y + SCH_BALL_OFF.y }; };
-  let ballPos = null;
-  if (p.ball) {
-    let cur = { poss: p.init.poss, ground: p.init.ground }, done = false;
+  const heldAt = (id, t, i) => { const q = schPosOn(p.byId[id], p.segs[id] || [], t), o = schBallOff(i); return { x: q.x + o.x, y: q.y + o.y }; };
+  const bpos = {};
+  p.balls.forEach(b => {
+    let cur = { poss: b.init.poss, ground: b.init.ground }, done = false;
     for (const ev of p.events) {
+      if (ev.ball !== b.id) continue;
       if (tau < ev.t0) break;
       if (tau < ev.t1) {
         const u = schEase((tau - ev.t0) / (ev.t1 - ev.t0)), q = schPointAt(ev.a.points, u), P0 = ev.a.points[0], PE = ev.a.points[ev.a.points.length - 1];
-        const S = cur.poss ? heldAt(cur.poss, ev.t0) : { x: P0.x, y: P0.y };
-        const T = (ev.type === 'PASS' && ev.to) ? heldAt(ev.to, ev.t1) : { x: PE.x, y: PE.y };
-        ballPos = { x: q.x + (S.x - P0.x) * (1 - u) + (T.x - PE.x) * u, y: q.y + (S.y - P0.y) * (1 - u) + (T.y - PE.y) * u };
+        const S = cur.poss ? heldAt(cur.poss, ev.t0, b.i) : { x: P0.x, y: P0.y };
+        const T = (ev.type === 'PASS' && ev.to) ? heldAt(ev.to, ev.t1, b.i) : { x: PE.x, y: PE.y };
+        bpos[b.id] = { x: q.x + (S.x - P0.x) * (1 - u) + (T.x - PE.x) * u, y: q.y + (S.y - P0.y) * (1 - u) + (T.y - PE.y) * u };
         done = true; break;
       }
       cur = (ev.type === 'PASS' && ev.to) ? { poss: ev.to, ground: null } : { poss: null, ground: ev.end };
     }
-    if (!done) ballPos = cur.poss ? heldAt(cur.poss, tau) : cur.ground;
-  }
+    if (!done) bpos[b.id] = cur.poss ? heldAt(cur.poss, tau, b.i) : cur.ground;
+  });
   const drawn = {};
   p.els.forEach(e => { if (!schIsAction(e)) return; const w = p.windows[e.id]; if (!w || tau < w[0]) return; drawn[e.id] = schEase((tau - w[0]) / (w[1] - w[0])); });
-  return { pos, ball: ballPos, drawn };
+  return { pos, ball: p.balls[0] ? bpos[p.balls[0].id] : null, balls: bpos, drawn };
 }
+
 // Chronologie de l'enchaînement : étape k = [T, T + D], puis transition douce de 0,9 s vers l'étape suivante
 function schTimeline(drawings) {
   const ds = schNormDrawings(drawings); let T = 0; const ph = [];
@@ -8551,10 +8581,12 @@ function schAt(tl, t) {
     plan.els.forEach(e => { if (schIsAction(e) || e.type === 'BALL') return; const p = st.pos[e.id]; els.push({ ...e, x: p.x, y: p.y, _o: extraO && extraO[e.id] != null ? extraO[e.id] : 1 }); });
     return els;
   };
+  const startOf = (plan, b) => b.init.poss ? schBallStart(b.el, plan.els) : { x: b.init.ground.x, y: b.init.ground.y };
   if (!inTrans) {
     const st = schPlanState(ph.plan, Math.min(tau, ph.D)), f = { els: mk(ph.plan, st), acts: [], balls: [], ghosts: [] };
     ph.plan.els.forEach(a => { if (!schIsAction(a) || st.drawn[a.id] == null) return; const u = st.drawn[a.id]; f.acts.push({ a: u >= 0.999 ? a : { ...a, points: schSub(a, Math.max(0.001, u)) }, badge: false }); });
-    if (ph.plan.ball) { const s0 = ph.plan.init.poss ? schBallStart(ph.plan.ball, ph.plan.els) : { x: ph.plan.init.ground.x, y: ph.plan.init.ground.y }; f.ghosts.push({ x: s0.x, y: s0.y, s: ph.plan.ball.scale }); f.balls.push({ x: st.ball.x, y: st.ball.y, s: ph.plan.ball.scale }); }
+    const multi = ph.plan.balls.length > 1;
+    ph.plan.balls.forEach(b => { const s0 = startOf(ph.plan, b), q = st.balls[b.id]; f.ghosts.push({ x: s0.x, y: s0.y, s: b.el.scale, i: b.i, m: multi }); f.balls.push({ x: q.x, y: q.y, s: b.el.scale, i: b.i, m: multi }); });
     return { k: ph.k, view: ph.d.view, frame: f, phase: 'play' };
   }
   // transition : positions finales de l'étape k → positions de départ de l'étape k+1
@@ -8564,11 +8596,19 @@ function schAt(tl, t) {
   elsA.forEach(a => { const b = mapB[a.id]; seen[a.id] = 1; if (b) out.push({ ...b, x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e, _o: 1 }); else out.push({ ...a, _o: 1 - e }); });
   elsB.forEach(b => { if (!seen[b.id]) out.push({ ...b, _o: e }); });
   const f = { els: out, acts: [], balls: [], ghosts: [] };
-  const ba = A.ball, bb = nx.plan.ball ? (nx.plan.init.poss ? schBallStart(nx.plan.ball, nx.plan.els) : nx.plan.init.ground) : null;
-  if (ba && bb) f.balls.push({ x: ba.x + (bb.x - ba.x) * e, y: ba.y + (bb.y - ba.y) * e, s: nx.plan.ball.scale });
-  else if (ba) f.balls.push({ x: ba.x, y: ba.y, o: 1 - e, s: ph.plan.ball.scale });
-  else if (bb) f.balls.push({ x: bb.x, y: bb.y, o: e, s: nx.plan.ball.scale });
-  if (bb) f.ghosts.push({ x: bb.x, y: bb.y, o: e, s: nx.plan.ball.scale });
+  // ballons : un ballon de l'étape k est relié au ballon de l'étape k+1 qui a le même identifiant, sinon au suivant disponible
+  const Ab = ph.plan.balls, Bb = nx.plan.balls, used = new Set(), pairs = [];
+  Ab.forEach(a => { const b = Bb.find(z => z.id === a.id); if (b) used.add(b); pairs.push([a, b || null]); });
+  pairs.forEach(pr => { if (!pr[1]) { const b = Bb.find(z => !used.has(z)); if (b) { used.add(b); pr[1] = b; } } });
+  Bb.forEach(b => { if (!used.has(b)) pairs.push([null, b]); });
+  const multi = Math.max(Ab.length, Bb.length) > 1;
+  pairs.forEach(([a, b]) => {
+    const pa = a ? A.balls[a.id] : null, pb = b ? startOf(nx.plan, b) : null, i = b ? b.i : a.i, s = (b || a).el.scale;
+    if (pa && pb) f.balls.push({ x: pa.x + (pb.x - pa.x) * e, y: pa.y + (pb.y - pa.y) * e, s, i, m: multi });
+    else if (pa) f.balls.push({ x: pa.x, y: pa.y, o: 1 - e, s, i, m: multi });
+    else if (pb) f.balls.push({ x: pb.x, y: pb.y, o: e, s, i, m: multi });
+    if (pb) f.ghosts.push({ x: pb.x, y: pb.y, o: e, s, i, m: multi });
+  });
   return { k: e > 0.5 ? nx.k : ph.k, view: e > 0.5 ? nx.d.view : ph.d.view, frame: f, phase: 'trans' };
 }
 
@@ -8779,9 +8819,14 @@ function schNextLabel(els, type) {
   const used = new Set(els.filter(e => e.type === type).map(e => e.label)); let n = 1; while (used.has(String(n))) n++; return String(n);
 }
 // Numéro d'étape proposé pour une nouvelle action : une action de ballon prend le numéro suivant de la chaîne, un déplacement reprend celui de la dernière action créée
-function schAutoStep(els, type) {
+function schAutoStep(els, type, p0, plan) {
   const acts = els.filter(schIsAction), isBall = t => t === 'PASS' || t === 'SHOT' || t === 'RUN';
   if (!isBall(type)) return acts.length ? acts[acts.length - 1].step : 1;
+  // plusieurs ballons : la nouvelle action prolonge la chaîne du ballon que tient le joueur au départ du tracé (deux échanges en même temps → même numéro)
+  if (plan && p0 && plan.balls && plan.balls.length > 1) {
+    const b = plan.balls.find(z => { if (!z.fin.poss) return false; const pe = plan.byId[z.fin.poss]; return pe && schPlayerRefs(pe, plan).some(r => Math.hypot(r.x - p0.x, r.y - p0.y) < 1.8); });
+    if (b) return Math.max(0, ...acts.filter(a => plan.ballOf[a.id] === b.id).map(a => a.step)) + 1;
+  }
   return Math.max(0, ...acts.filter(a => isBall(a.type)).map(a => a.step)) + 1;
 }
 // Positions de référence d'un joueur : départ + fin de chacun de ses déplacements (là où il sera quand il reçoit / passe)
@@ -8795,17 +8840,25 @@ function schReceiverOf(a, plan) {
 }
 // Remet les numéros d'étape dans l'ordre logique de la chaîne de possession. Renvoie true si quelque chose a changé.
 function schReorder(d) {
-  const els = d.elements, ball = els.find(e => e.type === 'BALL'); if (!ball) return false;
+  const els = d.elements, balls = els.filter(e => e.type === 'BALL').slice(0, SCH_MAX_BALLS); if (!balls.length) return false;
   const plan = schPlan(d), isBall = a => a.type === 'PASS' || a.type === 'SHOT' || a.type === 'RUN', acts = els.filter(schIsAction);
   const ownerOf = a => { if (a.fromElementId && plan.byId[a.fromElementId]) return plan.byId[a.fromElementId]; let best = null, bd = 1.8; plan.els.forEach(e => { if (!schIsPlayer(e)) return; schPlayerRefs(e, plan).forEach(p => { const dd = Math.hypot(p.x - a.points[0].x, p.y - a.points[0].y); if (dd < bd) { bd = dd; best = e; } }); }); return best; };
-  const h0 = schBallHolder(ball, els); let poss = h0 ? h0.id : null;
-  const pending = acts.filter(isBall).sort((p, q) => p.step - q.step || els.indexOf(p) - els.indexOf(q)), newStep = {}; let n = 0;
-  while (pending.length) {
-    let i = pending.findIndex(a => a.type === 'RUN' && ownerOf(a) && ownerOf(a).id === poss); // un dribble précède la passe / le tir du même joueur
-    if (i < 0) i = pending.findIndex(a => { const o = ownerOf(a); return o && o.id === poss; }); if (i < 0) break;
-    const a = pending.splice(i, 1)[0]; newStep[a.id] = ++n;
-    if (a.type === 'SHOT') poss = null; else if (a.type === 'PASS') { const r = schReceiverOf(a, plan); poss = r ? r.id : null; }
+  // chaque ballon a sa propre chaîne de possession (deux ballons échangés en même temps partent chacun du numéro 1)
+  const poss = {}, cnt = {}; balls.forEach(b => { const h = schBallHolder(b, els); poss[b.id] = h ? h.id : null; cnt[b.id] = 0; });
+  const pending = acts.filter(isBall).sort((p, q) => p.step - q.step || els.indexOf(p) - els.indexOf(q)), newStep = {};
+  const mine = (a, b) => (!a.ballId || a.ballId === b.id) && poss[b.id] && ownerOf(a) && ownerOf(a).id === poss[b.id];
+  for (let progress = true; pending.length && progress;) {
+    progress = false;
+    for (const b of balls) {
+      let i = pending.findIndex(a => a.type === 'RUN' && mine(a, b)); // un dribble précède la passe / le tir du même joueur
+      if (i < 0) i = pending.findIndex(a => mine(a, b));
+      if (i < 0) continue;
+      const a = pending.splice(i, 1)[0]; newStep[a.id] = ++cnt[b.id]; progress = true;
+      if (a.type === 'SHOT') poss[b.id] = null; else if (a.type === 'PASS') { const r = schReceiverOf(a, plan); poss[b.id] = r ? r.id : null; }
+      break; // un ballon à la fois, dans l'ordre : le plus ancien sans retard d'abord
+    }
   }
+  let n = Math.max(0, ...balls.map(b => cnt[b.id]));
   pending.forEach(a => { newStep[a.id] = ++n; });
   const before = acts.map(a => a.step).join();
   // déplacements / écrans : restent simultanés avec l'action de ballon qui avait le même numéro
@@ -8828,12 +8881,12 @@ function schNextFrom(d0) {
     if (schIsPlayer(e)) { c.x = schR(st.pos[e.id].x, 2); c.y = schR(st.pos[e.id].y, 2); }
     out.push(c);
   });
-  const b = out.find(e => e.type === 'BALL');
-  if (b && plan.ball) {
-    const f = plan.fin;
-    if (f.poss && plan.byId[f.poss]) { const p = st.pos[f.poss]; b.holderId = f.poss; b.x = schR(p.x + SCH_BALL_OFF.x, 2); b.y = schR(p.y + SCH_BALL_OFF.y, 2); }
+  out.filter(e => e.type === 'BALL').forEach((b, i) => {
+    const pb = plan.balls.find(z => z.id === b.id); if (!pb) return;
+    const f = pb.fin, o = schBallOff(i);
+    if (f.poss && plan.byId[f.poss]) { const p = st.pos[f.poss]; b.holderId = f.poss; b.x = schR(p.x + o.x, 2); b.y = schR(p.y + o.y, 2); }
     else if (f.ground) { b.holderId = '-'; b.x = schR(f.ground.x, 2); b.y = schR(f.ground.y, 2); }
-  }
+  });
   return { id: schUid(), title: 'Étape', view: d.view, elements: out, updatedAt: null, validatedAt: null };
 }
 
@@ -9117,7 +9170,7 @@ function schEdUp(e) {
   if (dr.kind === 'place') { if (!dn.moved) schEdPlace(S.tool, schEdPt(e)); return; }
   if (dr.kind === 'move') {
     const el = els.find(x => x.id === dr.id);
-    if (el && el.type === 'BALL' && dn.moved) { const h = schNearestPlayer(els, el, 1.8); if (h) { el.holderId = h.id; el.x = h.x + SCH_BALL_OFF.x; el.y = h.y + SCH_BALL_OFF.y; } }
+    if (el && el.type === 'BALL' && dn.moved) { const h = schNearestPlayer(els, el, 1.8); if (h) { const bo = schBallOff(schBallIdx(el, els)); el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } }
     if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); }
     else if (!dn.moved) { schEdPanel(); }
     return;
@@ -9165,7 +9218,7 @@ function schEdFinishAction(dr) {
   if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { schEdDraw(); schEdToast('Glisse le doigt pour tracer ' + (dr.type === 'MOVE' ? 'un déplacement' : 'l\'action')); return; }
   schEdPush();
   const fit = schEdFit(dr.pts, dr.p1).map(q => ({ x: schR(schSnap(q.x, 0.1), 2), y: schR(schSnap(q.y, 0.1), 2) }));
-  const a = schNormElement({ type: dr.type, x: dr.p0.x, y: dr.p0.y, points: fit, step: schAutoStep(els, dr.type), z: Math.max(0, ...els.map(e => e.z)) + 1 });
+  const a = schNormElement({ type: dr.type, x: dr.p0.x, y: dr.p0.y, points: fit, step: schAutoStep(els, dr.type, dr.p0, S.plan || schPlan(d)), z: Math.max(0, ...els.map(e => e.z)) + 1 });
   schEdAttach(a, S.plan || schPlan(d), 'all');
   els.push(a); S.sel = a.id; schEdTools(); schEdChanged(true);
 }
@@ -9176,9 +9229,11 @@ function schEdPlace(type, pt) {
   if (type === 'TEXT') o.label = 'Texte';
   let el;
   if (type === 'BALL') {
-    el = els.find(e => e.type === 'BALL');
-    if (el) { el.x = o.x; el.y = o.y; delete el.holderId; } else { el = schNormElement(o); els.push(el); }
-    const h = schNearestPlayer(els, el, 1.8); if (h) { el.holderId = h.id; el.x = h.x + SCH_BALL_OFF.x; el.y = h.y + SCH_BALL_OFF.y; } else el.holderId = '-';
+    const nb = els.filter(e => e.type === 'BALL').length; // chaque appui pose un NOUVEAU ballon (4 au plus) ; pour déplacer un ballon, on le fait glisser
+    if (nb >= SCH_MAX_BALLS) { schEdToast(SCH_MAX_BALLS + ' ballons maximum par étape'); S.undo.pop(); return; }
+    el = schNormElement(o); els.push(el);
+    const h = schNearestPlayer(els, el, 1.8), bo = schBallOff(nb); if (h) { el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } else el.holderId = '-';
+    if (nb > 0) schEdToast('Ballon ' + (nb + 1) + ' posé');
   } else { el = schNormElement(o); els.push(el); }
   S.sel = el.id;
   if (type === 'TEXT') { S.tool = 'select'; S.group = 'tools'; }
@@ -9190,7 +9245,7 @@ function schEdPlace(type, pt) {
 function schEdDraw() {
   const S = schEd; if (!S) return;
   const d = schEdD(), els = d.elements, sc = schEdMap(S.vb).s, f = { els: els.filter(e => !schIsAction(e) && e.type !== 'BALL'), acts: els.filter(schIsAction).map(a => ({ a, badge: true })), balls: [], ghosts: [] };
-  els.filter(e => e.type === 'BALL').forEach(b => { const st = schBallStart(b, els); f.balls.push({ x: st.x, y: st.y, s: b.scale }); });
+  const bl = els.filter(e => e.type === 'BALL'); bl.forEach((b, i) => { const st = schBallStart(b, els); f.balls.push({ x: st.x, y: st.y, s: b.scale, i, m: bl.length > 1 }); });
   if (S.drag && S.drag.kind === 'new') f.acts.push({ a: schNormElement({ type: S.drag.type, points: schEdFit(S.drag.pts, S.drag.p1) }), badge: false });
   let ov = '';
   const plan = schPlan(d); (plan.warnings || []).forEach(w => { const a = plan.byId[w.id]; if (a) ov += `<circle cx="${a.points[0].x}" cy="${a.points[0].y}" r="0.95" fill="none" stroke="#E74C3C" stroke-width="0.13" stroke-dasharray="0.35 0.25"/>`; });
@@ -9208,7 +9263,7 @@ function schEdDraw() {
 }
 function schEdWarn() {
   const S = schEd; if (!S) return; const d = schEdD(), plan = schPlan(d), box = S.el.querySelector('#sche-warn'), seen = {}, lines = [];
-  plan.warnings.forEach(w => { const o = plan.byId[w.owner], k = w.owner + '|' + w.step; if (seen[k]) return; seen[k] = 1; lines.push(`${schEsc(schPlayerName(o))} n'a pas encore le ballon à l'action ${w.step}`); });
+  plan.warnings.forEach(w => { const o = plan.byId[w.owner], k = w.owner + '|' + w.step; if (seen[k]) return; seen[k] = 1; const wa = plan.byId[w.id], bi = wa && wa.ballId ? plan.balls.findIndex(z => z.id === wa.ballId) + 1 : 0; lines.push(`${schEsc(schPlayerName(o))} n'a pas encore le ballon${bi ? ' ' + bi : ''} à l'action ${w.step}`); });
   const hasBallAct = d.elements.some(e => e.type === 'PASS' || e.type === 'SHOT'), hasBall = d.elements.some(e => e.type === 'BALL');
   let h = '';
   if (lines.length) h = `<span>⚠ ${lines.slice(0, 2).join(' · ')}${lines.length > 2 ? ' · +' + (lines.length - 2) : ''}</span><button type="button" onclick="schEdReorder()">Remettre dans l'ordre logique</button>`;
@@ -9230,7 +9285,8 @@ function schEdPanel() {
   const stp = (val, a, b) => `<div class="sche-stp"><button type="button" onclick="${a}" aria-label="moins">−</button><b>${val}</b><button type="button" onclick="${b}" aria-label="plus">+</button></div>`;
   const sel = (prop, cur, list) => `<select class="sche-sel2" onchange="schEdSet('${prop}',this.value)">${list.map(o => `<option value="${schEsc(o[0])}" ${String(cur || '') === String(o[0]) ? 'selected' : ''}>${schEsc(o[1])}</option>`).join('')}</select>`;
   const plist = players.map(p => [p.id, schPlayerName(p)]);
-  let h = `<div class="sche-ph"><b>${SCH_NAMES[e.type] || e.type}</b><span class="sche-sp"></span><button type="button" onclick="schEdDup()">Dupliquer</button><button type="button" class="red" onclick="schEdDel()">Supprimer</button><button type="button" onclick="schEdSelect(null)" aria-label="Fermer le panneau">✕</button></div><div class="sche-grid">`;
+  const ballsAll = d.elements.filter(x => x.type === 'BALL'), ttl = e.type === 'BALL' && ballsAll.length > 1 ? 'Ballon ' + (ballsAll.indexOf(e) + 1) : (SCH_NAMES[e.type] || e.type);
+  let h = `<div class="sche-ph"><b>${ttl}</b><span class="sche-sp"></span><button type="button" onclick="schEdDup()">Dupliquer</button><button type="button" class="red" onclick="schEdDel()">Supprimer</button><button type="button" onclick="schEdSelect(null)" aria-label="Fermer le panneau">✕</button></div><div class="sche-grid">`;
   if (e.type === 'TEXT') h += row('Texte', `<input id="sche-label" class="sche-in" maxlength="30" value="${schEsc(e.label)}" oninput="schEdLabel(this.value)" onfocus="schEdTxtFocus()" onchange="schEdTxtDone()" style="-webkit-user-select:text;user-select:text;">`);
   else if (schIsPlayer(e)) {
     h += row('Équipe / rôle', sel('type', e.type, [['PLAYER', 'Attaque'], ['DEFENDER', 'Défense'], ['GOALKEEPER', 'Gardien']].concat(e.type === 'PARENT' || e.type === 'COACH' ? [[e.type, SCH_NAMES[e.type]]] : [])));
@@ -9240,6 +9296,7 @@ function schEdPanel() {
     h += row('Étape (n°)', stp(e.step, `schEdAdd('step',-1,1,30)`, `schEdAdd('step',1,1,30)`));
     h += row('Décalage', stp(e.delay ? '+' + String(e.delay).replace('.', ',') + ' s' : '0 s', `schEdAdd('delay',-0.25,0,2)`, `schEdAdd('delay',0.25,0,2)`));
     h += row('Part de', sel('fromElementId', e.fromElementId, [['', 'Automatique']].concat(plist)));
+    if (ballsAll.length > 1 && (e.type === 'PASS' || e.type === 'SHOT' || e.type === 'RUN')) h += row('Ballon', sel('ballId', e.ballId, [['', 'Automatique (celui du joueur)']].concat(ballsAll.map((b, i) => [b.id, 'Ballon ' + (i + 1)]))));
     if (e.type === 'PASS') h += row('Receveur', sel('toElementId', e.toElementId, [['', 'Automatique']].concat(plist.filter(p => p[0] !== e.fromElementId))));
     h += row('Tracé', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdCurve()">${e.points.length === 3 ? 'Redresser' : 'Courber'}</button></div>`);
   }
@@ -9271,13 +9328,13 @@ function schEdCurve() {
 function schEdDel() {
   const S = schEd, e = schEdSel(); if (!e) return; schEdPush(); const d = schEdD();
   d.elements = d.elements.filter(x => x !== e);
-  d.elements.forEach(x => { if (x.fromElementId === e.id) delete x.fromElementId; if (x.toElementId === e.id) delete x.toElementId; if (x.holderId === e.id) delete x.holderId; });
+  d.elements.forEach(x => { if (x.fromElementId === e.id) delete x.fromElementId; if (x.toElementId === e.id) delete x.toElementId; if (x.ballId === e.id) delete x.ballId; if (x.holderId === e.id) delete x.holderId; });
   S.sel = null; schEdTools(); schEdChanged(true); schEdBar();
 }
 function schEdDup() {
   const S = schEd, e = schEdSel(); if (!e) return; schEdPush(); const d = schEdD(), c = JSON.parse(JSON.stringify(e)); c.id = schUid(); c.z = Math.max(0, ...d.elements.map(x => x.z)) + 1;
-  if (schIsAction(e)) { c.points = c.points.map(p => ({ x: schR(p.x + 0.8, 2), y: schR(p.y + 0.8, 2) })); delete c.fromElementId; } else { c.x = schR(e.x + 0.8, 2); c.y = schR(e.y + 0.8, 2); if (schIsPlayer(e)) c.label = schNextLabel(d.elements, e.type) || e.label; }
-  if (e.type === 'BALL') { schEdToast('Un seul ballon par étape'); S.undo.pop(); return; }
+  if (schIsAction(e)) { c.points = c.points.map(p => ({ x: schR(p.x + 0.8, 2), y: schR(p.y + 0.8, 2) })); delete c.fromElementId; delete c.ballId; } else { c.x = schR(e.x + 0.8, 2); c.y = schR(e.y + 0.8, 2); if (schIsPlayer(e)) c.label = schNextLabel(d.elements, e.type) || e.label; }
+  if (e.type === 'BALL') { if (d.elements.filter(x => x.type === 'BALL').length >= SCH_MAX_BALLS) { schEdToast(SCH_MAX_BALLS + ' ballons maximum par étape'); S.undo.pop(); return; } const p0 = schEdPos(e, d.elements); c.holderId = '-'; c.x = schR(p0.x + 0.8, 2); c.y = schR(p0.y + 0.8, 2); }
   const n = schNormElement(c); d.elements.push(n); S.sel = n.id; schEdChanged(true); schEdBar();
 }
 
