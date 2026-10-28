@@ -1772,7 +1772,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-r</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-s</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1845,7 +1845,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-r) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-s) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -8846,7 +8846,7 @@ function schPlDraw() {
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [
-  { id: 'tools', name: 'Outils', tools: [['select', 'Sélection'], ['pan', 'Déplacer la vue']] },
+  { id: 'tools', name: 'Outils', tools: [['select', 'Sélection'], ['multi', 'Sélection multiple'], ['pan', 'Déplacer la vue']] },
   { id: 'players', name: 'Joueurs', tools: [['PLAYER', 'Attaquant'], ['DEFENDER', 'Défenseur'], ['GOALKEEPER', 'Gardien']] },
   { id: 'actions', name: 'Actions', tools: [['MOVE', 'Déplacement'], ['PASS', 'Passe'], ['RUN', 'Dribble'], ['SHOT', 'Tir'], ['SCREEN', 'Écran']] },
   { id: 'objects', name: 'Objets', tools: [['BALL', 'Ballon'], ['CONE', 'Plot'], ['DISC', 'Disque'], ['POLE', 'Jalon'], ['HOOP', 'Cerceau'], ['HURDLE', 'Haie'], ['POPUP_GOAL', 'Mini-but'], ['BALLOON', 'Baudruche'], ['BALL_BOX', 'Bac ballons']] },
@@ -9121,8 +9121,9 @@ function schEdKey(e) {
   const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
   if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? schEdRedo() : schEdUndo(); }
   else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); schEdRedo(); }
+  else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && schEd.tool === 'multi' && schEdMultiIds().length) { e.preventDefault(); schEdMultiDel(); }
   else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && schEd.sel) { e.preventDefault(); schEdDel(); }
-  else if (e.key === 'Escape') { if (typing) document.activeElement.blur(); else { schEd.sel = null; schEd.drag = null; schEdDraw(); schEdPanel(); schEdTools(); } }
+  else if (e.key === 'Escape') { if (typing) document.activeElement.blur(); else { schEd.sel = null; schEdMultiSet([]); schEd.drag = null; schEdDraw(); schEdPanel(); schEdTools(); } }
 }
 
 // ----- Barre d'étapes et d'actions générales -----
@@ -9171,17 +9172,18 @@ function schEdAfterHistory() { const S = schEd; S.k = Math.min(S.k, S.ex.drawing
 
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
-const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'SHOT', 'select', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', '@d06', '@d15', '@att', 'pan'];
+const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', '@d06', '@d15', '@att', 'pan'];
 // Ordre effectif des outils : celui choisi dans Réglages (cet appareil), complété par les outils manquants dans l'ordre par défaut
 function schToolOrder() {
   const out = [], saved = (typeof dispCfg !== 'undefined' && dispCfg && Array.isArray(dispCfg.toolOrder)) ? dispCfg.toolOrder : [];
   saved.forEach(id => { if (SCH_TOOL_ORDER.includes(id) && !out.includes(id)) out.push(id); });
-  SCH_TOOL_ORDER.forEach(id => { if (!out.includes(id)) out.push(id); });
+  SCH_TOOL_ORDER.forEach((id, i) => { if (out.includes(id)) return; const prev = i > 0 ? out.indexOf(SCH_TOOL_ORDER[i - 1]) : -1; if (prev >= 0) out.splice(prev + 1, 0, id); else out.push(id); });
   return out;
 }
 function schToolLabel(id) {
   if (id[0] === '@') return '⊞ ' + SCH_PRESETS[id.slice(1)].name;
   if (id === 'select') return '☝ Sélection';
+  if (id === 'multi') return '⬚ Sélection multiple';
   if (id === 'pan') return '✥ Déplacer la vue';
   let n = id; SCH_GROUPS.forEach(g => g.tools.forEach(t => { if (t[0] === id) n = t[1]; })); return n;
 }
@@ -9205,7 +9207,7 @@ function schEdTools() {
   if (S.sel && S.tool !== 'select') h += `<button type="button" class="sche-tool acc" onclick="schEdTool('select')"><span class="sche-ic">✎</span><span class="sche-lb">Options</span></button>`;
   items.forEach(t => {
     if (t.pre) { h += `<button type="button" class="sche-tool pre" onclick="schEdPreset('${t.pre}')"><span class="sche-ic">⊞</span><span class="sche-lb">${t.label}</span></button>`; return; }
-    const icon = t.id === 'select' ? '<span class="sche-ic">☝</span>' : t.id === 'pan' ? '<span class="sche-ic">✥</span>' : schToolIcon(t.id);
+    const icon = t.id === 'select' ? '<span class="sche-ic">☝</span>' : t.id === 'multi' ? '<span class="sche-ic">⬚</span>' : t.id === 'pan' ? '<span class="sche-ic">✥</span>' : schToolIcon(t.id);
     h += `<button type="button" class="sche-tool ${S.tool === t.id ? 'on' : ''}" onclick="schEdTool('${t.id}')" aria-label="${schEsc(t.label)}" title="${schEsc(t.label)}">${icon}<span class="sche-lb">${t.label}</span></button>`;
   });
   box.innerHTML = h + more + '</div>';
@@ -9213,6 +9215,7 @@ function schEdTools() {
 function schEdMore(on) { schEd.more = !!on; schEdTools(); }
 function schEdGroup(id) { const g = SCH_GROUPS.find(x => x.id === id); if (!g) return; schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!g.tools.some(t => t[0] === schEd.tool)) schEd.tool = g.tools[0][0]; schEdTools(); schEdPanel(); }
 function schEdTool(t) {
+  if (t === 'multi' && schEd.tool !== 'multi') { schEdMultiSet(schEd.sel ? [schEd.sel] : schEdMultiIds()); schEd.sel = null; } else if (t !== 'multi' && schEd.tool === 'multi') schEdMultiSet([]);
   schEd.tool = t; const g = SCH_GROUPS.find(x => x.tools.some(y => y[0] === t)); if (g) schEd.group = g.id; if (t !== 'select') schEd.drag = null;
   schEdTools(); schEdPanel(); schEdDraw();
 }
@@ -9273,6 +9276,50 @@ function schEdHit(pt, o) {
 
 // ----- Gestes -----
 function schEdSelect(id) { schEd.sel = id; schEdTools(); schEdPanel(); schEdDraw(); }
+// ----- Sélection multiple -----
+function schEdMultiIds() { const S = schEd; if (!S || !S.multi || S.multiK !== S.k) return []; const els = schEdD().elements; return S.multi.filter(id => els.some(e => e.id === id)); }
+function schEdMultiSet(ids) { schEd.multi = ids.slice(); schEd.multiK = schEd.k; }
+function schEdMultiPts(e, els) { return schIsAction(e) ? e.points : [schEdPos(e, els)]; }
+function schEdMultiAll() { schEdMultiSet(schEdD().elements.map(e => e.id)); schEdPanel(); schEdDraw(); }
+function schEdMultiClear() { schEdMultiSet([]); schEdPanel(); schEdDraw(); }
+function schEdMultiDel() {
+  const S = schEd, ids = schEdMultiIds(); if (!ids.length) return; schEdPush(); const d = schEdD();
+  d.elements = d.elements.filter(x => !ids.includes(x.id));
+  d.elements.forEach(x => { ['fromElementId', 'toElementId', 'ballId', 'holderId'].forEach(k => { if (ids.includes(x[k])) delete x[k]; }); });
+  schEdMultiSet([]); schEdTools(); schEdChanged(true); schEdToast(ids.length + ' élément' + (ids.length > 1 ? 's supprimés' : ' supprimé'));
+}
+// Duplique la sélection : liens (joueur ↔ passe ↔ ballon) conservés entre les copies, ou retirés si l'autre bout n'est pas copié ; copies décalées de 1 m et sélectionnées
+function schEdMultiDup() {
+  const S = schEd, ids = schEdMultiIds(); if (!ids.length) return; schEdPush();
+  const d = schEdD(), V = SCH_VIEWS[d.view] || SCH_VIEWS.half, src = d.elements.filter(e => ids.includes(e.id)), map = {}, pairs = [], OFF = 1;
+  let x1 = 0, y1 = 0; src.forEach(e => schEdMultiPts(e, d.elements).forEach(p => { x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y); }));
+  const dx = x1 + OFF <= V.w ? OFF : -OFF, dy = y1 + OFF <= V.h ? OFF : -OFF;
+  src.forEach(e => { const c = JSON.parse(JSON.stringify(e)); c.id = schUid(); map[e.id] = c.id; pairs.push([e, c]); });
+  let z = Math.max(0, ...d.elements.map(x => x.z || 0)); const tmp = d.elements.slice(), out = [];
+  pairs.forEach(([e, c]) => {
+    c.z = ++z;
+    if (schIsAction(e)) { c.points = c.points.map(p => ({ x: schR(p.x + dx, 2), y: schR(p.y + dy, 2) })); ['fromElementId', 'toElementId', 'ballId'].forEach(k => { if (c[k]) { if (map[c[k]]) c[k] = map[c[k]]; else delete c[k]; } }); }
+    else if (e.type === 'BALL') { if (e.holderId && e.holderId !== '-' && map[e.holderId]) c.holderId = map[e.holderId]; else { const p0 = schEdPos(e, d.elements); c.holderId = '-'; c.x = schR(p0.x + dx, 2); c.y = schR(p0.y + dy, 2); } }
+    else { c.x = schR(e.x + dx, 2); c.y = schR(e.y + dy, 2); if (schIsPlayer(e)) c.label = schNextLabel(tmp, e.type) || e.label; }
+    const n = schNormElement(c); tmp.push(n); out.push(n);
+  });
+  out.forEach(n => d.elements.push(n)); schEdMultiSet(out.map(n => n.id)); schEdChanged(true);
+  schEdToast(out.length + ' élément' + (out.length > 1 ? 's dupliqués' : ' dupliqué') + ' (décalés de 1 m) : glisse-les pour les placer');
+}
+function schEdMultiPanel() {
+  const ids = schEdMultiIds(), n = ids.length;
+  const b = (fn, lab, cls, dis) => `<button type="button" ${cls ? `class="${cls}"` : ''} ${dis ? 'disabled style="opacity:.35"' : ''} onclick="${fn}">${lab}</button>`;
+  return `<div class="sche-ph"><b>${n ? n + ' élément' + (n > 1 ? 's sélectionnés' : ' sélectionné') : 'Sélection multiple'}</b><span class="sche-sp"></span>${b('schEdMultiDup()', 'Dupliquer', '', !n)}${b('schEdMultiDel()', 'Supprimer', 'red', !n)}</div>`
+    + `<div class="sche-row sche-wide" style="flex-direction:row;gap:8px;flex-wrap:wrap;">${b('schEdMultiAll()', 'Tout sélectionner', 'sche-all')}${b('schEdMultiClear()', 'Tout désélectionner', 'sche-all', !n)}</div>`
+    + `<div class="sche-hint">Touche des éléments pour les ajouter ou les retirer, ou trace un rectangle sur le terrain pour en prendre plusieurs. Glisse un élément sélectionné pour déplacer tout le groupe. Touche le terrain vide pour tout désélectionner.</div>`;
+}
+function schEdRingSvg(e, els, col, sc) {
+  if (schIsAction(e)) { const Sm = schSample(e.points, 24); return `<polyline points="${Sm.map(p => p.x + ',' + p.y).join(' ')}" fill="none" stroke="${col}" stroke-opacity="0.55" stroke-width="0.55" stroke-linecap="round" stroke-linejoin="round"/>`; }
+  if (e.type === 'ZONE_RECT') return `<rect x="${e.x - e.w / 2}" y="${e.y - e.h / 2}" width="${e.w}" height="${e.h}" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
+  if (e.type === 'ZONE_CIRCLE') return `<ellipse cx="${e.x}" cy="${e.y}" rx="${e.w / 2}" ry="${e.h / 2}" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
+  const p = schEdPos(e, els), r = e.type === 'TEXT' ? Math.max(1, e.label.length * 0.95 * (e.scale || 1) * 0.35) + 0.3 : Math.max(0.9, schEdRad(e) + 0.3);
+  return `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.45 0.3"/>`;
+}
 function schEdDown(e) {
   const S = schEd; if (!S) return;
   if (e.pointerType === 'mouse' && e.button > 0) return;
@@ -9287,6 +9334,16 @@ function schEdDown(e) {
   const pt = schEdPt(e), tool = S.tool, d = schEdD();
   S.down = { id: e.pointerId, cx: e.clientX, cy: e.clientY, moved: false, pt, hit: null };
   if (tool === 'pan') { S.drag = { kind: 'pan', vb0: { ...S.vb } }; return; }
+  if (tool === 'multi') {
+    const hit = schEdHit(pt, { handles: false }), els0 = d.elements;
+    if (hit && hit.kind === 'el') {
+      let ids = schEdMultiIds(); const was = ids.includes(hit.e.id); if (!was) { ids = ids.concat(hit.e.id); schEdMultiSet(ids); schEdPanel(); }
+      const orig = {}, bb = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
+      ids.forEach(id => { const e = els0.find(x => x.id === id); if (!e) return; orig[id] = schIsAction(e) ? { pts: e.points.map(p => ({ ...p })) } : { p: schEdPos(e, els0), holder: e.holderId }; schEdMultiPts(e, els0).forEach(p => { bb.x0 = Math.min(bb.x0, p.x); bb.y0 = Math.min(bb.y0, p.y); bb.x1 = Math.max(bb.x1, p.x); bb.y1 = Math.max(bb.y1, p.y); }); });
+      S.drag = { kind: 'mmove', ids, orig, bb, pt0: pt, snap0: schEdSnapStr(), tapId: was ? hit.e.id : null }; schEdDraw(); return;
+    }
+    S.drag = { kind: 'lasso', p0: pt, p1: pt }; return;
+  }
   if (SCH_ACTIONS.includes(tool)) { S.plan = schPlan(d); const q0 = schEdClampPt(pt); S.drag = { kind: 'new', type: tool, p0: q0, p1: q0, pts: [q0] }; return; }
   const hit = tool === 'BALL' ? null : schEdHit(pt, tool === 'select' ? {} : { zones: false, actions: false, handles: false }); // le ballon se pose sur un joueur : pas de sélection
   S.down.hit = hit;
@@ -9324,6 +9381,18 @@ function schEdMove(e) {
   const pt = schEdPt(e), d = schEdD(), els = d.elements;
   if (dr.kind === 'new') { dr.p1 = schEdClampPt(pt); const L = dr.pts[dr.pts.length - 1]; if (Math.hypot(dr.p1.x - L.x, dr.p1.y - L.y) > 0.15) dr.pts.push(dr.p1); schEdDraw(); return; }
   if (!dn.moved) return;
+  if (dr.kind === 'lasso') { dr.p1 = pt; schEdDraw(); return; }
+  if (dr.kind === 'mmove') {
+    const V = SCH_VIEWS[d.view] || SCH_VIEWS.half, bb = dr.bb;
+    const dx = Math.max(-bb.x0, Math.min(V.w - bb.x1, schSnap(pt.x - dr.pt0.x, 0.25))), dy = Math.max(-bb.y0, Math.min(V.h - bb.y1, schSnap(pt.y - dr.pt0.y, 0.25)));
+    dr.ids.forEach(id => {
+      const el = els.find(x => x.id === id), o = dr.orig[id]; if (!el || !o) return;
+      if (schIsAction(el)) el.points = o.pts.map(p => ({ x: schR(p.x + dx, 2), y: schR(p.y + dy, 2) }));
+      else if (el.type === 'BALL') { if (o.holder && o.holder !== '-' && dr.ids.includes(o.holder)) return; el.holderId = '-'; el.x = schR(o.p.x + dx, 2); el.y = schR(o.p.y + dy, 2); }
+      else { el.x = schR(o.p.x + dx, 2); el.y = schR(o.p.y + dy, 2); }
+    });
+    schEdDraw(); return;
+  }
   if (dr.kind === 'move') {
     const el = els.find(x => x.id === dr.id); if (!el) return; const q = schEdClampPt({ x: pt.x - dr.off.x, y: pt.y - dr.off.y });
     if (el.type === 'BALL') { el.holderId = '-'; el.x = schSnap(q.x, 0.25); el.y = schSnap(q.y, 0.25); }
@@ -9360,9 +9429,27 @@ function schEdUp(e) {
   try { S.stage.releasePointerCapture(e.pointerId); } catch (x) {}
   if (S.pinch) { if (S.ptrs.size < 2) S.pinch = null; S.down = null; S.drag = null; return; }
   const dn = S.down, dr = S.drag; S.down = null; S.drag = null;
-  if (!dn || dn.id !== e.pointerId || !dr || e.type === 'pointercancel') { if (dr && dr.snap0 && e.type === 'pointercancel') { S.drag = dr; schEdCancelDrag(); } return; }
+  if (!dn || dn.id !== e.pointerId || !dr || e.type === 'pointercancel') { if (dr && dr.snap0 && e.type === 'pointercancel') { S.drag = dr; schEdCancelDrag(); } if (dr && dr.kind === 'lasso') schEdDraw(); return; }
   const d = schEdD(), els = d.elements;
   if (dr.kind === 'new') { schEdFinishAction(dr); return; }
+  if (dr.kind === 'lasso') {
+    if (dn.moved) {
+      const a = dr.p0, b = dr.p1, x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y), cur = schEdMultiIds();
+      const inside = els.filter(e => schEdMultiPts(e, els).every(p => p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1)).map(e => e.id);
+      schEdMultiSet(cur.concat(inside.filter(id => !cur.includes(id))));
+    } else schEdMultiSet([]);
+    schEdPanel(); schEdDraw(); return;
+  }
+  if (dr.kind === 'mmove') {
+    if (!dn.moved) { if (dr.tapId) schEdMultiSet(schEdMultiIds().filter(id => id !== dr.tapId)); schEdPanel(); schEdDraw(); return; }
+    dr.ids.forEach(id => {
+      const el = els.find(x => x.id === id); if (!el) return;
+      if (schIsAction(el)) { if (el.fromElementId && !dr.ids.includes(el.fromElementId)) delete el.fromElementId; if (el.toElementId && !dr.ids.includes(el.toElementId)) delete el.toElementId; }
+      else if (el.type === 'BALL' && el.holderId === '-') { const h = schNearestPlayer(els, el, 1.8); if (h) { const bo = schBallOff(schBallIdx(el, els)); el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } }
+    });
+    if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); } else schEdPanel();
+    return;
+  }
   if (dr.kind === 'place') { if (!dn.moved) schEdPlace(S.tool, schEdPt(e)); return; }
   if (dr.kind === 'move') {
     const el = els.find(x => x.id === dr.id);
@@ -9454,6 +9541,10 @@ function schEdDraw() {
     else { const p = schEdPos(sel, els), r = sel.type === 'TEXT' ? Math.max(1, sel.label.length * 0.95 * (sel.scale || 1) * 0.35) + 0.3 : Math.max(0.9, schEdRad(sel) + 0.3); ov += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.45 0.3"/>`; }
     schEdHandles(sel).forEach(h => { ov += `<circle cx="${h.x}" cy="${h.y}" r="${hr}" fill="${h.k === 'mid' ? HY : 'rgba(255,255,255,0.6)'}" stroke="#14213D" stroke-width="${hr * 0.2}"/>`; });
   }
+  if (S.tool === 'multi') {
+    const MC = '#00B7FF'; schEdMultiIds().forEach(id => { const e = els.find(x => x.id === id); if (e) ov += schEdRingSvg(e, els, MC, sc); });
+    const dl = S.drag; if (dl && dl.kind === 'lasso' && S.down && S.down.moved) ov += `<rect x="${Math.min(dl.p0.x, dl.p1.x)}" y="${Math.min(dl.p0.y, dl.p1.y)}" width="${Math.abs(dl.p1.x - dl.p0.x)}" height="${Math.abs(dl.p1.y - dl.p0.y)}" fill="rgba(0,183,255,0.14)" stroke="${MC}" stroke-width="${2 / sc}" stroke-dasharray="${6 / sc} ${4 / sc}"/>`;
+  }
   const vb = S.vb;
   S.stage.innerHTML = `<svg viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;display:block;background:transparent;touch-action:none;">${schCourtSvg(d.view)}${schBodySvg(f)}${ov}</svg>`;
 }
@@ -9475,6 +9566,7 @@ function schEdReorder() {
 // ----- Panneau d'options -----
 function schEdPanel() {
   const S = schEd; if (!S) return; const e = schEdSel(), box = S.el.querySelector('#sche-panel');
+  if (S.tool === 'multi') { box.style.display = ''; box.innerHTML = schEdMultiPanel(); return; }
   if (!e || S.tool !== 'select') { box.style.display = ''; box.innerHTML = `<div class="sche-hint">${e ? 'Outil actif : touche le terrain pour placer. Touche « Options » (en bas) pour régler l\'élément sélectionné.' : 'Touche un élément du terrain pour régler ses options (couleur, taille, numéro, étape…).'}</div>`; return; }
   const d = schEdD(), players = d.elements.filter(schIsPlayer), isAct = schIsAction(e), isZone = e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE';
   const row = (lab, body) => `<div class="sche-row"><span class="sche-lab">${lab}</span>${body}</div>`;
@@ -10678,10 +10770,10 @@ function dispRenderUi() {
   try {
     const to = schToolOrder();
     to.forEach((id, k) => {
-      const ico = id[0] === '@' ? '⊞' : id === 'select' ? '☝' : id === 'pan' ? '✥' : schToolIcon(id);
+      const ico = id[0] === '@' ? '⊞' : id === 'select' ? '☝' : id === 'multi' ? '⬚' : id === 'pan' ? '✥' : schToolIcon(id);
       h += `<div class="disp-row" data-tool="${id}">
         <input type="checkbox" ${tp.hidden.includes(id) ? '' : 'checked'} onchange="dispToolHide('${id}',!this.checked)" style="width:18px;height:18px;" aria-label="Afficher dans la barre">
-        <span class="disp-ico">${ico}</span><span class="nm">${schToolLabel(id).replace(/^[⊞☝✥] /, '')}</span>
+        <span class="disp-ico">${ico}</span><span class="nm">${schToolLabel(id).replace(/^[⊞☝⬚✥] /, '')}</span>
         <button type="button" class="disp-mini" ${k === 0 ? 'disabled' : ''} onclick="dispToolMove('${id}','top')" aria-label="Tout en haut">⤒</button>
         <button type="button" class="disp-mini" ${k === 0 ? 'disabled' : ''} onclick="dispToolMove('${id}',-1)" aria-label="Monter">↑</button>
         <button type="button" class="disp-mini" ${k >= to.length - 1 ? 'disabled' : ''} onclick="dispToolMove('${id}',1)" aria-label="Descendre">↓</button>
