@@ -554,13 +554,16 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .sche .sche-b.dis{opacity:.35;}
 .sche .sche-sep{flex:none;width:1px;height:24px;background:rgba(255,255,255,0.2);margin:0 2px;}
 .sche .sche-sel{flex:none;height:38px;border-radius:9px;border:1px solid rgba(255,255,255,0.25);background:#0B1220;color:#fff;font-size:13px;padding:0 6px;font-family:inherit;}
-.sche .sche-main{flex:1;min-height:0;position:relative;margin:0 4px;border-radius:8px;overflow:hidden;background:#D5DFEC;}
+.sche .sche-main{flex:1;min-height:0;position:relative;margin:0 4px;border-radius:8px;overflow:hidden;background:#D5DFEC;display:flex;flex-direction:column;}
+.sche .sche-board{position:relative;flex:1;min-height:0;min-width:0;}
 .sche .sche-stage{position:absolute;inset:0;touch-action:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
 .sche .sche-warn{position:absolute;left:6px;right:6px;top:6px;background:rgba(255,244,214,0.96);color:#7A4B00;border:1px solid #F5C400;border-radius:9px;padding:6px 8px;font-size:12px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:2;}
 .sche .sche-warn button{border:0;background:#14213D;color:#fff;border-radius:8px;padding:8px 10px;font-weight:800;font-size:12px;font-family:inherit;cursor:pointer;min-height:36px;}
-.sche .sche-panel{position:absolute;left:0;right:0;bottom:0;background:rgba(11,18,32,0.97);border-top:2px solid #F5C400;padding:8px 10px 10px;z-index:3;max-height:55%;overflow-y:auto;touch-action:pan-y;-webkit-user-select:none;}
+.sche .sche-panel{flex:none;position:relative;background:#0B1220;border-top:2px solid #F5C400;padding:6px 10px 8px;z-index:3;max-height:30vh;overflow-y:auto;touch-action:pan-y;-webkit-user-select:none;}
+/* écran large ou téléphone couché : les options passent à droite de la planche (qui reste entière) ; sinon elles sont rangées sous la planche, sans la recouvrir */
+@media (min-width:900px),(orientation:landscape) and (min-width:600px){.sche .sche-main{flex-direction:row;}.sche .sche-panel{width:clamp(250px,34vw,340px);max-height:none;border-top:0;border-left:2px solid #F5C400;}.sche .sche-grid{grid-template-columns:1fr;}}
 .sche .sche-ph{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:14px;}
-.sche .sche-ph button{border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;border-radius:8px;height:40px;padding:0 12px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;}
+.sche .sche-ph button{border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;border-radius:8px;height:38px;padding:0 12px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;}
 .sche .sche-ph button.red{border-color:#E8543A;color:#FF8A73;}
 .sche .sche-sp{flex:1;}
 .sche .sche-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;}
@@ -1750,7 +1753,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-o</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-q</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1823,7 +1826,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-o) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-q) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -6034,12 +6037,11 @@ function crExFlat() { const out = []; crCur.blocks.forEach((b, bi) => (b.exercis
 function crExNum(bi, ei) { return crExFlat().findIndex(a => a[0] === bi && a[1] === ei) + 1; }
 function crOpenEx(bi, ei, fresh) {
   crPlayStop();
-  crEx = { bi, ei, tab: 'consignes' };
+  crEx = { bi, ei, tab: 'consignes' }; crExInfoOpen = false;
   document.getElementById('cr-edit-view').style.display = 'none';
   document.getElementById('cr-ex-view').style.display = '';
   crRenderExView();
   window.scrollTo(0, 0);
-  if (fresh) { const el = document.getElementById('cr-ex-name'); if (el) { el.focus(); el.select(); } }
 }
 function crCloseEx() {
   crPlayStop();
@@ -6050,7 +6052,7 @@ function crExNav(d) {
   const f = crExFlat(), i = f.findIndex(a => a[0] === crEx.bi && a[1] === crEx.ei), j = i + d;
   if (j < 0 || j >= f.length) return;
   crPlayStop();
-  crEx = { bi: f[j][0], ei: f[j][1], tab: crEx.tab };
+  crEx = { bi: f[j][0], ei: f[j][1], tab: crEx.tab }; crExInfoOpen = false;
   crRenderExView(); window.scrollTo(0, 0);
 }
 function crGrow(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(el.scrollHeight, 42) + 'px'; }
@@ -6116,6 +6118,8 @@ function crExMin(d) {
   document.getElementById('cr-ex-min').value = x.minutes; crTouch();
 }
 function crExTab(k) { crEx.tab = k; crRenderExView(); }
+// Volet « Descriptif de l'exercice » : même mécanisme que « Informations générales » de la séance ; replié à chaque ouverture d'un exercice (la place tactique est tout de suite visible)
+let crExInfoOpen = false;
 function crRenderExView() {
   const x = crCurEx(), p = crCur, b = p.blocks[crEx.bi];
   const flat = crExFlat(), idx = flat.findIndex(a => a[0] === crEx.bi && a[1] === crEx.ei), tot = flat.length;
@@ -6146,7 +6150,10 @@ function crRenderExView() {
     </div>
     <div class="cr-ex-grid"><div>
     <div class="cr-card">
-      <label class="cr-lbl" style="margin-top:0;">Nom de l’exercice</label>
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="crExInfoOpen=!crExInfoOpen;document.getElementById('cr-ex-info').style.display=crExInfoOpen?'':'none';this.querySelector('span').textContent=crExInfoOpen?'▲':'▼';">
+        <div style="font-size:16px;font-weight:800;color:var(--blanc);">Descriptif de l’exercice</div><span style="color:var(--gris-texte);">${crExInfoOpen ? '▲' : '▼'}</span></div>
+      <div id="cr-ex-info" style="${crExInfoOpen ? '' : 'display:none;'}">
+      <label class="cr-lbl" style="margin-top:10px;">Nom de l’exercice</label>
       <input class="cr-in" id="cr-ex-name" value="${crEsc(x.name)}" oninput="crExHeadSet('name',this.value)">
       <label class="cr-lbl">Objectif</label>
       <textarea class="cr-in cr-grow" rows="2" placeholder="Ce que les joueurs doivent savoir faire à la fin de l’exercice" oninput="crExHeadSet('objective',this.value);crGrow(this)">${crEsc(x.objective)}</textarea>
@@ -6163,6 +6170,7 @@ function crRenderExView() {
         <div><label class="cr-lbl">Ballons</label><input type="number" inputmode="numeric" min="0" class="cr-in" value="${crEsc(x.balls)}" oninput="crExHeadSet('balls',this.value)"></div></div>
       <label class="cr-lbl">Espace</label>
       <input class="cr-in" placeholder="½ terrain, 20 x 20 m…" value="${crEsc(x.space)}" oninput="crExHeadSet('space',this.value)">
+      </div>
     </div>
     <div class="cr-card">
       <div style="font-size:15px;font-weight:800;color:var(--blanc);margin-bottom:8px;">Place tactique${nSteps > 1 ? ' · ' + nSteps + ' étapes' : ''}</div>
@@ -8524,6 +8532,7 @@ function schBodySvg(f) {
   sorted(els.filter(e => e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE')).forEach(e => { body += withO(e, schElementSvg(e)); });
   sorted(els.filter(e => e.type === 'HOOP')).forEach(e => { body += withO(e, schElementSvg(e)); });
   f.acts.forEach(x => { body += schActionSvg(x.a, x.badge); });
+  sorted(f.pghosts || []).forEach(e => { body += withO(e, schElementSvg(e)); });
   sorted(els.filter(schIsPlayer)).forEach(e => { body += withO(e, schElementSvg(e)); });
   sorted(els.filter(e => SCH_OBJECTS.includes(e.type) && e.type !== 'HOOP')).forEach(e => { body += withO(e, schElementSvg(e)); });
   f.ghosts.forEach(g => { body += schBallSvg(g.x, g.y, g.s || 1, schR(0.3 * (g.o == null ? 1 : g.o), 2), g.i, g.m); });
@@ -8665,6 +8674,28 @@ function schSub(a, u) { // sous-courbe [0,u] d'un tracé (droite ou Bézier quad
   return e ? [P[0], c, end] : P;
 }
 // Cadre à l'instant t (secondes depuis le début de l'enchaînement)
+// Filigranes de l'animation : ils apparaissent quand l'élément quitte sa place (ballon : point de départ du porteur et départ de chaque passe / tir, après ses déplacements ; joueur : sa position de départ)
+// et disparaissent à la fin de l'étape, sans passer à l'étape suivante.
+const SCH_GHOST_OPACITY = 0.3;  // transparence du filigrane
+const SCH_GHOST_END = 0;        // MOMENT DE DISPARITION (s) par rapport à la fin de l'étape : 0 = à la fin ; -0,5 = 0,5 s avant ; +0,3 = 0,3 s après
+const SCH_GHOST_FADE = 0.35;    // durée (s) du fondu de disparition
+function schGhostFade(tau, D) { const t1 = D + SCH_GHOST_END; return tau <= t1 ? 1 : Math.max(0, 1 - (tau - t1) / SCH_GHOST_FADE); }
+function schBallStart0(plan, b) { return b.init.poss ? schBallStart(b.el, plan.els) : { x: b.init.ground.x, y: b.init.ground.y }; }
+function schGhosts(plan, tau) {
+  const st = schPlanState(plan, tau), multi = plan.balls.length > 1, out = { balls: [], players: [] }, same = (p, q) => Math.hypot(p.x - q.x, p.y - q.y) < 0.06;
+  plan.els.forEach(e => { if (!schIsPlayer(e)) return; const p = st.pos[e.id]; if (p && Math.hypot(p.x - e.x, p.y - e.y) > 0.08) out.players.push({ ...e }); });
+  plan.balls.forEach(b => {
+    const s0 = schBallStart0(plan, b), cur = st.balls[b.id], pts = [];
+    if (cur && Math.hypot(cur.x - s0.x, cur.y - s0.y) > 0.08) pts.push(s0);
+    plan.events.forEach(ev => {
+      if (ev.ball !== b.id || tau < ev.t0 || !ev.from || !plan.byId[ev.from]) return;
+      const q = schPosOn(plan.byId[ev.from], plan.segs[ev.from] || [], ev.t0), o = schBallOff(b.i), S = { x: q.x + o.x, y: q.y + o.y };
+      if (!pts.some(p => same(p, S))) pts.push(S);
+    });
+    pts.forEach(p => out.balls.push({ x: p.x, y: p.y, s: b.el.scale, i: b.i, m: multi }));
+  });
+  return out;
+}
 function schAt(tl, t) {
   t = Math.max(0, Math.min(tl.total, t));
   let ph = tl.ph[tl.ph.length - 1];
@@ -8675,12 +8706,14 @@ function schAt(tl, t) {
     plan.els.forEach(e => { if (schIsAction(e) || e.type === 'BALL') return; const p = st.pos[e.id]; els.push({ ...e, x: p.x, y: p.y, _o: extraO && extraO[e.id] != null ? extraO[e.id] : 1 }); });
     return els;
   };
-  const startOf = (plan, b) => b.init.poss ? schBallStart(b.el, plan.els) : { x: b.init.ground.x, y: b.init.ground.y };
+  const startOf = schBallStart0;
+  const addGhosts = (f, plan, tau, fade) => { if (fade <= 0) return; const g = schGhosts(plan, tau); g.balls.forEach(b => f.ghosts.push({ ...b, o: fade })); g.players.forEach(e => f.pghosts.push({ ...e, _o: SCH_GHOST_OPACITY * fade })); };
   if (!inTrans) {
-    const st = schPlanState(ph.plan, Math.min(tau, ph.D)), f = { els: mk(ph.plan, st), acts: [], balls: [], ghosts: [] };
+    const st = schPlanState(ph.plan, Math.min(tau, ph.D)), f = { els: mk(ph.plan, st), acts: [], balls: [], ghosts: [], pghosts: [] };
     ph.plan.els.forEach(a => { if (!schIsAction(a) || st.drawn[a.id] == null) return; const u = st.drawn[a.id]; f.acts.push({ a: u >= 0.999 ? a : { ...a, points: schSub(a, Math.max(0.001, u)) }, badge: false }); });
     const multi = ph.plan.balls.length > 1;
-    ph.plan.balls.forEach(b => { const s0 = startOf(ph.plan, b), q = st.balls[b.id]; f.ghosts.push({ x: s0.x, y: s0.y, s: b.el.scale, i: b.i, m: multi }); f.balls.push({ x: q.x, y: q.y, s: b.el.scale, i: b.i, m: multi }); });
+    ph.plan.balls.forEach(b => { const q = st.balls[b.id]; f.balls.push({ x: q.x, y: q.y, s: b.el.scale, i: b.i, m: multi }); });
+    addGhosts(f, ph.plan, Math.min(tau, ph.D), schGhostFade(tau, ph.D));
     return { k: ph.k, view: ph.d.view, frame: f, phase: 'play' };
   }
   // transition : positions finales de l'étape k → positions de départ de l'étape k+1
@@ -8689,7 +8722,8 @@ function schAt(tl, t) {
   const out = [], seen = {};
   elsA.forEach(a => { const b = mapB[a.id]; seen[a.id] = 1; if (b) out.push({ ...b, x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e, _o: 1 }); else out.push({ ...a, _o: 1 - e }); });
   elsB.forEach(b => { if (!seen[b.id]) out.push({ ...b, _o: e }); });
-  const f = { els: out, acts: [], balls: [], ghosts: [] };
+  const f = { els: out, acts: [], balls: [], ghosts: [], pghosts: [] };
+  addGhosts(f, ph.plan, ph.D, schGhostFade(tau, ph.D)); // fin du fondu des filigranes de l'étape qui se termine ; l'étape suivante n'en reçoit aucun
   // ballons : un ballon de l'étape k est relié au ballon de l'étape k+1 qui a le même identifiant, sinon au suivant disponible
   const Ab = ph.plan.balls, Bb = nx.plan.balls, used = new Set(), pairs = [];
   Ab.forEach(a => { const b = Bb.find(z => z.id === a.id); if (b) used.add(b); pairs.push([a, b || null]); });
@@ -8701,7 +8735,6 @@ function schAt(tl, t) {
     if (pa && pb) f.balls.push({ x: pa.x + (pb.x - pa.x) * e, y: pa.y + (pb.y - pa.y) * e, s, i, m: multi });
     else if (pa) f.balls.push({ x: pa.x, y: pa.y, o: 1 - e, s, i, m: multi });
     else if (pb) f.balls.push({ x: pb.x, y: pb.y, o: e, s, i, m: multi });
-    if (pb) f.ghosts.push({ x: pb.x, y: pb.y, o: e, s, i, m: multi });
   });
   return { k: e > 0.5 ? nx.k : ph.k, view: e > 0.5 ? nx.d.view : ph.d.view, frame: f, phase: 'trans' };
 }
@@ -8914,14 +8947,23 @@ function schNextLabel(els, type) {
 }
 // Numéro d'étape proposé pour une nouvelle action : une action de ballon prend le numéro suivant de la chaîne, un déplacement reprend celui de la dernière action créée
 function schAutoStep(els, type, p0, plan) {
-  const acts = els.filter(schIsAction), isBall = t => t === 'PASS' || t === 'SHOT' || t === 'RUN';
-  if (!isBall(type)) return acts.length ? acts[acts.length - 1].step : 1;
-  // plusieurs ballons : la nouvelle action prolonge la chaîne du ballon que tient le joueur au départ du tracé (deux échanges en même temps → même numéro)
-  if (plan && p0 && plan.balls && plan.balls.length > 1) {
-    const b = plan.balls.find(z => { if (!z.fin.poss) return false; const pe = plan.byId[z.fin.poss]; return pe && schPlayerRefs(pe, plan).some(r => Math.hypot(r.x - p0.x, r.y - p0.y) < 1.8); });
-    if (b) return Math.max(0, ...acts.filter(a => plan.ballOf[a.id] === b.id).map(a => a.step)) + 1;
-  }
-  return Math.max(0, ...acts.filter(a => isBall(a.type)).map(a => a.step)) + 1;
+  const acts = els.filter(schIsAction), isBall = t => t === 'PASS' || t === 'SHOT' || t === 'RUN', moveLike = t => t === 'MOVE' || t === 'RUN' || t === 'SCREEN';
+  // chaînes de ballon : la nouvelle action prolonge celle du ballon que tient le joueur au départ du tracé (plusieurs ballons) ; sinon dernier numéro de ballon + 1
+  const ballStep = () => {
+    if (plan && p0 && plan.balls && plan.balls.length > 1) {
+      const b = plan.balls.find(z => { if (!z.fin.poss) return false; const pe = plan.byId[z.fin.poss]; return pe && schPlayerRefs(pe, plan).some(r => Math.hypot(r.x - p0.x, r.y - p0.y) < 1.8); });
+      if (b) return Math.max(0, ...acts.filter(a => plan.ballOf[a.id] === b.id).map(a => a.step)) + 1;
+    }
+    return Math.max(0, ...acts.filter(a => isBall(a.type)).map(a => a.step)) + 1;
+  };
+  // joueur concerné (le plus proche du départ du tracé, départ ou fin de ses déplacements) et numéro de son dernier déplacement
+  let own = null, refIdx = -1;
+  if (plan && p0) { let bd = 1.8; plan.els.forEach(e => { if (!schIsPlayer(e)) return; schPlayerRefs(e, plan).forEach((r, k) => { const dd = Math.hypot(r.x - p0.x, r.y - p0.y); if (dd < bd) { bd = dd; own = e; refIdx = k; } }); }); }
+  const lastMove = own ? Math.max(0, ...acts.filter(a => moveLike(a.type) && plan.own[a.id] && plan.own[a.id].id === own.id).map(a => a.step)) : 0;
+  if (!isBall(type)) { const base = acts.length ? acts[acts.length - 1].step : 1; return lastMove ? Math.max(base, lastMove + 1) : base; } // un joueur qui enchaîne ses déplacements : l'un après l'autre, dans l'ordre de création
+  const base = ballStep();
+  if (type === 'RUN') return lastMove ? Math.max(base, lastMove + 1) : base;
+  return lastMove && refIdx > 0 ? Math.max(base, lastMove + 1) : base; // passe / tir tracés depuis la position atteinte après un déplacement : ils partent après ce déplacement
 }
 // Positions de référence d'un joueur : départ + fin de chacun de ses déplacements (là où il sera quand il reçoit / passe)
 function schPlayerRefs(e, plan) { const r = [{ x: e.x, y: e.y }]; ((plan && plan.pre[e.id]) || []).forEach(s => { const q = s.pts[s.pts.length - 1]; r.push({ x: q.x, y: q.y }); }); return r; }
@@ -9022,7 +9064,7 @@ function schEditorOpen(exIdx, onClose) {
   const el = document.createElement('div'); el.id = 'sch-editor'; el.className = 'sche';
   el.style.cssText = 'position:fixed;inset:0;z-index:99990;background:#0B1220;display:flex;flex-direction:column;color:#fff;font-family:Arial,sans-serif;-webkit-user-select:none;user-select:none;overscroll-behavior:none;';
   el.innerHTML = `<div class="sche-top"><button type="button" class="sche-btn" id="sche-close" aria-label="Fermer">✕</button><input id="sche-name" class="sche-name" maxlength="60" placeholder="Nom de l'exercice" style="-webkit-user-select:text;user-select:text;"><span class="sche-saved" id="sche-saved"></span></div>`
-    + `<div class="sche-bar" id="sche-bar"></div><div class="sche-main"><div class="sche-stage" id="sche-stage"></div><div class="sche-warn" id="sche-warn"></div><div class="sche-panel" id="sche-panel"></div><div class="sche-toast" id="sche-toast"></div></div><div class="sche-tools" id="sche-tools"></div>`;
+    + `<div class="sche-bar" id="sche-bar"></div><div class="sche-main"><div class="sche-board"><div class="sche-stage" id="sche-stage"></div><div class="sche-warn" id="sche-warn"></div><div class="sche-toast" id="sche-toast"></div></div><div class="sche-panel" id="sche-panel"></div></div><div class="sche-tools" id="sche-tools"></div>`;
   document.documentElement.appendChild(el);
   schEd = { ex, onClose: onClose || null, k: 0, tool: 'select', group: 'tools', sel: null, vb: null, undo: [], redo: [], ptrs: new Map(), drag: null, down: null, pinch: null, el, stage: el.querySelector('#sche-stage'), prevOverflow: document.documentElement.style.overflow, touch: false, penAt: 0 };
   schEd.vb = schEdBaseVb(); document.documentElement.style.overflow = 'hidden';
@@ -9102,7 +9144,7 @@ function schEdAfterHistory() { const S = schEd; S.k = Math.min(S.k, S.ex.drawing
 
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
-const SCH_TOOL_ORDER = ['select', 'BALL', 'MOVE', 'PASS', 'PLAYER', 'DEFENDER', 'RUN', 'SHOT', 'GOALKEEPER', 'SCREEN', 'CONE', 'DISC', 'POLE', 'HOOP', 'HURDLE', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', '@d06', '@d15', '@att', 'pan'];
+const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'SHOT', 'select', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', '@d06', '@d15', '@att', 'pan'];
 function schEdTools() {
   const S = schEd, box = S.el.querySelector('#sche-tools'), names = {};
   SCH_GROUPS.forEach(g => g.tools.forEach(t => { names[t[0]] = t[1]; }));
@@ -9402,7 +9444,7 @@ function schEdPanel() {
     h += `<div class="sche-row sche-wide"><button type="button" class="sche-all" onclick="schEdApplyAll()">Appliquer couleur et taille à ${nm} de l'étape</button></div>`;
   }
   if (isAct) {
-    h += row('Étape (n°)', stp(e.step, `schEdAdd('step',-1,1,30)`, `schEdAdd('step',1,1,30)`));
+    h += row('Étape (n°)', `<div class="sche-stp"><button type="button" onclick="schEdAdd('step',-1,1,30)" aria-label="moins">−</button><input type="number" inputmode="numeric" min="1" max="30" class="sche-in" style="width:64px;text-align:center;padding:0 4px;" value="${e.step}" onchange="schEdStepSet(this.value)" aria-label="Numéro d'étape"><button type="button" onclick="schEdAdd('step',1,1,30)" aria-label="plus">+</button></div>`);
     // passe / tir d'un joueur qui court dans la même étape : le décalage se lit en « moment de sa course » (Début, ¼, ½, ⅔, ⅚, Fin) plutôt qu'en secondes
     let dLab = 'Décalage', dVal = e.delay ? '+' + String(e.delay).replace('.', ',') + ' s' : '0 s';
     if (e.type === 'PASS' || e.type === 'SHOT') {
@@ -9436,6 +9478,7 @@ function schEdSet(prop, val) {
   if (prop === 'type' && val === 'GOALKEEPER' && /^\d$/.test(e.label)) e.label = '';
   schEdChanged(true); schEdBar();
 }
+function schEdStepSet(v) { const e = schEdSel(); if (!e || !schIsAction(e)) return; v = Math.max(1, Math.min(30, Math.round(+v) || e.step)); if (v === e.step) { schEdPanel(); return; } schEdPush(); e.step = v; schEdChanged(true); }
 function schEdAdd(prop, delta, lo, hi) {
   const e = schEdSel(); if (!e) return; schEdPush(); let v = (e[prop] || 0) + delta;
   if (prop === 'rotation') v = (v + 360) % 360; else v = Math.max(lo, Math.min(hi, v));
