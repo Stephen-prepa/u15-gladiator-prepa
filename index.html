@@ -547,6 +547,22 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .sche .sche-stage,.sche .sche-stage *{touch-action:none;}
 .sche .sche-panel,.sche .sche-panel *{touch-action:pan-y;}
 @media (pointer:coarse){.sche input,.sche textarea,.sche .sche-sel2{font-size:16px !important;}}
+.sche .sche-ask{position:absolute;inset:0;z-index:30;background:rgba(5,10,20,0.68);display:flex;align-items:center;justify-content:center;padding:16px;}
+.sche .sche-ask-card{background:#0B1220;border:2px solid #F5C400;border-radius:14px;padding:14px;width:min(380px,100%);box-sizing:border-box;max-height:100%;overflow-y:auto;}
+.sche .sche-ask-t{font-size:17px;font-weight:800;color:#fff;}
+.sche .sche-ask-s{font-size:12px;color:#8FA3BF;margin:2px 0 10px;}
+.sche .sche-ask-b{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-bottom:8px;min-height:58px;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.28);background:rgba(255,255,255,0.06);color:#fff;font-family:inherit;cursor:pointer;}
+.sche .sche-ask-b:first-of-type{border-color:#F5C400;background:rgba(245,196,0,0.12);}
+.sche .sche-ask-i{font-size:22px;width:28px;text-align:center;flex:none;}
+.sche .sche-ask-b b{display:block;font-size:15px;}
+.sche .sche-ask-b small{display:block;font-size:11px;color:#9FB1CC;margin-top:2px;font-weight:400;}
+.sche .sche-ask-l{font-size:11px;color:#8FA3BF;margin:8px 0 4px;}
+.sche .sche-ask-r{display:flex;gap:6px;flex-wrap:wrap;}
+.sche .sche-ask-chip{min-height:40px;padding:0 12px;border-radius:9px;border:1px solid rgba(255,255,255,0.28);background:transparent;color:#C9D4E5;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.sche .sche-ask-chip.on{border-color:#F5C400;color:#F5C400;background:rgba(245,196,0,0.14);}
+.sche .sche-ask-p{font-size:12px;color:#C9D4E5;margin:10px 0;line-height:1.45;}
+.sche .sche-ask-b.go{border-color:#F5C400;background:#F5C400;color:#111;justify-content:center;}
+.sche .sche-ask-c{width:100%;min-height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.22);background:transparent;color:#C9D4E5;font-family:inherit;font-size:14px;cursor:pointer;}
 .sche .sche-top{display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));}
 .sche .sche-btn{border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#fff;border-radius:10px;min-width:44px;height:44px;font-size:18px;cursor:pointer;font-family:inherit;}
 .sche .sche-name{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-size:16px;padding:0 10px;font-family:inherit;box-sizing:border-box;}
@@ -607,6 +623,9 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .sche .sche-tools[data-mode=text] .sche-tool{font-size:12px;}
 .sche .sche-tools[data-mode=text][data-size=s] .sche-tool{font-size:10px;}
 .sche .sche-tools[data-mode=text][data-size=l] .sche-tool{font-size:15px;}
+.disp-kbd{min-width:34px;text-align:center;padding:3px 7px;border-radius:6px;border:1px solid rgba(128,150,190,0.5);font-family:monospace;font-size:12px;color:var(--blanc);background:var(--noir);white-space:nowrap;}
+.disp-kbd.cap{border-color:var(--jaune);color:var(--jaune);}
+.disp-kbd.none{opacity:.45;}
 .disp-ico{width:30px;flex:none;text-align:center;font-size:18px;line-height:28px;color:var(--gris-clair);}
 .disp-ico svg{width:28px;height:28px;background:#fff;border-radius:5px;display:block;}
 .sche .sche-toast{position:absolute;left:50%;transform:translateX(-50%);top:46px;background:#14213D;color:#fff;border-radius:18px;padding:8px 14px;font-size:12px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5;max-width:92%;text-align:center;}
@@ -1772,7 +1791,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-t</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-w</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1845,7 +1864,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-t) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-w) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -9125,14 +9144,70 @@ function schEditorClose() {
   if (cb) { try { cb(ex0); } catch (e) {} }
 }
 function schEdResize() { if (schEd) { schEdDraw(); schEdTools(); } }
+// ----- Raccourcis clavier (ordinateur) : réglables dans Réglages ; ceux de base (Ctrl+Z, Ctrl+Y, Suppr, Échap) restent fixes -----
+const SCH_KEY_DEFAULTS = { 'tool:select': 'A', 'tool:multi': 'Z', play: 'Space' }; // touches par défaut (modifiables)
+const SCH_KEY_RESERVED = ['Escape', 'Delete', 'Backspace', 'Tab', 'Enter'];
+function schKeyCombo(e) {
+  let k = e.key; if (!k || k === 'Dead' || k === 'Unidentified' || ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'AltGraph'].includes(k)) return '';
+  if (e.ctrlKey || e.metaKey) return '';
+  if (k === ' ') k = 'Space';
+  else if (k.length === 1) { if (e.altKey && /^Key[A-Z]$/.test(e.code || '')) k = e.code.slice(3); else if (!/^[0-9]$/.test(k) && /^Digit[0-9]$/.test(e.code || '') && !e.shiftKey) k = e.code.slice(5); else k = k.toUpperCase(); }
+  return [e.altKey ? 'Alt' : '', e.shiftKey ? 'Shift' : '', k].filter(Boolean).join('+');
+}
+function schKeyLabel(c) { return c ? c.replace('Space', 'Espace').replace('ArrowLeft', '←').replace('ArrowRight', '→').replace('ArrowUp', '↑').replace('ArrowDown', '↓').replace('Delete', 'Suppr').replace('Backspace', 'Retour arrière').replace('Escape', 'Échap').replace('Enter', 'Entrée') : ''; }
+function schKeyOf(id) { const k = (typeof dispCfg !== 'undefined' && dispCfg && dispCfg.keys) || {}; return Object.prototype.hasOwnProperty.call(k, id) ? k[id] : (SCH_KEY_DEFAULTS[id] || ''); }
+function schKeyTool(id) {
+  const S = schEd; if (!S) return;
+  if (id === 'select') { if (S.tool === 'select' && S.sel) schEdSelect(null); else schEdTool('select'); }                     // A : outil Sélection ; encore une fois : désélectionne
+  else if (id === 'multi') { if (S.tool === 'multi' && schEdMultiIds().length) schEdMultiClear(); else schEdTool('multi'); }     // Z : outil Sélection multiple ; encore une fois : désélectionne
+  else if (id[0] === '@') schEdPreset(id.slice(1));
+  else schEdTool(id);
+}
+function schKeyActions() {
+  const A = [], add = (id, label, group, run, repeat) => A.push({ id, label, group, run, repeat: !!repeat });
+  const sel = () => schEdSel(), onSel = fn => () => { const e = sel(); if (e) fn(e); };
+  add('play', '▶ Animer', 'Actions', () => { const i = schDemo.indexOf(schEd.ex); if (i >= 0) schPlayerOpen(i); });
+  add('undo', 'Annuler', 'Actions', () => schEdUndo(), true);
+  add('redo', 'Rétablir', 'Actions', () => schEdRedo(), true);
+  add('next', '➜ Étape suivante (demande : continuer, copier ou vierge)', 'Actions', () => schEdNextAsk());
+  add('addstep', '＋ Ajouter une étape vide (planche vierge)', 'Actions', () => schEdAddStep());
+  add('repeat', '🔁 Reproduire l\'enchaînement (2ᵉ groupe)', 'Actions', () => schEdRepeatUi());
+  add('prev', 'Aller à l\'étape précédente', 'Actions', () => schEdGo(schEd.k - 1));
+  add('nextnav', 'Aller à l\'étape suivante', 'Actions', () => schEdGo(schEd.k + 1));
+  add('validate', '✓ Valider / dévalider l\'étape', 'Actions', () => schEdValidate());
+  add('dupstep', '⧉ Dupliquer l\'étape', 'Actions', () => schEdDupStep());
+  add('delstep', '🗑 Supprimer l\'étape', 'Actions', () => schEdDelStep());
+  add('view', 'Changer de terrain (½ terrain, entier…)', 'Actions', () => { const ks = Object.keys(SCH_VIEWS); schEdView(ks[(ks.indexOf(schEdD().view) + 1) % ks.length]); });
+  add('recenter', '⤢ Recentrer la vue', 'Actions', () => schEdRecenter());
+  add('dup', 'Dupliquer la sélection', 'Actions', () => { if (schEd.tool === 'multi') schEdMultiDup(); else if (sel()) schEdDup(); });
+  add('del', 'Supprimer la sélection', 'Actions', () => { if (schEd.tool === 'multi') schEdMultiDel(); else if (sel()) schEdDel(); });
+  add('selall', 'Tout sélectionner', 'Actions', () => { if (schEd.tool !== 'multi') schEdTool('multi'); schEdMultiAll(); });
+  add('desel', 'Tout désélectionner', 'Actions', () => { schEd.sel = null; schEdMultiSet([]); schEd.drag = null; schEdDraw(); schEdPanel(); schEdTools(); });
+  add('rotL', 'Pivoter de 15° à gauche', 'Actions', onSel(e => { if (!schIsAction(e)) schEdAdd('rotation', -15, 0, 360); }), true);
+  add('rotR', 'Pivoter de 15° à droite', 'Actions', onSel(e => { if (!schIsAction(e)) schEdAdd('rotation', 15, 0, 360); }), true);
+  add('sizeM', 'Réduire la taille', 'Actions', onSel(e => { if (schIsAction(e)) return; if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') schEdZone(-0.5); else schEdAdd('scale', -0.2, 0.4, 3); }), true);
+  add('sizeP', 'Agrandir', 'Actions', onSel(e => { if (schIsAction(e)) return; if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') schEdZone(0.5); else schEdAdd('scale', 0.2, 0.4, 3); }), true);
+  add('stepM', 'N° d\'étape de l\'action −1', 'Actions', onSel(e => { if (schIsAction(e)) schEdAdd('step', -1, 1, 30); }), true);
+  add('stepP', 'N° d\'étape de l\'action +1', 'Actions', onSel(e => { if (schIsAction(e)) schEdAdd('step', 1, 1, 30); }), true);
+  SCH_TOOL_ORDER.forEach(id => add('tool:' + id, 'Outil : ' + schToolLabel(id).replace(/^[⊞☝⬚✥] /, ''), 'Outils', () => schKeyTool(id)));
+  return A;
+}
+function schKeyHandle(e) {
+  const c = schKeyCombo(e); if (!c) return false;
+  const a = schKeyActions().find(x => schKeyOf(x.id) === c); if (!a) return false;
+  if (e.repeat && !a.repeat) return true;
+  a.run(); return true;
+}
 function schEdKey(e) {
   if (!schEd || schPl) return;
+  if (schEd.el.querySelector('#sche-ask')) { if (e.key === 'Escape') { e.preventDefault(); schEdAsk(0); } return; }
   const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
   if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? schEdRedo() : schEdUndo(); }
   else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); schEdRedo(); }
   else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && schEd.tool === 'multi' && schEdMultiIds().length) { e.preventDefault(); schEdMultiDel(); }
   else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && schEd.sel) { e.preventDefault(); schEdDel(); }
   else if (e.key === 'Escape') { if (typing) document.activeElement.blur(); else { schEd.sel = null; schEdMultiSet([]); schEd.drag = null; schEdDraw(); schEdPanel(); schEdTools(); } }
+  else if (!typing && !e.ctrlKey && !e.metaKey) { let h = false; try { h = schKeyHandle(e); } catch (x) { console.error(x); } if (h) { e.preventDefault(); e.stopPropagation(); if (document.activeElement && document.activeElement.blur && document.activeElement !== document.body) document.activeElement.blur(); } }
 }
 
 // ----- Barre d'étapes et d'actions générales -----
@@ -9142,7 +9217,7 @@ function schEdBar() {
   const b = (fn, label, extra, title) => `<button type="button" class="sche-b ${extra || ''}" onclick="${fn}" ${title ? `aria-label="${title}" title="${title}"` : ''}>${label}</button>`;
   bar.innerHTML = b('schEdUndo()', '↶', S.undo.length ? '' : 'dis', 'Annuler') + b('schEdRedo()', '↷', S.redo.length ? '' : 'dis', 'Rétablir')
     + ex.drawings.map((x, i) => b(`schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + stl(x), i === S.k ? 'on' : '', narrow ? 'Étape ' + stl(x) : '')).join('')
-    + b('schEdAddStep()', '＋', '', 'Ajouter une étape vide') + b('schEdNext()', '➜ Suivante', 'acc', 'Valider cette étape et créer la suivante à partir de celle-ci') + b(`schPlayerOpen(${schDemo.indexOf(ex)})`, '▶ Animer', 'acc')
+    + b('schEdNextAsk()', '➜ Suivante', 'acc', 'Étape suivante : continuer l\'action, copier cette étape ou partir d\'une planche vierge') + b(`schPlayerOpen(${schDemo.indexOf(ex)})`, '▶ Animer', 'acc')
     + b('schEdValidate()', narrow ? '✓' : (schEdIsValid(d) ? '✓ Validée' : '✓ Valider'), schEdIsValid(d) ? 'on' : '', 'Valider l\'étape') + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape')
     + `<select class="sche-sel" onchange="schEdView(this.value)" aria-label="Terrain">${Object.keys(SCH_VIEWS).map(k => `<option value="${k}" ${d.view === k ? 'selected' : ''}>${SCH_VIEWS[k].name}</option>`).join('')}</select>`
     + b('schEdRecenter()', '⤢', '', 'Recentrer la vue');
@@ -9155,6 +9230,62 @@ function schEdGo(i) { const S = schEd; if (i < 0 || i >= S.ex.drawings.length) r
 function schEdRetitle() { schEd.ex.drawings.forEach((d, i) => { if (/^Étape( \d+)?$/.test(d.title)) d.title = 'Étape ' + (i + 1); }); }
 function schEdAddStep() {
   const S = schEd; schEdPush(); S.ex.drawings.push(schNormDrawing({ title: 'Étape', view: schEdD().view })); schEdRetitle(); S.k = S.ex.drawings.length - 1; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
+}
+// « Suivante » : continuer l'action (position finale), copier l'étape (variante) ou planche vierge
+function schEdNextAsk() {
+  const S = schEd; if (!S || S.el.querySelector('#sche-ask')) return;
+  const t = schEsc(schEdD().title || 'cette étape'), btn = (k, ic, h, sub) => `<button type="button" class="sche-ask-b" onclick="schEdAsk(${k})"><span class="sche-ask-i">${ic}</span><span><b>${h}</b><small>${sub}</small></span></button>`;
+  const o = document.createElement('div'); o.id = 'sche-ask'; o.className = 'sche-ask';
+  o.innerHTML = `<div class="sche-ask-card" role="dialog" aria-label="Étape suivante"><div class="sche-ask-t">Étape suivante</div><div class="sche-ask-s">À partir de « ${t} » :</div>`
+    + btn(1, '➜', 'Continuer l\'action', 'Joueurs et ballon repartent de leur position finale')
+    + btn(2, '⧉', 'Copier « ' + t + ' »', 'Pour une variante : même schéma, à modifier')
+    + btn(3, '▢', 'Planche vierge', 'Repartir de zéro sur le même terrain')
+    + btn(4, '🔁', 'Reproduire l\'enchaînement', 'Même schéma avec un 2ᵉ groupe (en miroir…), sur de nouvelles étapes')
+    + `<button type="button" class="sche-ask-c" onclick="schEdAsk(0)">Annuler</button></div>`;
+  o.addEventListener('pointerdown', ev => { if (ev.target === o) schEdAsk(0); });
+  S.el.appendChild(o);
+}
+function schEdAsk(k) { if (k === 4) { schEdRepeatUi(); return; } const o = schEd && schEd.el.querySelector('#sche-ask'); if (o) o.remove(); if (k === 1) schEdNext(); else if (k === 2) schEdDupStep(); else if (k === 3) schEdAddStep(); }
+// ----- Reproduire l'enchaînement : l'étape en cours est recopiée sur de nouvelles étapes avec un 2ᵉ groupe (nouveaux joueurs / ballons), en miroir ou à la même place -----
+function schEdRepeatCard() {
+  const S = schEd, R = S.rep, k0 = S.k, chip = (on, lab, fn) => `<button type="button" class="sche-ask-chip${on ? ' on' : ''}" onclick="${fn}">${lab}</button>`;
+  const side = i => R.mode === 'same' ? 'même place' : (i % 2 === 0 ? 'en miroir ' + (R.mode === 'y' ? '(haut ⇄ bas)' : '(gauche ⇄ droite)') : 'comme l\'original');
+  let seq = ''; for (let i = 0; i < R.n; i++) seq += `<div>Étape ${k0 + 2 + i} : ${side(i)}, avec un nouveau groupe</div>`;
+  return `<div class="sche-ask-t">Reproduire l'enchaînement</div><div class="sche-ask-s">« ${schEsc(schEdD().title)} » est recopiée sur de nouvelles étapes, jouées l'une après l'autre.</div>`
+    + `<div class="sche-ask-l">Combien de fois</div><div class="sche-ask-r">${[1, 2, 3].map(n => chip(R.n === n, String(n), `schEdRepSet('n',${n})`)).join('')}</div>`
+    + `<div class="sche-ask-l">Où</div><div class="sche-ask-r">${chip(R.mode === 'x', 'Miroir gauche ⇄ droite', `schEdRepSet('mode','x')`)}${chip(R.mode === 'y', 'Miroir haut ⇄ bas', `schEdRepSet('mode','y')`)}${chip(R.mode === 'same', 'Même place', `schEdRepSet('mode','same')`)}</div>`
+    + `<div class="sche-ask-p">${seq}<div style="margin-top:4px;">Joueurs, ballons, passes, courses, tirs et numéros d'ordre sont copiés tels quels ; le groupe de l'étape précédente s'efface, le nouveau groupe apparaît.</div></div>`
+    + `<button type="button" class="sche-ask-b go" onclick="schEdRepeat(${R.n}, '${R.mode}')"><span class="sche-ask-i">🔁</span><span><b>Créer ${R.n} étape${R.n > 1 ? 's' : ''}</b></span></button><button type="button" class="sche-ask-c" onclick="schEdAsk(0)">Annuler</button>`;
+}
+function schEdRepeatUi() {
+  const S = schEd; if (!S) return; if (!S.rep) S.rep = { n: 1, mode: 'x' };
+  let o = S.el.querySelector('#sche-ask');
+  if (!o) { o = document.createElement('div'); o.id = 'sche-ask'; o.className = 'sche-ask'; o.addEventListener('pointerdown', ev => { if (ev.target === o) schEdAsk(0); }); o.innerHTML = '<div class="sche-ask-card" role="dialog" aria-label="Reproduire l\'enchaînement"></div>'; S.el.appendChild(o); }
+  o.querySelector('.sche-ask-card').innerHTML = schEdRepeatCard();
+}
+function schEdRepSet(k, v) { schEd.rep[k] = v; schEdRepeatUi(); }
+// symétrie d'un élément copié (axe : 'x' = gauche ⇄ droite, 'y' = haut ⇄ bas)
+function schEdMirrorEl(c, axis, W, H) {
+  const fx = v => schR(W - v, 2), fy = v => schR(H - v, 2), mx = axis === 'x';
+  if (schIsAction(c)) { c.points = c.points.map(p => ({ x: mx ? fx(p.x) : p.x, y: mx ? p.y : fy(p.y) })); return; }
+  if (mx) c.x = fx(c.x); else c.y = fy(c.y);
+  if (c.rotation) c.rotation = (((c.type === 'DEFENDER' && !mx ? 180 - c.rotation : -c.rotation) % 360) + 360) % 360;
+  else if (c.type === 'DEFENDER' && !mx) c.rotation = 180;
+}
+function schEdRepeat(n, mode) {
+  const S = schEd, d = schEdD(), V = SCH_VIEWS[d.view] || SCH_VIEWS.half; n = Math.max(1, Math.min(3, Math.round(n) || 1));
+  const o = S.el.querySelector('#sche-ask'); if (o) o.remove();
+  if (!d.elements.length) { schEdToast('L\'étape est vide : rien à reproduire'); return; }
+  schEdPush(); const made = [];
+  for (let i = 0; i < n; i++) {
+    const c = schNormDrawing(JSON.parse(JSON.stringify(d))); c.id = schUid(); c.validatedAt = null; c.updatedAt = null; const map = {};
+    c.elements.forEach(e => { const id = schUid(); map[e.id] = id; e.id = id; });
+    c.elements.forEach(e => { ['fromElementId', 'toElementId', 'ballId', 'holderId'].forEach(k => { if (e[k] && e[k] !== '-') { if (map[e[k]]) e[k] = map[e[k]]; else delete e[k]; } }); });
+    if (mode !== 'same' && i % 2 === 0) c.elements.forEach(e => schEdMirrorEl(e, mode === 'y' ? 'y' : 'x', V.w, V.h));
+    made.push(schNormDrawing(c));
+  }
+  S.ex.drawings.splice(S.k + 1, 0, ...made); schEdRetitle(); S.k++; S.sel = null; schEdMultiSet([]); S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
+  schEdToast(n + ' étape' + (n > 1 ? 's créées' : ' créée') + ' avec un 2ᵉ groupe : lance « Animer » pour voir l\'enchaînement');
 }
 function schEdNext() {
   const S = schEd, d = schEdD(); schEdPush();
@@ -9217,7 +9348,7 @@ function schEdTools() {
   items.forEach(t => {
     if (t.pre) { h += `<button type="button" class="sche-tool pre" onclick="schEdPreset('${t.pre}')"><span class="sche-ic">⊞</span><span class="sche-lb">${t.label}</span></button>`; return; }
     const icon = t.id === 'select' ? '<span class="sche-ic">☝</span>' : t.id === 'multi' ? '<span class="sche-ic">⬚</span>' : t.id === 'pan' ? '<span class="sche-ic">✥</span>' : schToolIcon(t.id);
-    h += `<button type="button" class="sche-tool ${S.tool === t.id ? 'on' : ''}" onclick="schEdTool('${t.id}')" aria-label="${schEsc(t.label)}" title="${schEsc(t.label)}">${icon}<span class="sche-lb">${t.label}</span></button>`;
+    h += `<button type="button" class="sche-tool ${S.tool === t.id ? 'on' : ''}" onclick="schEdTool('${t.id}')" aria-label="${schEsc(t.label)}" title="${schEsc(t.label)}${schKeyOf('tool:' + t.id) ? ' (' + schKeyLabel(schKeyOf('tool:' + t.id)) + ')' : ''}">${icon}<span class="sche-lb">${t.label}</span></button>`;
   });
   box.innerHTML = h + more + '</div>';
 }
@@ -10614,7 +10745,7 @@ const DISP_SCALES = [['0.9', 'Petit'], ['1', 'Normal'], ['1.15', 'Grand'], ['1.3
 let dispCfg = null;
 
 function dispDefaults() {
-  return { theme: 'dark', scale: 1, density: 'normal', toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
+  return { theme: 'dark', scale: 1, density: 'normal', toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, keys: {}, tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
 }
 function dispNormalize(c) {
   const d = dispDefaults();
@@ -10628,6 +10759,7 @@ function dispNormalize(c) {
     toolSize: ['s', 'm', 'l'].includes(c.toolSize) ? c.toolSize : 'm',
     toolMode: ['both', 'icon', 'text'].includes(c.toolMode) ? c.toolMode : 'both',
     toolRows: [1, 2, 3].includes(Number(c.toolRows)) ? Number(c.toolRows) : 2,
+    keys: (c.keys && typeof c.keys === 'object' && !Array.isArray(c.keys)) ? Object.keys(c.keys).reduce((o, k) => { if (typeof c.keys[k] === 'string') o[k] = c.keys[k]; return o; }, {}) : {},
     tabs: [],
   };
   const seen = {};
@@ -10734,6 +10866,26 @@ function dispToolMove(id, dir) {
   o.splice(i, 1); o.splice(j, 0, id);
   dispCfg.toolOrder = o; dispSave(); dispRenderUi(); dispToolRefresh();
 }
+let dispKeyCap = null, dispKeysOpen = false, dispKeyMsg = '';
+function dispKeyStart(id) { dispKeyStop(); dispKeyCap = id; dispKeyMsg = ''; document.addEventListener('keydown', dispKeyOnKey, true); dispRenderUi(); }
+function dispKeyStop() { dispKeyCap = null; document.removeEventListener('keydown', dispKeyOnKey, true); }
+function dispKeyCancel() { dispKeyStop(); dispKeyMsg = ''; dispRenderUi(); }
+function dispKeyOnKey(e) {
+  if (!dispKeyCap) return; e.preventDefault(); e.stopPropagation();
+  if (e.key === 'Escape') { dispKeyCancel(); return; }
+  const c = schKeyCombo(e); if (!c) return; // touche de modification seule : on attend la suivante
+  const base = c.split('+').pop();
+  if (SCH_KEY_RESERVED.includes(base)) { dispKeyMsg = '« ' + schKeyLabel(base) + ' » est réservée (Échap, Suppr, Retour arrière, Tab, Entrée). Choisis une autre touche.'; dispRenderUi(); return; }
+  dispKeySet(dispKeyCap, c);
+}
+function dispKeySet(id, c) {
+  dispCfg.keys = Object.assign({}, dispCfg.keys); let moved = '';
+  schKeyActions().forEach(a => { if (a.id !== id && c && schKeyOf(a.id) === c) { dispCfg.keys[a.id] = ''; moved = a.label; } });
+  dispCfg.keys[id] = c; dispSave(); dispKeyStop();
+  dispKeyMsg = '✓ ' + schKeyLabel(c) + ' attribuée' + (moved ? ' (retirée de « ' + moved + ' »)' : ''); dispRenderUi(); dispToolRefresh();
+}
+function dispKeyClear(id) { dispCfg.keys = Object.assign({}, dispCfg.keys, { [id]: '' }); dispSave(); dispKeyMsg = ''; dispRenderUi(); dispToolRefresh(); }
+function dispKeyReset() { dispKeyStop(); dispCfg.keys = {}; dispSave(); dispKeyMsg = 'Raccourcis remis par défaut'; dispRenderUi(); dispToolRefresh(); }
 function dispToolReset() { Object.assign(dispCfg, { toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2 }); dispSave(); dispRenderUi(); dispToolRefresh(); }
 function dispToolSet(key, val) { dispCfg[key] = val; dispSave(); dispRenderUi(); dispToolRefresh(); }
 function dispToolHide(id, hide) { const h = (dispCfg.toolHidden || []).filter(x => x !== id); if (hide) h.push(id); dispCfg.toolHidden = h; dispSave(); dispRenderUi(); dispToolRefresh(); }
@@ -10798,6 +10950,21 @@ function dispRenderUi() {
       </div>`;
     });
     h += `<button type="button" class="disp-mini" style="margin-top:6px;width:100%;padding:9px;" onclick="dispToolReset()">Outils : tout remettre par défaut</button>`;
+  } catch (e) {}
+  try {
+    h += `<details class="disp-keys" ${dispKeysOpen ? 'open' : ''} ontoggle="dispKeysOpen=this.open" style="margin-top:14px;"><summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--gris-clair);">⌨️ Raccourcis clavier (ordinateur)</summary>`;
+    h += `<div style="font-size:10px;color:var(--gris-texte);margin:6px 0;">Touche « Définir » puis appuie sur la touche voulue (avec Maj ou Alt si tu veux). Sans Ctrl / ⌘. Une touche déjà prise est reprise à l'autre action. Fixes : Ctrl+Z / Ctrl+Y (annuler / rétablir), Suppr (supprimer), Échap (désélectionner).</div>`;
+    if (dispKeyMsg) h += `<div style="font-size:12px;color:var(--jaune);margin-bottom:6px;">${dispKeyMsg}</div>`;
+    let grp = '';
+    schKeyActions().forEach(a => {
+      if (a.group !== grp) { grp = a.group; h += `<div style="font-size:11px;color:var(--gris-clair);margin:10px 0 4px;">${grp}</div>`; }
+      const k = schKeyOf(a.id), cap = dispKeyCap === a.id;
+      h += `<div class="disp-row" data-key="${a.id}"><span class="nm">${a.label}</span>`
+        + (cap ? `<span class="disp-kbd cap">Appuie sur une touche…</span><button type="button" class="disp-mini" onclick="dispKeyCancel()">Annuler</button>`
+          : `<span class="disp-kbd ${k ? '' : 'none'}">${k ? schKeyLabel(k) : '—'}</span><button type="button" class="disp-mini" onclick="dispKeyStart('${a.id}')">Définir</button><button type="button" class="disp-mini" ${k ? '' : 'disabled'} onclick="dispKeyClear('${a.id}')" aria-label="Effacer">✕</button>`)
+        + `</div>`;
+    });
+    h += `<button type="button" class="disp-mini" style="margin-top:8px;width:100%;padding:9px;" onclick="dispKeyReset()">Raccourcis : tout remettre par défaut</button></details>`;
   } catch (e) {}
   h += `<button type="button" class="disp-mini" style="margin-top:10px;width:100%;padding:9px;" onclick="dispReset()">Rétablir l'affichage par défaut</button>`;
   el.innerHTML = h;
