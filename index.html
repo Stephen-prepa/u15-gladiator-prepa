@@ -1794,7 +1794,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-y</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1867,7 +1867,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-y) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -8400,6 +8400,11 @@ const SCH_ZONES = ['ZONE_RECT', 'ZONE_CIRCLE', 'TEXT'];
 const SCH_TYPES = SCH_PLAYERS.concat(SCH_ACTIONS, SCH_OBJECTS, SCH_ZONES);
 const SCH_LADDER_MAX = 20; // nombre de cases maximum d'une échelle de rythme
 const SCH_VIEWS = { half: { w: 20, h: 20, name: '½ terrain' }, full: { w: 40, h: 20, name: 'Terrain entier' }, goal: { w: 20, h: 11.5, name: 'Zone de but' }, free: { w: 30, h: 20, name: 'Espace libre' } };
+const SCH_VIEW_KEYS = Object.keys(SCH_VIEWS); // les 4 terrains proposés ; chacun existe aussi pivoté de 90° / 180° / 270° (clé « half@90 »…)
+SCH_VIEW_KEYS.forEach(k => [90, 180, 270].forEach(a => { const b = SCH_VIEWS[k], sw = a !== 180; SCH_VIEWS[k + '@' + a] = { w: sw ? b.h : b.w, h: sw ? b.w : b.h, name: b.name + ' ↻' + a + '°' }; }));
+function schViewParse(v) { const m = /^([a-z]+)@(90|180|270)$/.exec(v || ''); return m ? { base: m[1], rot: +m[2] } : { base: v, rot: 0 }; }
+// marges autour du terrain (le côté du but garde sa marge plus large, quel que soit le sens)
+function schViewMargins(view, mx, top) { const p = schViewParse(view); let M = { l: mx, t: (p.base === 'half' || p.base === 'goal') ? top : mx, r: mx, b: mx }; for (let i = 0; i < p.rot / 90; i++) M = { t: M.l, r: M.t, b: M.r, l: M.b }; return M; }
 const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', stroke: '#14213D', att: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
 const SCH_MAX_BALLS = Infinity; // aucun plafond : autant de ballons que voulu
 const SCH_BALL_COLS = [['#F2B705', '#14213D'], ['#2F7DE1', '#FFFFFF'], ['#1FA35C', '#FFFFFF'], ['#8E5BD9', '#FFFFFF'], ['#E8543A', '#FFFFFF'], ['#17A2B8', '#FFFFFF'], ['#E84393', '#FFFFFF'], ['#14213D', '#FFFFFF']]; // [fond, chiffre] du ballon 1 à 8 (au-delà, les couleurs se répètent : le chiffre les distingue)
@@ -8501,10 +8506,12 @@ function schEndTangent(points) {
 
 // ----- Terrain -----
 function schView(view) {
-  const v = SCH_VIEWS[view] || SCH_VIEWS.half, mx = 1.2, top = (view === 'half' || view === 'goal') ? 2.4 : 1.2;
-  return { W: v.w, H: v.h, vb: [-mx, -top, v.w + mx * 2, v.h + top + mx] };
+  const v = SCH_VIEWS[view] || SCH_VIEWS.half, M = schViewMargins(view, 1.2, 2.4);
+  return { W: v.w, H: v.h, vb: [-M.l, -M.t, v.w + M.l + M.r, v.h + M.t + M.b] };
 }
 function schCourtSvg(view) {
+  const pv = schViewParse(view);
+  if (pv.rot) { const b = SCH_VIEWS[pv.base] || SCH_VIEWS.half, t = pv.rot === 90 ? `translate(${b.h} 0) rotate(90)` : pv.rot === 180 ? `translate(${b.w} ${b.h}) rotate(180)` : `translate(0 ${b.w}) rotate(270)`; return `<g transform="${t}">${schCourtSvg(pv.base)}</g>`; }
   const C = SCH_COL, v = SCH_VIEWS[view] || SCH_VIEWS.half, lw = 0.13, W = v.w, H = v.h;
   if (view === 'free') {
     let g = ''; for (let x = 5; x < W; x += 5) g += `<line x1="${x}" y1="0" x2="${x}" y2="${H}"/>`; for (let y = 5; y < H; y += 5) g += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`;
@@ -9111,7 +9118,7 @@ function schEdD() { return schEd.ex.drawings[schEd.k]; }
 function schEdSel() { const d = schEdD(); return schEd.sel ? d.elements.find(e => e.id === schEd.sel) || null : null; }
 function schEdSnapStr() { return JSON.stringify(schEd.ex.drawings); }
 function schEdPush(s) { schEd.undo.push(s || schEdSnapStr()); if (schEd.undo.length > 60) schEd.undo.shift(); schEd.redo = []; }
-function schEdBaseVb() { const d = schEdD(), v = SCH_VIEWS[d.view] || SCH_VIEWS.half, mx = 0.5, top = (d.view === 'half' || d.view === 'goal') ? 2 : 0.5, bot = 0.5; return { x: -mx, y: -top, w: v.w + mx * 2, h: v.h + top + bot }; }
+function schEdBaseVb() { const d = schEdD(), v = SCH_VIEWS[d.view] || SCH_VIEWS.half, M = schViewMargins(d.view, 0.5, 2); return { x: -M.l, y: -M.t, w: v.w + M.l + M.r, h: v.h + M.t + M.b }; }
 function schEdToast(msg) {
   const t = schEd && schEd.el.querySelector('#sche-toast'); if (!t) return;
   t.textContent = msg; t.style.opacity = '1'; clearTimeout(schEd.toastT); schEd.toastT = setTimeout(() => { if (t) t.style.opacity = '0'; }, 2200);
@@ -9200,7 +9207,9 @@ function schKeyActions() {
   add('validate', '✓ Valider / dévalider l\'étape', 'Actions', () => schEdValidate());
   add('dupstep', '⧉ Dupliquer l\'étape', 'Actions', () => schEdDupStep());
   add('delstep', '🗑 Supprimer l\'étape', 'Actions', () => schEdDelStep());
-  add('view', 'Changer de terrain (½ terrain, entier…)', 'Actions', () => { const ks = Object.keys(SCH_VIEWS); schEdView(ks[(ks.indexOf(schEdD().view) + 1) % ks.length]); });
+  add('view', 'Changer de terrain (½ terrain, entier…)', 'Actions', () => { const ks = SCH_VIEW_KEYS; schEdView(ks[(ks.indexOf(schViewParse(schEdD().view).base) + 1) % ks.length]); });
+  add('viewrotR', '↻ Pivoter le terrain de 90° vers la droite', 'Actions', () => schEdRotate(1));
+  add('viewrotL', '↺ Pivoter le terrain de 90° vers la gauche', 'Actions', () => schEdRotate(-1));
   add('recenter', '⤢ Recentrer la vue', 'Actions', () => schEdRecenter());
   add('dup', 'Dupliquer la sélection', 'Actions', () => { if (!sel() && schEdMultiIds().length) schEdMultiDup(); else if (sel()) schEdDup(); });
   add('del', 'Supprimer la sélection', 'Actions', () => { if (!sel() && schEdMultiIds().length) schEdMultiDel(); else if (sel()) schEdDel(); });
@@ -9242,7 +9251,8 @@ function schEdBar() {
     + ex.drawings.map((x, i) => b(`schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + stl(x), i === S.k ? 'on' : '', narrow ? 'Étape ' + stl(x) : '')).join('')
     + b('schEdNextAsk()', '➜ Suivante', 'acc', 'Étape suivante : continuer l\'action, copier cette étape ou partir d\'une planche vierge') + b(`schPlayerOpen(${schDemo.indexOf(ex)})`, '▶ Animer', 'acc')
     + b('schEdValidate()', narrow ? '✓' : (schEdIsValid(d) ? '✓ Validée' : '✓ Valider'), schEdIsValid(d) ? 'on' : '', 'Valider l\'étape') + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape')
-    + `<select class="sche-sel" onchange="schEdView(this.value)" aria-label="Terrain">${Object.keys(SCH_VIEWS).map(k => `<option value="${k}" ${d.view === k ? 'selected' : ''}>${SCH_VIEWS[k].name}</option>`).join('')}</select>`
+    + `<select class="sche-sel" onchange="schEdView(this.value)" aria-label="Terrain">${SCH_VIEW_KEYS.map(k => `<option value="${k}" ${schViewParse(d.view).base === k ? 'selected' : ''}>${SCH_VIEWS[k].name}${!narrow && schViewParse(d.view).base === k && schViewParse(d.view).rot ? ' ↻' + schViewParse(d.view).rot + '°' : ''}</option>`).join('')}${narrow ? '<option value="@rotR">↻ 90° droite</option><option value="@rotL">↺ 90° gauche</option>' : ''}</select>`
+    + (narrow ? '' : b('schEdRotate(-1)', '↺', '', 'Pivoter le terrain de 90° vers la gauche (toutes les étapes)') + b('schEdRotate(1)', '↻', '', 'Pivoter le terrain de 90° vers la droite (toutes les étapes)'))
     + b('schEdRecenter()', '⤢', '', 'Recentrer la vue');
   bar.scrollLeft = sl;
 }
@@ -9353,7 +9363,24 @@ function schEdDelStep() {
   if (!confirm('Supprimer « ' + schEdD().title + ' » ?')) return;
   schEdPush(); { const g = S.ex.drawings; if (!g[S.k].variant && g[S.k + 1] && g[S.k + 1].variant) delete g[S.k + 1].variant; } S.ex.drawings.splice(S.k, 1); schEdRetitle(); S.k = Math.min(S.k, S.ex.drawings.length - 1); S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
 }
-function schEdView(v) { if (!SCH_VIEWS[v]) return; schEdPush(); schEdD().view = v; schEd.vb = schEdBaseVb(); schEdChanged(false); schEdBar(); }
+// Pivote le terrain ET son contenu de 90° (dir = 1 : vers la droite, -1 : vers la gauche), sur toutes les étapes : l'exercice reste cohérent
+function schRotateDrawing(d, dir) {
+  const p = schViewParse(d.view), V = SCH_VIEWS[d.view] || SCH_VIEWS.half, W = V.w, H = V.h;
+  const f = dir > 0 ? (x, y) => ({ x: schR(H - y, 2), y: schR(x, 2) }) : (x, y) => ({ x: schR(y, 2), y: schR(W - x, 2) });
+  d.elements.forEach(e => {
+    const q = f(e.x, e.y); e.x = q.x; e.y = q.y;
+    if (e.points) e.points = e.points.map(pt => f(pt.x, pt.y));
+    if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') { const w = e.w; e.w = e.h; e.h = w; }
+    else if (!schIsAction(e) && (e.type === 'DEFENDER' || ['HURDLE', 'LADDER', 'POPUP_GOAL', 'BALL_BOX'].includes(e.type) || SCH_RECTS[e.type])) e.rotation = ((((e.rotation || 0) + 90 * dir) % 360) + 360) % 360;
+  });
+  const nr = (p.rot + (dir > 0 ? 90 : 270)) % 360; d.view = p.base + (nr ? '@' + nr : '');
+}
+function schEdRotate(dir) {
+  const S = schEd; if (!S) return; schEdPush();
+  S.ex.drawings.forEach(d => schRotateDrawing(d, dir > 0 ? 1 : -1));
+  S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); schEdToast('Terrain pivoté de 90° (' + S.ex.drawings.length + ' étape' + (S.ex.drawings.length > 1 ? 's' : '') + ')');
+}
+function schEdView(v) { if (v === '@rotR' || v === '@rotL') { schEdRotate(v === '@rotR' ? 1 : -1); return; } if (!SCH_VIEW_KEYS.includes(v)) return; { const pr = schViewParse(schEdD().view); if (pr.rot) v = v + '@' + pr.rot; } schEdPush(); schEdD().view = v; schEd.vb = schEdBaseVb(); schEdChanged(false); schEdBar(); }
 function schEdRecenter() { schEd.vb = schEdBaseVb(); schEdDraw(); }
 function schEdUndo() {
   const S = schEd; if (!S.undo.length) return; S.redo.push(schEdSnapStr()); S.ex.drawings = schNormDrawings(JSON.parse(S.undo.pop())); schEdAfterHistory();
@@ -9414,9 +9441,12 @@ function schEdTool(t) {
 }
 function schEdPreset(k) {
   const S = schEd, d = schEdD(), P = SCH_PRESETS[k];
-  if (d.view !== 'half' && d.view !== 'full') { schEdToast('Placements disponibles sur « ½ terrain » ou « Terrain entier »'); return; }
+  const pv = schViewParse(d.view);
+  if (pv.base !== 'half' && pv.base !== 'full') { schEdToast('Placements disponibles sur « ½ terrain » ou « Terrain entier »'); return; }
   schEdPush();
-  P.pts.forEach(pt => { const o = { type: P.type, x: d.view === 'full' ? pt[1] : pt[0], y: d.view === 'full' ? pt[0] : pt[1], label: schNextLabel(d.elements, P.type), z: Math.max(0, ...d.elements.map(e => e.z)) + 1 }; d.elements.push(schNormElement(o)); });
+  P.pts.forEach(pt => { const o = { type: P.type, x: pv.base === 'full' ? pt[1] : pt[0], y: pv.base === 'full' ? pt[0] : pt[1], label: schNextLabel(d.elements, P.type), z: Math.max(0, ...d.elements.map(e => e.z)) + 1 };
+    if (pv.rot) { const bv = SCH_VIEWS[pv.base]; let w = bv.w, h = bv.h; for (let i = 0; i < pv.rot / 90; i++) { const nx = h - o.y, ny = o.x; o.x = schR(nx, 2); o.y = schR(ny, 2); const t = w; w = h; h = t; } if (P.type === 'DEFENDER') o.rotation = pv.rot; }
+    d.elements.push(schNormElement(o)); });
   schEdChanged(true);
 }
 
@@ -9909,11 +9939,11 @@ function schInit() {
 }
 function schRenderDemo() {
   const box = document.getElementById('sch-demo'); if (!box) return;
-  const ex = schDemo[schUi.ex], d0 = ex.drawings[Math.min(schUi.step, ex.drawings.length - 1)], d = schUi.view ? { ...d0, view: schUi.view } : d0;
+  const ex = schDemo[schUi.ex], d0 = ex.drawings[Math.min(schUi.step, ex.drawings.length - 1)], d = schUi.view ? { ...d0, view: schUi.view + (schViewParse(d0.view).rot ? '@' + schViewParse(d0.view).rot : '') } : d0;
   const btn = (on, fn, label) => `<button type="button" class="sch-chip ${on ? 'on' : ''}" onclick="${fn}">${label}</button>`;
   box.innerHTML = `<div class="sch-bar">${schDemo.map((e, i) => btn(i === schUi.ex, `schSet('ex',${i})`, (e.user ? '✎ ' : '') + schEsc(e.name))).join('')}</div>`
     + (ex.drawings.length > 1 ? `<div class="sch-bar">${ex.drawings.map((x, i) => btn(i === schUi.step, `schSet('step',${i})`, schEsc(x.title))).join('')}</div>` : '')
-    + `<div class="sch-bar"><span>Terrain :</span>${btn(!schUi.view, `schSet('view','')`, 'Celui de l\'étape')}${Object.keys(SCH_VIEWS).map(k => btn(schUi.view === k, `schSet('view','${k}')`, SCH_VIEWS[k].name)).join('')}</div>`
+    + `<div class="sch-bar"><span>Terrain :</span>${btn(!schUi.view, `schSet('view','')`, 'Celui de l\'étape')}${SCH_VIEW_KEYS.map(k => btn(schUi.view === k, `schSet('view','${k}')`, SCH_VIEWS[k].name)).join('')}</div>`
     + `<label class="sch-chk"><input type="checkbox" ${schUi.ball ? 'checked' : ''} onchange="schSet('ball',this.checked)"> Afficher le départ du ballon</label>`
     + `<div class="sch-bar"><span id="sch-sync" class="sch-sync">${schSyncLabel(false)}</span><button type="button" class="sch-chip" onclick="schSyncAll()">↻ Synchroniser</button></div>`
     + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? '✏️ Modifier' : '✏️ Copier et modifier'}</button><button type="button" class="sch-play alt" onclick="schNewEx()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
