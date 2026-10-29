@@ -526,6 +526,23 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 /* ---- Schémas tactiques ---- */
 .sch-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;font-size:12px;color:var(--gris-texte);}
 .sch-chip{border:1px solid rgba(255,255,255,0.25);background:transparent;color:var(--gris-clair);border-radius:8px;padding:8px 12px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+.sch-filt{flex-wrap:wrap;}
+.sch-fsel{min-width:0;flex:1 1 42%;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:var(--gris-clair);font-size:16px;font-family:inherit;padding:0 4px;}
+.sch-fq{min-width:0;flex:1 1 50%;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-size:16px;font-family:inherit;padding:0 8px;box-sizing:border-box;}
+.sch-fn{flex:none;font-size:11px;color:var(--gris-texte);}
+.sch-list{max-height:172px;overflow-y:auto;overscroll-behavior:contain;align-content:flex-start;padding:2px 0 2px;border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);}
+.sch-chip .sch-ct{font-weight:600;opacity:.7;font-size:10px;margin-left:4px;white-space:nowrap;}
+.sch-cls{position:fixed;inset:0;z-index:99995;background:rgba(5,10,20,0.72);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,sans-serif;}
+.sch-cls-card{background:#0B1220;border:2px solid #F5C400;border-radius:14px;padding:14px;width:min(400px,100%);box-sizing:border-box;max-height:100%;overflow-y:auto;color:#fff;}
+.sch-cls-t{font-size:18px;font-weight:800;}.sch-cls-s{font-size:12px;color:#8FA3BF;margin:2px 0 6px;}
+.sch-cls-l{font-size:12px;font-weight:700;color:#C9D4E5;margin:12px 0 6px;}
+.sch-cls-r{display:flex;flex-wrap:wrap;gap:6px;}
+.sch-cls-chip{min-height:44px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.28);background:transparent;color:#C9D4E5;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.sch-cls-chip.on{border-color:#F5C400;color:#F5C400;background:rgba(245,196,0,0.14);}
+.sch-cls-go{width:100%;min-height:50px;margin-top:16px;border:0;border-radius:10px;background:#F5C400;color:#111;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;}
+.sch-cls-go:disabled{opacity:.35;cursor:default;}
+.sch-cls-h{font-size:12px;color:#F5C400;text-align:center;margin-top:6px;}
+.sch-cls-c{width:100%;min-height:44px;margin-top:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.22);background:transparent;color:#C9D4E5;font-family:inherit;font-size:14px;cursor:pointer;}
 .sch-chip.on{border-color:var(--jaune);color:var(--jaune);background:rgba(245,196,0,0.12);}
 .sch-chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gris-clair);margin:4px 0 10px;}
 .sch-chk input{width:20px;height:20px;}
@@ -569,6 +586,8 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .sche .sche-top{display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));}
 .sche .sche-btn{border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#fff;border-radius:10px;min-width:44px;height:44px;font-size:18px;cursor:pointer;font-family:inherit;}
 .sche .sche-name{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-size:16px;padding:0 10px;font-family:inherit;box-sizing:border-box;}
+.sche .sche-tag{flex:none;height:44px;max-width:120px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:#C9D4E5;border-radius:10px;font-size:12px;font-weight:700;padding:0 8px;cursor:pointer;font-family:inherit;line-height:1.15;}
+.sche .sche-tag.todo{border-color:#F5C400;color:#F5C400;background:rgba(245,196,0,0.12);}
 .sche .sche-saved{font-size:11px;color:#8FA3BF;max-width:90px;text-align:right;line-height:1.2;}
 .sche .sche-bar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:0 8px 5px;}
 .sche .sche-b{flex:none;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#C9D4E5;border-radius:9px;height:38px;min-width:38px;padding:0 9px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
@@ -1794,7 +1813,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z2</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1867,7 +1886,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z2) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -8571,26 +8590,26 @@ function schElementSvg(e, k) {
   return '';
 }
 function schActionSvg(a, badge) {
-  const C = SCH_COL, P = a.points, s = a.scale || 1, col = a.type === 'SHOT' ? C.shot : C.stroke, w = (a.type === 'SHOT' ? 0.2 : 0.13) * s;
+  const C = SCH_COL, P = a.points, s = a.scale || 1, col = a.type === 'SHOT' ? C.shot : C.stroke, w = (a.type === 'SHOT' ? 0.11 : 0.07) * s;
   const t = schEndTangent(P), e = P[P.length - 1], px = -t.uy, py = t.ux;
   let g = '';
   if (a.type === 'SCREEN') {
-    const bw = 0.55 * s;
-    g = `${P.length === 3 ? `<path d="M${P[0].x} ${P[0].y} Q${P[1].x} ${P[1].y} ${e.x} ${e.y}" fill="none"` : `<line x1="${P[0].x}" y1="${P[0].y}" x2="${e.x}" y2="${e.y}"`} stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><line x1="${e.x + px * bw}" y1="${e.y + py * bw}" x2="${e.x - px * bw}" y2="${e.y - py * bw}" stroke="${col}" stroke-width="${w * 1.5}" stroke-linecap="round"/>`;
+    const bw = 0.4 * s;
+    g = `${P.length === 3 ? `<path d="M${P[0].x} ${P[0].y} Q${P[1].x} ${P[1].y} ${e.x} ${e.y}" fill="none"` : `<line x1="${P[0].x}" y1="${P[0].y}" x2="${e.x}" y2="${e.y}"`} stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><line x1="${e.x + px * bw}" y1="${e.y + py * bw}" x2="${e.x - px * bw}" y2="${e.y - py * bw}" stroke="${col}" stroke-width="${w * 1.6}" stroke-linecap="round"/>`;
   } else {
-    const hl = 0.85 * s, hw = 0.4 * s, bx = e.x - t.ux * hl, by = e.y - t.uy * hl, end = { x: bx, y: by };
+    const hl = 0.6 * s, hw = 0.28 * s, bx = e.x - t.ux * hl, by = e.y - t.uy * hl, end = { x: bx, y: by };
     if (a.type === 'RUN') { // dribble : trait ondulé
-      const Q = P.slice(0, P.length - 1).concat([end]), L = schPathLen(schSample(Q, 30)), n = Math.max(6, Math.round(L / 0.32)); let d = `M${P[0].x} ${P[0].y}`;
-      for (let i = 1; i <= n; i++) { const q = schPointAt(Q, i / n), q2 = schPointAt(Q, Math.min(1, i / n + 0.01)), dx = q2.x - q.x, dy = q2.y - q.y, l = Math.hypot(dx, dy) || 1, off = Math.sin(i * 1.35) * 0.17 * s * (i === n ? 0 : 1); d += ` L${schR(q.x - dy / l * off)} ${schR(q.y + dx / l * off)}`; }
+      const Q = P.slice(0, P.length - 1).concat([end]), L = schPathLen(schSample(Q, 30)), n = Math.max(6, Math.round(L / 0.24)); let d = `M${P[0].x} ${P[0].y}`;
+      for (let i = 1; i <= n; i++) { const q = schPointAt(Q, i / n), q2 = schPointAt(Q, Math.min(1, i / n + 0.01)), dx = q2.x - q.x, dy = q2.y - q.y, l = Math.hypot(dx, dy) || 1, off = Math.sin(i * 1.2) * 0.11 * s * (i === n ? 0 : 1); d += ` L${schR(q.x - dy / l * off)} ${schR(q.y + dx / l * off)}`; }
       g = `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
-    } else if (P.length === 3) g = `<path d="M${P[0].x} ${P[0].y} Q${P[1].x} ${P[1].y} ${bx} ${by}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${a.type === 'PASS' ? 'stroke-dasharray="0.55 0.4"' : ''}/>`;
-    else g = `<line x1="${P[0].x}" y1="${P[0].y}" x2="${bx}" y2="${by}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${a.type === 'PASS' ? 'stroke-dasharray="0.55 0.4"' : ''}/>`;
+    } else if (P.length === 3) g = `<path d="M${P[0].x} ${P[0].y} Q${P[1].x} ${P[1].y} ${bx} ${by}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${a.type === 'PASS' ? 'stroke-dasharray="0.4 0.28"' : ''}/>`;
+    else g = `<line x1="${P[0].x}" y1="${P[0].y}" x2="${bx}" y2="${by}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${a.type === 'PASS' ? 'stroke-dasharray="0.4 0.28"' : ''}/>`;
     g += `<polygon points="${e.x},${e.y} ${bx + px * hw},${by + py * hw} ${bx - px * hw},${by - py * hw}" fill="${col}"/>`;
   }
-  if (badge !== false) { // numéro d'étape sous le début du tracé (+ décalage s'il est non nul)
-    const bx = P[0].x, by = P[0].y + 1.15, dl = a.delay || 0;
-    g += `<g style="pointer-events:none;"><circle cx="${bx}" cy="${by}" r="0.42" fill="${C.badge}" stroke="#fff" stroke-width="0.06"/><text x="${bx}" y="${by + 0.17}" text-anchor="middle" font-size="0.5" font-weight="800" fill="#fff" style="font-family:Arial,sans-serif;">${schEsc(a.step)}</text>`;
-    if (dl > 0) g += `<rect x="${bx + 0.5}" y="${by - 0.28}" width="1.55" height="0.56" rx="0.2" fill="#fff" stroke="${C.badge}" stroke-width="0.05"/><text x="${bx + 1.275}" y="${by + 0.14}" text-anchor="middle" font-size="0.4" font-weight="800" fill="${C.badge}" style="font-family:Arial,sans-serif;">+${String(dl).replace('.', ',')} s</text>`;
+  if (badge !== false) { // numéro d'action au milieu du tracé, dans un cercle aussi fin que le trait (+ décalage s'il est non nul)
+    const m = schPointAt(P, 0.5), r = 0.45 * Math.max(0.8, s), dl = a.delay || 0;
+    g += `<g style="pointer-events:none;"><circle cx="${schR(m.x)}" cy="${schR(m.y)}" r="${r}" fill="#fff" stroke="${col}" stroke-width="${w}"/><text x="${schR(m.x)}" y="${schR(m.y + r * 0.37, 3)}" text-anchor="middle" font-size="${schR(r * 1.2, 3)}" font-weight="800" fill="${col}" style="font-family:Arial,sans-serif;">${schEsc(a.step)}</text>`;
+    if (dl > 0) g += `<rect x="${schR(m.x + r + 0.15)}" y="${schR(m.y - 0.28)}" width="1.35" height="0.5" rx="0.2" fill="#fff" stroke="${col}" stroke-width="${w}"/><text x="${schR(m.x + r + 0.15 + 0.675)}" y="${schR(m.y + 0.09, 3)}" text-anchor="middle" font-size="0.36" font-weight="800" fill="${col}" style="font-family:Arial,sans-serif;">+${String(dl).replace('.', ',')} s</text>`;
     g += `</g>`;
   }
   return g;
@@ -8914,9 +8933,15 @@ const SCH_PRESETS = {
   gk: { type: 'GOALKEEPER', name: 'Gardien', pts: [[10, 0.9]] },
 };
 const SCH_LS = 'sch_ex_v2', SCH_LS_OLD = 'sch_user_ex_v1';
+// Classement des schémas : type + thème par poste (servent aux filtres de la bibliothèque). Stockés avec le schéma (aucun changement de la base : ils voyagent dans le champ « drawings », sur la 1re étape, clé « meta »).
+const SCH_KINDS = { attaque: 'Attaque', defense: 'Défense', grand: 'Jeu sur grand espace' }, SCH_KINDS_S = { attaque: 'Att.', defense: 'Déf.', grand: 'Grand esp.' };
+const SCH_THEMES = { c12: 'Charnière 1-2', c23: 'Charnière 2-3', c33: 'Charnière 3-3 (autour du pivot)', autre: 'Autre / tous postes' }, SCH_THEMES_S = { c12: 'Ch. 1-2', c23: 'Ch. 2-3', c33: 'Ch. 3-3', autre: 'Autre' };
+function schMetaOf(arr) { const d = (Array.isArray(arr) ? arr : []).find(z => z && z.meta && typeof z.meta === 'object'); return d ? d.meta : {}; }
+function schDrawingsOut(x) { const out = JSON.parse(JSON.stringify(x.drawings)); if (out[0] && (x.kind || x.theme)) out[0].meta = { kind: x.kind || '', theme: x.theme || '' }; return out; }
+function schMetaFrom(rec, arr) { const m = schMetaOf(arr); rec.kind = SCH_KINDS[m.kind] ? m.kind : ''; rec.theme = SCH_THEMES[m.theme] ? m.theme : ''; }
 function schUuid() { try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }); }
 // Exercices de la bibliothèque : { id (uuid), name, user:true, drawings, updatedAt, serverUpdatedAt, dirty (à envoyer), deleted (suppression à envoyer), rev }
-function schRec(x) { return { id: x.id, name: String(x.name || 'Sans nom').slice(0, 60), user: true, drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null, serverUpdatedAt: x.serverUpdatedAt || null, dirty: !!x.dirty, deleted: !!x.deleted, rev: x.rev || 0 }; }
+function schRec(x) { const m = schMetaOf(x.drawings), k = x.kind || m.kind, t = x.theme || m.theme; return { kind: SCH_KINDS[k] ? k : '', theme: SCH_THEMES[t] ? t : '', id: x.id, name: String(x.name || 'Sans nom').slice(0, 60), user: true, drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null, serverUpdatedAt: x.serverUpdatedAt || null, dirty: !!x.dirty, deleted: !!x.deleted, rev: x.rev || 0 }; }
 function schUserLoad() {
   try {
     const raw = localStorage.getItem(SCH_LS);
@@ -8927,7 +8952,7 @@ function schUserLoad() {
 }
 let schSaveTimer = 0, schSyncTimer = 0, schBuiltin = null, schUserEx = [];
 function schUserSave() {
-  try { localStorage.setItem(SCH_LS, JSON.stringify(schUserEx.map(x => ({ id: x.id, name: x.name, drawings: x.drawings, updatedAt: x.updatedAt, serverUpdatedAt: x.serverUpdatedAt, dirty: x.dirty, deleted: x.deleted, rev: x.rev })))); return true; } catch (e) { return false; }
+  try { localStorage.setItem(SCH_LS, JSON.stringify(schUserEx.map(x => ({ id: x.id, name: x.name, kind: x.kind, theme: x.theme, drawings: x.drawings, updatedAt: x.updatedAt, serverUpdatedAt: x.serverUpdatedAt, dirty: x.dirty, deleted: x.deleted, rev: x.rev })))); return true; } catch (e) { return false; }
 }
 function schRebuild() { schDemo = (schBuiltin || []).concat(schUserEx.filter(x => !x.deleted)); }
 function schEnsure() { if (!schBuiltin) { schBuiltin = schDemoData(); schUserEx = schUserLoad(); schRebuild(); schUserSave(); } }
@@ -8971,7 +8996,7 @@ async function schSyncAll() {
       if (rec.dirty || rec.deleted) {
         if (!changed || rec.deleted) up.push(rec);
         else { // double modification : on garde les deux
-          const c = schRec({ id: schUuid(), name: (rec.name + ' (ma version)').slice(0, 60), drawings: JSON.parse(JSON.stringify(rec.drawings)), updatedAt: rec.updatedAt, dirty: true });
+          const c = schRec({ id: schUuid(), name: (rec.name + ' (ma version)').slice(0, 60), drawings: JSON.parse(JSON.stringify(rec.drawings)), kind: rec.kind, theme: rec.theme, updatedAt: rec.updatedAt, dirty: true });
           schUserEx.push(c); up.push(c); rec.dirty = false; if (!rm.deleted_at) adopt[rec.id] = true; else schUserEx.splice(schUserEx.indexOf(rec), 1);
         }
       } else if (changed) { if (rm.deleted_at) schUserEx.splice(schUserEx.indexOf(rec), 1); else if (!open) adopt[rec.id] = true; }
@@ -8979,7 +9004,7 @@ async function schSyncAll() {
     Object.keys(remote).forEach(id => { if (!remote[id].deleted_at && !schUserEx.some(x => x.id === id)) newFromRemote.push(id); });
     // envoi
     if (up.length) {
-      const sent = up.map(x => ({ id: x.id, rev: x.rev, row: { id: x.id, name: x.name, drawings: x.drawings, deleted_at: x.deleted ? new Date().toISOString() : null } }));
+      const sent = up.map(x => ({ id: x.id, rev: x.rev, row: { id: x.id, name: x.name, drawings: schDrawingsOut(x), deleted_at: x.deleted ? new Date().toISOString() : null } }));
       const res = await fetch(base + '?on_conflict=id', { method: 'POST', headers: { ...H, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(sent.map(s => s.row)) });
       if (!res.ok) throw new Error('envoi ' + res.status);
       const rows = await res.json();
@@ -8998,7 +9023,7 @@ async function schSyncAll() {
         let rec = schUserEx.find(x => x.id === row.id);
         if (rec && (rec.dirty || (schEd && schEd.ex === rec))) return; // modifié entre-temps ici : on ne l'écrase pas
         if (!rec) { rec = schRec({ id: row.id }); schUserEx.push(rec); }
-        rec.name = String(row.name || 'Sans nom').slice(0, 60); rec.drawings = schNormDrawings(row.drawings); rec.serverUpdatedAt = row.updated_at; rec.updatedAt = row.updated_at; rec.dirty = false;
+        rec.name = String(row.name || 'Sans nom').slice(0, 60); schMetaFrom(rec, row.drawings); rec.drawings = schNormDrawings(row.drawings); rec.serverUpdatedAt = row.updated_at; rec.updatedAt = row.updated_at; rec.dirty = false;
       });
     }
     schSync.state = 'ok'; schSync.at = Date.now();
@@ -9103,7 +9128,7 @@ function schNextFrom(d0) {
 function schToolIcon(type) {
   const k = { BALL: 2.3, CONE: 2.1, DISC: 2.3, POLE: 2.6, BALLOON: 2.1, HOOP: 1.5, POPUP_GOAL: 1.3, HURDLE: 1.3, BALL_BOX: 1.3, LADDER: 1.1 }[type] || 1;
   let inner;
-  if (SCH_ACTIONS.includes(type)) inner = schActionSvg({ type, points: [{ x: -0.95, y: 0.65 }, { x: 0.95, y: -0.65 }], step: 1, scale: 0.75 }, false);
+  if (SCH_ACTIONS.includes(type)) inner = schActionSvg({ type, points: [{ x: -0.95, y: 0.65 }, { x: 0.95, y: -0.65 }], step: 1, scale: 1.3 }, false);
   else if (type === 'ZONE_RECT' || type === 'ZONE_CIRCLE') inner = schElementSvg({ type, x: 0, y: 0, w: 2.2, h: 1.6, scale: 1 });
   else if (type === 'TEXT') inner = schElementSvg({ type, x: 0, y: 0, label: 'Abc', scale: 1.2 });
   else if (type === 'LADDER') inner = schElementSvg({ type, x: 0, y: 0, n: 4, rotation: -35, scale: 1.15 });
@@ -9138,13 +9163,14 @@ function schEditorOpen(exIdx, onClose) {
   const ex = schDemo[exIdx]; if (!ex || !ex.user) return;
   const el = document.createElement('div'); el.id = 'sch-editor'; el.className = 'sche';
   el.style.cssText = 'position:fixed;inset:0;z-index:99990;background:#0B1220;display:flex;flex-direction:column;color:#fff;font-family:Arial,sans-serif;-webkit-user-select:none;user-select:none;overscroll-behavior:none;';
-  el.innerHTML = `<div class="sche-top"><button type="button" class="sche-btn" id="sche-close" aria-label="Fermer">✕</button><input id="sche-name" class="sche-name" maxlength="60" placeholder="Nom de l'exercice" style="-webkit-user-select:text;user-select:text;"><span class="sche-saved" id="sche-saved"></span></div>`
+  el.innerHTML = `<div class="sche-top"><button type="button" class="sche-btn" id="sche-close" aria-label="Fermer">✕</button><input id="sche-name" class="sche-name" maxlength="60" placeholder="Nom de l'exercice" style="-webkit-user-select:text;user-select:text;"><button type="button" class="sche-tag" id="sche-tag" aria-label="Type et thème du schéma"></button><span class="sche-saved" id="sche-saved"></span></div>`
     + `<div class="sche-bar" id="sche-bar"></div><div class="sche-main"><div class="sche-board"><div class="sche-stage" id="sche-stage"></div><div class="sche-warn" id="sche-warn"></div><div class="sche-toast" id="sche-toast"></div></div><div class="sche-panel" id="sche-panel"></div></div><div class="sche-tools" id="sche-tools"></div>`;
   document.documentElement.appendChild(el);
   schEd = { ex, onClose: onClose || null, k: 0, tool: 'select', group: 'tools', sel: null, vb: null, undo: [], redo: [], ptrs: new Map(), drag: null, down: null, pinch: null, el, stage: el.querySelector('#sche-stage'), prevOverflow: document.documentElement.style.overflow, touch: false, penAt: 0 };
   schEd.vb = schEdBaseVb(); document.documentElement.style.overflow = 'hidden';
   const nm = el.querySelector('#sche-name'); nm.value = ex.name; nm.oninput = () => { ex.name = nm.value.slice(0, 60); schEdTouch(); };
   el.querySelector('#sche-close').onclick = schEditorClose;
+  el.querySelector('#sche-tag').onclick = () => schClassUi('edit', schEd.ex); schEdTagUi();
   const st = schEd.stage;
   st.style.touchAction = 'none'; st.addEventListener('contextmenu', ev => ev.preventDefault());
   st.addEventListener('pointerdown', schEdDown); st.addEventListener('pointermove', schEdMove); st.addEventListener('pointerup', schEdUp); st.addEventListener('pointercancel', schEdUp);
@@ -9232,6 +9258,7 @@ function schKeyHandle(e) {
 }
 function schEdKey(e) {
   if (!schEd || schPl) return;
+  if (document.getElementById('sch-cls')) { if (e.key === 'Escape') { e.preventDefault(); schClassClose(); } return; }
   if (schEd.el.querySelector('#sche-ask')) { if (e.key === 'Escape') { e.preventDefault(); schEdAsk(0); } return; }
   const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
   if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? schEdRedo() : schEdUndo(); }
@@ -9476,7 +9503,9 @@ function schDistSeg(p, a, b) { const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx
 function schEdHit(pt, o) {
   o = o || {}; const d = schEdD(), els = d.elements, tol = (schEd.touch ? 26 : 12) / pt.s;
   const sel = schEdSel();
-  if (sel && o.handles !== false) { let best = null, bd = tol * 1.15; schEdHandles(sel).forEach(h => { const dd = Math.hypot(h.x - pt.x, h.y - pt.y); if (dd < bd) { bd = dd; best = h; } }); if (best) return { kind: 'handle', h: best }; }
+  // Poignée de l'élément sélectionné (extrémités d'un tracé, coin d'une zone) : elle n'est prise que si aucun élément n'est plus proche du doigt (sinon, un joueur au départ d'un tracé sélectionné ne pouvait plus être déplacé)
+  let hBest = null, hBd = 1e9;
+  if (sel && o.handles !== false) { let bd0 = tol * 1.15; schEdHandles(sel).forEach(h => { const dd = Math.hypot(h.x - pt.x, h.y - pt.y); if (dd < bd0) { bd0 = dd; hBest = h; hBd = dd; } }); }
   let best = null, bd = 1e9;
   els.forEach(e => {
     if (schIsAction(e) || e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') return;
@@ -9487,6 +9516,7 @@ function schEdHit(pt, o) {
     else { dd = Math.hypot(p.x - pt.x, p.y - pt.y); if (dd > Math.max(schEdRad(e) + 0.15, tol)) return; }
     if (dd < bd) { bd = dd; best = e; }
   });
+  if (hBest && (!best || hBd < bd)) return { kind: 'handle', h: hBest };
   if (best) return { kind: 'el', e: best };
   if (o.actions !== false) {
     let ba = null, bda = tol;
@@ -9890,11 +9920,37 @@ function schEdDup() {
 }
 
 // ----- Liste d'exercices (démonstration) : nouvel exercice / copie / suppression -----
-function schNewEx() {
+function schNewEx(kind, theme) {
   schEnsure();
-  const r = schRec({ id: schUuid(), name: 'Nouvel exercice', drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], dirty: true }); schUserEx.push(r); schRebuild();
+  const r = schRec({ id: schUuid(), name: 'Nouvel exercice', kind, theme, drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], dirty: true }); schUserEx.push(r); schRebuild();
   schUserSave(); schUi.ex = schDemo.indexOf(r); schUi.step = 0; schEditorOpen(schUi.ex);
 }
+// Fenêtre « Nouveau schéma » / « Classer le schéma » : type et thème obligatoires
+let schClsCtx = null;
+function schNewExAsk() { schClassUi('new', null); }
+function schClassUi(mode, ex) {
+  schClassClose(); schClsCtx = { mode, ex: ex || null, kind: ex ? ex.kind || '' : '', theme: ex ? ex.theme || '' : '' };
+  const o = document.createElement('div'); o.id = 'sch-cls'; o.className = 'sch-cls'; o.addEventListener('pointerdown', ev => { if (ev.target === o) schClassClose(); });
+  document.documentElement.appendChild(o); schClassRender();
+}
+function schClassRender() {
+  const o = document.getElementById('sch-cls'), st = schClsCtx; if (!o || !st) return;
+  const chip = (on, fn, lab) => `<button type="button" class="sch-cls-chip${on ? ' on' : ''}" onclick="${fn}">${lab}</button>`, ready = !!(st.kind && st.theme);
+  o.innerHTML = `<div class="sch-cls-card" role="dialog" aria-label="${st.mode === 'new' ? 'Nouveau schéma' : 'Classer le schéma'}"><div class="sch-cls-t">${st.mode === 'new' ? 'Nouveau schéma' : 'Classer le schéma'}</div><div class="sch-cls-s">Ces deux choix servent aux filtres de la bibliothèque.</div>`
+    + `<div class="sch-cls-l">Type de schéma</div><div class="sch-cls-r">${Object.keys(SCH_KINDS).map(k => chip(st.kind === k, `schClassSet('kind','${k}')`, SCH_KINDS[k])).join('')}</div>`
+    + `<div class="sch-cls-l">Thème (par poste)</div><div class="sch-cls-r">${Object.keys(SCH_THEMES).map(k => chip(st.theme === k, `schClassSet('theme','${k}')`, SCH_THEMES[k])).join('')}</div>`
+    + `<button type="button" class="sch-cls-go" ${ready ? '' : 'disabled'} onclick="schClassGo()">${st.mode === 'new' ? 'Créer le schéma' : 'Enregistrer'}</button>${ready ? '' : '<div class="sch-cls-h">Choisis le type et le thème pour continuer.</div>'}<button type="button" class="sch-cls-c" onclick="schClassClose()">Annuler</button></div>`;
+}
+function schClassSet(k, v) { if (schClsCtx) { schClsCtx[k] = v; schClassRender(); } }
+function schClassClose() { const o = document.getElementById('sch-cls'); if (o) o.remove(); schClsCtx = null; }
+function schClassGo() {
+  const st = schClsCtx; if (!st || !st.kind || !st.theme) return; schClassClose();
+  if (st.mode === 'new') { schNewEx(st.kind, st.theme); return; }
+  const ex = st.ex; if (!ex) return; ex.kind = st.kind; ex.theme = st.theme;
+  if (schEd && schEd.ex === ex) { schEdTouch(); schEdTagUi(); } else { schMarkDirty(ex); schUserSave(); schSyncSoon(); schRenderDemo(); }
+}
+function schTagText(ex) { return ex && ex.kind && ex.theme ? SCH_KINDS_S[ex.kind] + ' · ' + SCH_THEMES_S[ex.theme] : ''; }
+function schEdTagUi() { const b = schEd && schEd.el.querySelector('#sche-tag'); if (!b) return; const t = schTagText(schEd.ex); b.textContent = t ? '🏷 ' + t : '🏷 Classer'; b.classList.toggle('todo', !t); }
 function schEditCur() {
   schEnsure(); const ex = schDemo[schUi.ex]; if (!ex) return;
   if (!ex.user) { const r = schRec({ id: schUuid(), name: ('Copie – ' + ex.name).slice(0, 60), drawings: JSON.parse(JSON.stringify(ex.drawings)), dirty: true }); schUserEx.push(r); schRebuild(); schUserSave(); schUi.ex = schDemo.indexOf(r); schUi.step = 0; }
@@ -9925,14 +9981,15 @@ function schDemoData() {
   put('DISC', {}, 'Disque'); put('POLE', {}, 'Jalon'); put('HOOP', {}, 'Cerceau'); put('HURDLE', {}, 'Haie'); put('POPUP_GOAL', {}, 'Mini-but'); put('BALLOON', {}, 'Baudruche'); put('BALL_BOX', {}, 'Bac ballons'); put('DUMMY', {}, 'Mannequin'); put('MAT', {}, 'Tapis'); put('BENCH', {}, 'Banc'); put('BOX', {}, 'Caisson'); put('RECT', {}, 'Rectangle');
   put('ZONE_RECT', { w: 3.4, h: 2.4 }, 'Zone'); put('ZONE_CIRCLE', { w: 3.4, h: 2.4 }, 'Zone ronde');
   return [
-    { key: 'demo', name: 'Attaque placée vs 0-6 (3 étapes)', drawings: [{ id: 'd1', title: 'Étape 1', view: 'half', elements: s1 }, { id: 'd2', title: 'Étape 2', view: 'half', elements: s2 }, { id: 'd3', title: 'Étape 3', view: 'half', elements: s3 }] },
+    { key: 'demo', kind: 'attaque', theme: 'autre', name: 'Attaque placée vs 0-6 (3 étapes)', drawings: [{ id: 'd1', title: 'Étape 1', view: 'half', elements: s1 }, { id: 'd2', title: 'Étape 2', view: 'half', elements: s2 }, { id: 'd3', title: 'Étape 3', view: 'half', elements: s3 }] },
     { key: 'cat', name: 'Catalogue des éléments', drawings: [{ id: 'c', title: 'Éléments', view: 'free', elements: cat }] },
     { key: 'act', name: 'Catalogue des actions', drawings: [{ id: 'a', title: 'Actions', view: 'free', elements: [
       A('x1', 'MOVE', [[2, 3], [9, 3]], 1), A('x2', 'RUN', [[2, 7], [9, 7]], 2), A('x3', 'PASS', [[2, 11], [9, 11]], 3), A('x4', 'SHOT', [[2, 15], [9, 15]], 4), A('x5', 'SCREEN', [[2, 18], [9, 18]], 5),
       A('y1', 'MOVE', [[17, 3], [21, 1], [26, 4]], 1, { delay: 0.25 }), A('y2', 'RUN', [[17, 8], [21, 5.5], [26, 9]], 2), A('y3', 'PASS', [[17, 12], [21, 9.5], [26, 13]], 3, { delay: 1 }), A('y4', 'SHOT', [[17, 16], [21, 14], [26, 17]], 4, { delay: 2 })] }] },
   ];
 }
-let schDemo = null, schUi = { ex: 0, step: 0, view: '', ball: true };
+let schDemo = null, schUi = { ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '' };
+try { const f = JSON.parse(localStorage.getItem('sch_filter_v1') || '{}'); if (f && SCH_KINDS[f.fk] || f.fk === '-') schUi.fk = f.fk; if (f && SCH_THEMES[f.ft] || f.ft === '-') schUi.ft = f.ft; } catch (e) {}
 function schInit() {
   schEnsure();
   schRenderDemo(); schSyncAll();
@@ -9941,15 +9998,27 @@ function schRenderDemo() {
   const box = document.getElementById('sch-demo'); if (!box) return;
   const ex = schDemo[schUi.ex], d0 = ex.drawings[Math.min(schUi.step, ex.drawings.length - 1)], d = schUi.view ? { ...d0, view: schUi.view + (schViewParse(d0.view).rot ? '@' + schViewParse(d0.view).rot : '') } : d0;
   const btn = (on, fn, label) => `<button type="button" class="sch-chip ${on ? 'on' : ''}" onclick="${fn}">${label}</button>`;
-  box.innerHTML = `<div class="sch-bar">${schDemo.map((e, i) => btn(i === schUi.ex, `schSet('ex',${i})`, (e.user ? '✎ ' : '') + schEsc(e.name))).join('')}</div>`
+  const q = (schUi.q || '').trim().toLowerCase();
+  const okE = e => (schUi.fk === '' || (schUi.fk === '-' ? !e.kind : e.kind === schUi.fk)) && (schUi.ft === '' || (schUi.ft === '-' ? !e.theme : e.theme === schUi.ft)) && (!q || String(e.name).toLowerCase().includes(q));
+  const shown = schDemo.map((e, i) => [e, i]).filter(([e, i]) => i === schUi.ex || okE(e)); // l'exercice ouvert reste toujours visible
+  const opts = (map, cur, all) => `<option value="">${all}</option>` + Object.keys(map).map(k => `<option value="${k}" ${cur === k ? 'selected' : ''}>${schEsc(map[k])}</option>`).join('') + `<option value="-" ${cur === '-' ? 'selected' : ''}>Non classé</option>`;
+  const nMatch = schDemo.filter(okE).length;
+  const keepQ = document.activeElement && document.activeElement.id === 'sch-q';
+  box.innerHTML = `<div class="sch-bar sch-filt"><select class="sch-fsel" aria-label="Filtrer par type" onchange="schSetFilter('fk',this.value)">${opts(SCH_KINDS, schUi.fk, 'Tous les types')}</select><select class="sch-fsel" aria-label="Filtrer par thème" onchange="schSetFilter('ft',this.value)">${opts(SCH_THEMES, schUi.ft, 'Tous les thèmes')}</select><input id="sch-q" class="sch-fq" type="search" placeholder="Rechercher…" value="${schEsc(schUi.q || '')}" oninput="schSetQuery(this.value)" aria-label="Rechercher un schéma"><span class="sch-fn">${nMatch} / ${schDemo.length}</span></div>`
+    + `<div class="sch-bar sch-list" id="sch-list">${shown.map(([e, i]) => btn(i === schUi.ex, `schSet('ex',${i})`, (e.user ? '✎ ' : '') + schEsc(e.name) + (schTagText(e) ? ` <small class="sch-ct">${schEsc(schTagText(e))}</small>` : ''))).join('') || '<span>Aucun schéma ne correspond.</span>'}</div>`
     + (ex.drawings.length > 1 ? `<div class="sch-bar">${ex.drawings.map((x, i) => btn(i === schUi.step, `schSet('step',${i})`, schEsc(x.title))).join('')}</div>` : '')
     + `<div class="sch-bar"><span>Terrain :</span>${btn(!schUi.view, `schSet('view','')`, 'Celui de l\'étape')}${SCH_VIEW_KEYS.map(k => btn(schUi.view === k, `schSet('view','${k}')`, SCH_VIEWS[k].name)).join('')}</div>`
     + `<label class="sch-chk"><input type="checkbox" ${schUi.ball ? 'checked' : ''} onchange="schSet('ball',this.checked)"> Afficher le départ du ballon</label>`
     + `<div class="sch-bar"><span id="sch-sync" class="sch-sync">${schSyncLabel(false)}</span><button type="button" class="sch-chip" onclick="schSyncAll()">↻ Synchroniser</button></div>`
-    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? '✏️ Modifier' : '✏️ Copier et modifier'}</button><button type="button" class="sch-play alt" onclick="schNewEx()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
-    + `<div class="sch-svg">${schDrawingSvg(d, { showBallStart: schUi.ball })}</div>`;
+    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? '✏️ Modifier' : '✏️ Copier et modifier'}</button><button type="button" class="sch-play alt" onclick="schNewExAsk()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
+    + `<div class="sch-svg">${schDrawingSvg(d, { showBallStart: schUi.ball })}</div>`
+    + (ex.user ? `<div class="sch-bar"><button type="button" class="sch-chip" onclick="schClassUi('edit', schDemo[schUi.ex])">🏷 ${schTagText(ex) ? 'Type et thème : ' + schEsc(schTagText(ex)) : 'Classer ce schéma (type et thème)'}</button></div>` : '');
+  const L = document.getElementById('sch-list'), on = L && L.querySelector('.sch-chip.on'); if (L && on) L.scrollTop = Math.max(0, on.offsetTop - L.offsetTop - 4);
+  if (keepQ) { const qi = document.getElementById('sch-q'); if (qi) { qi.focus(); try { qi.setSelectionRange(qi.value.length, qi.value.length); } catch (e) {} } }
 }
 function schSet(k, v) { schUi[k] = v; if (k === 'ex') schUi.step = 0; schRenderDemo(); }
+function schSetFilter(k, v) { schUi[k] = v; try { localStorage.setItem('sch_filter_v1', JSON.stringify({ fk: schUi.fk, ft: schUi.ft })); } catch (e) {} schRenderDemo(); }
+function schSetQuery(v) { schUi.q = v; schRenderDemo(); }
 
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
 let statsPlayerRows = [];
