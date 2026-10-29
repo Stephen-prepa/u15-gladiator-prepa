@@ -556,6 +556,9 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .sche .sche-ask-i{font-size:22px;width:28px;text-align:center;flex:none;}
 .sche .sche-ask-b b{display:block;font-size:15px;}
 .sche .sche-ask-b small{display:block;font-size:11px;color:#9FB1CC;margin-top:2px;font-weight:400;}
+.sche .sche-ask-list{max-height:48vh;overflow-y:auto;margin-bottom:8px;-webkit-overflow-scrolling:touch;}
+.sche .sche-ask-list .sche-ask-b{border-color:rgba(255,255,255,0.28);background:rgba(255,255,255,0.06);min-height:50px;}
+.sche .sche-ask-list .sche-ask-b.cur{border-color:#F5C400;background:rgba(245,196,0,0.12);}
 .sche .sche-ask-l{font-size:11px;color:#8FA3BF;margin:8px 0 4px;}
 .sche .sche-ask-r{display:flex;gap:6px;flex-wrap:wrap;}
 .sche .sche-ask-chip{min-height:40px;padding:0 12px;border-radius:9px;border:1px solid rgba(255,255,255,0.28);background:transparent;color:#C9D4E5;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
@@ -1791,7 +1794,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-w</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-y</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1864,7 +1867,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-w) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-y) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -8383,13 +8386,16 @@ function seanceGoToDate(dateVal) {
 
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
-// Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt }
-// Element : { id, type, x, y, rotation, scale, label, team, z, step, fromElementId, points:[{x,y}], w, h, delay, holderId, toElementId, ballId (passe / tir / dribble : quel ballon, si plusieurs), color (joueurs : couleur choisie, #RRGGBB) }
+// Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède) }
+// Element : { id, type, x, y, rotation, scale, label, team, z, step, fromElementId, points:[{x,y}], w, h, delay, holderId, toElementId, ballId (passe / tir / dribble : quel ballon, si plusieurs), color (couleur choisie, #RRGGBB : joueurs, objets, zones, texte) }
 //   - joueurs/objets : x,y = centre ; zones : x,y = centre, w,h = dimensions (m) ; actions : points (2 = droite, 3 = Bézier quadratique, le 2e = point de contrôle)
 //   - label : 3 caractères max (30 pour TEXT)
 const SCH_PLAYERS = ['PLAYER', 'DEFENDER', 'GOALKEEPER', 'PARENT', 'COACH'];
 const SCH_ACTIONS = ['MOVE', 'RUN', 'PASS', 'SHOT', 'SCREEN'];
-const SCH_OBJECTS = ['BALL', 'CONE', 'DISC', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'BALLOON', 'BALL_BOX'];
+const SCH_OBJECTS = ['BALL', 'CONE', 'DISC', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT'];
+// Structures rectangulaires (vue de dessus) : w × h en mètres (réglables), couleur d'origine c. MAT et RECT sont posés au sol (dessinés sous les joueurs).
+const SCH_RECTS = { DUMMY: { w: 0.9, h: 0.5, c: '#E8543A' }, MAT: { w: 2, h: 1, c: '#2F7DE1' }, BENCH: { w: 2.4, h: 0.4, c: '#B9783E' }, BOX: { w: 1.2, h: 0.8, c: '#F28C28' }, RECT: { w: 2, h: 1, c: '#8FA3BF' } };
+const SCH_FLOOR = ['HOOP', 'MAT', 'RECT'];
 const SCH_ZONES = ['ZONE_RECT', 'ZONE_CIRCLE', 'TEXT'];
 const SCH_TYPES = SCH_PLAYERS.concat(SCH_ACTIONS, SCH_OBJECTS, SCH_ZONES);
 const SCH_LADDER_MAX = 20; // nombre de cases maximum d'une échelle de rythme
@@ -8423,6 +8429,7 @@ function schR(v, p) { const k = Math.pow(10, p == null ? 2 : p); return Math.rou
 function schUid() { return 'e' + Math.random().toString(36).slice(2, 9); }
 function schIsAction(e) { return SCH_ACTIONS.includes(e.type); }
 function schIsPlayer(e) { return SCH_PLAYERS.includes(e.type); }
+function schColorable(t) { return !SCH_ACTIONS.includes(t) && t !== 'BALL'; } // tout se colore sauf les tracés et le ballon
 
 // ----- Normalisation (accepte d'anciennes données ou des données incomplètes) -----
 function schNormElement(e) {
@@ -8439,12 +8446,15 @@ function schNormElement(e) {
   if (o.type === 'ZONE_RECT' || o.type === 'ZONE_CIRCLE') { o.w = Math.max(0.5, schNum(e.w, 4)); o.h = Math.max(0.5, schNum(e.h, 3)); }
   if (o.type === 'LADDER') o.n = Math.max(2, Math.min(SCH_LADDER_MAX, Math.round(schNum(e.n, 8))));
   if (o.type === 'BALL' && e.holderId) o.holderId = e.holderId;
-  if (SCH_PLAYERS.includes(o.type) && /^#[0-9a-fA-F]{6}$/.test(e.color || '')) o.color = e.color.toUpperCase();
+  if (SCH_RECTS[o.type]) { const D = SCH_RECTS[o.type]; o.w = Math.max(0.25, Math.min(12, schNum(e.w, D.w))); o.h = Math.max(0.25, Math.min(12, schNum(e.h, D.h))); }
+  if (schColorable(o.type) && /^#[0-9a-fA-F]{6}$/.test(e.color || '')) o.color = e.color.toUpperCase();
   return o;
 }
 function schNormDrawing(d) {
   d = d && typeof d === 'object' ? d : {};
-  return { id: d.id || schUid(), title: d.title || 'Étape 1', view: SCH_VIEWS[d.view] ? d.view : 'half', elements: (Array.isArray(d.elements) ? d.elements : []).map(schNormElement), updatedAt: d.updatedAt || null, validatedAt: d.validatedAt || null };
+  const o = { id: d.id || schUid(), title: d.title || 'Étape 1', view: SCH_VIEWS[d.view] ? d.view : 'half', elements: (Array.isArray(d.elements) ? d.elements : []).map(schNormElement), updatedAt: d.updatedAt || null, validatedAt: d.validatedAt || null };
+  if (/^[A-Z]$/.test(d.variant || '')) o.variant = d.variant;
+  return o;
 }
 function schNormDrawings(arr) { return (Array.isArray(arr) ? arr : []).map(schNormDrawing); }
 
@@ -8520,26 +8530,36 @@ function schElementSvg(e, k) {
     case 'PLAYER': { const f = e.color || C.att; return `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label, schInk(f, C.attLine, '#fff'), r * 1.15)}`; }
     case 'DEFENDER': return `<polygon${tr} points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${e.color || C.def}" stroke="${C.attLine}" stroke-width="0.12" stroke-linejoin="round"/>${txt(e.label, schInk(e.color || C.def, C.attLine, '#fff'), r * 0.95, -r * 0.3)}`;
     case 'GOALKEEPER': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${e.color || C.gk}" stroke="${C.att}" stroke-width="0.16"/>${txt(e.label || 'GB', schInk(e.color || C.gk, C.attLine, '#fff'), r * (e.label && e.label.length > 1 ? 0.95 : 0.9))}`;
-    case 'PARENT': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.parent}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'P', '#fff', r)}`;
-    case 'COACH': return `<rect x="${x - r}" y="${y - r}" width="${r * 2}" height="${r * 2}" rx="${r * 0.3}" fill="${C.coach}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'C', C.attLine, r)}`;
+    case 'PARENT': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${e.color || C.parent}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'P', e.color ? schInk(e.color, C.attLine, '#fff') : '#fff', r)}`;
+    case 'COACH': return `<rect x="${x - r}" y="${y - r}" width="${r * 2}" height="${r * 2}" rx="${r * 0.3}" fill="${e.color || C.coach}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'C', e.color ? schInk(e.color, C.attLine, '#fff') : C.attLine, r)}`;
     case 'BALL': return schBallSvg(x, y, s);
-    case 'CONE': return `<polygon points="${x},${y - 0.4 * s} ${x - 0.34 * s},${y + 0.3 * s} ${x + 0.34 * s},${y + 0.3 * s}" fill="${C.cone}" stroke="${C.stroke}" stroke-width="0.07" stroke-linejoin="round"/>`;
-    case 'DISC': return `<circle cx="${x}" cy="${y}" r="${0.28 * s}" fill="${C.att}" stroke="${C.stroke}" stroke-width="0.07"/><circle cx="${x}" cy="${y}" r="${0.1 * s}" fill="${C.stroke}"/>`;
-    case 'POLE': return `<circle cx="${x}" cy="${y}" r="${0.2 * s}" fill="#fff" stroke="${C.stroke}" stroke-width="0.07"/><circle cx="${x}" cy="${y}" r="${0.08 * s}" fill="${C.def}"/>`;
-    case 'HOOP': return `<circle cx="${x}" cy="${y}" r="${0.5 * s}" fill="rgba(47,125,225,0.10)" stroke="${C.hoop}" stroke-width="${0.12 * s}"/>`;
-    case 'HURDLE': return `<g${tr}><line x1="${x - 0.55 * s}" y1="${y}" x2="${x + 0.55 * s}" y2="${y}" stroke="${C.cone}" stroke-width="${0.14 * s}" stroke-linecap="round"/><line x1="${x - 0.55 * s}" y1="${y - 0.22 * s}" x2="${x - 0.55 * s}" y2="${y + 0.22 * s}" stroke="${C.stroke}" stroke-width="0.08"/><line x1="${x + 0.55 * s}" y1="${y - 0.22 * s}" x2="${x + 0.55 * s}" y2="${y + 0.22 * s}" stroke="${C.stroke}" stroke-width="0.08"/></g>`;
+    case 'CONE': return `<polygon points="${x},${y - 0.4 * s} ${x - 0.34 * s},${y + 0.3 * s} ${x + 0.34 * s},${y + 0.3 * s}" fill="${e.color || C.cone}" stroke="${C.stroke}" stroke-width="0.07" stroke-linejoin="round"/>`;
+    case 'DISC': return `<circle cx="${x}" cy="${y}" r="${0.28 * s}" fill="${e.color || C.att}" stroke="${C.stroke}" stroke-width="0.07"/><circle cx="${x}" cy="${y}" r="${0.1 * s}" fill="${C.stroke}"/>`;
+    case 'POLE': return `<circle cx="${x}" cy="${y}" r="${0.2 * s}" fill="#fff" stroke="${C.stroke}" stroke-width="0.07"/><circle cx="${x}" cy="${y}" r="${0.08 * s}" fill="${e.color || C.def}"/>`;
+    case 'HOOP': return `<circle cx="${x}" cy="${y}" r="${0.5 * s}" fill="${e.color || 'rgba(47,125,225,0.10)'}"${e.color ? ' fill-opacity="0.12"' : ''} stroke="${e.color || C.hoop}" stroke-width="${0.12 * s}"/>`;
+    case 'HURDLE': return `<g${tr}><line x1="${x - 0.55 * s}" y1="${y}" x2="${x + 0.55 * s}" y2="${y}" stroke="${e.color || C.cone}" stroke-width="${0.14 * s}" stroke-linecap="round"/><line x1="${x - 0.55 * s}" y1="${y - 0.22 * s}" x2="${x - 0.55 * s}" y2="${y + 0.22 * s}" stroke="${C.stroke}" stroke-width="0.08"/><line x1="${x + 0.55 * s}" y1="${y - 0.22 * s}" x2="${x + 0.55 * s}" y2="${y + 0.22 * s}" stroke="${C.stroke}" stroke-width="0.08"/></g>`;
     case 'LADDER': { // échelle de rythme : 2 montants + (n + 1) barreaux, n cases de 0,5 m × taille ; centrée sur x,y
       const n = Math.max(2, Math.min(SCH_LADDER_MAX, Math.round(e.n || 8))), cl = 0.5 * s, L = n * cl, W = 0.6 * s, x0 = x - L / 2;
-      let g = `<rect x="${x0}" y="${y - W / 2}" width="${L}" height="${W}" fill="${C.cone}" fill-opacity="0.10" stroke="none"/><line x1="${x0}" y1="${y - W / 2}" x2="${x0 + L}" y2="${y - W / 2}"/><line x1="${x0}" y1="${y + W / 2}" x2="${x0 + L}" y2="${y + W / 2}"/>`;
+      let g = `<rect x="${x0}" y="${y - W / 2}" width="${L}" height="${W}" fill="${e.color || C.cone}" fill-opacity="0.10" stroke="none"/><line x1="${x0}" y1="${y - W / 2}" x2="${x0 + L}" y2="${y - W / 2}"/><line x1="${x0}" y1="${y + W / 2}" x2="${x0 + L}" y2="${y + W / 2}"/>`;
       for (let i = 0; i <= n; i++) { const lx = schR(x0 + i * cl, 3); g += `<line x1="${lx}" y1="${y - W / 2}" x2="${lx}" y2="${y + W / 2}"/>`; }
-      return `<g${tr} stroke="${C.cone}" stroke-width="${Math.max(0.06, 0.09 * s)}" stroke-linecap="round" fill="none">${g}</g>`;
+      return `<g${tr} stroke="${e.color || C.cone}" stroke-width="${Math.max(0.06, 0.09 * s)}" stroke-linecap="round" fill="none">${g}</g>`;
     }
-    case 'POPUP_GOAL': return `<g${tr}><rect x="${x - 0.7 * s}" y="${y - 0.4 * s}" width="${1.4 * s}" height="${0.8 * s}" rx="0.1" fill="rgba(255,255,255,0.85)" stroke="${C.stroke}" stroke-width="0.09"/><line x1="${x - 0.7 * s}" y1="${y}" x2="${x + 0.7 * s}" y2="${y}" stroke="${C.stroke}" stroke-opacity=".4" stroke-width="0.05"/></g>`;
-    case 'BALLOON': return `<circle cx="${x}" cy="${y}" r="${0.4 * s}" fill="#E84393" stroke="${C.stroke}" stroke-width="0.07"/><path d="M${x} ${y + 0.4 * s} q0.1 0.35 -0.08 0.7" fill="none" stroke="${C.stroke}" stroke-width="0.05"/>`;
-    case 'BALL_BOX': return `<g${tr}><rect x="${x - 0.55 * s}" y="${y - 0.4 * s}" width="${1.1 * s}" height="${0.8 * s}" rx="0.1" fill="#fff" stroke="${C.stroke}" stroke-width="0.09"/>${schBallSvg(x - 0.2 * s, y, 0.7 * s)}${schBallSvg(x + 0.2 * s, y, 0.7 * s)}</g>`;
-    case 'ZONE_RECT': return `<rect${tr} x="${x - e.w / 2}" y="${y - e.h / 2}" width="${e.w}" height="${e.h}" rx="0.15" fill="${C.zoneFill}" fill-opacity="0.16" stroke="${C.zoneFill}" stroke-width="0.12" stroke-dasharray="0.5 0.3"/>`;
-    case 'ZONE_CIRCLE': return `<ellipse${tr} cx="${x}" cy="${y}" rx="${e.w / 2}" ry="${e.h / 2}" fill="${C.zoneFill}" fill-opacity="0.16" stroke="${C.zoneFill}" stroke-width="0.12" stroke-dasharray="0.5 0.3"/>`;
-    case 'TEXT': { const fs = 0.95 * s; return `<text x="${x}" y="${y + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${C.stroke}" stroke="#fff" stroke-width="${fs * 0.22}" style="paint-order:stroke;font-family:Arial,sans-serif;pointer-events:none;"${e.rotation ? ` transform="rotate(${e.rotation} ${x} ${y})"` : ''}>${schEsc(e.label)}</text>`; }
+    case 'POPUP_GOAL': { const pc = e.color || C.stroke; return `<g${tr}><rect x="${x - 0.7 * s}" y="${y - 0.4 * s}" width="${1.4 * s}" height="${0.8 * s}" rx="0.1" fill="rgba(255,255,255,0.85)" stroke="${pc}" stroke-width="0.09"/>${e.color ? `<rect x="${x - 0.7 * s}" y="${y - 0.4 * s}" width="${1.4 * s}" height="${0.8 * s}" rx="0.1" fill="${pc}" fill-opacity="0.3" stroke="none"/>` : ''}<line x1="${x - 0.7 * s}" y1="${y}" x2="${x + 0.7 * s}" y2="${y}" stroke="${pc}" stroke-opacity=".4" stroke-width="0.05"/></g>`; }
+    case 'BALLOON': return `<circle cx="${x}" cy="${y}" r="${0.4 * s}" fill="${e.color || '#E84393'}" stroke="${C.stroke}" stroke-width="0.07"/><path d="M${x} ${y + 0.4 * s} q0.1 0.35 -0.08 0.7" fill="none" stroke="${C.stroke}" stroke-width="0.05"/>`;
+    case 'BALL_BOX': return `<g${tr}><rect x="${x - 0.55 * s}" y="${y - 0.4 * s}" width="${1.1 * s}" height="${0.8 * s}" rx="0.1" fill="${e.color || '#fff'}"${e.color ? ' fill-opacity="0.35"' : ''} stroke="${e.color || C.stroke}" stroke-width="0.09"/>${schBallSvg(x - 0.2 * s, y, 0.7 * s)}${schBallSvg(x + 0.2 * s, y, 0.7 * s)}</g>`;
+    case 'ZONE_RECT': { const zc = e.color || C.zoneFill; return `<rect${tr} x="${x - e.w / 2}" y="${y - e.h / 2}" width="${e.w}" height="${e.h}" rx="0.15" fill="${zc}" fill-opacity="0.16" stroke="${zc}" stroke-width="0.12" stroke-dasharray="0.5 0.3"/>`; }
+    case 'ZONE_CIRCLE': { const zc = e.color || C.zoneFill; return `<ellipse${tr} cx="${x}" cy="${y}" rx="${e.w / 2}" ry="${e.h / 2}" fill="${zc}" fill-opacity="0.16" stroke="${zc}" stroke-width="0.12" stroke-dasharray="0.5 0.3"/>`; }
+    case 'DUMMY': case 'MAT': case 'BENCH': case 'BOX': case 'RECT': { // structures rectangulaires, vues de dessus
+      const D = SCH_RECTS[e.type], w = e.w || D.w, h = e.h || D.h, c = e.color || D.c, x0 = x - w / 2, y0 = y - h / 2, m = Math.min(w, h);
+      let g;
+      if (e.type === 'DUMMY') g = `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" rx="${schR(m * 0.35, 3)}" fill="${c}" stroke="${C.stroke}" stroke-width="0.08"/><circle cx="${x}" cy="${y}" r="${schR(m * 0.3, 3)}" fill="#fff" fill-opacity="0.45" stroke="${C.stroke}" stroke-opacity="0.5" stroke-width="0.05"/>`;
+      else if (e.type === 'MAT') { const i = Math.min(0.15, m * 0.2); g = `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" rx="0.12" fill="${c}" fill-opacity="0.9" stroke="${C.stroke}" stroke-width="0.08"/><rect x="${schR(x0 + i, 3)}" y="${schR(y0 + i, 3)}" width="${schR(Math.max(0.05, w - 2 * i), 3)}" height="${schR(Math.max(0.05, h - 2 * i), 3)}" rx="0.06" fill="none" stroke="#fff" stroke-opacity="0.75" stroke-width="0.05" stroke-dasharray="0.3 0.2"/>`; }
+      else if (e.type === 'BENCH') { const lg = Math.min(0.18, w / 4); g = `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" rx="0.05" fill="${c}" stroke="${C.stroke}" stroke-width="0.08"/><line x1="${schR(x0 + lg, 3)}" y1="${y0}" x2="${schR(x0 + lg, 3)}" y2="${y0 + h}" stroke="${C.stroke}" stroke-opacity="0.7" stroke-width="0.06"/><line x1="${schR(x0 + w - lg, 3)}" y1="${y0}" x2="${schR(x0 + w - lg, 3)}" y2="${y0 + h}" stroke="${C.stroke}" stroke-opacity="0.7" stroke-width="0.06"/><line x1="${schR(x0 + lg, 3)}" y1="${y}" x2="${schR(x0 + w - lg, 3)}" y2="${y}" stroke="#fff" stroke-opacity="0.5" stroke-width="0.04"/>`; }
+      else if (e.type === 'BOX') { const i = Math.min(0.14, m * 0.2); g = `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" rx="0.08" fill="${c}" stroke="${C.stroke}" stroke-width="0.08"/><rect x="${schR(x0 + i, 3)}" y="${schR(y0 + i, 3)}" width="${schR(Math.max(0.05, w - 2 * i), 3)}" height="${schR(Math.max(0.05, h - 2 * i), 3)}" rx="0.04" fill="none" stroke="#fff" stroke-opacity="0.65" stroke-width="0.05"/>`; }
+      else g = `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" rx="0.1" fill="${c}" fill-opacity="0.35" stroke="${c}" stroke-width="0.12"/>`;
+      return `<g${tr}>${g}</g>`;
+    }
+    case 'TEXT': { const fs = 0.95 * s, tc = e.color || C.stroke; return `<text x="${x}" y="${y + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${tc}" stroke="${schInk(tc, C.stroke, '#fff')}" stroke-width="${fs * 0.22}" style="paint-order:stroke;font-family:Arial,sans-serif;pointer-events:none;"${e.rotation ? ` transform="rotate(${e.rotation} ${x} ${y})"` : ''}>${schEsc(e.label)}</text>`; }
   }
   return '';
 }
@@ -8576,11 +8596,11 @@ function schBodySvg(f) {
   const els = f.els;
   let body = '';
   sorted(els.filter(e => e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE')).forEach(e => { body += withO(e, schElementSvg(e)); });
-  sorted(els.filter(e => e.type === 'HOOP')).forEach(e => { body += withO(e, schElementSvg(e)); });
+  sorted(els.filter(e => SCH_FLOOR.includes(e.type))).forEach(e => { body += withO(e, schElementSvg(e)); });
   f.acts.forEach(x => { body += schActionSvg(x.a, x.badge); });
   sorted(f.pghosts || []).forEach(e => { body += withO(e, schElementSvg(e)); });
   sorted(els.filter(schIsPlayer)).forEach(e => { body += withO(e, schElementSvg(e)); });
-  sorted(els.filter(e => SCH_OBJECTS.includes(e.type) && e.type !== 'HOOP')).forEach(e => { body += withO(e, schElementSvg(e)); });
+  sorted(els.filter(e => SCH_OBJECTS.includes(e.type) && !SCH_FLOOR.includes(e.type))).forEach(e => { body += withO(e, schElementSvg(e)); });
   f.ghosts.forEach(g => { body += schBallSvg(g.x, g.y, g.s || 1, schR(0.3 * (g.o == null ? 1 : g.o), 2), g.i, g.m); });
   f.balls.forEach(b => { body += schBallSvg(b.x, b.y, b.s || 1, b.o != null && b.o < 1 ? schR(b.o, 2) : null, b.i, b.m); });
   sorted(els.filter(e => e.type === 'TEXT')).forEach(e => { body += withO(e, schElementSvg(e)); });
@@ -8876,10 +8896,10 @@ const SCH_GROUPS = [
   { id: 'tools', name: 'Outils', tools: [['select', 'Sélection'], ['multi', 'Sélection multiple'], ['pan', 'Déplacer la vue']] },
   { id: 'players', name: 'Joueurs', tools: [['PLAYER', 'Attaquant'], ['DEFENDER', 'Défenseur'], ['GOALKEEPER', 'Gardien']] },
   { id: 'actions', name: 'Actions', tools: [['MOVE', 'Déplacement'], ['PASS', 'Passe'], ['RUN', 'Dribble'], ['SHOT', 'Tir'], ['SCREEN', 'Écran']] },
-  { id: 'objects', name: 'Objets', tools: [['BALL', 'Ballon'], ['CONE', 'Plot'], ['DISC', 'Disque'], ['POLE', 'Jalon'], ['HOOP', 'Cerceau'], ['HURDLE', 'Haie'], ['LADDER', 'Échelle de rythme'], ['POPUP_GOAL', 'Mini-but'], ['BALLOON', 'Baudruche'], ['BALL_BOX', 'Bac ballons']] },
+  { id: 'objects', name: 'Objets', tools: [['BALL', 'Ballon'], ['CONE', 'Plot'], ['DISC', 'Disque'], ['POLE', 'Jalon'], ['HOOP', 'Cerceau'], ['HURDLE', 'Haie'], ['LADDER', 'Échelle de rythme'], ['POPUP_GOAL', 'Mini-but'], ['BALLOON', 'Baudruche'], ['BALL_BOX', 'Bac ballons'], ['DUMMY', 'Mannequin'], ['MAT', 'Tapis'], ['BENCH', 'Banc'], ['BOX', 'Caisson'], ['RECT', 'Rectangle']] },
   { id: 'zones', name: 'Zones & texte', tools: [['ZONE_RECT', 'Zone'], ['ZONE_CIRCLE', 'Zone ronde'], ['TEXT', 'Texte']] },
 ];
-const SCH_NAMES = { PLAYER: 'Attaquant', DEFENDER: 'Défenseur', GOALKEEPER: 'Gardien', PARENT: 'Parent', COACH: 'Coach', BALL: 'Ballon', CONE: 'Plot', DISC: 'Disque', POLE: 'Jalon', HOOP: 'Cerceau', HURDLE: 'Haie', LADDER: 'Échelle de rythme', POPUP_GOAL: 'Mini-but', BALLOON: 'Baudruche', BALL_BOX: 'Bac ballons', MOVE: 'Déplacement', RUN: 'Dribble', PASS: 'Passe', SHOT: 'Tir', SCREEN: 'Écran', ZONE_RECT: 'Zone', ZONE_CIRCLE: 'Zone ronde', TEXT: 'Texte' };
+const SCH_NAMES = { PLAYER: 'Attaquant', DEFENDER: 'Défenseur', GOALKEEPER: 'Gardien', PARENT: 'Parent', COACH: 'Coach', BALL: 'Ballon', CONE: 'Plot', DISC: 'Disque', POLE: 'Jalon', HOOP: 'Cerceau', HURDLE: 'Haie', LADDER: 'Échelle de rythme', POPUP_GOAL: 'Mini-but', BALLOON: 'Baudruche', BALL_BOX: 'Bac ballons', DUMMY: 'Mannequin', MAT: 'Tapis', BENCH: 'Banc', BOX: 'Caisson', RECT: 'Rectangle', MOVE: 'Déplacement', RUN: 'Dribble', PASS: 'Passe', SHOT: 'Tir', SCREEN: 'Écran', ZONE_RECT: 'Zone', ZONE_CIRCLE: 'Zone ronde', TEXT: 'Texte' };
 const SCH_PRESETS = {
   d06: { type: 'DEFENDER', name: 'Défense 0-6', pts: [[1.6, 2.4], [4.4, 5.6], [8.2, 6.9], [11.8, 6.9], [15.6, 5.6], [18.4, 2.4]] },
   d15: { type: 'DEFENDER', name: 'Défense 1-5', pts: [[1.6, 2.4], [5, 6.2], [10, 6.9], [15, 6.2], [18.4, 2.4], [10, 9.8]] },
@@ -9080,6 +9100,7 @@ function schToolIcon(type) {
   else if (type === 'ZONE_RECT' || type === 'ZONE_CIRCLE') inner = schElementSvg({ type, x: 0, y: 0, w: 2.2, h: 1.6, scale: 1 });
   else if (type === 'TEXT') inner = schElementSvg({ type, x: 0, y: 0, label: 'Abc', scale: 1.2 });
   else if (type === 'LADDER') inner = schElementSvg({ type, x: 0, y: 0, n: 4, rotation: -35, scale: 1.15 });
+  else if (SCH_RECTS[type]) { const ic = { DUMMY: [1.8, 1], MAT: [2.2, 1.2], BENCH: [2.4, 0.5], BOX: [1.9, 1.3], RECT: [2.2, 1.2] }[type]; inner = schElementSvg({ type, x: 0, y: 0, w: ic[0], h: ic[1], scale: 1 }); }
   else inner = schElementSvg({ type, x: 0, y: 0, label: type === 'PLAYER' || type === 'DEFENDER' ? '1' : '', scale: k });
   return `<svg viewBox="-1.3 -1.3 2.6 2.6" width="34" height="34" style="display:block;margin:0 auto;">${inner}</svg>`;
 }
@@ -9172,6 +9193,8 @@ function schKeyActions() {
   add('next', '➜ Étape suivante (demande : continuer, copier ou vierge)', 'Actions', () => schEdNextAsk());
   add('addstep', '＋ Ajouter une étape vide (planche vierge)', 'Actions', () => schEdAddStep());
   add('repeat', '🔁 Reproduire l\'enchaînement (2ᵉ groupe)', 'Actions', () => schEdRepeatUi());
+  add('variant', '🔀 Créer une variante d\'une étape (choix)', 'Actions', () => schEdVariantUi());
+  add('variantcur', '🔀 Variante de l\'étape en cours (directe)', 'Actions', () => schEdVariant(schEd.k));
   add('prev', 'Aller à l\'étape précédente', 'Actions', () => schEdGo(schEd.k - 1));
   add('nextnav', 'Aller à l\'étape suivante', 'Actions', () => schEdGo(schEd.k + 1));
   add('validate', '✓ Valider / dévalider l\'étape', 'Actions', () => schEdValidate());
@@ -9179,14 +9202,14 @@ function schKeyActions() {
   add('delstep', '🗑 Supprimer l\'étape', 'Actions', () => schEdDelStep());
   add('view', 'Changer de terrain (½ terrain, entier…)', 'Actions', () => { const ks = Object.keys(SCH_VIEWS); schEdView(ks[(ks.indexOf(schEdD().view) + 1) % ks.length]); });
   add('recenter', '⤢ Recentrer la vue', 'Actions', () => schEdRecenter());
-  add('dup', 'Dupliquer la sélection', 'Actions', () => { if (schEd.tool === 'multi') schEdMultiDup(); else if (sel()) schEdDup(); });
-  add('del', 'Supprimer la sélection', 'Actions', () => { if (schEd.tool === 'multi') schEdMultiDel(); else if (sel()) schEdDel(); });
+  add('dup', 'Dupliquer la sélection', 'Actions', () => { if (!sel() && schEdMultiIds().length) schEdMultiDup(); else if (sel()) schEdDup(); });
+  add('del', 'Supprimer la sélection', 'Actions', () => { if (!sel() && schEdMultiIds().length) schEdMultiDel(); else if (sel()) schEdDel(); });
   add('selall', 'Tout sélectionner', 'Actions', () => { if (schEd.tool !== 'multi') schEdTool('multi'); schEdMultiAll(); });
   add('desel', 'Tout désélectionner', 'Actions', () => { schEd.sel = null; schEdMultiSet([]); schEd.drag = null; schEdDraw(); schEdPanel(); schEdTools(); });
   add('rotL', 'Pivoter de 15° à gauche', 'Actions', onSel(e => { if (!schIsAction(e)) schEdAdd('rotation', -15, 0, 360); }), true);
   add('rotR', 'Pivoter de 15° à droite', 'Actions', onSel(e => { if (!schIsAction(e)) schEdAdd('rotation', 15, 0, 360); }), true);
-  add('sizeM', 'Réduire la taille', 'Actions', onSel(e => { if (schIsAction(e)) return; if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') schEdZone(-0.5); else schEdAdd('scale', -0.2, 0.4, 3); }), true);
-  add('sizeP', 'Agrandir', 'Actions', onSel(e => { if (schIsAction(e)) return; if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') schEdZone(0.5); else schEdAdd('scale', 0.2, 0.4, 3); }), true);
+  add('sizeM', 'Réduire la taille', 'Actions', onSel(e => { if (schIsAction(e)) return; if (SCH_RECTS[e.type]) { schEdDim('w', -0.25); schEdDim('h', -0.25); } else if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') schEdZone(-0.5); else schEdAdd('scale', -0.2, 0.4, 3); }), true);
+  add('sizeP', 'Agrandir', 'Actions', onSel(e => { if (schIsAction(e)) return; if (SCH_RECTS[e.type]) { schEdDim('w', 0.25); schEdDim('h', 0.25); } else if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') schEdZone(0.5); else schEdAdd('scale', 0.2, 0.4, 3); }), true);
   add('stepM', 'N° d\'étape de l\'action −1', 'Actions', onSel(e => { if (schIsAction(e)) schEdAdd('step', -1, 1, 30); }), true);
   add('stepP', 'N° d\'étape de l\'action +1', 'Actions', onSel(e => { if (schIsAction(e)) schEdAdd('step', 1, 1, 30); }), true);
   SCH_TOOL_ORDER.forEach(id => add('tool:' + id, 'Outil : ' + schToolLabel(id).replace(/^[⊞☝⬚✥] /, ''), 'Outils', () => schKeyTool(id)));
@@ -9204,7 +9227,7 @@ function schEdKey(e) {
   const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
   if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? schEdRedo() : schEdUndo(); }
   else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); schEdRedo(); }
-  else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && schEd.tool === 'multi' && schEdMultiIds().length) { e.preventDefault(); schEdMultiDel(); }
+  else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && !schEd.sel && schEdMultiIds().length) { e.preventDefault(); schEdMultiDel(); }
   else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && schEd.sel) { e.preventDefault(); schEdDel(); }
   else if (e.key === 'Escape') { if (typing) document.activeElement.blur(); else { schEd.sel = null; schEdMultiSet([]); schEd.drag = null; schEdDraw(); schEdPanel(); schEdTools(); } }
   else if (!typing && !e.ctrlKey && !e.metaKey) { let h = false; try { h = schKeyHandle(e); } catch (x) { console.error(x); } if (h) { e.preventDefault(); e.stopPropagation(); if (document.activeElement && document.activeElement.blur && document.activeElement !== document.body) document.activeElement.blur(); } }
@@ -9213,7 +9236,7 @@ function schEdKey(e) {
 // ----- Barre d'étapes et d'actions générales -----
 function schEdBar() {
   const S = schEd, bar = S.el.querySelector('#sche-bar'), d = schEdD(), ex = S.ex, sl = bar.scrollLeft;
-  const narrow = innerWidth < 600, stl = x => narrow ? schEsc(x.title).replace(/^Étape\s*/, '') || '1' : schEsc(x.title);
+  const narrow = innerWidth < 600, stl = x => narrow ? schEsc(x.title).replace(/^Étape\s*/, '').replace(/\s*–\s*variante\s+([A-Z])$/, '$1') || '1' : schEsc(x.title);
   const b = (fn, label, extra, title) => `<button type="button" class="sche-b ${extra || ''}" onclick="${fn}" ${title ? `aria-label="${title}" title="${title}"` : ''}>${label}</button>`;
   bar.innerHTML = b('schEdUndo()', '↶', S.undo.length ? '' : 'dis', 'Annuler') + b('schEdRedo()', '↷', S.redo.length ? '' : 'dis', 'Rétablir')
     + ex.drawings.map((x, i) => b(`schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + stl(x), i === S.k ? 'on' : '', narrow ? 'Étape ' + stl(x) : '')).join('')
@@ -9227,7 +9250,36 @@ function schEdIsValid(d) { return !!(d.validatedAt && (!d.updatedAt || d.validat
 function schEdValidate() { const d = schEdD(); if (schEdIsValid(d)) { d.validatedAt = null; } else { d.validatedAt = new Date().toISOString(); } schEdPush(); schMarkDirty(schEd.ex); schUserSave(); schEdBar(); schEdTouchKeep(); schEdToast(d.validatedAt ? 'Étape validée' : 'Validation retirée'); }
 function schEdTouchKeep() { clearTimeout(schSaveTimer); schSaveTimer = setTimeout(() => { schUserSave(); schSyncUi(); schSyncSoon(); }, 350); }
 function schEdGo(i) { const S = schEd; if (i < 0 || i >= S.ex.drawings.length) return; S.k = i; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdDraw(); schEdWarn(); schEdPanel(); }
-function schEdRetitle() { schEd.ex.drawings.forEach((d, i) => { if (/^Étape( \d+)?$/.test(d.title)) d.title = 'Étape ' + (i + 1); }); }
+// Numérotation : les étapes « de base » se numérotent 1, 2, 3… ; une variante (d.variant) se rattache à l'étape de base qui la précède (Étape 3 – variante B, C…)
+function schEdRetitle() {
+  let n = 0, vi = 0;
+  schEd.ex.drawings.forEach((d, i) => {
+    const auto = /^Étape( \d+)?( – variante [A-Z])?$/.test(d.title);
+    if (d.variant && i > 0) { vi++; d.variant = String.fromCharCode(65 + Math.min(vi, 25)); if (auto) d.title = 'Étape ' + n + ' – variante ' + d.variant; else if (/ – variante [A-Z]$/.test(d.title)) d.title = d.title.replace(/ – variante [A-Z]$/, ' – variante ' + d.variant); }
+    else { delete d.variant; n++; vi = 0; if (auto) d.title = 'Étape ' + n; else d.title = d.title.replace(/ – variante [A-Z]$/, ''); }
+  });
+}
+// dernière étape de la série « étape de base + ses variantes » qui contient l'étape i : les nouvelles étapes s'insèrent après, sans couper la série
+function schEdRunEnd(i) { const D = schEd.ex.drawings; let j = i; while (D[j + 1] && D[j + 1].variant) j++; return j; }
+// Variante : copie de n'importe quelle étape i, jouée juste après elle (et ses autres variantes), en repartant du même point de départ
+function schEdVariant(i) {
+  const S = schEd, D = S.ex.drawings; i = +i; if (!D[i]) return;
+  schEdPush();
+  const c = schNormDrawing(JSON.parse(JSON.stringify(D[i]))); c.id = schUid(); c.validatedAt = null; c.updatedAt = null; c.variant = 'B'; c.title = String(c.title || 'Étape').replace(/ – variante [A-Z]$/, '') + ' – variante B';
+  const at = schEdRunEnd(i); D.splice(at + 1, 0, c); schEdRetitle(); S.k = at + 1; S.sel = null; schEdMultiSet([]); S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
+  schEdToast('« ' + D[S.k].title + ' » créée : modifie-la pour montrer une autre suite (lance « Animer » pour les voir l\'une après l\'autre)');
+}
+function schEdVariantMake(i) { const o = schEd && schEd.el.querySelector('#sche-ask'); if (o) o.remove(); schEdVariant(i); }
+function schEdVariantUi() {
+  const S = schEd; if (!S) return;
+  let o = S.el.querySelector('#sche-ask');
+  if (!o) { o = document.createElement('div'); o.id = 'sche-ask'; o.className = 'sche-ask'; o.addEventListener('pointerdown', ev => { if (ev.target === o) schEdAsk(0); }); o.innerHTML = '<div class="sche-ask-card" role="dialog" aria-label="Variante d\'une étape"></div>'; S.el.appendChild(o); }
+  const D = S.ex.drawings;
+  o.querySelector('.sche-ask-card').innerHTML = `<div class="sche-ask-t">Variante d'une étape</div><div class="sche-ask-s">Quelle étape veux-tu copier ? La variante se place juste après elle et repart du même point : change la suite pour montrer une autre possibilité.</div>`
+    + `<div class="sche-ask-list">${D.map((x, i) => `<button type="button" class="sche-ask-b${i === S.k ? ' cur' : ''}" onclick="schEdVariantMake(${i})"><span class="sche-ask-i">${i + 1}</span><span><b>${schEsc(x.title)}</b><small>${x.elements.length} élément${x.elements.length > 1 ? 's' : ''}${i === S.k ? ' · étape en cours' : ''}</small></span></button>`).join('')}</div>`
+    + `<button type="button" class="sche-ask-c" onclick="schEdAsk(0)">Annuler</button>`;
+  const cur = o.querySelector('.sche-ask-b.cur'); if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
+}
 function schEdAddStep() {
   const S = schEd; schEdPush(); S.ex.drawings.push(schNormDrawing({ title: 'Étape', view: schEdD().view })); schEdRetitle(); S.k = S.ex.drawings.length - 1; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
 }
@@ -9238,14 +9290,15 @@ function schEdNextAsk() {
   const o = document.createElement('div'); o.id = 'sche-ask'; o.className = 'sche-ask';
   o.innerHTML = `<div class="sche-ask-card" role="dialog" aria-label="Étape suivante"><div class="sche-ask-t">Étape suivante</div><div class="sche-ask-s">À partir de « ${t} » :</div>`
     + btn(1, '➜', 'Continuer l\'action', 'Joueurs et ballon repartent de leur position finale')
-    + btn(2, '⧉', 'Copier « ' + t + ' »', 'Pour une variante : même schéma, à modifier')
+    + btn(2, '⧉', 'Copier « ' + t + ' »', 'Même schéma, à modifier ensuite (nouvelle étape à la suite)')
     + btn(3, '▢', 'Planche vierge', 'Repartir de zéro sur le même terrain')
     + btn(4, '🔁', 'Reproduire l\'enchaînement', 'Même schéma avec un 2ᵉ groupe (en miroir…), sur de nouvelles étapes')
+    + btn(5, '🔀', 'Variante d\'une étape…', 'Copier n\'importe quelle étape pour montrer une autre suite (variantes B, C…)')
     + `<button type="button" class="sche-ask-c" onclick="schEdAsk(0)">Annuler</button></div>`;
   o.addEventListener('pointerdown', ev => { if (ev.target === o) schEdAsk(0); });
   S.el.appendChild(o);
 }
-function schEdAsk(k) { if (k === 4) { schEdRepeatUi(); return; } const o = schEd && schEd.el.querySelector('#sche-ask'); if (o) o.remove(); if (k === 1) schEdNext(); else if (k === 2) schEdDupStep(); else if (k === 3) schEdAddStep(); }
+function schEdAsk(k) { if (k === 4) { schEdRepeatUi(); return; } if (k === 5) { schEdVariantUi(); return; } const o = schEd && schEd.el.querySelector('#sche-ask'); if (o) o.remove(); if (k === 1) schEdNext(); else if (k === 2) schEdDupStep(); else if (k === 3) schEdAddStep(); }
 // ----- Reproduire l'enchaînement : l'étape en cours est recopiée sur de nouvelles étapes avec un 2ᵉ groupe (nouveaux joueurs / ballons), en miroir ou à la même place -----
 function schEdRepeatCard() {
   const S = schEd, R = S.rep, k0 = S.k, chip = (on, lab, fn) => `<button type="button" class="sche-ask-chip${on ? ' on' : ''}" onclick="${fn}">${lab}</button>`;
@@ -9278,27 +9331,27 @@ function schEdRepeat(n, mode) {
   if (!d.elements.length) { schEdToast('L\'étape est vide : rien à reproduire'); return; }
   schEdPush(); const made = [];
   for (let i = 0; i < n; i++) {
-    const c = schNormDrawing(JSON.parse(JSON.stringify(d))); c.id = schUid(); c.validatedAt = null; c.updatedAt = null; const map = {};
+    const c = schNormDrawing(JSON.parse(JSON.stringify(d))); c.id = schUid(); c.validatedAt = null; c.updatedAt = null; delete c.variant; c.title = String(c.title).replace(/ – variante [A-Z]$/, ''); const map = {};
     c.elements.forEach(e => { const id = schUid(); map[e.id] = id; e.id = id; });
     c.elements.forEach(e => { ['fromElementId', 'toElementId', 'ballId', 'holderId'].forEach(k => { if (e[k] && e[k] !== '-') { if (map[e[k]]) e[k] = map[e[k]]; else delete e[k]; } }); });
     if (mode !== 'same' && i % 2 === 0) c.elements.forEach(e => schEdMirrorEl(e, mode === 'y' ? 'y' : 'x', V.w, V.h));
     made.push(schNormDrawing(c));
   }
-  S.ex.drawings.splice(S.k + 1, 0, ...made); schEdRetitle(); S.k++; S.sel = null; schEdMultiSet([]); S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
+  { const at = schEdRunEnd(S.k); S.ex.drawings.splice(at + 1, 0, ...made); schEdRetitle(); S.k = at + 1; } S.sel = null; schEdMultiSet([]); S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
   schEdToast(n + ' étape' + (n > 1 ? 's créées' : ' créée') + ' avec un 2ᵉ groupe : lance « Animer » pour voir l\'enchaînement');
 }
 function schEdNext() {
   const S = schEd, d = schEdD(); schEdPush();
   if (!schEdIsValid(d)) d.validatedAt = new Date().toISOString();
-  const nd = schNormDrawing(schNextFrom(d)); S.ex.drawings.splice(S.k + 1, 0, nd); schEdRetitle(); S.k++; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); schEdToast('Étape suivante créée : joueurs et ballon à leur position finale');
+  const nd = schNormDrawing(schNextFrom(d)), at = schEdRunEnd(S.k); S.ex.drawings.splice(at + 1, 0, nd); schEdRetitle(); S.k = at + 1; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); schEdToast('Étape suivante créée : joueurs et ballon à leur position finale');
 }
 function schEdDupStep() {
-  const S = schEd, d = schEdD(); schEdPush(); const c = schNormDrawing(JSON.parse(JSON.stringify(d))); c.id = schUid(); c.validatedAt = null; S.ex.drawings.splice(S.k + 1, 0, c); schEdRetitle(); S.k++; S.sel = null; schEdBar(); schEdChanged(true);
+  const S = schEd, d = schEdD(); schEdPush(); const c = schNormDrawing(JSON.parse(JSON.stringify(d))); c.id = schUid(); c.validatedAt = null; delete c.variant; c.title = String(c.title).replace(/ – variante [A-Z]$/, ''); { const at = schEdRunEnd(S.k); S.ex.drawings.splice(at + 1, 0, c); schEdRetitle(); S.k = at + 1; } S.sel = null; schEdBar(); schEdChanged(true);
 }
 function schEdDelStep() {
   const S = schEd; if (S.ex.drawings.length < 2) { schEdToast('Il faut garder au moins une étape'); return; }
   if (!confirm('Supprimer « ' + schEdD().title + ' » ?')) return;
-  schEdPush(); S.ex.drawings.splice(S.k, 1); schEdRetitle(); S.k = Math.min(S.k, S.ex.drawings.length - 1); S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
+  schEdPush(); { const g = S.ex.drawings; if (!g[S.k].variant && g[S.k + 1] && g[S.k + 1].variant) delete g[S.k + 1].variant; } S.ex.drawings.splice(S.k, 1); schEdRetitle(); S.k = Math.min(S.k, S.ex.drawings.length - 1); S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true);
 }
 function schEdView(v) { if (!SCH_VIEWS[v]) return; schEdPush(); schEdD().view = v; schEd.vb = schEdBaseVb(); schEdChanged(false); schEdBar(); }
 function schEdRecenter() { schEd.vb = schEdBaseVb(); schEdDraw(); }
@@ -9312,7 +9365,7 @@ function schEdAfterHistory() { const S = schEd; S.k = Math.min(S.k, S.ex.drawing
 
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
-const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', '@d06', '@d15', '@att', 'pan'];
+const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan'];
 // Ordre effectif des outils : celui choisi dans Réglages (cet appareil), complété par les outils manquants dans l'ordre par défaut
 function schToolOrder() {
   const out = [], saved = (typeof dispCfg !== 'undefined' && dispCfg && Array.isArray(dispCfg.toolOrder)) ? dispCfg.toolOrder : [];
@@ -9355,7 +9408,7 @@ function schEdTools() {
 function schEdMore(on) { schEd.more = !!on; schEdTools(); }
 function schEdGroup(id) { const g = SCH_GROUPS.find(x => x.id === id); if (!g) return; schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!g.tools.some(t => t[0] === schEd.tool)) schEd.tool = g.tools[0][0]; schEdTools(); schEdPanel(); }
 function schEdTool(t) {
-  if (t === 'multi' && schEd.tool !== 'multi') { schEdMultiSet(schEd.sel ? [schEd.sel] : schEdMultiIds()); schEd.sel = null; } else if (t !== 'multi' && schEd.tool === 'multi') schEdMultiSet([]);
+  if (t === 'multi' && schEd.tool !== 'multi') { schEdMultiSet(schEd.sel ? [schEd.sel] : schEdMultiIds()); schEd.sel = null; } else if (t !== 'multi') schEdMultiSet([]);
   schEd.tool = t; const g = SCH_GROUPS.find(x => x.tools.some(y => y[0] === t)); if (g) schEd.group = g.id; if (t !== 'select') schEd.drag = null;
   schEdTools(); schEdPanel(); schEdDraw();
 }
@@ -9385,6 +9438,7 @@ function schEdHandles(e) {
     return [{ k: 'pt', i: 0, x: P[0].x, y: P[0].y }, { k: 'pt', i: n - 1, x: P[n - 1].x, y: P[n - 1].y }, { k: 'mid', x: m.x, y: m.y }];
   }
   if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') return [{ k: 'zone', x: e.x + e.w / 2, y: e.y + e.h / 2 }];
+  if (SCH_RECTS[e.type]) { const a = (e.rotation || 0) * Math.PI / 180, hw = e.w / 2, hh = e.h / 2; return [{ k: 'rect', x: schR(e.x + hw * Math.cos(a) - hh * Math.sin(a), 3), y: schR(e.y + hw * Math.sin(a) + hh * Math.cos(a), 3) }]; } // coin : tirer pour changer longueur et largeur
   return [];
 }
 function schDistSeg(p, a, b) { const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L)) : 0; return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy)); }
@@ -9399,6 +9453,7 @@ function schEdHit(pt, o) {
     const p = schEdPos(e, els); let dd;
     if (e.type === 'TEXT') { const fs = 0.95 * (e.scale || 1), w = Math.max(1, e.label.length * fs * 0.62); if (Math.abs(p.x - pt.x) <= w / 2 + tol * 0.4 && Math.abs(p.y - pt.y) <= fs / 2 + tol * 0.4) dd = Math.hypot(p.x - pt.x, p.y - pt.y) * 0.5; else return; }
     else if (e.type === 'LADDER') { const a = -(e.rotation || 0) * Math.PI / 180, ux = pt.x - p.x, uy = pt.y - p.y, lx = ux * Math.cos(a) - uy * Math.sin(a), ly = ux * Math.sin(a) + uy * Math.cos(a), s2 = e.scale || 1; if (Math.abs(lx) <= (e.n || 8) * 0.25 * s2 + tol * 0.4 && Math.abs(ly) <= 0.3 * s2 + tol * 0.6) dd = 2; else return; } // derrière les joueurs / ballons posés dessus
+    else if (SCH_RECTS[e.type]) { const a = -(e.rotation || 0) * Math.PI / 180, ux = pt.x - p.x, uy = pt.y - p.y, lx = ux * Math.cos(a) - uy * Math.sin(a), ly = ux * Math.sin(a) + uy * Math.cos(a); if (Math.abs(lx) <= e.w / 2 + tol * 0.4 && Math.abs(ly) <= e.h / 2 + tol * 0.6) dd = 2 - Math.min(0.99, (e.z || 0) * 0.001); else return; } // derrière les joueurs ; entre structures, celle du dessus gagne
     else { dd = Math.hypot(p.x - pt.x, p.y - pt.y); if (dd > Math.max(schEdRad(e) + 0.15, tol)) return; }
     if (dd < bd) { bd = dd; best = e; }
   });
@@ -9416,7 +9471,7 @@ function schEdHit(pt, o) {
 }
 
 // ----- Gestes -----
-function schEdSelect(id) { schEd.sel = id; schEdTools(); schEdPanel(); schEdDraw(); }
+function schEdSelect(id) { schEd.sel = id; if (id) schEdMultiSet([]); schEdTools(); schEdPanel(); schEdDraw(); }
 // ----- Sélection multiple -----
 function schEdMultiIds() { const S = schEd; if (!S || !S.multi || S.multiK !== S.k) return []; const els = schEdD().elements; return S.multi.filter(id => els.some(e => e.id === id)); }
 function schEdMultiSet(ids) { schEd.multi = ids.slice(); schEd.multiK = schEd.k; }
@@ -9452,13 +9507,14 @@ function schEdMultiPanel() {
   const b = (fn, lab, cls, dis) => `<button type="button" ${cls ? `class="${cls}"` : ''} ${dis ? 'disabled style="opacity:.35"' : ''} onclick="${fn}">${lab}</button>`;
   return `<div class="sche-ph"><b>${n ? n + ' élément' + (n > 1 ? 's sélectionnés' : ' sélectionné') : 'Sélection multiple'}</b><span class="sche-sp"></span>${b('schEdMultiDup()', 'Dupliquer', '', !n)}${b('schEdMultiDel()', 'Supprimer', 'red', !n)}</div>`
     + `<div class="sche-row sche-wide" style="flex-direction:row;gap:8px;flex-wrap:wrap;">${b('schEdMultiAll()', 'Tout sélectionner', 'sche-all')}${b('schEdMultiClear()', 'Tout désélectionner', 'sche-all', !n)}</div>`
-    + `<div class="sche-hint">Touche des éléments pour les ajouter ou les retirer, ou trace un rectangle sur le terrain pour en prendre plusieurs. Glisse un élément sélectionné pour déplacer tout le groupe. Touche le terrain vide pour tout désélectionner. Avec la souris, le clic droit fait la même chose depuis n\'importe quel outil.</div>`;
+    + `<div class="sche-hint">Touche des éléments pour les ajouter ou les retirer, ou trace un rectangle sur le terrain pour en prendre plusieurs. Glisse un élément sélectionné pour déplacer tout le groupe. Touche le terrain vide pour tout désélectionner. Avec la souris, le clic droit fait la même chose depuis n\'importe quel outil, puis le clic gauche retrouve son rôle habituel (glisser un élément du groupe le déplace en entier).</div>`;
 }
 function schEdRingSvg(e, els, col, sc) {
   if (schIsAction(e)) { const Sm = schSample(e.points, 24); return `<polyline points="${Sm.map(p => p.x + ',' + p.y).join(' ')}" fill="none" stroke="${col}" stroke-opacity="0.55" stroke-width="0.55" stroke-linecap="round" stroke-linejoin="round"/>`; }
   if (e.type === 'ZONE_RECT') return `<rect x="${e.x - e.w / 2}" y="${e.y - e.h / 2}" width="${e.w}" height="${e.h}" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
   if (e.type === 'ZONE_CIRCLE') return `<ellipse cx="${e.x}" cy="${e.y}" rx="${e.w / 2}" ry="${e.h / 2}" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
   if (e.type === 'LADDER') { const s2 = e.scale || 1, hw = (e.n || 8) * 0.25 * s2 + 0.25, hh = 0.3 * s2 + 0.25; return `<rect x="${e.x - hw}" y="${e.y - hh}" width="${hw * 2}" height="${hh * 2}" rx="0.15" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"${e.rotation ? ` transform="rotate(${e.rotation} ${e.x} ${e.y})"` : ''}/>`; }
+  if (SCH_RECTS[e.type]) { const hw = e.w / 2 + 0.25, hh = e.h / 2 + 0.25; return `<rect x="${e.x - hw}" y="${e.y - hh}" width="${hw * 2}" height="${hh * 2}" rx="0.15" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"${e.rotation ? ` transform="rotate(${e.rotation} ${e.x} ${e.y})"` : ''}/>`; }
   const p = schEdPos(e, els), r = e.type === 'TEXT' ? Math.max(1, e.label.length * 0.95 * (e.scale || 1) * 0.35) + 0.3 : Math.max(0.9, schEdRad(e) + 0.3);
   return `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.45 0.3"/>`;
 }
@@ -9474,17 +9530,23 @@ function schEdDown(e) {
   S.touch = e.pointerType !== 'mouse';
   if (document.activeElement && /^(INPUT|SELECT)$/.test(document.activeElement.tagName)) document.activeElement.blur();
   if (S.ptrs.size >= 2) { schEdCancelDrag(); const ps = [...S.ptrs.values()]; S.pinch = { d0: Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y) || 1, mid0: { x: (ps[0].x + ps[1].x) / 2, y: (ps[0].y + ps[1].y) / 2 }, vb0: { ...S.vb } }; S.pinch.m0 = schEdPt({ clientX: S.pinch.mid0.x, clientY: S.pinch.mid0.y }, S.pinch.vb0); return; }
-  if (rightBtn && S.tool !== 'multi') schEdTool('multi');
   const pt = schEdPt(e), tool = S.tool, d = schEdD();
   S.down = { id: e.pointerId, cx: e.clientX, cy: e.clientY, moved: false, pt, hit: null };
-  if (tool === 'pan') { S.drag = { kind: 'pan', vb0: { ...S.vb } }; return; }
-  if (tool === 'multi') {
+  // Clic droit : sélection multiple provisoire (l'outil en cours ne change pas). Clic gauche avec un groupe sélectionné : sur un élément du groupe (outil Sélection) on le déplace ; ailleurs le groupe est abandonné et le clic garde son rôle habituel.
+  let mtool = rightBtn ? 'multi' : tool;
+  if (rightBtn && S.sel) { schEdMultiSet(schEdMultiIds().concat(S.sel)); S.sel = null; schEdTools(); }
+  if (!rightBtn && tool !== 'multi' && schEdMultiIds().length) {
+    if (tool === 'select') { const h0 = schEdHit(pt, { handles: false }); if (h0 && h0.kind === 'el' && schEdMultiIds().includes(h0.e.id)) mtool = 'multimove'; }
+    if (mtool !== 'multimove') { schEdMultiSet([]); schEdPanel(); schEdDraw(); }
+  }
+  if (tool === 'pan' && mtool !== 'multi') { S.drag = { kind: 'pan', vb0: { ...S.vb } }; return; }
+  if (mtool === 'multi' || mtool === 'multimove') {
     const hit = schEdHit(pt, { handles: false }), els0 = d.elements;
     if (hit && hit.kind === 'el') {
       let ids = schEdMultiIds(); const was = ids.includes(hit.e.id); if (!was) { ids = ids.concat(hit.e.id); schEdMultiSet(ids); schEdPanel(); }
       const orig = {}, bb = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
       ids.forEach(id => { const e = els0.find(x => x.id === id); if (!e) return; orig[id] = schIsAction(e) ? { pts: e.points.map(p => ({ ...p })) } : { p: schEdPos(e, els0), holder: e.holderId }; schEdMultiPts(e, els0).forEach(p => { bb.x0 = Math.min(bb.x0, p.x); bb.y0 = Math.min(bb.y0, p.y); bb.x1 = Math.max(bb.x1, p.x); bb.y1 = Math.max(bb.y1, p.y); }); });
-      S.drag = { kind: 'mmove', ids, orig, bb, pt0: pt, snap0: schEdSnapStr(), tapId: was ? hit.e.id : null }; schEdDraw(); return;
+      S.drag = { kind: 'mmove', ids, orig, bb, pt0: pt, snap0: schEdSnapStr(), tapId: mtool === 'multimove' ? null : (was ? hit.e.id : null), single: mtool === 'multimove' ? hit.e.id : null }; schEdDraw(); return;
     }
     S.drag = { kind: 'lasso', p0: pt, p1: pt }; return;
   }
@@ -9553,6 +9615,7 @@ function schEdMove(e) {
     if (h.k === 'pt') el.points[h.i] = { x: schR(g.x, 2), y: schR(g.y, 2) };
     else if (h.k === 'mid') { const P0 = el.points[0], P1 = el.points[el.points.length - 1]; el.points = [P0, { x: schR(2 * g.x - (P0.x + P1.x) / 2, 2), y: schR(2 * g.y - (P0.y + P1.y) / 2, 2) }, P1]; }
     else if (h.k === 'zone') { el.w = Math.max(1, schR(schSnap(2 * Math.abs(q.x - el.x), 0.5), 1)); el.h = Math.max(1, schR(schSnap(2 * Math.abs(q.y - el.y), 0.5), 1)); }
+    else if (h.k === 'rect') { const a = (el.rotation || 0) * Math.PI / 180, ux = q.x - el.x, uy = q.y - el.y; el.w = Math.max(0.25, Math.min(12, schR(schSnap(2 * Math.abs(ux * Math.cos(a) + uy * Math.sin(a)), 0.25), 2))); el.h = Math.max(0.25, Math.min(12, schR(schSnap(2 * Math.abs(-ux * Math.sin(a) + uy * Math.cos(a)), 0.25), 2))); }
     schEdDraw();
   }
 }
@@ -9585,7 +9648,7 @@ function schEdUp(e) {
     schEdPanel(); schEdDraw(); return;
   }
   if (dr.kind === 'mmove') {
-    if (!dn.moved) { if (dr.tapId) schEdMultiSet(schEdMultiIds().filter(id => id !== dr.tapId)); schEdPanel(); schEdDraw(); return; }
+    if (!dn.moved) { if (dr.single) { schEdMultiSet([]); S.sel = dr.single; schEdTools(); } else if (dr.tapId) schEdMultiSet(schEdMultiIds().filter(id => id !== dr.tapId)); schEdPanel(); schEdDraw(); return; }
     dr.ids.forEach(id => {
       const el = els.find(x => x.id === id); if (!el) return;
       if (schIsAction(el)) { if (el.fromElementId && !dr.ids.includes(el.fromElementId)) delete el.fromElementId; if (el.toElementId && !dr.ids.includes(el.toElementId)) delete el.toElementId; }
@@ -9682,11 +9745,11 @@ function schEdDraw() {
     if (schIsAction(sel)) { const Sm = schSample(sel.points, 24); ov += `<polyline points="${Sm.map(p => p.x + ',' + p.y).join(' ')}" fill="none" stroke="${HY}" stroke-opacity="0.5" stroke-width="${0.55}" stroke-linecap="round" stroke-linejoin="round"/>`; }
     else if (sel.type === 'ZONE_RECT') ov += `<rect x="${sel.x - sel.w / 2}" y="${sel.y - sel.h / 2}" width="${sel.w}" height="${sel.h}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
     else if (sel.type === 'ZONE_CIRCLE') ov += `<ellipse cx="${sel.x}" cy="${sel.y}" rx="${sel.w / 2}" ry="${sel.h / 2}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
-    else if (sel.type === 'LADDER') ov += schEdRingSvg(sel, els, HY, sc);
+    else if (sel.type === 'LADDER' || SCH_RECTS[sel.type]) ov += schEdRingSvg(sel, els, HY, sc);
     else { const p = schEdPos(sel, els), r = sel.type === 'TEXT' ? Math.max(1, sel.label.length * 0.95 * (sel.scale || 1) * 0.35) + 0.3 : Math.max(0.9, schEdRad(sel) + 0.3); ov += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.45 0.3"/>`; }
     schEdHandles(sel).forEach(h => { ov += `<circle cx="${h.x}" cy="${h.y}" r="${hr}" fill="${h.k === 'mid' ? HY : 'rgba(255,255,255,0.6)'}" stroke="#14213D" stroke-width="${hr * 0.2}"/>`; });
   }
-  if (S.tool === 'multi') {
+  if (S.tool === 'multi' || schEdMultiIds().length) {
     const MC = '#00B7FF'; schEdMultiIds().forEach(id => { const e = els.find(x => x.id === id); if (e) ov += schEdRingSvg(e, els, MC, sc); });
     const dl = S.drag; if (dl && dl.kind === 'lasso' && S.down && S.down.moved) ov += `<rect x="${Math.min(dl.p0.x, dl.p1.x)}" y="${Math.min(dl.p0.y, dl.p1.y)}" width="${Math.abs(dl.p1.x - dl.p0.x)}" height="${Math.abs(dl.p1.y - dl.p0.y)}" fill="rgba(0,183,255,0.14)" stroke="${MC}" stroke-width="${2 / sc}" stroke-dasharray="${6 / sc} ${4 / sc}"/>`;
   }
@@ -9711,7 +9774,7 @@ function schEdReorder() {
 // ----- Panneau d'options -----
 function schEdPanel() {
   const S = schEd; if (!S) return; const e = schEdSel(), box = S.el.querySelector('#sche-panel');
-  if (S.tool === 'multi') { box.style.display = ''; box.innerHTML = schEdMultiPanel(); return; }
+  if (S.tool === 'multi' || (!e && schEdMultiIds().length)) { box.style.display = ''; box.innerHTML = schEdMultiPanel(); return; }
   if (!e || S.tool !== 'select') { box.style.display = ''; box.innerHTML = `<div class="sche-hint">${e ? 'Outil actif : touche le terrain pour placer. Touche « Options » (en bas) pour régler l\'élément sélectionné.' : 'Touche un élément du terrain pour régler ses options (couleur, taille, numéro, étape…).'}</div>`; return; }
   const d = schEdD(), players = d.elements.filter(schIsPlayer), isAct = schIsAction(e), isZone = e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE';
   const row = (lab, body) => `<div class="sche-row"><span class="sche-lab">${lab}</span>${body}</div>`;
@@ -9725,10 +9788,10 @@ function schEdPanel() {
     h += row('Équipe / rôle', sel('type', e.type, [['PLAYER', 'Attaque'], ['DEFENDER', 'Défense'], ['GOALKEEPER', 'Gardien']].concat(e.type === 'PARENT' || e.type === 'COACH' ? [[e.type, SCH_NAMES[e.type]]] : [])));
     h += row('Numéro', `<input id="sche-label" class="sche-in" maxlength="3" value="${schEsc(e.label)}" placeholder="${e.type === 'GOALKEEPER' ? 'GB' : ''}" oninput="schEdLabel(this.value)" onfocus="schEdTxtFocus()" onchange="schEdTxtDone()" style="-webkit-user-select:text;user-select:text;">`);
   }
-  if (schIsPlayer(e) && SCH_COLORS_OK.includes(e.type)) {
-    const cur = e.color || '', nm = e.type === 'PLAYER' ? 'les attaquants' : e.type === 'DEFENDER' ? 'les défenseurs' : 'les gardiens';
+  if (schColorable(e.type)) {
+    const cur = e.color || '', nm = e.type === 'PLAYER' ? 'les attaquants' : e.type === 'DEFENDER' ? 'les défenseurs' : e.type === 'GOALKEEPER' ? 'les gardiens' : null;
     h += `<div class="sche-row sche-wide"><span class="sche-lab">Couleur</span><div class="sche-sws"><button type="button" class="sche-sw auto ${cur ? '' : 'on'}" onclick="schEdColor('')" aria-label="Couleur d'origine" title="Couleur d'origine"></button>${SCH_SWATCHES.map(c => `<button type="button" class="sche-sw ${cur === c ? 'on' : ''}" style="background:${c}" onclick="schEdColor('${c}')" aria-label="Couleur ${c}"></button>`).join('')}</div></div>`;
-    h += `<div class="sche-row sche-wide"><button type="button" class="sche-all" onclick="schEdApplyAll()">Appliquer couleur et taille à ${nm} de l'étape</button></div>`;
+    h += `<div class="sche-row sche-wide"><button type="button" class="sche-all" onclick="schEdApplyAll()">${nm ? `Appliquer couleur et taille à ${nm} de l'étape` : `Appliquer la couleur à tous les « ${SCH_NAMES[e.type] || e.type} » de l'étape`}</button></div>`;
   }
   if (isAct) {
     h += row('Étape (n°)', `<div class="sche-stp"><button type="button" onclick="schEdAdd('step',-1,1,30)" aria-label="moins">−</button><input type="number" inputmode="numeric" min="1" max="30" class="sche-in" style="width:64px;text-align:center;padding:0 4px;" value="${e.step}" onchange="schEdStepSet(this.value)" aria-label="Numéro d'étape"><button type="button" onclick="schEdAdd('step',1,1,30)" aria-label="plus">+</button></div>`);
@@ -9745,17 +9808,19 @@ function schEdPanel() {
     h += row('Tracé', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdCurve()">${e.points.length === 3 ? 'Redresser' : 'Courber'}</button></div>`);
   }
   if (e.type === 'BALL') h += row('Porteur', sel('holderId', e.holderId, [['', 'Automatique (le plus proche)'], ['-', 'Aucun (au sol)']].concat(plist)));
-  if (!isAct && !isZone) { if (e.type !== 'BALL' && e.type !== 'CONE' && e.type !== 'DISC' && e.type !== 'POLE' && e.type !== 'BALLOON' && !schIsPlayer(e) || e.type === 'DEFENDER') h += row('Rotation', stp(Math.round(e.rotation) + '°', `schEdAdd('rotation',-15,0,360)`, `schEdAdd('rotation',15,0,360)`)); h += row('Taille', stp(schR(e.scale, 1) + '×', `schEdAdd('scale',-0.2,0.4,3)`, `schEdAdd('scale',0.2,0.4,3)`)); }
+  if (!isAct && !isZone) { if (e.type !== 'BALL' && e.type !== 'CONE' && e.type !== 'DISC' && e.type !== 'POLE' && e.type !== 'BALLOON' && !schIsPlayer(e) || e.type === 'DEFENDER') h += row('Rotation', stp(Math.round(e.rotation) + '°', `schEdAdd('rotation',-15,0,360)`, `schEdAdd('rotation',15,0,360)`)); if (!SCH_RECTS[e.type]) h += row('Taille', stp(schR(e.scale, 1) + '×', `schEdAdd('scale',-0.2,0.4,3)`, `schEdAdd('scale',0.2,0.4,3)`)); }
+  if (SCH_RECTS[e.type]) { const fm = v => String(schR(v, 2)).replace('.', ',') + ' m'; h += row('Longueur', stp(fm(e.w), `schEdDim('w',-0.25)`, `schEdDim('w',0.25)`)) + row('Largeur', stp(fm(e.h), `schEdDim('h',-0.25)`, `schEdDim('h',0.25)`)) + row('Sens', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(0)">↔</button><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(90)">↕</button></div>`); }
   if (e.type === 'LADDER') h += row('Cases (barreaux)', `<div class="sche-stp"><button type="button" onclick="schEdLadderN(${(e.n || 8) - 1})" aria-label="moins">−</button><input type="number" inputmode="numeric" min="2" max="${SCH_LADDER_MAX}" class="sche-in" style="width:64px;text-align:center;padding:0 4px;" value="${e.n || 8}" onchange="schEdLadderN(this.value)" aria-label="Nombre de cases"><button type="button" onclick="schEdLadderN(${(e.n || 8) + 1})" aria-label="plus">+</button></div>`)
     + row('Sens', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(0)">↔</button><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(90)">↕</button></div>`);
   if (isZone) h += row('Taille', stp(e.w + ' × ' + e.h + ' m', `schEdZone(-0.5)`, `schEdZone(0.5)`));
   box.innerHTML = h + '</div>'; box.style.display = '';
 }
-const SCH_COLORS_OK = ['PLAYER', 'DEFENDER', 'GOALKEEPER'], SCH_SWATCHES = ['#F5C400', '#E8543A', '#0052B4', '#2ECC71', '#8E5BD9', '#F28C28', '#FFFFFF', '#14213D'];
-function schEdColor(c) { const e = schEdSel(); if (!e || !schIsPlayer(e)) return; schEdPush(); if (c) e.color = c; else delete e.color; schEdChanged(true); }
+const SCH_SWATCHES = ['#F5C400', '#E8543A', '#0052B4', '#2ECC71', '#8E5BD9', '#F28C28', '#FFFFFF', '#14213D', '#00B7FF', '#E84393', '#7F8C8D', '#8B5A2B'];
+function schEdDim(prop, delta) { const e = schEdSel(); if (!e || !SCH_RECTS[e.type]) return; const v = Math.max(0.25, Math.min(12, schR((e[prop] || SCH_RECTS[e.type][prop]) + delta, 2))); if (v === e[prop]) return; schEdPush(); e[prop] = v; schEdChanged(true); }
+function schEdColor(c) { const e = schEdSel(); if (!e || !schColorable(e.type)) return; schEdPush(); if (c) e.color = c; else delete e.color; schEdChanged(true); }
 function schEdApplyAll() {
-  const e = schEdSel(); if (!e || !schIsPlayer(e)) return; schEdPush(); let n = 0;
-  schEdD().elements.forEach(x => { if (x.type !== e.type || x === e) return; if (e.color) x.color = e.color; else delete x.color; x.scale = e.scale; n++; });
+  const e = schEdSel(); if (!e || !schColorable(e.type)) return; schEdPush(); let n = 0;
+  schEdD().elements.forEach(x => { if (x.type !== e.type || x === e) return; if (e.color) x.color = e.color; else delete x.color; if (schIsPlayer(e)) x.scale = e.scale; n++; });
   schEdChanged(true); schEdToast(n ? 'Appliqué à ' + n + ' autre' + (n > 1 ? 's' : '') : 'Aucun autre élément de ce type');
 }
 function schEdLabel(v) { const e = schEdSel(); if (!e) return; e.label = v.slice(0, e.type === 'TEXT' ? 30 : 3); schEdDraw(); schEdTouch(); }
@@ -9827,7 +9892,7 @@ function schDemoData() {
   const cat = []; let cx = 2.5, cy = 3;
   const put = (type, extra, name) => { cat.push(Object.assign({ id: 'k' + cat.length, type, x: cx, y: cy }, extra || {})); cat.push({ id: 'n' + cat.length, type: 'TEXT', x: cx, y: cy + 1.9, label: name, scale: 0.6 }); cx += 4.2; if (cx > 27) { cx = 2.5; cy += 4.6; } };
   put('PLAYER', { label: '7' }, 'Attaquant'); put('DEFENDER', { label: '3' }, 'Défenseur'); put('GOALKEEPER', {}, 'Gardien'); put('PARENT', {}, 'Parent'); put('COACH', {}, 'Coach'); put('BALL', {}, 'Ballon'); put('CONE', {}, 'Plot');
-  put('DISC', {}, 'Disque'); put('POLE', {}, 'Jalon'); put('HOOP', {}, 'Cerceau'); put('HURDLE', {}, 'Haie'); put('POPUP_GOAL', {}, 'Mini-but'); put('BALLOON', {}, 'Baudruche'); put('BALL_BOX', {}, 'Bac ballons');
+  put('DISC', {}, 'Disque'); put('POLE', {}, 'Jalon'); put('HOOP', {}, 'Cerceau'); put('HURDLE', {}, 'Haie'); put('POPUP_GOAL', {}, 'Mini-but'); put('BALLOON', {}, 'Baudruche'); put('BALL_BOX', {}, 'Bac ballons'); put('DUMMY', {}, 'Mannequin'); put('MAT', {}, 'Tapis'); put('BENCH', {}, 'Banc'); put('BOX', {}, 'Caisson'); put('RECT', {}, 'Rectangle');
   put('ZONE_RECT', { w: 3.4, h: 2.4 }, 'Zone'); put('ZONE_CIRCLE', { w: 3.4, h: 2.4 }, 'Zone ronde');
   return [
     { key: 'demo', name: 'Attaque placée vs 0-6 (3 étapes)', drawings: [{ id: 'd1', title: 'Étape 1', view: 'half', elements: s1 }, { id: 'd2', title: 'Étape 2', view: 'half', elements: s2 }, { id: 'd3', title: 'Étape 3', view: 'half', elements: s3 }] },
