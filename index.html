@@ -526,6 +526,12 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 /* ---- Schémas tactiques ---- */
 .sch-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;font-size:12px;color:var(--gris-texte);}
 .sch-chip{border:1px solid rgba(255,255,255,0.25);background:transparent;color:var(--gris-clair);border-radius:8px;padding:8px 12px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+.sch-fold{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;margin-bottom:8px;padding:6px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.28);background:rgba(255,255,255,0.06);color:var(--gris-clair);font-family:inherit;font-size:14px;text-align:left;cursor:pointer;box-sizing:border-box;}
+.sch-fold.open{border-color:var(--jaune);}
+.sch-fold-i{font-size:20px;flex:none;}.sch-fold-a{flex:none;margin-left:auto;font-size:14px;}
+.sch-fold-t{min-width:0;display:flex;flex-direction:column;line-height:1.25;}
+.sch-fold-t b{color:#fff;font-size:14px;}.sch-fold-t small{color:var(--gris-texte);font-size:11px;font-weight:600;}
+.sch-fold-c{font-size:11px;color:var(--jaune);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .sch-filt{flex-wrap:wrap;}
 .sch-fsel{min-width:0;flex:1 1 42%;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:var(--gris-clair);font-size:16px;font-family:inherit;padding:0 4px;}
 .sch-fq{min-width:0;flex:1 1 50%;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-size:16px;font-family:inherit;padding:0 8px;box-sizing:border-box;}
@@ -1813,7 +1819,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z2</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z3</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -1886,7 +1892,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z2) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z3) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -9975,20 +9981,11 @@ function schDemoData() {
   const s2 = base().filter(e => e.id !== 'a3' && e.id !== 'a5').concat([P('a3', 'PLAYER', 15.8, 10.8, '5'), P('a5', 'PLAYER', 13, 6.9, '1'), { id: 'ball', type: 'BALL', x: 16, y: 10, holderId: 'a3' },
     A('r1', 'RUN', [[15.8, 10.8], [15.6, 8.6], [14.4, 8.2]], 1), A('p2', 'PASS', [[14.7, 8.1], [13.4, 7.1]], 2, { toElementId: 'a5' }), A('m2', 'MOVE', [[18.8, 3.2], [16.4, 3.8]], 2, { delay: 0.5 }), A('sc', 'SCREEN', [[8.6, 8.1], [10.4, 7.5]], 1, { fromElementId: 'a2' })]);
   const s3 = base().filter(e => e.id !== 'a5').concat([P('a5', 'PLAYER', 13, 6.9, '1'), { id: 'ball', type: 'BALL', x: 13.8, y: 6.4, holderId: 'a5' }, A('sh', 'SHOT', [[13.4, 6.5], [10.6, 0.5]], 1, { fromElementId: 'a5' }), { id: 'c1', type: 'CONE', x: 10, y: 15 }]);
-  const cat = []; let cx = 2.5, cy = 3;
-  const put = (type, extra, name) => { cat.push(Object.assign({ id: 'k' + cat.length, type, x: cx, y: cy }, extra || {})); cat.push({ id: 'n' + cat.length, type: 'TEXT', x: cx, y: cy + 1.9, label: name, scale: 0.6 }); cx += 4.2; if (cx > 27) { cx = 2.5; cy += 4.6; } };
-  put('PLAYER', { label: '7' }, 'Attaquant'); put('DEFENDER', { label: '3' }, 'Défenseur'); put('GOALKEEPER', {}, 'Gardien'); put('PARENT', {}, 'Parent'); put('COACH', {}, 'Coach'); put('BALL', {}, 'Ballon'); put('CONE', {}, 'Plot');
-  put('DISC', {}, 'Disque'); put('POLE', {}, 'Jalon'); put('HOOP', {}, 'Cerceau'); put('HURDLE', {}, 'Haie'); put('POPUP_GOAL', {}, 'Mini-but'); put('BALLOON', {}, 'Baudruche'); put('BALL_BOX', {}, 'Bac ballons'); put('DUMMY', {}, 'Mannequin'); put('MAT', {}, 'Tapis'); put('BENCH', {}, 'Banc'); put('BOX', {}, 'Caisson'); put('RECT', {}, 'Rectangle');
-  put('ZONE_RECT', { w: 3.4, h: 2.4 }, 'Zone'); put('ZONE_CIRCLE', { w: 3.4, h: 2.4 }, 'Zone ronde');
   return [
     { key: 'demo', kind: 'attaque', theme: 'autre', name: 'Attaque placée vs 0-6 (3 étapes)', drawings: [{ id: 'd1', title: 'Étape 1', view: 'half', elements: s1 }, { id: 'd2', title: 'Étape 2', view: 'half', elements: s2 }, { id: 'd3', title: 'Étape 3', view: 'half', elements: s3 }] },
-    { key: 'cat', name: 'Catalogue des éléments', drawings: [{ id: 'c', title: 'Éléments', view: 'free', elements: cat }] },
-    { key: 'act', name: 'Catalogue des actions', drawings: [{ id: 'a', title: 'Actions', view: 'free', elements: [
-      A('x1', 'MOVE', [[2, 3], [9, 3]], 1), A('x2', 'RUN', [[2, 7], [9, 7]], 2), A('x3', 'PASS', [[2, 11], [9, 11]], 3), A('x4', 'SHOT', [[2, 15], [9, 15]], 4), A('x5', 'SCREEN', [[2, 18], [9, 18]], 5),
-      A('y1', 'MOVE', [[17, 3], [21, 1], [26, 4]], 1, { delay: 0.25 }), A('y2', 'RUN', [[17, 8], [21, 5.5], [26, 9]], 2), A('y3', 'PASS', [[17, 12], [21, 9.5], [26, 13]], 3, { delay: 1 }), A('y4', 'SHOT', [[17, 16], [21, 14], [26, 17]], 4, { delay: 2 })] }] },
   ];
 }
-let schDemo = null, schUi = { ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '' };
+let schDemo = null, schUi = { ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '', open: false };
 try { const f = JSON.parse(localStorage.getItem('sch_filter_v1') || '{}'); if (f && SCH_KINDS[f.fk] || f.fk === '-') schUi.fk = f.fk; if (f && SCH_THEMES[f.ft] || f.ft === '-') schUi.ft = f.ft; } catch (e) {}
 function schInit() {
   schEnsure();
@@ -10004,8 +10001,9 @@ function schRenderDemo() {
   const opts = (map, cur, all) => `<option value="">${all}</option>` + Object.keys(map).map(k => `<option value="${k}" ${cur === k ? 'selected' : ''}>${schEsc(map[k])}</option>`).join('') + `<option value="-" ${cur === '-' ? 'selected' : ''}>Non classé</option>`;
   const nMatch = schDemo.filter(okE).length;
   const keepQ = document.activeElement && document.activeElement.id === 'sch-q';
-  box.innerHTML = `<div class="sch-bar sch-filt"><select class="sch-fsel" aria-label="Filtrer par type" onchange="schSetFilter('fk',this.value)">${opts(SCH_KINDS, schUi.fk, 'Tous les types')}</select><select class="sch-fsel" aria-label="Filtrer par thème" onchange="schSetFilter('ft',this.value)">${opts(SCH_THEMES, schUi.ft, 'Tous les thèmes')}</select><input id="sch-q" class="sch-fq" type="search" placeholder="Rechercher…" value="${schEsc(schUi.q || '')}" oninput="schSetQuery(this.value)" aria-label="Rechercher un schéma"><span class="sch-fn">${nMatch} / ${schDemo.length}</span></div>`
-    + `<div class="sch-bar sch-list" id="sch-list">${shown.map(([e, i]) => btn(i === schUi.ex, `schSet('ex',${i})`, (e.user ? '✎ ' : '') + schEsc(e.name) + (schTagText(e) ? ` <small class="sch-ct">${schEsc(schTagText(e))}</small>` : ''))).join('') || '<span>Aucun schéma ne correspond.</span>'}</div>`
+  const fold = `<button type="button" class="sch-fold${schUi.open ? ' open' : ''}" aria-expanded="${schUi.open ? 'true' : 'false'}" onclick="schToggleFolder()"><span class="sch-fold-i">${schUi.open ? '📂' : '📁'}</span><span class="sch-fold-t"><span><b>Mes schémas</b> <small>(${schDemo.length})</small></span><span class="sch-fold-c">${schEsc(ex.name)}</span></span><span class="sch-fold-a">${schUi.open ? '▴' : '▾'}</span></button>`;
+  box.innerHTML = fold + (!schUi.open ? '' : `<div class="sch-bar sch-filt"><select class="sch-fsel" aria-label="Filtrer par type" onchange="schSetFilter('fk',this.value)">${opts(SCH_KINDS, schUi.fk, 'Tous les types')}</select><select class="sch-fsel" aria-label="Filtrer par thème" onchange="schSetFilter('ft',this.value)">${opts(SCH_THEMES, schUi.ft, 'Tous les thèmes')}</select><input id="sch-q" class="sch-fq" type="search" placeholder="Rechercher…" value="${schEsc(schUi.q || '')}" oninput="schSetQuery(this.value)" aria-label="Rechercher un schéma"><span class="sch-fn">${nMatch} / ${schDemo.length}</span></div>`
+    + `<div class="sch-bar sch-list" id="sch-list">${shown.map(([e, i]) => btn(i === schUi.ex, `schSet('ex',${i})`, (e.user ? '✎ ' : '') + schEsc(e.name) + (schTagText(e) ? ` <small class="sch-ct">${schEsc(schTagText(e))}</small>` : ''))).join('') || '<span>Aucun schéma ne correspond.</span>'}</div>`)
     + (ex.drawings.length > 1 ? `<div class="sch-bar">${ex.drawings.map((x, i) => btn(i === schUi.step, `schSet('step',${i})`, schEsc(x.title))).join('')}</div>` : '')
     + `<div class="sch-bar"><span>Terrain :</span>${btn(!schUi.view, `schSet('view','')`, 'Celui de l\'étape')}${SCH_VIEW_KEYS.map(k => btn(schUi.view === k, `schSet('view','${k}')`, SCH_VIEWS[k].name)).join('')}</div>`
     + `<label class="sch-chk"><input type="checkbox" ${schUi.ball ? 'checked' : ''} onchange="schSet('ball',this.checked)"> Afficher le départ du ballon</label>`
@@ -10016,7 +10014,8 @@ function schRenderDemo() {
   const L = document.getElementById('sch-list'), on = L && L.querySelector('.sch-chip.on'); if (L && on) L.scrollTop = Math.max(0, on.offsetTop - L.offsetTop - 4);
   if (keepQ) { const qi = document.getElementById('sch-q'); if (qi) { qi.focus(); try { qi.setSelectionRange(qi.value.length, qi.value.length); } catch (e) {} } }
 }
-function schSet(k, v) { schUi[k] = v; if (k === 'ex') schUi.step = 0; schRenderDemo(); }
+function schSet(k, v) { schUi[k] = v; if (k === 'ex') { schUi.step = 0; schUi.open = false; } schRenderDemo(); } // choisir un schéma referme le dossier
+function schToggleFolder() { schUi.open = !schUi.open; schRenderDemo(); }
 function schSetFilter(k, v) { schUi[k] = v; try { localStorage.setItem('sch_filter_v1', JSON.stringify({ fk: schUi.fk, ft: schUi.ft })); } catch (e) {} schRenderDemo(); }
 function schSetQuery(v) { schUi.q = v; schRenderDemo(); }
 
