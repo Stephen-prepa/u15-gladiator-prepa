@@ -895,7 +895,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
   #cr-draw.show > .cr-d-pal .cr-d-tool{height:78px;}
   #cr-draw.show > .cr-d-canvas{min-height:0;}
 }
-/* ===== Espace coach : interface claire et épurée (v26-10-z13) — apparence uniquement ===== */
+/* ===== Espace coach : interface claire et épurée (v26-10-z14) — apparence uniquement ===== */
 body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-coachs2.active){background:#F3F6FA;}
 #screen-app:has(#panel-coachs2.active)::before{display:none;}
 #screen-app:has(#panel-coachs2.active) > div:first-child button{background:#fff !important;border:1px solid #D5DEEA !important;color:#334766 !important;border-radius:10px !important;padding:8px 14px !important;font-weight:600;}
@@ -1944,12 +1944,13 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
         <div id="seance-pane-createur">
         <div id="cr-list-view">
           <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Prépare tes séances : type, durée et déroulé en blocs, schémas animés, puis fiche PDF. Partagé entre les coachs, invisible des joueurs.</div>
+          <div id="cr-sync" style="font-size:11px;color:var(--gris-texte);margin:-6px 0 10px;"></div>
           <button type="button" class="cr-btn primary" style="width:100%;padding:14px;font-size:15px;" onclick="crOpenTemplates()">＋ Créer une séance</button>
           <div id="cr-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 10px;"></div>
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z13</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z14</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -2022,7 +2023,7 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z13) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z14) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -5584,13 +5585,13 @@ async function crLoadPlans() {
     const res = await fetch(SB_URL + '/rest/v1/seance_plans?select=*&order=updated_at.desc&limit=300', { headers: coachAuthHeaders() });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     crPlans = await res.json();
-    crLoaded = true;
+    crLoaded = true; crLastSync = Date.now(); crSyncErr = false;
   } catch (e) {
     listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#ff6b6b;">Impossible de charger les séances. Réessaie dans un instant.</div>';
     return;
   }
   crRenderFilters();
-  crRenderList();
+  crRenderList(); crSyncStamp();
 }
 function crFilterCount(f) { return crPlans.filter(p => crMatchFilter(p, f)).length; }
 function crMatchFilter(p, f) {
@@ -5716,28 +5717,135 @@ function crSetStatus(txt, err) {
 }
 function crTouch() {
   if (!crCur) return;
+  crRev++; crDirty = true;
   crSyncBlockMinutes(crCur);
   crCur.total_minutes = crTotal(crCur);
   crSetStatus('Enregistrement…', false);
   clearTimeout(crSaveTimer);
   crSaveTimer = setTimeout(crSaveNow, 700);
 }
+let crRev = 0, crDirty = false, crPulling = false, crLastSync = 0, crSyncErr = false;
+const crRemote = {}; // versions plus récentes d'une séance ouverte, en attente d'être chargées (id → ligne)
+function crBody(p) {
+  return { title: p.title || 'Sans titre', seance_type: p.seance_type, status: p.status, is_template: !!p.is_template, categorie: p.categorie || null, public_cible: p.public_cible || null, niveau: p.niveau || null,
+    seance_date: p.seance_date || null, nb_joueurs: p.nb_joueurs || null, entraineur: p.entraineur || null, theme: p.theme || null, objectif_principal: p.objectif_principal || null,
+    objectifs_secondaires: p.objectifs_secondaires || null, contexte: p.contexte || null, materiel: p.materiel || [], blocks: p.blocks || [], videos: p.videos || [], total_minutes: crTotal(p) };
+}
 async function crSaveNow() {
   if (!crCur) return;
-  const p = crCur;
+  const p = crCur, rev0 = crRev, known = p.updated_at;
   clearTimeout(crSaveTimer);
   crSyncBlockMinutes(p);
-  const body = { title: p.title || 'Sans titre', seance_type: p.seance_type, status: p.status, is_template: !!p.is_template, categorie: p.categorie || null, public_cible: p.public_cible || null, niveau: p.niveau || null,
-    seance_date: p.seance_date || null, nb_joueurs: p.nb_joueurs || null, entraineur: p.entraineur || null, theme: p.theme || null, objectif_principal: p.objectif_principal || null,
-    objectifs_secondaires: p.objectifs_secondaires || null, contexte: p.contexte || null, materiel: p.materiel || [], blocks: p.blocks || [], videos: p.videos || [], total_minutes: crTotal(p), updated_at: new Date().toISOString() };
+  const body = { ...crBody(p), updated_at: new Date().toISOString() };
   try {
     await ensureCoachSession();
-    const res = await fetch(SB_URL + '/rest/v1/seance_plans?id=eq.' + p.id, { method: 'PATCH', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    // « updated_at <= version connue » : si un autre appareil a enregistré entre-temps, rien n'est écrasé (aucune ligne modifiée) et on règle le conflit
+    const url = SB_URL + '/rest/v1/seance_plans?id=eq.' + p.id + (known ? '&updated_at=lte.' + encodeURIComponent(known) : '') + '&select=id,updated_at';
+    const res = await fetch(url, { method: 'PATCH', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify(body) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    if (!rows.length) { await crConflict(p); return; }
+    p.updated_at = rows[0].updated_at || body.updated_at; delete crRemote[p.id]; crNoticeHide();
+    if (crRev === rev0) crDirty = false;
     crSaveFailed = false;
     crSetStatus('✓ Enregistré', false);
   } catch (e) { crSaveFailed = true; crSetStatus(navigator.onLine === false ? '⚠ Hors connexion : à enregistrer au retour du réseau' : '⚠ Non enregistré', true); }
 }
+// La séance a été modifiée sur un autre appareil pendant que celle-ci était modifiée ici : rien n'est perdu — ta version est gardée en copie, la version de l'autre appareil est chargée
+async function crConflict(p) {
+  clearTimeout(crSaveTimer); crSaveFailed = false;
+  try {
+    const base = SB_URL + '/rest/v1/seance_plans', H = coachAuthHeaders();
+    const rr = await fetch(base + '?select=*&id=eq.' + p.id, { headers: H }), rem = rr.ok ? await rr.json() : null;
+    if (!rem) throw new Error('lecture');
+    const mine = { ...crBody(p), title: String(p.title || 'Sans titre').slice(0, 80) + (rem[0] ? ' (ma version)' : ''), status: 'brouillon', blocks: (p.blocks || []).map(crCloneBlock), updated_at: new Date().toISOString() };
+    const pr = await fetch(base, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify([mine]) });
+    if (!pr.ok) throw new Error('copie');
+    const copy = (await pr.json())[0];
+    if (rem[0]) {
+      Object.keys(p).forEach(k => delete p[k]); Object.assign(p, rem[0]); crPlans.unshift(copy);
+      crDirty = false; delete crRemote[p.id]; if (crCur === p) crRenderEditor(p);
+      crNotice('⚠ Cette séance a été modifiée sur un autre appareil. Tu vois sa version ; ta version est gardée dans la séance « ' + crEsc(copy.title) + ' ».');
+    } else { // supprimée ailleurs : la copie la remplace
+      const ix = crPlans.indexOf(p); if (ix >= 0) crPlans[ix] = copy; else crPlans.unshift(copy);
+      crDirty = false; if (crCur === p) crRenderEditor(copy);
+      crNotice('⚠ Cette séance a été supprimée sur un autre appareil : elle a été recréée avec ta version.');
+    }
+    crSetStatus('✓ Enregistré', false); crRenderFilters(); if (document.getElementById('cr-list-view').style.display !== 'none') crRenderList();
+  } catch (e) { crSaveFailed = true; crSetStatus('⚠ Non enregistré (séance modifiée ailleurs, nouvel essai au prochain changement)', true); }
+}
+// ----- Bandeau d'information (en haut de l'écran) -----
+function crNotice(html, btn) {
+  let el = document.getElementById('cr-notice');
+  if (!el) { el = document.createElement('div'); el.id = 'cr-notice'; el.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:99000;background:#FFF4D6;color:#5A3B00;border:1px solid #E0A100;border-radius:12px;padding:10px 12px;font:600 13px/1.35 Arial,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,0.35);display:flex;gap:10px;align-items:center;'; document.documentElement.appendChild(el); }
+  el.innerHTML = '<div style="flex:1;">' + html + '</div>' + (btn ? '<button type="button" onclick="' + btn[1] + '" style="border:0;background:#0A3D7A;color:#fff;border-radius:9px;padding:9px 12px;font:800 13px Arial,sans-serif;white-space:nowrap;">' + btn[0] + '</button>' : '') + '<button type="button" onclick="crNoticeHide()" aria-label="Fermer" style="border:0;background:transparent;color:#5A3B00;font-size:18px;padding:4px 6px;">✕</button>';
+}
+function crNoticeHide() { const el = document.getElementById('cr-notice'); if (el) el.remove(); }
+// ----- Mise à jour depuis les autres appareils (séances) -----
+function crSafeToApply() {
+  const ev = document.getElementById('cr-edit-view'), ex = document.getElementById('cr-ex-view'), a = document.activeElement;
+  if (crDirty || crSaveFailed || !crCur || !ev || ev.style.display === 'none' || (ex && ex.style.display !== 'none')) return false;
+  if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && ev.contains(a)) return false;
+  if (typeof crD !== 'undefined' && crD) return false;
+  if (document.getElementById('sch-editor')) return false;
+  return true;
+}
+function crApplyRemote(id) {
+  const row = crRemote[id], cur = crPlans.find(p => p.id === id); if (!row || !cur) { crNoticeHide(); return; }
+  Object.keys(cur).forEach(k => delete cur[k]); Object.assign(cur, row); delete crRemote[id]; crDirty = false; crNoticeHide();
+  if (crCur === cur) crRenderEditor(cur); crSetStatus('↻ Mise à jour depuis un autre appareil', false);
+}
+function crSyncStamp() {
+  const el = document.getElementById('cr-sync'); if (!el) return;
+  const t = crLastSync ? new Date(crLastSync).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+  el.textContent = !navigator.onLine ? '📴 Hors connexion : les séances affichées sont celles de la dernière mise à jour' : crSyncErr ? '⚠ Mise à jour impossible pour l\'instant (nouvel essai automatique)' : '☁ À jour' + (t ? ' · ' + t : '');
+}
+async function crPullPlans() {
+  if (!crLoaded || crPulling || !navigator.onLine || !coachSession) { crSyncStamp(); return; }
+  crPulling = true;
+  try {
+    await ensureCoachSession();
+    const H = coachAuthHeaders(), base = SB_URL + '/rest/v1/seance_plans';
+    const r = await fetch(base + '?select=id,updated_at&order=updated_at.desc&limit=300', { headers: H });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rem = await r.json(), loc = {}, ts = v => { const t = Date.parse(v); return isFinite(t) ? t : 0; };
+    crPlans.forEach(p => { loc[p.id] = p; });
+    const ids = rem.filter(x => !loc[x.id] || ts(x.updated_at) > ts(loc[x.id].updated_at)).map(x => x.id);
+    const gone = rem.length < 300 ? crPlans.filter(p => !rem.some(x => x.id === p.id) && !(crCur && crCur.id === p.id)) : [];
+    let changed = gone.length > 0; if (gone.length) crPlans = crPlans.filter(p => !gone.includes(p));
+    for (let k = 0; k < ids.length; k += 10) {
+      const rr = await fetch(base + '?select=*&id=in.(' + ids.slice(k, k + 10).join(',') + ')', { headers: H });
+      if (!rr.ok) throw new Error('HTTP ' + rr.status);
+      for (const row of await rr.json()) {
+        const cur = loc[row.id];
+        if (cur && crCur === cur) {
+          if (crSafeToApply()) { crRemote[row.id] = row; crApplyRemote(row.id); }
+          else { crRemote[row.id] = row; crNotice('🔄 Cette séance a été modifiée sur un autre appareil.', ['Charger la nouvelle version', "crApplyRemote('" + row.id + "')"]); }
+        } else if (cur) { Object.keys(cur).forEach(x => delete cur[x]); Object.assign(cur, row); changed = true; }
+        else { crPlans.push(row); changed = true; }
+      }
+    }
+    if (ids.length) crPlans.sort((a, b) => ts(b.updated_at) - ts(a.updated_at));
+    crSyncErr = false; crLastSync = Date.now();
+    if (changed) { try { crRenderFilters(); const lv = document.getElementById('cr-list-view'); if (lv && lv.style.display !== 'none') crRenderList(); } catch (e) {} }
+  } catch (e) { crSyncErr = true; }
+  finally { crPulling = false; crSyncStamp(); }
+}
+// ----- Mise à jour automatique : retour sur l'app, retour du réseau, puis toutes les 30 s -----
+let syncNowAt = 0;
+function syncAllNow(reason) {
+  if (!coachSession || document.visibilityState === 'hidden') return;
+  const now = Date.now(); if (reason !== 'poll' && now - syncNowAt < 1500) return; syncNowAt = now;
+  const a = document.activeElement, typing = !!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+  if (!(reason === 'poll' && typing)) { try { schSyncAll(true); } catch (e) {} } // la liste des schémas se redessine : pas pendant une saisie
+  try { crPullPlans(); } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncAllNow('visible'); });
+window.addEventListener('focus', () => syncAllNow('focus'));
+window.addEventListener('pageshow', () => syncAllNow('pageshow'));
+window.addEventListener('online', () => { syncNowAt = 0; syncAllNow('online'); });
+window.addEventListener('offline', () => { try { crSyncStamp(); } catch (e) {} });
+setInterval(() => syncAllNow('poll'), 30000);
 let crSaveFailed = false;
 window.addEventListener('online', () => { if (crSaveFailed && crCur) crSaveNow(); });
 function crSel(opts, val, cb) {
@@ -6044,8 +6152,11 @@ function crDelVideo(i) { crCur.videos.splice(i, 1); crTouch(); crRenderVideos();
 // ----- Actions de liste -----
 async function crPatch(id, fields) {
   await ensureCoachSession();
-  const res = await fetch(SB_URL + '/rest/v1/seance_plans?id=eq.' + id, { method: 'PATCH', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() }) });
+  const ts = new Date().toISOString();
+  const res = await fetch(SB_URL + '/rest/v1/seance_plans?id=eq.' + id + '&select=id,updated_at', { method: 'PATCH', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify({ ...fields, updated_at: ts }) });
   if (!res.ok) throw new Error('HTTP ' + res.status);
+  let srv = ts; try { const r = await res.json(); if (r && r[0] && r[0].updated_at) srv = r[0].updated_at; } catch (e) {}
+  const pl = crPlans.find(x => x.id === id); if (pl) pl.updated_at = srv; // la version connue reste à jour (sinon le prochain enregistrement croirait à un conflit)
 }
 async function crDuplicate(id) {
   const s = crPlans.find(p => p.id === id); if (!s) return;
@@ -9322,8 +9433,9 @@ function schSyncUi() {
   const b = document.getElementById('sche-saved'); if (b) b.textContent = schSyncLabel(true);
 }
 function schSyncSoon(ms) { clearTimeout(schSyncTimer); schSyncTimer = setTimeout(schSyncAll, ms == null ? 2500 : ms); }
-async function schSyncAll() {
+async function schSyncAll(quiet) {
   schEnsure();
+  const sigOf = () => schUserEx.map(x => x.id + '~' + x.serverUpdatedAt + '~' + (x.dirty ? 1 : 0) + '~' + x.name).join('|'), sig0 = sigOf();
   if (schSync.busy) { schSyncSoon(3000); return; }
   if (!navigator.onLine) { schSync.state = 'offline'; schSyncUi(); return; }
   if (!coachSession) { schSync.state = 'noauth'; schSyncUi(); return; }
@@ -9375,7 +9487,9 @@ async function schSyncAll() {
     schSync.state = 'ok'; schSync.at = Date.now();
   } catch (e) { schSync.state = navigator.onLine ? 'error' : 'offline'; }
   finally {
-    schSync.busy = false; schUserSave();
+    schSync.busy = false;
+    if (quiet === true && schSync.state === 'ok' && sig0 === sigOf()) { schSyncUi(); return; } // rien n'a changé : on ne redessine pas l'écran
+    schUserSave();
     const cur = schDemo && schDemo[schUi.ex] ? schDemo[schUi.ex].id : null; schRebuild();
     const ix = cur ? schDemo.findIndex(x => x.id === cur) : -1; schUi.ex = ix >= 0 ? ix : 0; if (schUi.step >= schDemo[schUi.ex].drawings.length) schUi.step = 0;
     if (!schEd && !schPl) { try { schRenderDemo(); } catch (e) {} }
