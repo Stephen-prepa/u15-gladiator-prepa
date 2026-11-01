@@ -713,6 +713,21 @@ html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .cr-chip{display:inline-block;border:1px solid rgba(255,255,255,0.2);color:var(--gris-clair);border-radius:99px;padding:6px 12px;font-size:12px;cursor:pointer;background:transparent;font-family:inherit;}
 .cr-chip.on{background:var(--jaune);border-color:var(--jaune);color:#111;font-weight:800;}
 .cr-chip .n{opacity:.7;margin-left:4px;font-size:11px;}
+.cr-chip.auto{border-style:dashed;}
+.cr-subd{font-size:12px;color:var(--gris-texte);margin:0 0 10px;line-height:1.4;}
+.cr-sub-h{font-size:13px;font-weight:800;color:var(--jaune);}
+.cr-sub-d{font-size:11px;color:var(--gris-texte);margin:2px 0 8px;line-height:1.35;}
+.cr-evo{background:var(--gris-fonce);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px;margin-bottom:8px;}
+.cr-evo-h{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-weight:800;color:var(--jaune);font-size:13px;}
+.crc-sec{border:1px solid rgba(255,255,255,0.12);border-radius:10px;margin-bottom:8px;background:var(--noir);}
+.crc-sec>summary{display:flex;align-items:center;gap:8px;padding:10px;cursor:pointer;list-style:none;font-size:13px;color:var(--blanc);}
+.crc-sec>summary::-webkit-details-marker{display:none;}
+.crc-sec.off>summary b{opacity:.5;text-decoration:line-through;}
+.crc-sec .crc-in{padding:0 10px 10px;}
+.crc-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.crc-row .cr-in{padding:8px;font-size:13px;}
+.crc-mini{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.18);background:transparent;color:var(--gris-clair);cursor:pointer;font-size:14px;flex-shrink:0;}
+.crc-h{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--gris-texte);margin:12px 0 6px;}
 .cr-in{width:100%;box-sizing:border-box;background:var(--noir);border:1px solid var(--gris-moyen);border-radius:8px;padding:10px;color:#fff;font-size:14px;font-family:inherit;}
 .cr-in::placeholder{color:var(--gris-texte);}
 textarea.cr-in{resize:vertical;min-height:44px;}
@@ -895,7 +910,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
   #cr-draw.show > .cr-d-pal .cr-d-tool{height:78px;}
   #cr-draw.show > .cr-d-canvas{min-height:0;}
 }
-/* ===== Espace coach : interface claire et épurée (v26-10-z14) — apparence uniquement ===== */
+/* ===== Espace coach : interface claire et épurée (v26-10-z15) — apparence uniquement ===== */
 body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-coachs2.active){background:#F3F6FA;}
 #screen-app:has(#panel-coachs2.active)::before{display:none;}
 #screen-app:has(#panel-coachs2.active) > div:first-child button{background:#fff !important;border:1px solid #D5DEEA !important;color:#334766 !important;border-radius:10px !important;padding:8px 14px !important;font-weight:600;}
@@ -1950,7 +1965,7 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z14</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z15</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -2023,7 +2038,7 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z14) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z15) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -2100,6 +2115,13 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
           <div class="section-title" style="margin:0 0 4px;">🎨 Affichage de cet appareil</div>
           <div style="font-size:11px;color:var(--gris-texte);margin-bottom:10px;">Ces choix ne concernent que cet appareil : ni les autres coachs, ni tes autres appareils.</div>
           <div id="disp-ui"></div>
+        </div>
+
+        <div id="crc-box" style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(128,150,190,0.25);">
+          <div class="section-title" style="margin:0 0 4px;">📋 Modèle de séance (mes cahiers)</div>
+          <div style="font-size:11px;color:var(--gris-texte);margin-bottom:10px;">Active ou masque les sections de la page d’un exercice, renomme-les, ajoute des sous-items et des listes en un clic. Valable sur tous tes appareils. Les exercices déjà écrits ne sont jamais modifiés.</div>
+          <div id="crc-ui"></div>
+          <div id="crc-msg" style="font-size:11px;min-height:14px;margin-top:6px;"></div>
         </div>
 
         <div id="pw-box" style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(128,150,190,0.25);">
@@ -4104,7 +4126,7 @@ function coachSubtabSwitch(name) {
   if (name === 'dashboard') dashboardLoad();
   if (name === 'outils') { outilsInit(); outilsPaneInit(); }
   if (name === 'evaluations') evaluationsInit();
-  if (name === 'reglages') { loadAppSettings(); try { dispRenderUi(); pwUiInit(); } catch (e) {} }
+  if (name === 'reglages') { loadAppSettings(); try { dispRenderUi(); pwUiInit(); } catch (e) {} try { crCfgRenderUi(); crCfgPull(); } catch (e) {} }
   if (name === 'seance') seancePaneInit();
   if (name === 'schemas') schInit();
 }
@@ -5571,6 +5593,7 @@ function crExCount(p) { return (p.blocks || []).reduce((s, b) => s + (b.exercise
 function crUid() { return 'b' + Math.random().toString(36).slice(2, 9); }
 
 async function crInit() {
+  try { crCfgPull(); } catch (e) {}
   crRenderFilters();
   const sel = document.getElementById('cr-cat-filter');
   if (sel && !sel.options.length) sel.innerHTML = '<option value="">Toutes catégories</option>' + CR_CATS.map(c => '<option>' + crEsc(c) + '</option>').join('');
@@ -5839,6 +5862,7 @@ function syncAllNow(reason) {
   const a = document.activeElement, typing = !!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
   if (!(reason === 'poll' && typing)) { try { schSyncAll(true); } catch (e) {} } // la liste des schémas se redessine : pas pendant une saisie
   try { crPullPlans(); } catch (e) {}
+  try { crCfgPull(); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncAllNow('visible'); });
 window.addEventListener('focus', () => syncAllNow('focus'));
@@ -6051,6 +6075,7 @@ function crCloneEx(x) {
   const c = JSON.parse(JSON.stringify(crNormEx(x)));
   c.id = crUid();
   Object.keys(c.items).forEach(k => c.items[k].forEach(it => { it.id = crUid(); }));
+  (c.evolutions || []).forEach(e => { e.id = crUid(); });
   c.equipment.forEach(e => { e.id = crUid(); });
   if (c.gb) { c.gb.instructions.forEach(it => { it.id = crUid(); }); c.gb.success.forEach(it => { it.id = crUid(); }); c.gb.equipment.forEach(e => { e.id = crUid(); }); if (c.gb.schemaLib) crCloneDrawings(c.gb.schemaLib); }
   if (c.schemaLib) crCloneDrawings(c.schemaLib);
@@ -6108,7 +6133,8 @@ function crPlanText(p) {
       const x = crNormEx(raw);
       parts.push(x.name, x.objective, x.theme, x.subTheme, x.space, x.headcount.players);
       CR_ORG_FIELDS.forEach(([k]) => parts.push(x.org[k]));
-      CR_LIST_KEYS.forEach(k => x.items[k].forEach(it => parts.push(it.text, it.extra, it.tag)));
+      Object.keys(x.items).forEach(k => x.items[k].forEach(it => parts.push(it.text, it.extra, it.tag)));
+      x.evolutions.forEach(e => parts.push(e.title, e.text));
       x.equipment.forEach(e => parts.push(e.name));
       if (x.gb) { parts.push(x.gb.objective); x.gb.instructions.concat(x.gb.success).forEach(it => parts.push(it.text)); x.gb.equipment.forEach(e => parts.push(e.name)); }
     });
@@ -6271,10 +6297,13 @@ function crFichePrint(pdf) {
 
 // ----- Exercice : page de détail -----
 const CR_EX_TABS = [
+  { k: 'besoins', label: 'Besoins', desc: 'Ce dont les joueurs ont besoin pour réussir cet exercice : le « pourquoi ».', subOk: true, learn: true, lists: [{ k: 'besoins', title: 'Besoins' }] },
+  { k: 'fonctionnement', label: 'Fonctionnement', desc: 'Comment l’exercice tourne concrètement : le « comment ».', subOk: true, learn: true, lists: [{ k: 'fonctionnement', title: 'Fonctionnement' }] },
+  { k: 'comportements', label: 'Comportements attendus', subOk: true, learn: true, lists: [{ k: 'comportements', title: 'Comportements attendus' }] },
+  { k: 'reussite', label: 'Critères de réussite', subOk: true, learn: true, lists: [{ k: 'reussite', title: 'Critères de réussite' }] },
+  { k: 'evolutions', label: 'Évolutions', desc: 'Évolution N°1, N°2… : comment faire évoluer l’exercice.', evo: true },
   { k: 'consignes', label: 'Consignes', lists: [{ k: 'consignes', title: 'Consignes', tags: ['Principale', 'Secondaire', 'Fonctionnement', 'Sécurité'], auto: true }] },
-  { k: 'realisation', label: 'Réalisation', lists: [{ k: 'realisation', title: 'Critères de réalisation', sug: ['Orientation du corps', 'Prise d’information', 'Timing', 'Distance', 'Vitesse', 'Coordination', 'Placement', 'Déplacement', 'Communication', 'Intention tactique'] }] },
-  { k: 'reussite', label: 'Réussite', lists: [{ k: 'reussite', title: 'Critères de réussite', sug: ['X tirs réussis sur X', 'Conservation de balle', 'Réalisation dans le temps imparti', 'Respect de la contrainte'] }] },
-  { k: 'comportements', label: 'Comportements', lists: [{ k: 'comportements', title: 'Comportements attendus' }] },
+  { k: 'realisation', label: 'Réalisation', subOk: true, lists: [{ k: 'realisation', title: 'Critères de réalisation', sug: ['Orientation du corps', 'Prise d’information', 'Timing', 'Distance', 'Vitesse', 'Coordination', 'Placement', 'Déplacement', 'Communication', 'Intention tactique'] }] },
   { k: 'organisation', label: 'Organisation', org: true },
   { k: 'materiel', label: 'Matériel', equip: true },
   { k: 'variables', label: 'Variables', lists: [
@@ -6284,8 +6313,220 @@ const CR_EX_TABS = [
   { k: 'corrections', label: 'Corrections', lists: [{ k: 'corrections', title: 'Corrections / régulations', extra: true }] },
   { k: 'progression', label: 'Progression', lists: [{ k: 'progression', title: 'Progression' }, { k: 'regression', title: 'Régression' }] },
 ];
+// ----- Modèle de séance personnalisable (Réglages › Modèle de séance) : sections actives, sous-items, listes en un clic -----
+const CR_DEF_SUBS = {
+  besoins: [
+    { id: 'b-tech', name: 'Technique', desc: 'Gestes à maîtriser pour réussir (passe, réception, tir, dribble…)' },
+    { id: 'b-tact', name: 'Tactique', desc: 'Lecture du jeu, choix et placement individuel ou collectif' },
+    { id: 'b-phys', name: 'Physique', desc: 'Qualités motrices et énergétiques sollicitées (vitesse, appuis, endurance…)' },
+    { id: 'b-ment', name: 'Mental / relationnel', desc: 'Attitude, communication, engagement, gestion de l’erreur' }],
+  fonctionnement: [
+    { id: 'f-disp', name: 'Dispositif & espace', desc: 'Où sont les joueurs, quelle zone de jeu, quel matériel en place' },
+    { id: 'f-regl', name: 'Règles & contraintes', desc: 'Ce qui est autorisé ou interdit, contraintes de jeu, comptage des points' },
+    { id: 'f-deroul', name: 'Déroulement', desc: 'Enchaînement des actions : départ, arrêt, durée, nombre de séries' },
+    { id: 'f-roles', name: 'Rôles & rotations', desc: 'Qui fait quoi et comment on tourne' }],
+};
+const CR_DEF_SUG = {
+  besoins: [['Précision de la passe', 'b-tech'], ['Qualité de réception', 'b-tech'], ['Efficacité du tir', 'b-tech'], ['Maîtrise du dribble', 'b-tech'],
+    ['Lire le placement du défenseur', 'b-tact'], ['Créer le surnombre', 'b-tact'], ['Utiliser l’espace libre', 'b-tact'], ['Choisir entre passer et tirer', 'b-tact'],
+    ['Vitesse de déplacement', 'b-phys'], ['Changements de direction', 'b-phys'], ['Intensité et répétition', 'b-phys'], ['Coordination', 'b-phys'],
+    ['Communication', 'b-ment'], ['Concentration', 'b-ment'], ['Engagement', 'b-ment'], ['Gestion de l’erreur', 'b-ment']],
+  fonctionnement: [['Deux colonnes face au but', 'f-disp'], ['Départ en ligne médiane', 'f-disp'], ['Interdiction de dribbler', 'f-regl'], ['Passe obligatoire avant le tir', 'f-regl'], ['Point en plus si but après X passes', 'f-regl'],
+    ['Départ au signal du coach', 'f-deroul'], ['Enchaînement sans temps mort', 'f-deroul'], ['Séries de X passages', 'f-deroul'],
+    ['Rotation après chaque passage', 'f-roles'], ['Changement de rôle toutes les X minutes', 'f-roles'], ['Le défenseur devient attaquant', 'f-roles']],
+  comportements: ['Communiquer (appeler la balle)', 'S’engager à pleine intensité', 'Respecter les consignes', 'Accepter l’erreur et enchaîner', 'Encourager et aider ses partenaires', 'Rester concentré jusqu’au bout', 'Se replacer vite', 'Être attentif au signal', 'Jouer collectif'].map(t => [t, '']),
+  reussite: ['X tirs réussis sur X', 'Conservation de balle', 'Réalisation dans le temps imparti', 'Respect de la contrainte', 'Nombre de passes réussies', 'Marquer X buts en Y minutes', 'Moins de X balles perdues', 'Franchir la ligne X fois'].map(t => [t, '']),
+};
+let crCfg = null, crCfgTimer = 0, crCfgPending = false;
+function crCfgNorm(c) {
+  c = (c && typeof c === 'object') ? c : {};
+  const o = k => (c[k] && typeof c[k] === 'object' && !Array.isArray(c[k])) ? c[k] : {};
+  return { u: +c.u || 0, off: o('off'), order: Array.isArray(c.order) ? c.order.filter(k => typeof k === 'string') : [], names: o('names'), descs: o('descs'), subs: o('subs'), sug: o('sug'),
+    custom: (Array.isArray(c.custom) ? c.custom : []).filter(x => x && /^c_[a-z0-9]+$/.test(x.k)).map(x => ({ k: x.k, name: String(x.name || 'Section'), desc: String(x.desc || '') })) };
+}
+function crCfgGet() {
+  if (!crCfg) { let r = null; try { r = JSON.parse(localStorage.getItem('crCfg') || 'null'); } catch (e) {} crCfg = crCfgNorm(r); }
+  return crCfg;
+}
+function crCoachId() {
+  if (!coachSession) return '';
+  if (coachSession.id) return coachSession.id;
+  try { return JSON.parse(atob(String(coachSession.access_token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub || ''; } catch (e) { return ''; }
+}
+function crCfgSave() {
+  const c = crCfgGet(); c.u = Date.now();
+  try { localStorage.setItem('crCfg', JSON.stringify(c)); } catch (e) {}
+  crCfgPending = true; crCfgMsg('Enregistrement…');
+  clearTimeout(crCfgTimer); crCfgTimer = setTimeout(crCfgPush, 600);
+}
+function crCfgMsg(t, err) { const el = document.getElementById('crc-msg'); if (el) { el.textContent = t; el.style.color = err ? '#ff6b6b' : '#2ecc71'; } }
+async function crCfgPush() {
+  const id = crCoachId(); if (!id || !crCfgPending) { crCfgMsg('✓ Enregistré sur cet appareil'); return; }
+  try {
+    await ensureCoachSession();
+    const c = crCfgGet(), res = await fetch(SB_URL + '/rest/v1/app_settings?on_conflict=key', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify([{ key: 'coach_cfg_' + id, value: JSON.stringify(c), updated_at: new Date().toISOString() }]) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    crCfgPending = false; crCfgMsg('✓ Enregistré · disponible sur tous tes appareils');
+  } catch (e) { crCfgMsg('⚠ Enregistré ici, envoi aux autres appareils à réessayer', true); }
+}
+async function crCfgPull() {
+  const id = crCoachId(); if (!id || !navigator.onLine) return;
+  if (crCfgPending) { crCfgPush(); return; }
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/app_settings?select=value&key=eq.coach_cfg_' + id, { headers: coachAuthHeaders() });
+    if (!res.ok) return;
+    const rows = await res.json(); if (!rows.length) { if (!crCfgGet().u) return; crCfgPending = true; crCfgPush(); return; }
+    const r = crCfgNorm(JSON.parse(rows[0].value)), c = crCfgGet();
+    if (r.u > c.u) {
+      crCfg = r; try { localStorage.setItem('crCfg', JSON.stringify(r)); } catch (e) {}
+      if (document.getElementById('crc-ui') && !document.activeElement.closest('#crc-ui')) crCfgRenderUi();
+      const a = document.activeElement, typing = a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName), ev = document.getElementById('cr-ex-view');
+      if (ev && ev.style.display !== 'none' && !typing && crCur) { try { crRenderExView(); } catch (e) {} }
+    } else if (r.u < c.u) { crCfgPending = true; crCfgPush(); }
+  } catch (e) {}
+}
+// sections (ordre, activation, noms)
+function crSecDefs() {
+  const c = crCfgGet(), all = CR_EX_TABS.concat(c.custom.map(x => ({ k: x.k, label: x.name, desc: x.desc, custom: true, subOk: true, learn: true, lists: [{ k: x.k, title: x.name }] })));
+  const pos = k => { const i = c.order.indexOf(k); return i < 0 ? 1e6 + all.findIndex(t => t.k === k) : i; };
+  return all.slice().sort((a, b) => pos(a.k) - pos(b.k)).map(t => {
+    const label = crTxt(c.names[t.k]) || t.label, desc = c.descs[t.k] != null ? c.descs[t.k] : (t.desc || '');
+    return { ...t, label, desc, on: !c.off[t.k], lists: t.lists ? t.lists.map((l, i) => (i === 0 && t.custom ? { ...l, title: label } : (i === 0 && (t.k === 'besoins' || t.k === 'fonctionnement' || t.k === 'comportements' || t.k === 'reussite') ? { ...l, title: label } : l))) : t.lists };
+  });
+}
+function crTabs() { const a = crSecDefs().filter(t => t.on); return a.length ? a : [crSecDefs()[0]]; }
+function crSecOn(k) { return !crCfgGet().off[k]; }
+function crSubs(key) { const c = crCfgGet(); return Array.isArray(c.subs[key]) ? c.subs[key] : (CR_DEF_SUBS[key] || []); }
+function crSubOf(key, it) { const subs = crSubs(key); const s = subs.find(z => z.id === it.sub) || (it.tag ? subs.find(z => z.name === it.tag) : null); return s ? s.id : ''; }
+function crSubName(key, it) { const s = crSubs(key).find(z => z.id === crSubOf(key, it)); return s ? s.name : (it.tag || ''); }
+// Listes en un clic : modèle de base + ajouts − retraits + éléments qui reviennent dans au moins 2 exercices (toutes séances)
+function crLearned(key) {
+  const cnt = new Map();
+  (crPlans || []).forEach(p => (p.blocks || []).forEach(b => (b.exercises || []).forEach(x => {
+    const arr = x && x.items && x.items[key]; if (!Array.isArray(arr)) return;
+    const seen = new Set();
+    arr.forEach(it => {
+      const t = crTxt(it && it.text); if (!t || t.length > 90) return;
+      const f = crFold(t).replace(/\s+/g, ' ').trim(); if (seen.has(f)) return; seen.add(f);
+      let e = cnt.get(f); if (!e) { e = { t, n: 0, subs: {} }; cnt.set(f, e); }
+      e.n++; const sid = crSubOf(key, it); e.subs[sid] = (e.subs[sid] || 0) + 1;
+    });
+  })));
+  return [...cnt.values()].filter(e => e.n >= 2).sort((a, b) => b.n - a.n).map(e => ({ t: e.t, n: e.n, s: Object.keys(e.subs).sort((a, b) => e.subs[b] - e.subs[a])[0] || '' }));
+}
+function crSugs(key) {
+  const c = crCfgGet(), sg = c.sug[key] || {}, del = (sg.del || []).map(t => crFold(t).trim()), out = [], seen = new Set();
+  const push = (t, s, auto, n) => { const f = crFold(t).trim(); if (!f || seen.has(f) || del.includes(f)) return; seen.add(f); out.push({ t, s: s || '', auto: !!auto, n }); };
+  (CR_DEF_SUG[key] || []).forEach(a => push(a[0], a[1], false)); (sg.add || []).forEach(a => push(a.t, a.s, false));
+  if (key === 'besoins' || key === 'fonctionnement' || key === 'comportements' || key === 'reussite' || /^c_/.test(key)) crLearned(key).forEach(e => push(e.t, e.s, true, e.n));
+  const subs = crSubs(key).map(z => z.id); out.forEach(o => { if (o.s && !subs.includes(o.s)) o.s = ''; });
+  return out;
+}
+// ----- Réglages › Modèle de séance -----
+function crcRender() { crCfgRenderUi(); }
+function crCfgRenderUi() {
+  const el = document.getElementById('crc-ui'); if (!el) return;
+  const c = crCfgGet(), secs = crSecDefs();
+  const open = new Set([...el.querySelectorAll('details[open]')].map(d => d.dataset.k));
+  el.innerHTML = secs.map((t, i) => {
+    const subs = t.subOk ? crSubs(t.lists[0].k) : [];
+    const subsHtml = t.subOk ? `<div class="crc-h">Sous-items (regroupent les éléments de la section)</div>${subs.map((z, j) => `<div class="crc-row"><div style="flex:1;min-width:0;"><input class="cr-in" placeholder="Nom du sous-item" value="${crEsc(z.name)}" oninput="crcSubSet('${t.k}',${j},'name',this.value)"><input class="cr-in" style="margin-top:4px;" placeholder="Description (ce que l’on entend par là)" value="${crEsc(z.desc || '')}" oninput="crcSubSet('${t.k}',${j},'desc',this.value)"></div>
+        <button type="button" class="crc-mini" onclick="crcSubMove('${t.k}',${j},-1)">↑</button><button type="button" class="crc-mini" onclick="crcSubMove('${t.k}',${j},1)">↓</button><button type="button" class="crc-mini" style="color:#ff6b6b;" onclick="crcSubDel('${t.k}',${j})">✕</button></div>`).join('')}
+      <button type="button" class="cr-btn sm" onclick="crcSubAdd('${t.k}')">＋ Sous-item</button>` : '';
+    const sugs = t.learn ? crSugs(t.lists[0].k) : [];
+    const sugHtml = t.learn ? `<div class="crc-h">Liste en un clic (${sugs.length})</div><div class="cr-sug" style="margin-bottom:8px;">${sugs.map(z => `<span class="cr-chip${z.auto ? ' auto' : ''}" ${z.auto ? `title="Ajouté automatiquement : revient dans ${z.n} exercices"` : ''}>${crEsc(z.t)}${subs.length && z.s ? ' <span class="n">· ' + crEsc((subs.find(q => q.id === z.s) || {}).name || '') + '</span>' : ''} <b data-t="${crEsc(z.t)}" data-k="${t.lists[0].k}" style="color:#ff6b6b;margin-left:4px;" onclick="crcSugDel(this.dataset.k,this.dataset.t)">✕</b></span>`).join('') || '<span style="font-size:12px;color:var(--gris-texte);">Vide</span>'}</div>
+      <div class="crc-row"><input class="cr-in" id="crc-sa-${t.k}" placeholder="Nouvel élément…" style="flex:1;">${subs.length ? `<select class="cr-in" id="crc-ss-${t.k}" style="width:auto;max-width:42%;"><option value="">Sans sous-item</option>${subs.map(z => `<option value="${z.id}">${crEsc(z.name)}</option>`).join('')}</select>` : ''}<button type="button" class="cr-btn sm" onclick="crcSugAdd('${t.k}')">Ajouter</button></div>
+      <div style="font-size:10px;color:var(--gris-texte);">Les éléments en pointillés sont ajoutés automatiquement dès qu’ils reviennent dans au moins 2 exercices.</div>` : '';
+    return `<details class="crc-sec ${t.on ? '' : 'off'}" data-k="${t.k}" ${open.has(t.k) ? 'open' : ''}><summary>
+      <input type="checkbox" ${t.on ? 'checked' : ''} onclick="event.stopPropagation()" onchange="crcToggle('${t.k}',this.checked)" style="width:20px;height:20px;flex-shrink:0;">
+      <b style="flex:1;min-width:0;">${crEsc(t.label)}</b><button type="button" class="crc-mini" ${i === 0 ? 'disabled' : ''} onclick="event.preventDefault();event.stopPropagation();crcMove('${t.k}',-1)">↑</button><button type="button" class="crc-mini" ${i === secs.length - 1 ? 'disabled' : ''} onclick="event.preventDefault();event.stopPropagation();crcMove('${t.k}',1)">↓</button><span style="color:var(--gris-texte);">▾</span></summary>
+      <div class="crc-in"><div class="crc-h">Nom de la section</div><input class="cr-in" value="${crEsc(t.label)}" oninput="crcName('${t.k}',this.value)" onchange="crCfgRenderUi()">
+      <div class="crc-h">Description d’aide (affichée sous le titre)</div><textarea class="cr-in" rows="2" oninput="crcDesc('${t.k}',this.value)">${crEsc(t.desc || '')}</textarea>
+      ${subsHtml}${sugHtml}
+      ${t.custom ? `<div style="margin-top:12px;"><button type="button" class="cr-btn sm danger" onclick="crcCustomDel('${t.k}')">Supprimer cette section</button></div>` : ''}</div></details>`;
+  }).join('') + `<div class="crc-row" style="margin-top:10px;"><input class="cr-in" id="crc-new" placeholder="Nouvelle section (ex. Sécurité)" style="flex:1;"><button type="button" class="cr-btn" onclick="crcCustomAdd()">＋ Section</button></div>
+    <button type="button" class="cr-btn sm" style="margin-top:6px;" onclick="crcReset()">Rétablir le modèle par défaut</button>`;
+}
+function crcSet(fn) { fn(crCfgGet()); crCfgSave(); }
+function crcToggle(k, on) {
+  const c = crCfgGet();
+  if (!on && crSecDefs().filter(t => t.on).length <= 1) { alert('Garde au moins une section active.'); crCfgRenderUi(); return; }
+  if (on) delete c.off[k]; else c.off[k] = true;
+  crCfgSave(); crCfgRenderUi();
+}
+function crcMove(k, d) {
+  const c = crCfgGet(), keys = crSecDefs().map(t => t.k), i = keys.indexOf(k), j = i + d; if (j < 0 || j >= keys.length) return;
+  [keys[i], keys[j]] = [keys[j], keys[i]]; c.order = keys; crCfgSave(); crCfgRenderUi();
+}
+function crcName(k, v) { crcSet(c => { c.names[k] = v; }); }
+function crcDesc(k, v) { crcSet(c => { c.descs[k] = v; }); }
+function crcSubsOf(k) { const c = crCfgGet(); if (!Array.isArray(c.subs[k])) c.subs[k] = crSubs(k).map(z => ({ ...z })); return c.subs[k]; }
+function crcSubSet(k, j, f, v) { const a = crcSubsOf(k); if (a[j]) { a[j][f] = v; crCfgSave(); } }
+function crcSubAdd(k) { crcSubsOf(k).push({ id: 's' + crUid(), name: 'Nouveau sous-item', desc: '' }); crCfgSave(); crCfgRenderUi(); }
+function crcSubDel(k, j) { const a = crcSubsOf(k); if (!confirm('Supprimer ce sous-item ? Les éléments déjà écrits sont conservés (rangés dans « Autres » ou gardant leur nom).')) return; a.splice(j, 1); crCfgSave(); crCfgRenderUi(); }
+function crcSubMove(k, j, d) { const a = crcSubsOf(k), n = j + d; if (n < 0 || n >= a.length) return; [a[j], a[n]] = [a[n], a[j]]; crCfgSave(); crCfgRenderUi(); }
+function crcSugAdd(k) {
+  const inp = document.getElementById('crc-sa-' + k), sel = document.getElementById('crc-ss-' + k), t = crTxt(inp && inp.value); if (!t) return;
+  const c = crCfgGet(), sg = c.sug[k] = c.sug[k] || {}; sg.add = sg.add || []; sg.del = (sg.del || []).filter(x => crFold(x).trim() !== crFold(t).trim());
+  if (!crSugs(k).some(z => crFold(z.t).trim() === crFold(t).trim())) sg.add.push({ t, s: sel ? sel.value : '' });
+  crCfgSave(); crCfgRenderUi();
+}
+function crcSugDel(k, t) {
+  const c = crCfgGet(), sg = c.sug[k] = c.sug[k] || {}, f = crFold(t).trim(); sg.add = (sg.add || []).filter(a => crFold(a.t).trim() !== f); sg.del = sg.del || [];
+  if (!sg.del.includes(f)) sg.del.push(f); crCfgSave(); crCfgRenderUi();
+}
+function crcCustomAdd() {
+  const inp = document.getElementById('crc-new'), n = crTxt(inp && inp.value); if (!n) return;
+  const c = crCfgGet(), k = 'c_' + Math.random().toString(36).slice(2, 8); c.custom.push({ k, name: n.slice(0, 40), desc: '' }); crCfgSave(); crCfgRenderUi();
+  const d = document.querySelector('#crc-ui details[data-k="' + k + '"]'); if (d) d.open = true;
+}
+function crcCustomDel(k) {
+  if (!confirm('Supprimer cette section ? Ce qui a été écrit dedans dans les exercices n’apparaîtra plus.')) return;
+  const c = crCfgGet(); c.custom = c.custom.filter(x => x.k !== k); c.order = c.order.filter(x => x !== k); [c.off, c.names, c.descs, c.subs, c.sug].forEach(o => delete o[k]); crCfgSave(); crCfgRenderUi();
+}
+function crcReset() { if (!confirm('Rétablir le modèle par défaut ? (sections, sous-items et listes reviennent à l’état d’origine ; tes exercices ne changent pas)')) return; crCfg = crCfgNorm({}); crCfgSave(); crCfgRenderUi(); }
+// ----- Évolutions -----
+function crEvoRef() { const x = crCurEx(); if (!Array.isArray(x.evolutions)) x.evolutions = []; return x.evolutions; }
+function crEvoHtml(x) {
+  const a = crEvoRef();
+  const rows = a.map((e, i) => `<div class="cr-evo"><div class="cr-evo-h"><span style="flex:1;">Évolution N°${i + 1}</span>
+      <button type="button" class="crc-mini" ${i === 0 ? 'disabled' : ''} onclick="crEvoMove(${i},-1)">↑</button><button type="button" class="crc-mini" ${i === a.length - 1 ? 'disabled' : ''} onclick="crEvoMove(${i},1)">↓</button><button type="button" class="crc-mini" style="color:#ff6b6b;" onclick="crEvoDel(${i})">✕</button></div>
+      <input class="cr-in" placeholder="Titre court (ex. Ajout d’un défenseur)" value="${crEsc(e.title)}" oninput="crEvoSet(${i},'title',this.value)">
+      <textarea class="cr-in cr-grow" rows="2" id="cr-evo-${i}" style="margin-top:6px;" placeholder="Ce qui change : espace, contrainte, effectif, règle…" oninput="crEvoSet(${i},'text',this.value);crGrow(this)">${crEsc(e.text)}</textarea></div>`).join('');
+  return `<div class="cr-list"><div class="cr-list-t">Évolutions</div>${rows}<button type="button" class="cr-btn" onclick="crEvoAdd()">＋ Évolution N°${a.length + 1}</button></div>`;
+}
+function crEvoAdd() { const a = crEvoRef(); a.push({ id: crUid(), title: '', text: '' }); crTouch(); crRenderExView(); const el = document.getElementById('cr-evo-' + (a.length - 1)); if (el) el.focus(); }
+function crEvoSet(i, f, v) { const e = crEvoRef()[i]; if (!e) return; e[f] = v; crTouch(); }
+function crEvoDel(i) { crEvoRef().splice(i, 1); crTouch(); crRenderExView(); }
+function crEvoMove(i, d) { const a = crEvoRef(), j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; crTouch(); crRenderExView(); }
+// ----- Listes à sous-items (Besoins, Fonctionnement…) -----
+function crGrpRow(path, i, it) {
+  return `<div class="cr-li"><span class="cr-li-n">•</span><div class="cr-li-b"><textarea class="cr-in cr-grow" rows="1" id="cr-li-${path.replace(':', '-')}-${i}" placeholder="Écrire ici…" oninput="crLiSet('${path}',${i},'text',this.value);crGrow(this)">${crEsc(it.text)}</textarea></div>
+    <div class="cr-li-a"><button type="button" onclick="crLiMoveG('${path}',${i},-1)">↑</button><button type="button" onclick="crLiMoveG('${path}',${i},1)">↓</button><button type="button" style="color:#ff6b6b;" onclick="crLiDel('${path}',${i})">✕</button></div></div>`;
+}
+function crGroupHtml(tab) {
+  const key = tab.lists[0].k, path = 'i:' + key, arr = crListRef(path), subs = crSubs(key);
+  const groups = subs.map(s => ({ s, idx: [] })), other = { s: { id: '', name: subs.length ? 'Autres' : tab.label, desc: '' }, idx: [] };
+  arr.forEach((it, i) => { const sid = crSubOf(key, it); (groups.find(g => g.s.id === sid) || other).idx.push(i); });
+  const sugs = crSugs(key).filter(z => !arr.some(it => crFold(it.text).trim() === crFold(z.t).trim()));
+  const all = groups.concat(other.idx.length || !subs.length ? [other] : []);
+  return (tab.desc ? `<div class="cr-subd">${crEsc(tab.desc)}</div>` : '') + all.map(g => {
+    const sg = sugs.filter(z => z.s === g.s.id).slice(0, 30);
+    return `<div class="cr-list"><div class="cr-sub-h">${crEsc(g.s.name)}</div>${g.s.desc ? `<div class="cr-sub-d">${crEsc(g.s.desc)}</div>` : ''}${g.idx.map(i => crGrpRow(path, i, arr[i])).join('')}
+      <button type="button" class="cr-btn" onclick="crLiAddG('${path}','${g.s.id}')">＋ Ajouter</button>
+      ${sg.length ? `<div class="cr-sug">${sg.map(z => `<button type="button" class="cr-chip${z.auto ? ' auto' : ''}" ${z.auto ? `title="Revient dans ${z.n} exercices"` : ''} data-s="${crEsc(z.t)}" onclick="crLiSugG('${path}',this.dataset.s,'${g.s.id}')">＋ ${crEsc(z.t)}</button>`).join('')}</div>` : ''}</div>`;
+  }).join('');
+}
+function crSubStamp(path, it, sid) { if (!sid) return; const s = crSubs(path.slice(2)).find(z => z.id === sid); if (s) { it.sub = s.id; it.tag = s.name; } }
+function crLiAddG(path, sid) { const a = crListRef(path), it = { id: crUid(), text: '' }; crSubStamp(path, it, sid); a.push(it); crTouch(); crRenderExView(); const el = document.getElementById('cr-li-' + path.replace(':', '-') + '-' + (a.length - 1)); if (el) el.focus(); }
+function crLiSugG(path, text, sid) { const a = crListRef(path), it = { id: crUid(), text }; crSubStamp(path, it, sid); a.push(it); crTouch(); crRenderExView(); }
+function crLiMoveG(path, i, d) {
+  const a = crListRef(path), key = path.slice(2), g = crSubOf(key, a[i]); let j = i + d;
+  while (j >= 0 && j < a.length && crSubOf(key, a[j]) !== g) j += d;
+  if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; crTouch(); crRenderExView();
+}
 const CR_ORG_FIELDS = [['setup', 'Disposition initiale', 'Où sont les joueurs au départ ?'], ['groups', 'Groupes', 'Composition des groupes'], ['rotations', 'Rotations / ordre de passage', 'Qui passe quand, changements de rôle'], ['roles', 'Rôle des joueurs', 'Attaquants, défenseurs, passeurs…']];
-const CR_LIST_KEYS = ['consignes', 'realisation', 'reussite', 'comportements', 'simplify', 'complexify', 'vigilance', 'corrections', 'progression', 'regression'];
+const CR_LIST_KEYS = ['besoins', 'fonctionnement', 'consignes', 'realisation', 'reussite', 'comportements', 'simplify', 'complexify', 'vigilance', 'corrections', 'progression', 'regression'];
 const CR_GB_SUG = { instructions: ['Se placer sur la bissectrice du tir', 'Appuis actifs au moment de l’armé', 'Fermer le premier poteau', 'Se replacer avant le tir suivant', 'Relancer vite après l’arrêt', 'Annoncer à la défense (« j’ai le tireur »)'],
   success: ['X arrêts sur X tirs', 'Relance réussie en moins de 3 s', 'Replacé avant chaque tir', 'Annonce faite à chaque tir'] };
 let crEx = { bi: 0, ei: 0, tab: 'consignes' };
@@ -6312,6 +6553,8 @@ function crNormEx(x) {
   const old = (x.sections && typeof x.sections === 'object') ? x.sections : {};
   const legacy = { consignes: old.consignes, realisation: old.realisation, reussite: old.reussite, comportements: old.comportements, vigilance: old.vigilance, corrections: old.corrections, simplify: old.variables };
   CR_LIST_KEYS.forEach(k => { x.items[k] = crNormList(x.items[k]); if (!x.items[k].length && legacy[k]) x.items[k] = crNormList(legacy[k]); });
+  Object.keys(x.items).forEach(k => { if (!CR_LIST_KEYS.includes(k)) x.items[k] = crNormList(x.items[k]); }); // sections ajoutées dans Réglages
+  x.evolutions = (Array.isArray(x.evolutions) ? x.evolutions : []).filter(e => e && typeof e === 'object').map(e => { if (!e.id) e.id = crUid(); e.title = e.title == null ? '' : String(e.title); e.text = e.text == null ? '' : String(e.text); return e; });
   if (Array.isArray(old.organisation) && old.organisation.length && !CR_ORG_FIELDS.some(([k]) => x.org[k].trim())) x.org.setup = old.organisation.filter(t => String(t || '').trim()).join('\n');
   x.equipment = crNormEquip(x.equipment);
   if (!x.equipment.length && Array.isArray(old.materiel)) x.equipment = crNormEquip(old.materiel.filter(t => String(t || '').trim()));
@@ -6334,6 +6577,7 @@ function crTxt(v) { return String(v == null ? '' : v).trim(); }
 function crTabCount(x, tab) {
   const nb = a => (a || []).filter(it => crTxt(it.text) || crTxt(it.extra)).length;
   if (tab.org) return CR_ORG_FIELDS.filter(([k]) => crTxt(x.org[k])).length;
+  if (tab.evo) return (x.evolutions || []).filter(e => crTxt(e.title) || crTxt(e.text)).length;
   if (tab.equip) return x.equipment.length;
   return tab.lists.reduce((n, l) => n + nb(x.items[l.k]), 0);
 }
@@ -6356,7 +6600,7 @@ function crExFlat() { const out = []; crCur.blocks.forEach((b, bi) => (b.exercis
 function crExNum(bi, ei) { return crExFlat().findIndex(a => a[0] === bi && a[1] === ei) + 1; }
 function crOpenEx(bi, ei, fresh) {
   crPlayStop();
-  crEx = { bi, ei, tab: 'consignes' }; crExInfoOpen = false;
+  crEx = { bi, ei, tab: crTabs()[0].k }; crExInfoOpen = false;
   document.getElementById('cr-edit-view').style.display = 'none';
   document.getElementById('cr-ex-view').style.display = '';
   crRenderExView();
@@ -6397,7 +6641,7 @@ function crListHtml(path, def) {
   const sug = (def.sug || []).filter(s => !arr.some(it => crFold(it.text).trim() === crFold(s).trim()));
   return `<div class="cr-list ${def.cls || ''}"><div class="cr-list-t">${def.title}</div>${rows}
     <button type="button" class="cr-btn" onclick="crLiAdd('${path}')">＋ Ajouter</button>
-    ${sug.length ? `<div class="cr-sug">${sug.map((s, si) => `<button type="button" class="cr-chip" data-s="${crEsc(s)}" onclick="crLiSug('${path}',this.dataset.s)">＋ ${crEsc(s)}</button>`).join('')}</div>` : ''}</div>`;
+    ${sug.length ? `<div class="cr-sug">${sug.map((s, si) => `<button type="button" class="cr-chip${(def.sugA || []).includes(s) ? ' auto' : ''}" data-s="${crEsc(s)}" onclick="crLiSug('${path}',this.dataset.s)">＋ ${crEsc(s)}</button>`).join('')}</div>` : ''}</div>`;
 }
 function crLiAdd(path) { const a = crListRef(path); a.push({ id: crUid(), text: '' }); crTouch(); crRenderExView(); const el = document.getElementById('cr-li-' + path.replace(':', '-') + '-' + (a.length - 1)); if (el) el.focus(); }
 function crLiSug(path, text) { const a = crListRef(path); a.push({ id: crUid(), text }); crTouch(); crRenderExView(); }
@@ -6443,11 +6687,15 @@ function crRenderExView() {
   const x = crCurEx(), p = crCur, b = p.blocks[crEx.bi];
   const flat = crExFlat(), idx = flat.findIndex(a => a[0] === crEx.bi && a[1] === crEx.ei), tot = flat.length;
   const ev = document.getElementById('cr-ex-view');
-  const tabDef = CR_EX_TABS.find(t => t.k === crEx.tab) || CR_EX_TABS[0];
-  const tabs = CR_EX_TABS.map(t => { const n = crTabCount(x, t); return `<button type="button" class="cr-chip ${crEx.tab === t.k ? 'on' : ''}" style="flex-shrink:0;" onclick="crExTab('${t.k}')">${t.label}${n ? `<span class="n">${n}</span>` : ''}</button>`; }).join('');
+  const TABS = crTabs(), tabDef = TABS.find(t => t.k === crEx.tab) || TABS[0];
+  tabDef.lists && tabDef.lists.forEach(l => { if (!Array.isArray(x.items[l.k])) x.items[l.k] = []; });
+  const tabs = TABS.map(t => { const n = crTabCount(x, t); return `<button type="button" class="cr-chip ${tabDef.k === t.k ? 'on' : ''}" style="flex-shrink:0;" onclick="crExTab('${t.k}')">${t.label}${n ? `<span class="n">${n}</span>` : ''}</button>`; }).join('');
   let body = '';
   if (tabDef.org) body = CR_ORG_FIELDS.map(([k, l, ph]) => `<label class="cr-lbl">${l}</label><textarea class="cr-in cr-grow" rows="2" placeholder="${crEsc(ph)}" oninput="crExHeadSet('org.${k}',this.value);crGrow(this)">${crEsc(x.org[k])}</textarea>`).join('');
   else if (tabDef.equip) body = `<div class="cr-list-t">Matériel de l’exercice</div>${crEquipHtml('x')}`;
+  else if (tabDef.evo) body = (tabDef.desc ? `<div class="cr-subd">${crEsc(tabDef.desc)}</div>` : '') + crEvoHtml(x);
+  else if (tabDef.subOk && crSubs(tabDef.lists[0].k).length) body = crGroupHtml(tabDef);
+  else if (tabDef.learn) { const sg = crSugs(tabDef.lists[0].k).filter(z => !x.items[tabDef.lists[0].k].some(it => crFold(it.text).trim() === crFold(z.t).trim())).slice(0, 30); body = (tabDef.desc ? `<div class="cr-subd">${crEsc(tabDef.desc)}</div>` : '') + crListHtml('i:' + tabDef.lists[0].k, { ...tabDef.lists[0], sug: sg.map(z => z.t), sugA: sg.filter(z => z.auto).map(z => z.t) }); }
   else body = `<div class="${tabDef.lists.length > 1 ? 'cr-two' : ''}">${tabDef.lists.map(l => crListHtml('i:' + l.k, l)).join('')}</div>`;
   const gbHtml = !x.gb
     ? `<button type="button" class="cr-gb-add" onclick="crGbAdd()"><span style="font-size:26px;">🧤</span><span><b>Ajouter un travail GB</b><small>Objectif, consignes et schéma spécifiques au gardien de but</small></span></button>`
@@ -6540,13 +6788,18 @@ function crFicheEx(x, num, bname, bi, ei, live) {
     + fact('Disposition', x.org.setup) + fact('Groupes', x.org.groups) + fact('Rotations', x.org.rotations) + fact('Rôles', x.org.roles);
   const I = x.items;
   const row = (a, b) => (a || b) ? `<div class="cr-fx-row${a && b ? ' two' : ''}">${a}${b}</div>` : '';
-  const lists = row(crFicheList('Consignes', I.consignes, { auto: true }), '')
-    + row(crFicheList('Critères de réalisation', I.realisation), crFicheList('Critères de réussite', I.reussite))
-    + row(crFicheList('Comportements attendus', I.comportements), '')
-    + row(crFicheList('Simplifier ↓', I.simplify, { cls: 'simplify' }), crFicheList('Complexifier ↑', I.complexify, { cls: 'complexify' }))
-    + row(crFicheList('Points de vigilance', I.vigilance), '')
-    + row(crFicheList('Corrections / régulations', I.corrections, { num: true }), '')
-    + row(crFicheList('Progression', I.progression), crFicheList('Régression', I.regression));
+  const on = crSecOn, nm = (k, d) => (crSecDefs().find(t => t.k === k) || {}).label || d;
+  const grp = k => crFicheList(nm(k, k), (I[k] || []).map((it, i) => ({ it, i, g: crSubs(k).findIndex(z => z.id === crSubOf(k, it)) })).sort((a, b) => (a.g < 0 ? 99 : a.g) - (b.g < 0 ? 99 : b.g) || a.i - b.i).map(o => ({ ...o.it, tag: crSubName(k, o.it) })));
+  const evo = (on('evolutions') && (x.evolutions || []).some(e => crTxt(e.title) || crTxt(e.text))) ? `<div class="cr-fx-list"><h4>Évolutions</h4><ul>${x.evolutions.filter(e => crTxt(e.title) || crTxt(e.text)).map((e, i) => `<li><span class="cr-fx-tag">Évolution N°${i + 1}</span>${crTxt(e.title) ? '<b>' + crEsc(e.title) + '</b>' : ''}${crTxt(e.title) && crTxt(e.text) ? ' — ' : ''}${crEsc(e.text).replace(/\n/g, '<br>')}</li>`).join('')}</ul></div>` : '';
+  const customs = crCfgGet().custom.filter(c => on(c.k)).map(c => row(grp(c.k), '')).join('');
+  const lists = (on('besoins') ? row(grp('besoins'), '') : '') + (on('fonctionnement') ? row(grp('fonctionnement'), '') : '')
+    + (on('comportements') ? row(grp('comportements'), '') : '') + (on('reussite') ? row(grp('reussite'), '') : '') + row(evo, '') + customs
+    + (on('consignes') ? row(crFicheList('Consignes', I.consignes, { auto: true }), '') : '')
+    + (on('realisation') ? row(crFicheList('Critères de réalisation', I.realisation), '') : '')
+    + (on('variables') ? row(crFicheList('Simplifier ↓', I.simplify, { cls: 'simplify' }), crFicheList('Complexifier ↑', I.complexify, { cls: 'complexify' })) : '')
+    + (on('vigilance') ? row(crFicheList('Points de vigilance', I.vigilance), '') : '')
+    + (on('corrections') ? row(crFicheList('Corrections / régulations', I.corrections, { num: true }), '') : '')
+    + (on('progression') ? row(crFicheList('Progression', I.progression), crFicheList('Régression', I.regression)) : '');
   const animBtn = (key, name, L) => { if (!crSchAnimOk(L)) return ''; crFicheAnimMap[key] = { name, drawings: L.drawings }; return `<button type="button" class="cr-fx-anim no-print" onclick="crFicheAnim('${key}')">▶ Animer l'enchaînement</button>`; };
   let gb = '';
   if (crHasGb(x)) {
