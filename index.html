@@ -8,7 +8,7 @@
 <script>
 (function(){try{var c=JSON.parse(localStorage.getItem('prepa_display_v1')||'null')||{};var t=c.theme||'dark';
 if(t==='auto')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
-var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.setAttribute('data-density',c.density);}catch(e){}})();
+var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.setAttribute('data-density',c.density);if(c.barSize)h.setAttribute('data-bar',c.barSize);}catch(e){}})();
 </script>
 <meta name="description" content="Préparation physique autonome estivale pour les U15 du HBCCS">
 <link rel="manifest" href="manifest.json">
@@ -369,6 +369,14 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
   background:rgba(10,22,40,0.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   border-top:1px solid rgba(255,255,255,0.12);}
 .coachs2-wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom));}
+/* Barre du bas compacte (par défaut ; réglable dans Réglages › Affichage) */
+html:not([data-bar=normal]) .coachs2-subtabs-bottom{padding:5px 8px calc(8px + env(safe-area-inset-bottom));}
+html:not([data-bar=normal]) .coachs2-subtabs-bottom .cs-tab{height:38px;gap:1px;}
+html:not([data-bar=normal]) .coachs2-subtabs-bottom .cs-tab-icon{font-size:15px;}
+html:not([data-bar=normal]) .coachs2-subtabs-bottom .cs-tab-label{font-size:9px;}
+html:not([data-bar=normal]) .coachs2-wrap{padding-bottom:calc(66px + env(safe-area-inset-bottom));}
+html:not([data-bar=normal]) .cr-foot{bottom:calc(54px + env(safe-area-inset-bottom));}
+@media (min-width:700px){html:not([data-bar=normal]) .coachs2-subtabs-bottom .cs-tab-label{font-size:10.5px;}}
 /* iPad / grand écran : mêmes onglets qu'iPhone (haut + bas), une seule rubrique affichée à la fois */
 @media (min-width:700px){
   .coachs2-subtabs{justify-content:center;}
@@ -389,21 +397,23 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .cr-nav{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gris-clair);white-space:nowrap;}
 .cr-nav button{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:var(--jaune);font-size:20px;font-weight:800;cursor:pointer;}
 .cr-nav button:disabled{opacity:.3;}
-.cr-list{margin-bottom:12px;}
-.cr-list-t{font-size:15px;font-weight:800;color:var(--blanc);margin:8px 0;}
+.cr-list{margin-bottom:8px;}
+.cr-list-t{font-size:15px;font-weight:800;color:var(--blanc);margin:6px 0 6px;}
 .cr-list.simplify .cr-list-t{color:#2ecc71;}
 .cr-list.complexify .cr-list-t{color:#ff6b6b;}
 .cr-two{display:grid;grid-template-columns:1fr;gap:14px;}
 @media (min-width:900px){.cr-two{grid-template-columns:1fr 1fr;}}
-.cr-li{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;}
-.cr-li-n{flex:none;width:26px;height:26px;border-radius:50%;background:rgba(245,196,0,0.15);color:var(--jaune);font-weight:800;font-size:12px;display:grid;place-items:center;margin-top:8px;}
-.cr-li-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+.cr-li{display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;}
+.cr-li-n{flex:none;width:22px;height:22px;border-radius:50%;background:rgba(245,196,0,0.15);color:var(--jaune);font-weight:800;font-size:11px;display:grid;place-items:center;margin-top:7px;}
+.cr-li-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
+.cr-li textarea.cr-in{min-height:36px;padding:7px 10px;line-height:1.3;}
 .cr-li-tag{width:auto !important;align-self:flex-start;padding:5px 8px !important;font-size:12px !important;font-weight:700;color:var(--jaune);}
 .cr-li-extra{border-style:dashed;}
-.cr-li-a{flex:none;display:flex;flex-direction:column;gap:4px;}
-.cr-li-a button{width:34px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);cursor:pointer;font-size:14px;}
+.cr-li-a{flex:none;display:grid;grid-template-columns:28px 28px;grid-template-rows:23px 23px;gap:2px;}
+.cr-li-a button:nth-child(3){grid-column:2;grid-row:1 / span 2;height:auto !important;}
+.cr-li-a button{width:28px;height:23px;padding:0;border-radius:7px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--gris-clair);cursor:pointer;font-size:14px;}
 .cr-li-a button:disabled{opacity:.3;}
-.cr-sug{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.cr-sug{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .cr-chips{display:flex;flex-wrap:wrap;gap:6px;}
 .cr-eq-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
 .cr-eq-row{display:flex;align-items:center;gap:8px;}
@@ -442,6 +452,15 @@ hr.divider{border:none;border-top:1px solid var(--gris-moyen);margin:14px 0;}
 .cr-fx-row{display:grid;grid-template-columns:1fr;gap:14px;margin-top:6px;}
 .cr-fx-row.two{grid-template-columns:1fr 1fr;}
 .cr-fx-list{break-inside:avoid;}
+.cr-fx-lists{column-count:var(--fxc,2);column-gap:18px;margin-top:6px;}
+.cr-fx-lists .cr-fx-row{display:block;margin:0;}
+.cr-fx-lists .cr-fx-list{break-inside:avoid;margin-bottom:6px;}
+.cr-fx-lists .cr-fx-list h4{margin-top:6px;}
+.cr-fx-lists .cr-fx-list ul,.cr-fx-lists .cr-fx-list ol{font-size:12.5px;}
+@media screen and (max-width:699px){.cr-fx-lists{column-count:1;}}
+.cr-fiche-cols{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#6a7d95;}
+.cr-fiche-bar .cr-fiche-cols button{padding:7px 11px;}
+.cr-fiche-bar .cr-fiche-cols button.on{background:#0a2a4a;border-color:#0a2a4a;color:#fff;}
 .cr-fx-list h4{margin:8px 0 3px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#0a6bb8;}
 .cr-fx-list.simplify h4{color:#1e8e4f;}
 .cr-fx-list.complexify h4{color:#b3140a;}
@@ -470,6 +489,8 @@ html[data-density=comfortable] .cs-tab{height:64px;}
 html[data-density=comfortable] .coachs2-subtabs{gap:9px;}
 .cs-tab.disp-hide{display:none !important;}
 .coachs2-wrap.no-bottom-bar{padding-bottom:28px;}
+.coachs2-wrap.no-bottom-bar .cr-foot{bottom:calc(12px + env(safe-area-inset-bottom));}
+html:not([data-bar=normal]) .coachs2-wrap.no-bottom-bar{padding-bottom:28px;}
 .disp-chip{padding:8px 12px;border-radius:20px;border:1px solid rgba(128,150,190,0.4);background:transparent;color:var(--gris-clair);font-size:12px;cursor:pointer;}
 .disp-chip.on{background:var(--jaune);color:#1a1a1a;border-color:var(--jaune);font-weight:800;}
 .disp-row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;background:var(--noir);margin-bottom:5px;font-size:13px;color:var(--blanc);}
@@ -910,7 +931,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
   #cr-draw.show > .cr-d-pal .cr-d-tool{height:78px;}
   #cr-draw.show > .cr-d-canvas{min-height:0;}
 }
-/* ===== Espace coach : interface claire et épurée (v26-10-z15) — apparence uniquement ===== */
+/* ===== Espace coach : interface claire et épurée (v26-10-z16) — apparence uniquement ===== */
 body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-coachs2.active){background:#F3F6FA;}
 #screen-app:has(#panel-coachs2.active)::before{display:none;}
 #screen-app:has(#panel-coachs2.active) > div:first-child button{background:#fff !important;border:1px solid #D5DEEA !important;color:#334766 !important;border-radius:10px !important;padding:8px 14px !important;font-weight:600;}
@@ -1965,7 +1986,7 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z15</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z16</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -2038,7 +2059,7 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z15) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z16) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -6077,8 +6098,8 @@ function crCloneEx(x) {
   Object.keys(c.items).forEach(k => c.items[k].forEach(it => { it.id = crUid(); }));
   (c.evolutions || []).forEach(e => { e.id = crUid(); });
   c.equipment.forEach(e => { e.id = crUid(); });
-  if (c.gb) { c.gb.instructions.forEach(it => { it.id = crUid(); }); c.gb.success.forEach(it => { it.id = crUid(); }); c.gb.equipment.forEach(e => { e.id = crUid(); }); if (c.gb.schemaLib) crCloneDrawings(c.gb.schemaLib); }
-  if (c.schemaLib) crCloneDrawings(c.schemaLib);
+  if (c.gb) { c.gb.instructions.forEach(it => { it.id = crUid(); }); c.gb.success.forEach(it => { it.id = crUid(); }); c.gb.equipment.forEach(e => { e.id = crUid(); }); if (c.gb.schemaLib) { delete c.gb.schemaLib.own; if (c.gb.schemaLib.pend || c.gb.schemaLib.fromOld) c.gb.schemaLib.id = schUuid(); crCloneDrawings(c.gb.schemaLib); } }
+  if (c.schemaLib) { crCloneDrawings(c.schemaLib); delete c.schemaLib.own; if (c.schemaLib.pend || c.schemaLib.fromOld) c.schemaLib.id = schUuid(); }
   return c;
 }
 function crCloneBlock(b) { const c = JSON.parse(JSON.stringify(b)); c.id = crUid(); c.exercises = (b.exercises || []).map(crCloneEx); return c; }
@@ -6254,6 +6275,7 @@ function crOpenFiche(id, exId) {
   const vids = (p.videos || []).length ? `<div class="cr-fiche-h">Vidéos</div>${(p.videos || []).map(v => `<div style="font-size:13px;word-break:break-all;">▶ ${crEsc(v.title || '')} <a href="${crEsc(v.url)}">${crEsc(v.url)}</a></div>`).join('')}` : '';
   document.getElementById('cr-fiche').innerHTML = `
     <div class="cr-fiche-bar"><button type="button" onclick="crCloseFiche()">← Retour</button><span class="cr-fiche-sp"></span><span id="cr-fiche-msg" class="msg" role="status"></span>
+      <span class="cr-fiche-cols">Colonnes <button type="button" data-c="1" onclick="crFicheCols(1)">1</button><button type="button" data-c="2" onclick="crFicheCols(2)">2</button><button type="button" data-c="3" onclick="crFicheCols(3)">3</button></span>
       <button type="button" onclick="crFichePrint(false)">🖨 Aperçu / Imprimer</button><button type="button" class="pdf" onclick="crFichePrint(true)">⬇ PDF</button></div>
     <div class="cr-fiche-page">
       <div class="cr-fiche-head"><div><div class="cr-fiche-kicker">Fiche de séance</div><h1>${crEsc(p.title)}</h1>${crTxt(p.theme) ? `<div class="cr-fiche-sub">${crEsc(p.theme)}</div>` : ''}</div><img class="cr-fiche-logo" src="icon-192.png" alt="" onerror="this.style.display='none'"></div>
@@ -6268,11 +6290,19 @@ function crOpenFiche(id, exId) {
       ${arts}
       <div class="cr-fiche-foot">Handball Club Clermont Salagou · Filière masculine</div>
     </div>`;
-  document.getElementById('cr-fiche').classList.add('show');
+  document.getElementById('cr-fiche').classList.add('show'); crFicheCols();
   document.getElementById('cr-fiche').scrollTop = 0;
   if (exId) { const t = document.getElementById('crfx-' + exId); if (t) t.scrollIntoView(); }
 }
 function crCloseFiche() { document.getElementById('cr-fiche').classList.remove('show'); crFicheRestoreTitle(); }
+// Nombre de colonnes des listes (Besoins, Fonctionnement, Comportements…) dans la fiche et le PDF : 1, 2 ou 3 (mémorisé sur cet appareil)
+function crFicheCols(n) {
+  if (n == null) { try { n = parseInt(localStorage.getItem('crFicheCols'), 10); } catch (e) {} }
+  n = [1, 2, 3].includes(n) ? n : 2;
+  document.documentElement.style.setProperty('--fxc', String(n));
+  document.querySelectorAll('.cr-fiche-cols button').forEach(b => b.classList.toggle('on', +b.dataset.c === n));
+  if (arguments.length && arguments[0] != null) { try { localStorage.setItem('crFicheCols', String(n)); } catch (e) {} }
+}
 function crFicheGo(exId) { const t = document.getElementById('crfx-' + exId); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 function crFicheEdit(bi, ei) { crCloseFiche(); crOpenEx(bi, ei); }
 function crFicheAnim(key) { const a = crFicheAnimMap[key]; if (a) schPlayerOpenData(a.name, a.drawings); }
@@ -6618,7 +6648,7 @@ function crExNav(d) {
   crEx = { bi: f[j][0], ei: f[j][1], tab: crEx.tab }; crExInfoOpen = false;
   crRenderExView(); window.scrollTo(0, 0);
 }
-function crGrow(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(el.scrollHeight, 42) + 'px'; }
+function crGrow(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(el.scrollHeight, el.closest('.cr-li') ? 36 : 42) + 'px'; }
 function crGrowAll() { document.querySelectorAll('#cr-ex-view textarea.cr-grow').forEach(crGrow); }
 function crListRef(path) {
   const x = crCurEx(), k = path.slice(2);
@@ -6814,7 +6844,7 @@ function crFicheEx(x, num, bname, bi, ei, live) {
   const top = multi ? `<div>${figs}</div>${factsBox ? `<div style="margin-top:10px;">${factsBox}</div>` : ''}`
     : (figs ? `<div class="cr-fiche-body"><div>${figs}</div><div>${factsBox}</div></div>` : factsBox);
   return `<article class="cr-fx" id="crfx-${x.id}"><div class="cr-fx-head"><span class="cr-fx-n">${num}</span><div><small>${crEsc(bname || '')}</small><b>${crEsc(x.name || 'Exercice')}</b></div><span class="cr-fx-d">${x.minutes ? crFmtDur(x.minutes) : ''}</span>${live ? `<button type="button" class="cr-fx-edit no-print" onclick="crFicheEdit(${bi},${ei})" aria-label="Modifier l'exercice">✎</button>` : ''}</div>
-    ${top}${lists}${gb}${vids}</article>`;
+    ${top}<div class="cr-fx-lists">${lists}</div>${gb}${vids}</article>`;
 }
 // ----- Schéma (terrain) : modèle, rendu, éditeur image par image -----
 const CR_COURT = { half: { w: 200, h: 200, vb: [-10, -10, 220, 220], k: 1 }, full: { w: 400, h: 200, vb: [-10, -10, 420, 220], k: 1.35 }, free: { w: 300, h: 200, vb: [-10, -10, 320, 220], k: 1.1 } };
@@ -6916,26 +6946,46 @@ function crSchemaCard(h, t) {
     const n = L.drawings.length, rec = crSchLibRec(L), newer = rec && rec.updatedAt && (!L.at || rec.updatedAt > L.at);
     const prev = n === 1 ? `<div class="cr-ex-schema" style="max-width:520px;">${schDrawingSvg(L.drawings[0], { showBallStart: false })}</div>`
       : `<div class="cr-ex-schema" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:640px;">${L.drawings.map(d => `<div><div style="font-size:11px;color:var(--gris-texte);margin-bottom:2px;">${crEsc(d.title)}</div>${schDrawingSvg(d, { showBallStart: false })}</div>`).join('')}</div>`;
-    return prev + `<div style="margin-top:8px;font-size:12px;color:var(--gris-texte);">🎬 ${crEsc(L.name)} · ${n} étape${n > 1 ? 's' : ''}${rec || L.fromOld ? '' : ' · ⚠ plus dans la bibliothèque (la copie est conservée)'}${!rec && L.fromOld ? ' · converti depuis l\'ancien éditeur' : ''}${newer ? ' · <b style="color:var(--jaune);">version plus récente dans la bibliothèque</b>' : ''}</div>`
-      + `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="cr-btn sm primary" onclick="crSchPlay(${q})">▶ Animer</button><button type="button" class="cr-btn sm" onclick="crSchShare(${q},this)">📤 Partager</button>${rec || L.fromOld ? `<button type="button" class="cr-btn sm" onclick="crSchEdit(${q})">✏️ Modifier</button>` : ''}${newer ? `<button type="button" class="cr-btn sm" onclick="crSchUpdate(${q})">↻ Mettre à jour</button>` : ''}<button type="button" class="cr-btn sm" onclick="crSchPick(${q})">Changer</button><button type="button" class="cr-btn sm danger" onclick="crSchDetach(${q})">Retirer</button></div>`;
+    return prev + `<div style="margin-top:8px;font-size:12px;color:var(--gris-texte);">🎬 ${crEsc(L.name)} · ${n} étape${n > 1 ? 's' : ''}${rec || L.fromOld || L.pend ? '' : ' · ⚠ plus dans la bibliothèque (la copie est conservée)'}${!rec && L.fromOld ? ' · converti depuis l\'ancien éditeur' : ''}${L.pend || (rec && !L.own) ? ' · modifier crée une copie : l\'original de la bibliothèque reste intact' : ''}${newer ? ' · <b style="color:var(--jaune);">version plus récente dans la bibliothèque</b>' : ''}</div>`
+      + `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="cr-btn sm primary" onclick="crSchPlay(${q})">▶ Animer</button><button type="button" class="cr-btn sm" onclick="crSchShare(${q},this)">📤 Partager</button>${rec || L.fromOld || L.pend ? `<button type="button" class="cr-btn sm" onclick="crSchEdit(${q})">✏️ Modifier</button>` : ''}${newer ? `<button type="button" class="cr-btn sm" onclick="crSchUpdate(${q})">↻ Mettre à jour</button>` : ''}<button type="button" class="cr-btn sm" onclick="crSchPick(${q})">Changer</button><button type="button" class="cr-btn sm danger" onclick="crSchDetach(${q})">Retirer</button></div>`;
   }
   if (t === 'main' && crSchemaHas(h)) return crSchemaCardLegacy(h) + `<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:var(--gris-texte);">Ancien schéma (ancien éditeur). Tu peux le remplacer par un schéma de la bibliothèque ; l'ancien est conservé si tu le retires ensuite.</div><div style="margin-top:6px;"><button type="button" class="cr-btn sm" onclick="crSchPick('main')">🎬 Remplacer par un schéma de la bibliothèque</button></div>`;
   return `<div style="border:2px dashed rgba(245,196,0,0.5);border-radius:12px;padding:22px 10px;text-align:center;"><div style="font-size:30px;color:var(--jaune);">＋</div><div style="font-weight:800;color:var(--blanc);">${t === 'gb' ? 'Schéma du travail GB' : 'Dessiner la situation'}</div><div style="font-size:12px;color:var(--gris-texte);margin:4px 0 12px;">Joueurs, ballon, passes, déplacements, tirs… avec animation</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"><button type="button" class="cr-btn primary" onclick="crSchPick(${q})">Choisir dans la bibliothèque</button><button type="button" class="cr-btn" onclick="crSchNew(${q})">✏️ Créer un nouveau schéma</button></div></div>`;
 }
-function crSchSnap(rec) { return { id: rec.id, name: rec.name, at: rec.updatedAt || null, drawings: JSON.parse(JSON.stringify(rec.drawings)) }; }
+function crSchSnap(rec, own) { const o = { id: rec.id, name: rec.name, at: rec.updatedAt || null, drawings: JSON.parse(JSON.stringify(rec.drawings)) }; if (own) o.own = true; return o; }
 function crSchAttach(id) {
   schEnsure(); const rec = schUserEx.find(r => r.id === id && !r.deleted); if (!rec) return;
   const h = crSchHolder(crSchTgt); if (!h) return;
-  h.schemaLib = crSchSnap(rec); crSchPickClose(); crTouch(); crRenderExView();
+  // copie indépendante : l'exercice garde sa propre version ; l'original de la bibliothèque ne sera jamais modifié par un changement fait ici
+  h.schemaLib = { ...crSchSnap(rec), id: schUuid(), srcId: rec.id, own: true, pend: true }; crSchPickClose(); crTouch(); crRenderExView();
 }
 function crSchUpdate(t) { const h = crSchHolder(t), rec = crSchLibRec(h.schemaLib); if (!rec) return; h.schemaLib = crSchSnap(rec); crTouch(); crRenderExView(); }
 function crSchDetach(t) { if (!confirm('Retirer le schéma de cet exercice ? (Il reste dans la bibliothèque.)')) return; delete crSchHolder(t).schemaLib; crTouch(); crRenderExView(); }
 function crSchPlay(t) { const L = crSchHolder(t).schemaLib; if (L) schPlayerOpenData(L.name, L.drawings); }
 function crSchEdit(t) {
-  let rec = crSchLibRec(crSchHolder(t).schemaLib);
-  { const L = crSchHolder(t).schemaLib; if (!rec && L && L.fromOld && L.drawings) { schEnsure(); rec = schRec({ id: L.id, name: L.name, drawings: JSON.parse(JSON.stringify(L.drawings)), dirty: true }); schUserEx.push(rec); schRebuild(); schUserSave(); } } // dessin converti : il entre dans la bibliothèque à la première modification
+  const h = crSchHolder(t), L = h.schemaLib; if (!L) return;
+  schEnsure();
+  let rec = crSchLibRec(L), fork = null, before = '';
+  const sig = dr => JSON.stringify((dr || []).map(d => { const o = { ...d }; delete o.updatedAt; delete o.validatedAt; return o; })); // contenu du schéma, sans les dates
+  const baseName = n => { n = String(n || 'Schéma'); return (/\(copie\)\s*$/.test(n) ? n : n + ' (copie)').slice(0, 60); };
+  if (!rec && (L.fromOld || L.pend) && L.drawings) { // copie de l'exercice pas encore dans la bibliothèque : elle y entre à la première modification
+    before = sig(L.drawings);
+    rec = schRec({ id: L.id, name: L.pend ? baseName(L.name) : L.name, drawings: JSON.parse(JSON.stringify(L.drawings)), dirty: true }); schUserEx.push(rec); schRebuild(); schUserSave(); fork = 'pend';
+  } else if (rec && !L.own) { // ancien lien direct vers la bibliothèque : on travaille sur une copie, l'original reste intact
+    before = sig(rec.drawings);
+    rec = schRec({ id: schUuid(), name: baseName(rec.name), drawings: JSON.parse(JSON.stringify(rec.drawings)), kind: rec.kind, theme: rec.theme, dirty: true }); schUserEx.push(rec); schRebuild(); schUserSave(); fork = 'link';
+  }
   if (!rec) { alert('Ce schéma n\'est plus dans la bibliothèque.'); return; }
-  schEditorOpen(schDemo.indexOf(rec), ex => { const y = crSchHolder(t); if (y && y.schemaLib && y.schemaLib.id === ex.id && !ex.deleted) { y.schemaLib = crSchSnap(ex); crTouch(); } crRenderExView(); });
+  schEditorOpen(schDemo.indexOf(rec), ex => {
+    const y = crSchHolder(t);
+    if (fork && !ex.deleted && sig(ex.drawings) === before) { // rien modifié : la copie ne sert à rien
+      ex.deleted = true; schMarkDirty(ex); schUserSave(); schRebuild();
+      if (fork === 'pend' && y && y.schemaLib && y.schemaLib.id === ex.id) y.schemaLib.id = schUuid(); // la copie de l'exercice garde un identifiant neuf
+      crRenderExView(); return;
+    }
+    if (y && y.schemaLib && (fork || y.schemaLib.id === ex.id) && !ex.deleted) { const src = y.schemaLib.srcId; y.schemaLib = crSchSnap(ex, true); if (src) y.schemaLib.srcId = src; crTouch(); }
+    crRenderExView();
+  });
 }
 function crSchNew(t) {
   t = t || 'main';
@@ -6943,7 +6993,7 @@ function crSchNew(t) {
   const r = schRec({ id: schUuid(), name: ((t === 'gb' ? 'GB · ' : '') + (x.name || 'Schéma')).slice(0, 60), drawings: [schNormDrawing({ title: 'Étape 1', view: t === 'gb' ? 'goal' : 'half' })], dirty: true }); schUserEx.push(r); schRebuild(); schUserSave();
   schEditorOpen(schDemo.indexOf(r), ex => {
     if (ex.drawings.every(d => !d.elements.length)) { ex.deleted = true; schMarkDirty(ex); schUserSave(); schRebuild(); crRenderExView(); return; } // rien dessiné : on ne garde pas un schéma vide
-    const h = crSchHolder(t); if (h) { h.schemaLib = crSchSnap(ex); crTouch(); } crRenderExView();
+    const h = crSchHolder(t); if (h) { h.schemaLib = crSchSnap(ex, true); crTouch(); } crRenderExView();
   });
 }
 let crSchPickEl = null;
@@ -6957,7 +7007,7 @@ function crSchPick(t) {
 function crSchPickClose() { if (crSchPickEl) { crSchPickEl.remove(); crSchPickEl = null; } }
 function crSchPickRefresh() { if (crSchPickEl) crSchPickRender(); }
 function crSchPickRender() {
-  const el = crSchPickEl; if (!el) return; const list = schUserEx.filter(x => !x.deleted && x.drawings.length), cur = ((crSchHolder(crSchTgt) || {}).schemaLib || {}).id;
+  const el = crSchPickEl; if (!el) return; const list = schUserEx.filter(x => !x.deleted && x.drawings.length), cur = (((crSchHolder(crSchTgt) || {}).schemaLib || {}).srcId) || ((crSchHolder(crSchTgt) || {}).schemaLib || {}).id;
   el.innerHTML = `<div class="crsp-top"><b style="font-size:17px;">Schémas de la bibliothèque</b><button type="button" onclick="crSchPickClose()" aria-label="Fermer">✕</button></div><div style="font-size:11px;color:#8FA3BF;margin:2px 0 8px;">${schEsc(schSyncLabel(false))}</div>`
     + `<div class="crsp-list">${list.length ? list.map(x => { const n = x.drawings.length; return `<button type="button" class="crsp-card ${x.id === cur ? 'on' : ''}" onclick="crSchAttach('${x.id}')"><div class="crsp-thumb">${schDrawingSvg(x.drawings[0], { showBallStart: false })}</div><div class="crsp-name">${schEsc(x.name)}</div><div class="crsp-meta">${n} étape${n > 1 ? 's' : ''}${x.id === cur ? ' · choisi' : ''}</div></button>`; }).join('') : '<div style="color:#8FA3BF;font-size:13px;padding:20px 4px;">La bibliothèque est vide pour l\'instant. Crée ton premier schéma ci-dessous.</div>'}</div>`
     + `<div style="padding-top:10px;"><button type="button" class="cr-btn primary" style="width:100%;padding:14px;" onclick="crSchNew(crSchTgt)">＋ Créer un nouveau schéma</button></div>`;
@@ -11789,7 +11839,7 @@ const DISP_SCALES = [['0.9', 'Petit'], ['1', 'Normal'], ['1.15', 'Grand'], ['1.3
 let dispCfg = null;
 
 function dispDefaults() {
-  return { theme: 'dark', scale: 1, density: 'normal', toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, keys: {}, tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
+  return { theme: 'dark', scale: 1, density: 'normal', barSize: 'compact', barMode: 'auto', toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, keys: {}, tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
 }
 function dispNormalize(c) {
   const d = dispDefaults();
@@ -11798,6 +11848,8 @@ function dispNormalize(c) {
     theme: ['auto', 'light', 'dark'].includes(c.theme) ? c.theme : d.theme,
     scale: [0.9, 1, 1.15, 1.3].includes(Number(c.scale)) ? Number(c.scale) : 1,
     density: ['compact', 'normal', 'comfortable'].includes(c.density) ? c.density : 'normal',
+    barSize: ['compact', 'normal'].includes(c.barSize) ? c.barSize : 'compact',
+    barMode: ['auto', 'bottom', 'merge'].includes(c.barMode) ? c.barMode : 'auto',
     toolOrder: Array.isArray(c.toolOrder) ? c.toolOrder.filter(x => typeof x === 'string') : [],
     toolHidden: Array.isArray(c.toolHidden) ? c.toolHidden.filter(x => typeof x === 'string') : [],
     toolSize: ['s', 'm', 'l'].includes(c.toolSize) ? c.toolSize : 'm',
@@ -11841,7 +11893,11 @@ function dispApplyScale() {
 }
 function dispApplyDensity() {
   document.documentElement.setAttribute('data-density', dispCfg.density);
+  document.documentElement.setAttribute('data-bar', dispCfg.barSize || 'compact');
 }
+// Barre du bas fusionnée avec la barre du haut : sur grand écran (PC, iMac, iPad en paysage) en mode Auto
+function dispBarMerge() { const m = dispCfg && dispCfg.barMode; return m === 'merge' || ((!m || m === 'auto') && window.innerWidth >= 1000); }
+let dispLastMerge = null;
 function dispTabVisible(b) {
   return b && !b.classList.contains('disp-hide') && b.style.display !== 'none';
 }
@@ -11849,10 +11905,11 @@ function dispApplyTabs() {
   const top = document.querySelector('.coachs2-subtabs-top');
   const bot = document.querySelector('.coachs2-subtabs-bottom');
   if (!top || !bot) return;
+  const merge = dispBarMerge(); dispLastMerge = merge;
   dispCfg.tabs.forEach(t => {
     const b = document.getElementById('cs-subtab-' + t.id);
     if (!b) return;
-    (t.bar === 'bottom' ? bot : top).appendChild(b);
+    (t.bar === 'bottom' && !merge ? bot : top).appendChild(b);
     b.classList.toggle('disp-hide', !t.vis);
   });
   const any = bar => Array.from(bar.children).some(dispTabVisible);
@@ -11872,6 +11929,7 @@ function dispInit() {
   dispLoad();
   dispApply();
   window.addEventListener('resize', dispApplyScale);
+  window.addEventListener('resize', () => { if (dispBarMerge() !== dispLastMerge) dispApplyTabs(); });
   window.addEventListener('orientationchange', () => setTimeout(dispApplyScale, 200));
   try {
     const mq = matchMedia('(prefers-color-scheme: light)');
@@ -11958,6 +12016,12 @@ function dispRenderUi() {
     chip(dispCfg.density === 'compact', 'Compact', "dispSet('density','compact')") +
     chip(dispCfg.density === 'normal', 'Normal', "dispSet('density','normal')") +
     chip(dispCfg.density === 'comfortable', 'Confortable', "dispSet('density','comfortable')") + `</div>`;
+  h += lab('Barre du bas (Stats, Programme, Évals, Réglages)');
+  h += `<div style="font-size:11px;color:var(--gris-clair);margin:2px 0 4px;">Taille</div><div style="display:flex;gap:6px;flex-wrap:wrap;">` +
+    chip(dispCfg.barSize === 'compact', 'Compacte', "dispSet('barSize','compact')") + chip(dispCfg.barSize === 'normal', 'Normale', "dispSet('barSize','normal')") + `</div>`;
+  h += `<div style="font-size:11px;color:var(--gris-clair);margin:8px 0 4px;">Position</div><div style="display:flex;gap:6px;flex-wrap:wrap;">` +
+    chip(dispCfg.barMode === 'auto', 'Auto', "dispSet('barMode','auto')") + chip(dispCfg.barMode === 'bottom', 'Toujours en bas', "dispSet('barMode','bottom')") + chip(dispCfg.barMode === 'merge', 'Sur la ligne du haut', "dispSet('barMode','merge')") + `</div>`;
+  h += `<div style="font-size:10px;color:var(--gris-texte);margin-top:5px;">Auto : en bas sur téléphone et iPad vertical, sur la même ligne que les autres onglets sur ordinateur et iPad horizontal.</div>`;
   h += lab('Onglets de l’espace coach');
   h += `<div style="font-size:10px;color:var(--gris-texte);margin-bottom:6px;">Coche pour afficher · choisis la barre (haut ou bas) · flèches pour l'ordre. Réglages reste toujours visible.</div>`;
   dispCfg.tabs.forEach(t => {
