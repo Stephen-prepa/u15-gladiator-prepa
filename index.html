@@ -8,7 +8,7 @@
 <script>
 (function(){try{var c=JSON.parse(localStorage.getItem('prepa_display_v1')||'null')||{};var t=c.theme||'dark';
 if(t==='auto')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
-var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.setAttribute('data-density',c.density);if(c.barSize)h.setAttribute('data-bar',c.barSize);}catch(e){}})();
+var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.setAttribute('data-density',c.density);if(c.barSize)h.setAttribute('data-bar',c.barSize);h.setAttribute('data-coach',c.coach||'light');}catch(e){}})();
 </script>
 <meta name="description" content="Préparation physique autonome estivale pour les U15 du HBCCS">
 <link rel="manifest" href="manifest.json">
@@ -931,76 +931,76 @@ textarea.cr-in{resize:vertical;min-height:44px;}
   #cr-draw.show > .cr-d-pal .cr-d-tool{height:78px;}
   #cr-draw.show > .cr-d-canvas{min-height:0;}
 }
-/* ===== Espace coach : interface claire et épurée (v26-10-z16) — apparence uniquement ===== */
-body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-coachs2.active){background:#F3F6FA;}
+/* ===== Espace coach : interface claire et épurée (v26-10-z17) — apparence uniquement ===== */
+body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-coachs2.active){background:var(--c-bg);}
 #screen-app:has(#panel-coachs2.active)::before{display:none;}
-#screen-app:has(#panel-coachs2.active) > div:first-child button{background:#fff !important;border:1px solid #D5DEEA !important;color:#334766 !important;border-radius:10px !important;padding:8px 14px !important;font-weight:600;}
+#screen-app:has(#panel-coachs2.active) > div:first-child button{background:var(--c-card) !important;border:1px solid var(--c-line) !important;color:var(--c-ink2) !important;border-radius:10px !important;padding:8px 14px !important;font-weight:600;}
 #coachs2-app,#coachs2-login,#cr-modal-inner{
-  --noir:#F3F6FA;--gris-fonce:#FFFFFF;--gris-moyen:#D5DEEA;--blanc:#14213D;--gris-clair:#334766;--gris-texte:#5B6B82;
-  --jaune:#0A3D7A;--jaune-dark:#0A3D7A;--bleu:#0A3D7A;--bleu-light:#1F6FEB;--vert:#16965A;
-  --pv-line:#D5DEEA;--pv-pri:#0A3D7A;
-  color:#14213D;
+  --noir:var(--c-bg);--gris-fonce:var(--c-card);--gris-moyen:var(--c-line);--blanc:var(--c-ink);--gris-clair:var(--c-ink2);--gris-texte:var(--c-mut);
+  --jaune:var(--c-acc);--jaune-dark:var(--c-acc);--bleu:var(--c-acc);--bleu-light:var(--c-acc2);--vert:var(--c-ok2);
+  --pv-line:var(--c-line);--pv-pri:var(--c-acc);
+  color:var(--c-ink);
 }
-#coachs2-app h2{color:#14213D !important;font-size:20px !important;}
-#coachs2-login h2{color:#14213D !important;}
-#coachs2-login .login-input{background:#fff !important;border:1px solid #D5DEEA !important;color:#14213D !important;border-radius:10px;}
-#coachs2-login [style*="background:var(--jaune)"],#coachs2-login [style*="background: var(--jaune)"]{background:#0A3D7A !important;color:#fff !important;}
-#coachs2-login [style*="background:var(--gris-fonce)"]{background:#fff !important;border:1px solid #D5DEEA !important;}
-#coachs2-login a{color:#0A3D7A !important;}
-#coachs2-app .cs-box{background:#fff !important;border:1px solid #D5DEEA !important;box-shadow:0 1px 2px rgba(20,33,61,.05) !important;border-radius:14px !important;}
-#coachs2-app [style*="background:var(--noir)"]{background:#F3F6FA !important;}
-#coachs2-app [style*="rgba(255,255,255,0.0"],#coachs2-app [style*="rgba(255,255,255,0.1"],#coachs2-app [style*="rgba(255,255,255,.1"]{border-color:#D5DEEA !important;}
-#coachs2-app .cs-tab{background:#fff !important;border:1px solid #D5DEEA !important;color:#334766 !important;font-weight:600 !important;border-radius:12px;}
-#coachs2-app .cs-tab[style*="255, 215, 0"]{background:#0A3D7A !important;border-color:#0A3D7A !important;color:#fff !important;font-weight:700 !important;}
-#coachs2-app .coachs2-subtabs-bottom{background:rgba(255,255,255,.97) !important;border-top:1px solid #D5DEEA !important;}
-#coachs2-app .cr-btn,#coachs2-app .disp-mini,#cr-modal .cr-btn{background:#fff;border:1px solid #D5DEEA;color:#14213D;border-radius:10px;font-weight:600;}
-#coachs2-app .cr-btn.primary,#cr-modal .cr-btn.primary,#coachs2-app .pw-btn,#coachs2-app .cr-chip.on,#coachs2-app .disp-chip.on,#coachs2-app .cr-badge.type,#coachs2-app [style*="background:var(--jaune)"],#coachs2-app [style*="background: var(--jaune)"],#coachs2-app .sch-play{background:#0A3D7A !important;border-color:#0A3D7A !important;color:#fff !important;}
-#coachs2-app .cr-btn.danger,#cr-modal .cr-btn.danger{color:#C0392B;border-color:#F0C9C4;background:#fff;}
-#coachs2-app .cr-chip,#coachs2-app .disp-chip,#coachs2-app .sch-chip,#coachs2-app .sch-fold,#coachs2-app .sch-play.alt{background:#fff;border-color:#D5DEEA;color:#334766;}
-#coachs2-app .sch-play.alt{color:#334766 !important;background:#fff !important;border:1px solid #D5DEEA !important;}
-#coachs2-app .sch-chip.on,#coachs2-app .sch-fold.open{background:#E7F0FD;border-color:#1F6FEB;color:#0A3D7A;}
-#coachs2-app .sch-fold-t b{color:#14213D;}
-#coachs2-app .sch-fsel,#coachs2-app .sch-fq{background:#fff;border:1px solid #D5DEEA;color:#14213D;}
-#coachs2-app .sch-list{border-color:#E6ECF4;}
-#coachs2-app .cr-in,#coachs2-app input,#coachs2-app select,#coachs2-app textarea,#cr-modal .cr-in,#cr-modal input,#cr-modal select,#cr-modal textarea{background:#fff;border:1px solid #D5DEEA;color:#14213D;border-radius:10px;}
+#coachs2-app h2{color:var(--c-ink) !important;font-size:20px !important;}
+#coachs2-login h2{color:var(--c-ink) !important;}
+#coachs2-login .login-input{background:var(--c-card) !important;border:1px solid var(--c-line) !important;color:var(--c-ink) !important;border-radius:10px;}
+#coachs2-login [style*="background:var(--jaune)"],#coachs2-login [style*="background: var(--jaune)"]{background:var(--c-acc) !important;color:var(--c-onacc) !important;}
+#coachs2-login [style*="background:var(--gris-fonce)"]{background:var(--c-card) !important;border:1px solid var(--c-line) !important;}
+#coachs2-login a{color:var(--c-acc) !important;}
+#coachs2-app .cs-box{background:var(--c-card) !important;border:1px solid var(--c-line) !important;box-shadow:0 1px 2px rgba(20,33,61,.05) !important;border-radius:14px !important;}
+#coachs2-app [style*="background:var(--noir)"]{background:var(--c-bg) !important;}
+#coachs2-app [style*="rgba(255,255,255,0.0"],#coachs2-app [style*="rgba(255,255,255,0.1"],#coachs2-app [style*="rgba(255,255,255,.1"]{border-color:var(--c-line) !important;}
+#coachs2-app .cs-tab{background:var(--c-card) !important;border:1px solid var(--c-line) !important;color:var(--c-ink2) !important;font-weight:600 !important;border-radius:12px;}
+#coachs2-app .cs-tab[style*="255, 215, 0"]{background:var(--c-acc) !important;border-color:var(--c-acc) !important;color:var(--c-onacc) !important;font-weight:700 !important;}
+#coachs2-app .coachs2-subtabs-bottom{background:var(--c-bar) !important;border-top:1px solid var(--c-line) !important;}
+#coachs2-app .cr-btn,#coachs2-app .disp-mini,#cr-modal .cr-btn{background:var(--c-card);border:1px solid var(--c-line);color:var(--c-ink);border-radius:10px;font-weight:600;}
+#coachs2-app .cr-btn.primary,#cr-modal .cr-btn.primary,#coachs2-app .pw-btn,#coachs2-app .cr-chip.on,#coachs2-app .disp-chip.on,#coachs2-app .cr-badge.type,#coachs2-app [style*="background:var(--jaune)"],#coachs2-app [style*="background: var(--jaune)"],#coachs2-app .sch-play{background:var(--c-acc) !important;border-color:var(--c-acc) !important;color:var(--c-onacc) !important;}
+#coachs2-app .cr-btn.danger,#cr-modal .cr-btn.danger{color:var(--c-red);border-color:var(--c-redline);background:var(--c-card);}
+#coachs2-app .cr-chip,#coachs2-app .disp-chip,#coachs2-app .sch-chip,#coachs2-app .sch-fold,#coachs2-app .sch-play.alt{background:var(--c-card);border-color:var(--c-line);color:var(--c-ink2);}
+#coachs2-app .sch-play.alt{color:var(--c-ink2) !important;background:var(--c-card) !important;border:1px solid var(--c-line) !important;}
+#coachs2-app .sch-chip.on,#coachs2-app .sch-fold.open{background:var(--c-accbg);border-color:var(--c-acc2);color:var(--c-acc);}
+#coachs2-app .sch-fold-t b{color:var(--c-ink);}
+#coachs2-app .sch-fsel,#coachs2-app .sch-fq{background:var(--c-card);border:1px solid var(--c-line);color:var(--c-ink);}
+#coachs2-app .sch-list{border-color:var(--c-line2);}
+#coachs2-app .cr-in,#coachs2-app input,#coachs2-app select,#coachs2-app textarea,#cr-modal .cr-in,#cr-modal input,#cr-modal select,#cr-modal textarea{background:var(--c-card);border:1px solid var(--c-line);color:var(--c-ink);border-radius:10px;}
 #coachs2-app input[type=checkbox],#coachs2-app input[type=radio]{background:revert;}
-#coachs2-app .cr-in::placeholder,#coachs2-app input::placeholder,#cr-modal input::placeholder,#cr-modal .cr-in::placeholder{color:#8393A9;}
-#coachs2-app .seance-seg{background:#E9EEF5;border:0;border-radius:12px;padding:3px;}
-#coachs2-app .seance-seg button{border-radius:9px;color:#5B6B82;}
-#coachs2-app .seance-seg button.on{background:#fff;color:#0A3D7A;box-shadow:0 1px 3px rgba(20,33,61,.15);}
-#coachs2-app .cr-card,#coachs2-app .cr-block,#cr-modal .cr-tpl{background:#fff;border:1px solid #D5DEEA;}
-#coachs2-app .cr-ex{background:#F3F6FA;}
-#coachs2-app .cr-thumb{background:#EEF2F8;border:1px solid #D5DEEA;color:#5B6B82;}
-#coachs2-app .cr-badge{background:#EAF0F7;color:#445775;}
-#coachs2-app .cr-badge.ok{background:#DDF3E8;color:#12794A;}
-#coachs2-app .cr-add{border-color:#9DB6DA;color:#0A3D7A;}
-#coachs2-app .cr-lbl{color:#5B6B82;}
-#coachs2-app .cr-step button,#coachs2-app .cr-actions button{border-color:#D5DEEA;color:#0A3D7A;background:#fff;}
-#coachs2-app .cr-block-name{color:#14213D;border-bottom-color:#D5DEEA;}
-#coachs2-app .cr-step input{background:#fff;color:#14213D;border-color:#D5DEEA;}
-#coachs2-app .cr-foot{background:rgba(255,255,255,.97);border-color:#D5DEEA;}
+#coachs2-app .cr-in::placeholder,#coachs2-app input::placeholder,#cr-modal input::placeholder,#cr-modal .cr-in::placeholder{color:var(--c-mut);}
+#coachs2-app .seance-seg{background:var(--c-soft);border:0;border-radius:12px;padding:3px;}
+#coachs2-app .seance-seg button{border-radius:9px;color:var(--c-mut);}
+#coachs2-app .seance-seg button.on{background:var(--c-card);color:var(--c-acc);box-shadow:0 1px 3px rgba(20,33,61,.15);}
+#coachs2-app .cr-card,#coachs2-app .cr-block,#cr-modal .cr-tpl{background:var(--c-card);border:1px solid var(--c-line);}
+#coachs2-app .cr-ex{background:var(--c-bg);}
+#coachs2-app .cr-thumb{background:var(--c-bg2);border:1px solid var(--c-line);color:var(--c-mut);}
+#coachs2-app .cr-badge{background:var(--c-soft);color:var(--c-ink2);}
+#coachs2-app .cr-badge.ok{background:var(--c-okbg);color:var(--c-ok);}
+#coachs2-app .cr-add{border-color:var(--c-acc3);color:var(--c-acc);}
+#coachs2-app .cr-lbl{color:var(--c-mut);}
+#coachs2-app .cr-step button,#coachs2-app .cr-actions button{border-color:var(--c-line);color:var(--c-acc);background:var(--c-card);}
+#coachs2-app .cr-block-name{color:var(--c-ink);border-bottom-color:var(--c-line);}
+#coachs2-app .cr-step input{background:var(--c-card);color:var(--c-ink);border-color:var(--c-line);}
+#coachs2-app .cr-foot{background:var(--c-bar);border-color:var(--c-line);}
 #cr-modal{background:rgba(20,33,61,.45);}
-#cr-modal-inner{background:#fff;color:#14213D;}
-#coachs2-app [style*="color:#F5C400"]{color:#0A3D7A !important;}
+#cr-modal-inner{background:var(--c-card);color:var(--c-ink);}
+#coachs2-app [style*="color:#F5C400"]{color:var(--c-acc) !important;}
 /* couleurs d'accent plus foncées (lisibles sur fond blanc) */
-#coachs2-app [style*="color:#2ecc71"],#coachs2-app [style*="color:#2ECC71"],#coachs2-app [style*="color: rgb(46, 204, 113)"],#coachs2-app [style*="color:var(--vert)"]{color:#12794A !important;}
-#coachs2-app [style*="color:#ff6b6b"],#coachs2-app [style*="color: rgb(255, 107, 107)"]{color:#C0392B !important;}
-#coachs2-app [style*="color:#e67e22"],#coachs2-app [style*="color:#E67E22"]{color:#B35A0D !important;}
-#coachs2-app [style*="color:#f39c12"]{color:#9A6200 !important;}
-#coachs2-app [style*="color:#e74c3c"]{color:#C0392B !important;}
+#coachs2-app [style*="color:#2ecc71"],#coachs2-app [style*="color:#2ECC71"],#coachs2-app [style*="color: rgb(46, 204, 113)"],#coachs2-app [style*="color:var(--vert)"]{color:var(--c-ok) !important;}
+#coachs2-app [style*="color:#ff6b6b"],#coachs2-app [style*="color: rgb(255, 107, 107)"]{color:var(--c-red) !important;}
+#coachs2-app [style*="color:#e67e22"],#coachs2-app [style*="color:#E67E22"]{color:var(--c-w1) !important;}
+#coachs2-app [style*="color:#f39c12"]{color:var(--c-w2) !important;}
+#coachs2-app [style*="color:#e74c3c"]{color:var(--c-red) !important;}
 /* liste des séances : cartes allégées */
 #cr-list-view > div:first-child{display:none;}
 #cr-list-view{display:grid;grid-template-columns:1fr 150px;gap:10px;}
 #cr-list-view > button.cr-btn.primary{grid-column:1/-1;grid-row:1;width:100% !important;padding:12px 18px !important;font-size:14px !important;}
-#cr-filters{grid-column:1/-1;grid-row:2;margin:0 !important;gap:2px !important;border-bottom:1px solid #D5DEEA;flex-wrap:nowrap !important;overflow-x:auto;}
-#cr-filters .cr-chip{border:0 !important;background:transparent !important;border-radius:0;padding:10px 12px;color:#5B6B82 !important;border-bottom:2px solid transparent !important;font-weight:600;white-space:nowrap;}
-#cr-filters .cr-chip.on{color:#0A3D7A !important;border-bottom-color:#0A3D7A !important;font-weight:800;background:transparent !important;}
-#cr-filters .cr-chip .n{font-size:11px;background:#E9EEF5;border-radius:99px;padding:1px 7px;opacity:1;color:#445775;}
+#cr-filters{grid-column:1/-1;grid-row:2;margin:0 !important;gap:2px !important;border-bottom:1px solid var(--c-line);flex-wrap:nowrap !important;overflow-x:auto;}
+#cr-filters .cr-chip{border:0 !important;background:transparent !important;border-radius:0;padding:10px 12px;color:var(--c-mut) !important;border-bottom:2px solid transparent !important;font-weight:600;white-space:nowrap;}
+#cr-filters .cr-chip.on{color:var(--c-acc) !important;border-bottom-color:var(--c-acc) !important;font-weight:800;background:transparent !important;}
+#cr-filters .cr-chip .n{font-size:11px;background:var(--c-soft);border-radius:99px;padding:1px 7px;opacity:1;color:var(--c-ink2);}
 #cr-search{grid-column:1;grid-row:3;margin:0 !important;}
 #cr-cat-filter{grid-column:2;grid-row:3;margin:0 !important;}
 #cr-list{grid-column:1/-1;grid-row:4;}
 #cr-list-view > div:last-child{grid-column:1/-1;grid-row:5;border-top:0 !important;margin-top:8px !important;padding-top:0 !important;}
-#cr-list-view > div:last-child .cr-btn{border:0;background:transparent;color:#5B6B82;font-weight:600;text-decoration:underline;}
+#cr-list-view > div:last-child .cr-btn{border:0;background:transparent;color:var(--c-mut);font-weight:600;text-decoration:underline;}
 @media (min-width:700px){
   #cr-list-view{grid-template-columns:1fr 220px 210px;}
   #cr-list-view > button.cr-btn.primary{grid-column:3;grid-row:1;width:100% !important;}
@@ -1011,24 +1011,33 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
 @media (min-width:700px) and (max-width:1000px){#cr-filters .cr-chip{padding:10px 6px;font-size:12px;}#cr-filters .cr-chip .n{padding:1px 5px;}}
 .cr-c2-st{display:inline-flex;align-items:center;gap:5px;font-weight:700;}
 .cr-c2-st::before{content:'';width:8px;height:8px;border-radius:50%;background:#9AA8BC;}
-.cr-c2-st.ok{color:#12794A;}.cr-c2-st.ok::before{background:#16965A;}
-.cr-c2-st.tpl{color:#8A5A00;}.cr-c2-st.tpl::before{content:'★';width:auto;height:auto;background:none;color:#E0A100;font-size:12px;}
-.cr-c2-card{background:#fff;border:1px solid #D5DEEA;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;position:relative;box-shadow:0 1px 2px rgba(20,33,61,.04);}
-.cr-c2-t{font-size:16px;font-weight:700;color:#14213D;line-height:1.25;cursor:pointer;}
-.cr-c2-m{font-size:12.5px;color:#5B6B82;margin-top:3px;display:flex;flex-wrap:wrap;gap:2px 12px;align-items:center;}
+.cr-c2-st.ok{color:var(--c-ok);}.cr-c2-st.ok::before{background:var(--c-ok2);}
+.cr-c2-st.tpl{color:var(--c-w2);}.cr-c2-st.tpl::before{content:'★';width:auto;height:auto;background:none;color:#E0A100;font-size:12px;}
+.cr-c2-card{background:var(--c-card);border:1px solid var(--c-line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;position:relative;box-shadow:0 1px 2px rgba(20,33,61,.04);}
+.cr-c2-t{font-size:16px;font-weight:700;color:var(--c-ink);line-height:1.25;cursor:pointer;}
+.cr-c2-m{font-size:12.5px;color:var(--c-mut);margin-top:3px;display:flex;flex-wrap:wrap;gap:2px 12px;align-items:center;}
 .cr-c2-foot{display:flex;gap:8px;align-items:center;}
-.cr-c2-btn{flex:1;border:1px solid #0A3D7A;background:#0A3D7A;color:#fff;border-radius:10px;padding:10px 8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;}
-.cr-c2-btn.ghost{background:#fff;color:#0A3D7A;}
-.cr-c2-more{flex:none;width:40px;height:40px;border-radius:10px;border:1px solid #D5DEEA;background:#fff;color:#334766;font-size:18px;font-weight:800;cursor:pointer;line-height:1;}
-.cr-c2-menu{display:none;position:absolute;right:16px;top:calc(100% - 6px);z-index:8;background:#fff;border:1px solid #D5DEEA;border-radius:12px;box-shadow:0 8px 24px rgba(20,33,61,.16);padding:6px;min-width:210px;}
+.cr-c2-btn{flex:1;border:1px solid var(--c-acc);background:var(--c-acc);color:var(--c-onacc);border-radius:10px;padding:10px 8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.cr-c2-btn.ghost{background:var(--c-card);color:var(--c-acc);}
+.cr-c2-more{flex:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--c-line);background:var(--c-card);color:var(--c-ink2);font-size:18px;font-weight:800;cursor:pointer;line-height:1;}
+.cr-c2-menu{display:none;position:absolute;right:16px;top:calc(100% - 6px);z-index:8;background:var(--c-card);border:1px solid var(--c-line);border-radius:12px;box-shadow:0 8px 24px rgba(20,33,61,.16);padding:6px;min-width:210px;}
 .cr-c2-menu.show{display:block;}
-.cr-c2-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:8px;font-size:13.5px;color:#14213D;font-family:inherit;cursor:pointer;font-weight:600;}
-.cr-c2-menu button:hover{background:#F3F6FA;}
-.cr-c2-menu button.red{color:#C0392B;}
-.cr-c2-menu hr{border:0;border-top:1px solid #E6ECF4;margin:4px 0;}
+.cr-c2-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:8px;font-size:13.5px;color:var(--c-ink);font-family:inherit;cursor:pointer;font-weight:600;}
+.cr-c2-menu button:hover{background:var(--c-bg);}
+.cr-c2-menu button.red{color:var(--c-red);}
+.cr-c2-menu hr{border:0;border-top:1px solid var(--c-line2);margin:4px 0;}
 #cr-list{display:grid;grid-template-columns:1fr;gap:12px;align-items:start;}
 @media (min-width:700px){#cr-list{grid-template-columns:1fr 1fr;}}
 @media (min-width:900px){#cr-list .cr-c2-card{margin-bottom:0;}}
+
+/* ----- Apparences de l'espace coach (Réglages › Affichage) : Clair (par défaut), Doux, Sombre ----- */
+html{--c-card:#FFFFFF;--c-bg:#F3F6FA;--c-bg2:#EEF2F8;--c-line:#D5DEEA;--c-line2:#E6ECF4;--c-soft:#E9EEF5;--c-ink:#14213D;--c-ink2:#334766;--c-mut:#5B6B82;--c-bar:rgba(255,255,255,.97);
+  --c-acc:#0A3D7A;--c-onacc:#FFFFFF;--c-accbg:#E7F0FD;--c-acc2:#1F6FEB;--c-acc3:#9DB6DA;--c-ok:#12794A;--c-ok2:#16965A;--c-okbg:#DDF3E8;--c-red:#C0392B;--c-redline:#F0C9C4;--c-w1:#B35A0D;--c-w2:#9A6200;}
+html[data-coach=soft]{--c-card:#F6F4EF;--c-bg:#E7E4DD;--c-bg2:#E0DDD5;--c-line:#CFCABF;--c-line2:#DAD6CC;--c-soft:#E1DDD3;--c-ink:#1B2336;--c-ink2:#38445E;--c-mut:#566074;--c-bar:rgba(246,244,239,.97);
+  --c-accbg:#E2E6EE;--c-acc3:#9FAAC0;--c-okbg:#DCE9DF;--c-redline:#E3C4BD;}
+html[data-coach=soft] #coachs2-app .cr-card,html[data-coach=soft] #coachs2-app .cr-block,html[data-coach=soft] .cr-c2-card{box-shadow:none;}
+html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#26406E;--c-line2:#1C335C;--c-soft:#1A3060;--c-ink:#FFFFFF;--c-ink2:#C8D4E8;--c-mut:#8AA0C0;--c-bar:rgba(10,22,40,.96);
+  --c-acc:#F5C400;--c-onacc:#111111;--c-accbg:rgba(245,196,0,.14);--c-acc2:#F5C400;--c-acc3:#7A6A1A;--c-ok:#2ECC71;--c-ok2:#2ECC71;--c-okbg:rgba(46,204,113,.16);--c-red:#FF6B6B;--c-redline:rgba(255,107,107,.45);--c-w1:#E67E22;--c-w2:#F39C12;}
 </style>
 </head>
 <body>
@@ -1986,7 +1995,7 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z16</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z17</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -2059,7 +2068,7 @@ body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z16) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z17) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -9153,7 +9162,7 @@ SCH_VIEW_KEYS.forEach(k => [90, 180, 270].forEach(a => { const b = SCH_VIEWS[k],
 function schViewParse(v) { const m = /^([a-z]+)@(90|180|270)$/.exec(v || ''); return m ? { base: m[1], rot: +m[2] } : { base: v, rot: 0 }; }
 // marges autour du terrain (le côté du but garde sa marge plus large, quel que soit le sens)
 function schViewMargins(view, mx, top) { const p = schViewParse(view); let M = { l: mx, t: (p.base === 'half' || p.base === 'goal') ? top : mx, r: mx, b: mx }; for (let i = 0; i < p.rot / 90; i++) M = { t: M.l, r: M.t, b: M.r, l: M.b }; return M; }
-const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', stroke: '#14213D', att: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
+const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', disc: '#2EAD5B', stroke: '#14213D', att: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
 const SCH_MAX_BALLS = Infinity; // aucun plafond : autant de ballons que voulu
 const SCH_BALL_COLS = [['#F2B705', '#14213D'], ['#2F7DE1', '#FFFFFF'], ['#1FA35C', '#FFFFFF'], ['#8E5BD9', '#FFFFFF'], ['#E8543A', '#FFFFFF'], ['#17A2B8', '#FFFFFF'], ['#E84393', '#FFFFFF'], ['#14213D', '#FFFFFF']]; // [fond, chiffre] du ballon 1 à 8 (au-delà, les couleurs se répètent : le chiffre les distingue)
 const SCH_BALL_OFFS = [{ x: 0.85, y: -0.55 }, { x: -0.85, y: -0.55 }, { x: 0.85, y: 0.55 }, { x: -0.85, y: 0.55 }]; // place du ballon porté, selon son numéro (deux ballons chez le même joueur ne se superposent pas)
@@ -9305,7 +9314,7 @@ function schElementSvg(e, k) {
     case 'COACH': return `<rect x="${x - r}" y="${y - r}" width="${r * 2}" height="${r * 2}" rx="${r * 0.3}" fill="${e.color || C.coach}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'C', e.color ? schInk(e.color, C.attLine, '#fff') : C.attLine, r)}`;
     case 'BALL': return schBallSvg(x, y, s);
     case 'CONE': return `<polygon points="${x},${y - 0.4 * s} ${x - 0.34 * s},${y + 0.3 * s} ${x + 0.34 * s},${y + 0.3 * s}" fill="${e.color || C.cone}" stroke="${C.stroke}" stroke-width="0.07" stroke-linejoin="round"/>`;
-    case 'DISC': return `<circle cx="${x}" cy="${y}" r="${0.28 * s}" fill="${e.color || C.att}" stroke="${C.stroke}" stroke-width="0.07"/><circle cx="${x}" cy="${y}" r="${0.1 * s}" fill="${C.stroke}"/>`;
+    case 'DISC': return `<circle cx="${x}" cy="${y}" r="${0.28 * s}" fill="${e.color || C.disc}" stroke="${C.stroke}" stroke-width="0.07"/><circle cx="${x}" cy="${y}" r="${0.1 * s}" fill="${C.stroke}"/>`;
     case 'POLE': return `<circle cx="${x}" cy="${y}" r="${0.2 * s}" fill="#fff" stroke="${C.stroke}" stroke-width="0.07"/><circle cx="${x}" cy="${y}" r="${0.08 * s}" fill="${e.color || C.def}"/>`;
     case 'HOOP': return `<circle cx="${x}" cy="${y}" r="${0.5 * s}" fill="${e.color || 'rgba(47,125,225,0.10)'}"${e.color ? ' fill-opacity="0.12"' : ''} stroke="${e.color || C.hoop}" stroke-width="${0.12 * s}"/>`;
     case 'HURDLE': return `<g${tr}><line x1="${x - 0.55 * s}" y1="${y}" x2="${x + 0.55 * s}" y2="${y}" stroke="${e.color || C.cone}" stroke-width="${0.14 * s}" stroke-linecap="round"/><line x1="${x - 0.55 * s}" y1="${y - 0.22 * s}" x2="${x - 0.55 * s}" y2="${y + 0.22 * s}" stroke="${C.stroke}" stroke-width="0.08"/><line x1="${x + 0.55 * s}" y1="${y - 0.22 * s}" x2="${x + 0.55 * s}" y2="${y + 0.22 * s}" stroke="${C.stroke}" stroke-width="0.08"/></g>`;
@@ -9913,7 +9922,50 @@ function schEdToast(msg) {
   const t = schEd && schEd.el.querySelector('#sche-toast'); if (!t) return;
   t.textContent = msg; t.style.opacity = '1'; clearTimeout(schEd.toastT); schEd.toastT = setTimeout(() => { if (t) t.style.opacity = '0'; }, 2200);
 }
+// ----- Report automatique : une modification faite dans une étape se répercute sur les étapes suivantes qui en héritaient (correction d'un oubli ou d'un mauvais placement) -----
+// Une étape suivante « hérite » d'un élément tant qu'elle l'a laissé tel qu'il était à la fin de l'étape précédente : si tu l'as déplacé exprès (animation), il n'est pas touché.
+const SCH_INH = ['type', 'x', 'y', 'rotation', 'scale', 'label', 'team', 'color', 'w', 'h', 'z', 'n', 'holderId', 'pts'];
+function schInhSame(a, b) { return (typeof a === 'number' && typeof b === 'number') ? Math.abs(a - b) < 0.011 : JSON.stringify(a) === JSON.stringify(b); }
+function schStartMap(d) { const m = {}; ((d && d.elements) || []).forEach(e => { if (!schIsAction(e)) m[e.id] = e; }); return m; }
+function schEndMap(d) { try { return schStartMap(schNextFrom(d)); } catch (e) { return schStartMap(d); } }
+function schPropApply(D, j, oldM, newM) {
+  const dj = D[j]; let ch = 0;
+  Object.keys(oldM).concat(Object.keys(newM).filter(id => !oldM[id])).forEach(id => {
+    const o = oldM[id], n = newM[id], el = dj.elements.find(e => e.id === id);
+    if (o && n) { if (!el) return; SCH_INH.forEach(p => { if (!schInhSame(o[p], n[p]) && schInhSame(el[p], o[p])) { if (n[p] === undefined) delete el[p]; else el[p] = JSON.parse(JSON.stringify(n[p])); ch++; } }); }
+    else if (!o && n) { if (!el) { dj.elements.push(JSON.parse(JSON.stringify(n))); ch++; } } // élément ajouté
+    else if (o && !n) { // élément supprimé (sauf si une action de l'étape suivante s'y rattache)
+      if (el && SCH_INH.every(p => schInhSame(el[p], o[p])) && !dj.elements.some(a => schIsAction(a) && (a.fromElementId === id || a.toElementId === id || a.holderId === id))) { dj.elements.splice(dj.elements.indexOf(el), 1); ch++; }
+    }
+  });
+  return ch;
+}
+function schPropagate(i, oldD, newD, D) {
+  let n = 0;
+  if (!newD.variant) { // variantes : elles repartent du même point de départ que l'étape de base
+    for (let j = i + 1; D[j] && D[j].variant; j++) { const b = JSON.parse(JSON.stringify(D[j])); if (schPropApply(D, j, schStartMap(oldD), schStartMap(newD))) n += 1 + schPropagate(j, b, JSON.parse(JSON.stringify(D[j])), D); }
+  }
+  const j = i + 1; // étape suivante : elle repart de la position finale de celle-ci
+  if (D[j] && !D[j].variant) { const b = JSON.parse(JSON.stringify(D[j])); if (schPropApply(D, j, schEndMap(oldD), schEndMap(newD))) n += 1 + schPropagate(j, b, JSON.parse(JSON.stringify(D[j])), D); }
+  return n;
+}
+function schEdSyncSteps() {
+  const S = schEd; if (!S) return;
+  const D = S.ex.drawings, snap = JSON.stringify(D); if (S.base === snap) return;
+  const base = S.base; S.base = snap; if (!base) return;
+  let B; try { B = JSON.parse(base); } catch (e) { return; }
+  const old = {}; B.forEach(d => { old[d.id] = d; });
+  let n = 0;
+  try {
+    D.forEach((d, i) => {
+      const o = old[d.id]; if (!o || JSON.stringify(o.elements) === JSON.stringify(d.elements)) return;
+      n += schPropagate(i, schNormDrawing(o), JSON.parse(JSON.stringify(d)), D);
+    });
+  } catch (e) { n = 0; }
+  if (n) { S.base = JSON.stringify(D); schEdToast('Modification reportée sur les étapes suivantes'); }
+}
 function schEdTouch() {
+  schEdSyncSteps();
   const S = schEd, d = schEdD(); d.updatedAt = new Date().toISOString(); S.ex.updatedAt = d.updatedAt;
   schMarkDirty(S.ex);
   const sv = S.el.querySelector('#sche-saved'); if (sv) sv.textContent = 'Enregistrement…';
@@ -9932,7 +9984,7 @@ function schEditorOpen(exIdx, onClose) {
     + `<div class="sche-bar" id="sche-bar"></div><div class="sche-main"><div class="sche-board"><div class="sche-stage" id="sche-stage"></div><div class="sche-warn" id="sche-warn"></div><div class="sche-toast" id="sche-toast"></div></div><div class="sche-grip" id="sche-grip" role="separator" aria-label="Régler la taille des options" title="Glisse pour agrandir / réduire (double-touche : taille d'origine)"></div><div class="sche-panel" id="sche-panel"></div></div><div class="sche-tools" id="sche-tools"></div>`;
   document.documentElement.appendChild(el);
   schEd = { ex, onClose: onClose || null, k: 0, tool: 'select', group: 'tools', sel: null, vb: null, undo: [], redo: [], ptrs: new Map(), drag: null, down: null, pinch: null, el, stage: el.querySelector('#sche-stage'), prevOverflow: document.documentElement.style.overflow, touch: false, penAt: 0 };
-  schEd.vb = schEdBaseVb(); document.documentElement.style.overflow = 'hidden';
+  schEd.vb = schEdBaseVb(); schEd.base = schEdSnapStr(); document.documentElement.style.overflow = 'hidden';
   const nm = el.querySelector('#sche-name'); nm.value = ex.name; nm.oninput = () => { ex.name = nm.value.slice(0, 60); schEdTouch(); };
   el.querySelector('#sche-close').onclick = schEditorClose;
   el.querySelector('#sche-tag').onclick = () => schClassUi('edit', schEd.ex); schEdTagUi();
@@ -10081,16 +10133,22 @@ function schEdKey(e) {
 // ----- Barre d'étapes et d'actions générales -----
 function schEdBar() {
   const S = schEd, bar = S.el.querySelector('#sche-bar'), d = schEdD(), ex = S.ex, sl = bar.scrollLeft;
-  const narrow = innerWidth < 600, stl = x => narrow ? schEsc(x.title).replace(/^Étape\s*/, '').replace(/\s*–\s*variante\s+([A-Z])$/, '$1') || '1' : schEsc(x.title);
+  const roomy = innerWidth >= 1000; // assez large pour un bouton ✎ en plus ; sinon on touche l'étape active pour la renommer
+  const narrow = innerWidth < 600, stl = x => narrow ? (/^Étape( \d+)?( – variante [A-Z])?$/.test(x.title) ? schEsc(x.title).replace(/^Étape\s*/, '').replace(/\s*–\s*variante\s+([A-Z])$/, '$1') || '1' : schEsc(x.title.length > 9 ? x.title.slice(0, 8) + '…' : x.title)) : schEsc(x.title);
   const b = (fn, label, extra, title) => `<button type="button" class="sche-b ${extra || ''}" onclick="${fn}" ${title ? `aria-label="${title}" title="${title}"` : ''}>${label}</button>`;
   bar.innerHTML = b('schEdUndo()', '↶', S.undo.length ? '' : 'dis', 'Annuler') + b('schEdRedo()', '↷', S.redo.length ? '' : 'dis', 'Rétablir')
-    + ex.drawings.map((x, i) => b(`schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + stl(x), (i === S.k ? 'on' : '') + '" data-step="' + i, narrow ? 'Étape ' + stl(x) : '')).join('')
+    + ex.drawings.map((x, i) => b(!roomy && i === S.k ? `schEdRenameStep(${i})` : `schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + stl(x), (i === S.k ? 'on' : '') + '" data-step="' + i, narrow ? 'Étape ' + stl(x) : (!roomy && i === S.k ? 'Touche encore pour renommer' : ''))).join('')
     + b('schEdNextAsk()', '➜ Suivante', 'acc', 'Étape suivante : continuer l\'action, copier cette étape ou partir d\'une planche vierge') + b(`schPlayerOpen(${schDemo.indexOf(ex)},schEd.k)`, '▶ Animer', 'acc')
-    + b('schEdValidate()', narrow ? '✓' : (schEdIsValid(d) ? '✓ Validée' : '✓ Valider'), schEdIsValid(d) ? 'on' : '', 'Valider l\'étape') + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape')
+    + b('schEdValidate()', narrow ? '✓' : (schEdIsValid(d) ? '✓ Validée' : '✓ Valider'), schEdIsValid(d) ? 'on' : '', 'Valider l\'étape') + (!roomy ? '' : b('schEdRenameStep()', '✎', '', 'Renommer l\'étape (ou une variante)')) + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape')
     + `<select class="sche-sel" onchange="schEdView(this.value)" aria-label="Terrain">${SCH_VIEW_KEYS.map(k => `<option value="${k}" ${schViewParse(d.view).base === k ? 'selected' : ''}>${SCH_VIEWS[k].name}${!narrow && schViewParse(d.view).base === k && schViewParse(d.view).rot ? ' ↻' + schViewParse(d.view).rot + '°' : ''}</option>`).join('')}${narrow ? '<option value="@rotR">↻ 90° droite</option><option value="@rotL">↺ 90° gauche</option>' : ''}</select>`
     + (narrow ? '' : b('schEdRotate(-1)', '↺', '', 'Pivoter le terrain de 90° vers la gauche (toutes les étapes)') + b('schEdRotate(1)', '↻', '', 'Pivoter le terrain de 90° vers la droite (toutes les étapes)'))
     + b('schEdRecenter()', '⤢', '', 'Recentrer la vue');
   bar.scrollLeft = sl;
+}
+function schEdRenameStep(i) {
+  const S = schEd; if (!S) return; i = (i == null ? S.k : +i); const d = S.ex.drawings[i]; if (!d) return;
+  const v = prompt('Nom de l\'étape' + (d.variant ? ' (variante)' : '') + ' — laisse vide pour le nom automatique', d.title || ''); if (v === null) return;
+  const t = String(v).trim().slice(0, 40); schEdPush(); d.title = t || 'Étape'; schEdRetitle(); schEdChanged(true); schEdToast(t ? 'Étape renommée : « ' + d.title + ' »' : 'Nom automatique rétabli');
 }
 function schEdIsValid(d) { return !!(d.validatedAt && (!d.updatedAt || d.validatedAt >= d.updatedAt)); }
 function schEdValidate() { const d = schEdD(); if (schEdIsValid(d)) { d.validatedAt = null; } else { d.validatedAt = new Date().toISOString(); } schEdPush(); schMarkDirty(schEd.ex); schUserSave(); schEdBar(); schEdTouchKeep(); schEdToast(d.validatedAt ? 'Étape validée' : 'Validation retirée'); }
@@ -10136,6 +10194,7 @@ function schEdBarDragInit() {
     if (was && s0.t) schEdMoveStep(s0.i, s0.t.j, s0.t.after);
   };
   bar.addEventListener('pointerup', end); bar.addEventListener('pointercancel', end);
+  bar.addEventListener('dblclick', ev => { const b = ev.target.closest && ev.target.closest('[data-step]'); if (b) { ev.preventDefault(); schEdRenameStep(+b.dataset.step); } });
   bar.addEventListener('contextmenu', ev => { if (ev.target.closest && ev.target.closest('[data-step]')) ev.preventDefault(); });
 }
 function schEdGo(i) { const S = schEd; if (i < 0 || i >= S.ex.drawings.length) return; S.k = i; S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdDraw(); schEdWarn(); schEdPanel(); }
@@ -10264,6 +10323,7 @@ function schRotateDrawing(d, dir) {
 function schEdRotate(dir) {
   const S = schEd; if (!S) return; schEdPush();
   S.ex.drawings.forEach(d => schRotateDrawing(d, dir > 0 ? 1 : -1));
+  S.base = schEdSnapStr(); // pivoter le terrain touche déjà toutes les étapes : rien à reporter
   S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); schEdToast('Terrain pivoté de 90° (' + S.ex.drawings.length + ' étape' + (S.ex.drawings.length > 1 ? 's' : '') + ')');
 }
 function schEdView(v) { if (v === '@rotR' || v === '@rotL') { schEdRotate(v === '@rotR' ? 1 : -1); return; } if (!SCH_VIEW_KEYS.includes(v)) return; { const pr = schViewParse(schEdD().view); if (pr.rot) v = v + '@' + pr.rot; } schEdPush(); schEdD().view = v; schEd.vb = schEdBaseVb(); schEdChanged(false); schEdBar(); }
@@ -10274,7 +10334,7 @@ function schEdUndo() {
 function schEdRedo() {
   const S = schEd; if (!S.redo.length) return; S.undo.push(schEdSnapStr()); S.ex.drawings = schNormDrawings(JSON.parse(S.redo.pop())); schEdAfterHistory();
 }
-function schEdAfterHistory() { const S = schEd; S.k = Math.min(S.k, S.ex.drawings.length - 1); if (!schEdSel()) S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); }
+function schEdAfterHistory() { const S = schEd; S.base = schEdSnapStr(); S.k = Math.min(S.k, S.ex.drawings.length - 1); if (!schEdSel()) S.sel = null; S.vb = schEdBaseVb(); schEdBar(); schEdChanged(true); }
 
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
@@ -11839,7 +11899,7 @@ const DISP_SCALES = [['0.9', 'Petit'], ['1', 'Normal'], ['1.15', 'Grand'], ['1.3
 let dispCfg = null;
 
 function dispDefaults() {
-  return { theme: 'dark', scale: 1, density: 'normal', barSize: 'compact', barMode: 'auto', toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, keys: {}, tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
+  return { theme: 'dark', scale: 1, density: 'normal', barSize: 'compact', barMode: 'auto', coach: 'light', toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, keys: {}, tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
 }
 function dispNormalize(c) {
   const d = dispDefaults();
@@ -11849,6 +11909,7 @@ function dispNormalize(c) {
     scale: [0.9, 1, 1.15, 1.3].includes(Number(c.scale)) ? Number(c.scale) : 1,
     density: ['compact', 'normal', 'comfortable'].includes(c.density) ? c.density : 'normal',
     barSize: ['compact', 'normal'].includes(c.barSize) ? c.barSize : 'compact',
+    coach: ['light', 'soft', 'dark'].includes(c.coach) ? c.coach : 'light',
     barMode: ['auto', 'bottom', 'merge'].includes(c.barMode) ? c.barMode : 'auto',
     toolOrder: Array.isArray(c.toolOrder) ? c.toolOrder.filter(x => typeof x === 'string') : [],
     toolHidden: Array.isArray(c.toolHidden) ? c.toolHidden.filter(x => typeof x === 'string') : [],
@@ -11894,6 +11955,7 @@ function dispApplyScale() {
 function dispApplyDensity() {
   document.documentElement.setAttribute('data-density', dispCfg.density);
   document.documentElement.setAttribute('data-bar', dispCfg.barSize || 'compact');
+  document.documentElement.setAttribute('data-coach', dispCfg.coach || 'light');
 }
 // Barre du bas fusionnée avec la barre du haut : sur grand écran (PC, iMac, iPad en paysage) en mode Auto
 function dispBarMerge() { const m = dispCfg && dispCfg.barMode; return m === 'merge' || ((!m || m === 'auto') && window.innerWidth >= 1000); }
@@ -12008,6 +12070,10 @@ function dispRenderUi() {
     chip(dispCfg.theme === 'light', '☀️ Clair', "dispSet('theme','light')") +
     chip(dispCfg.theme === 'dark', '🌙 Sombre', "dispSet('theme','dark')") + `</div>`;
   h += `<div style="font-size:10px;color:var(--gris-texte);margin-top:5px;">Auto suit le réglage de l'appareil. Le thème clair est en test : quelques écrans peuvent rester à peaufiner.</div>`;
+  h += lab('Apparence de l’espace coach');
+  h += `<div style="display:flex;gap:6px;flex-wrap:wrap;">` +
+    chip(dispCfg.coach === 'light', '☀️ Clair', "dispSet('coach','light')") + chip(dispCfg.coach === 'soft', '🌫️ Doux', "dispSet('coach','soft')") + chip(dispCfg.coach === 'dark', '🌙 Sombre', "dispSet('coach','dark')") + `</div>`;
+  h += `<div style="font-size:10px;color:var(--gris-texte);margin-top:5px;">Doux : fond gris-beige et cartes crème, moins éblouissant que le blanc. Sombre : l’ancienne apparence bleu nuit.</div>`;
   h += lab('Taille du texte et des éléments');
   h += `<div style="display:flex;gap:6px;flex-wrap:wrap;">` +
     DISP_SCALES.map(s => chip(dispCfg.scale === Number(s[0]), s[1], `dispSet('scale',${s[0]})`)).join('') + `</div>`;
