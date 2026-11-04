@@ -808,7 +808,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 /* Fiche de séance (aperçu + PDF) */
 #cr-fiche{display:none;position:fixed;inset:0;z-index:1400;background:#fff;color:#0a2a4a;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #cr-fiche.show{display:block;}
-/* ===== Mode « Lire / Terrain » (v26-10-z20) ===== */
+/* ===== Mode « Lire / Terrain » (v26-10-z21) ===== */
 #cr-lect{display:none;position:fixed;inset:0;z-index:1450;background:var(--c-bg);color:var(--c-ink);flex-direction:column;font-family:inherit;padding-top:env(safe-area-inset-top);}
 #cr-lect.show{display:flex;}
 #cr-lect button{font-family:inherit;cursor:pointer;}
@@ -834,6 +834,11 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 .crl-steps{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;}
 .crl-figbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 0 14px;}
 .crl-anim{min-height:52px;padding:0 20px;border-radius:12px;border:0;background:var(--c-acc);color:var(--c-onacc);font-weight:800;font-size:16px;}
+.crl-fbtn{min-height:52px;padding:0 16px;border-radius:12px;border:1px solid var(--c-line);background:var(--c-card);color:var(--c-ink2);font-weight:800;font-size:15px;}
+.crl-fbtn.on{background:var(--c-accbg);border-color:var(--c-acc2);color:var(--c-acc);}
+.crl-aprog{height:6px;background:var(--c-line);border-radius:99px;margin:8px auto 0;overflow:hidden;max-width:100%;}
+.crl-aprog i{display:block;height:100%;width:0;background:var(--c-acc);}
+#cr-lect.side.narrow .crl-fbtn{min-height:48px;padding:0 12px;font-size:14px;}
 .crl-leg{font-size:11px;color:var(--c-mut);flex:1;min-width:180px;}
 .crl-all{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;}
 .crl-all figure{margin:0;}.crl-all figcaption{font-size:13px;font-weight:800;margin-bottom:4px;}
@@ -1024,7 +1029,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
   #cr-draw.show > .cr-d-pal .cr-d-tool{height:78px;}
   #cr-draw.show > .cr-d-canvas{min-height:0;}
 }
-/* ===== Espace coach : interface claire et épurée (v26-10-z20) — apparence uniquement ===== */
+/* ===== Espace coach : interface claire et épurée (v26-10-z21) — apparence uniquement ===== */
 body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-coachs2.active){background:var(--c-bg);}
 #screen-app:has(#panel-coachs2.active)::before{display:none;}
 #screen-app:has(#panel-coachs2.active) > div:first-child button{background:var(--c-card) !important;border:1px solid var(--c-line) !important;color:var(--c-ink2) !important;border-radius:10px !important;padding:8px 14px !important;font-weight:600;}
@@ -2093,7 +2098,7 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z20</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z21</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -2166,7 +2171,7 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z20) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z21) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -6451,34 +6456,105 @@ function crLectOpen(id, exId) {
   document.getElementById('cr-lect').classList.add('show'); crLectRender();
 }
 function crLectClose() {
-  crLect = null; const el = document.getElementById('cr-lect'); if (el) { el.classList.remove('show'); el.innerHTML = ''; }
+  crLectAnimStop(); crLect = null; const el = document.getElementById('cr-lect'); if (el) { el.classList.remove('show'); el.innerHTML = ''; }
   if (typeof sessionId === 'undefined' || !sessionId) releaseWakeLock();
 }
 function crLectGo(d, abs) {
   const S = crLect; if (!S) return; const k = abs ? d : S.k + d;
   if (k < 0 || k >= S.items.length) return;
-  S.k = k; S.sec = 'main'; S.step = 0; S.toc = false; crLectRender();
+  crLectAnimStop(); S.k = k; S.sec = 'main'; S.step = 0; S.toc = false; crLectRender();
 }
 // Le schéma prend toute la place disponible sans déborder (puis le bouton Animer reste visible)
 function crLectFit() {
-  const el = document.getElementById('cr-lect'); if (!crLect || !el) return;
+  const el = document.getElementById('cr-lect'), S = crLect; if (!S || !el) return;
   crLectApplyLayout();
-  const svg = el.querySelector('.crl-svg svg'), fc = el.querySelector('.crl-figc'); if (!svg || !fc) return;
-  const vb = (svg.getAttribute('viewBox') || '').split(/\s+/).map(Number), ratio = vb[2] > 0 ? vb[3] / vb[2] : 0.8;
-  const w = svg.parentElement.clientWidth; if (!w) return;
+  const box = el.querySelector('.crl-svg'), fc = el.querySelector('.crl-figc'); if (!box || !fc) return;
+  let ratio = S.anim ? S.anim.ratio : 0;
+  if (!ratio) { const svg = box.querySelector('svg'); if (!svg) return; const vb = (svg.getAttribute('viewBox') || '').split(/\s+/).map(Number); ratio = vb[2] > 0 ? vb[3] / vb[2] : 0.8; }
+  const w = box.clientWidth; if (!w) return;
   const two = getComputedStyle(el.querySelector('.crl-main')).display === 'grid';
-  const chips = el.querySelector('.crl-steps'), bar = el.querySelector('.crl-figbar');
-  const avail = two ? fc.clientHeight - (chips ? chips.offsetHeight + 8 : 0) - (bar ? bar.offsetHeight + 20 : 0) - 8 : innerHeight * 0.68;
+  const chips = el.querySelector('.crl-steps'), bar = el.querySelector('.crl-figbar'), pr = el.querySelector('.crl-aprog');
+  const avail = two ? fc.clientHeight - (chips ? chips.offsetHeight + 8 : 0) - (bar ? bar.offsetHeight + 20 : 0) - (pr ? 16 : 0) - 8 : innerHeight * 0.68;
   const h = Math.max(160, Math.min(w * ratio, avail));
-  svg.style.width = Math.min(w, h / ratio) + 'px'; svg.style.margin = '0 auto';
+  S.fitW = Math.floor(Math.min(w, h / ratio));
+  const svg = box.querySelector('svg'); if (svg) { svg.style.width = S.fitW + 'px'; svg.style.margin = '0 auto'; }
+  if (pr) { pr.style.width = S.fitW + 'px'; }
 }
 window.addEventListener('resize', () => { if (crLect) { crLectApplyLayout(); crLectFit(); } });
-function crLectSec(s) { const S = crLect; if (!S) return; S.sec = s; S.step = 0; crLectRender(); }
+function crLectSec(s) { const S = crLect; if (!S) return; crLectAnimStop(); S.sec = s; S.step = 0; crLectRender(); }
 function crLectStep(i) { const S = crLect; if (!S) return; S.step = i; crLectRender(); }
 function crLectToc() { const S = crLect; if (!S) return; S.toc = !S.toc; crLectRender(); }
+// Lecture directe dans le schéma (sans changer d'écran) : toute la séquence d'un trait, sans pause ni étapes ; on peut la rejouer à volonté ou la mettre en boucle
+function crLectCurL() { const S = crLect; if (!S) return null; const x = S.items[S.k].x; return S.sec === 'gb' ? (x.gb || {}).schemaLib : x.schemaLib; }
+function crLectLoopOn() { try { return localStorage.getItem('crLectLoop') === '1'; } catch (e) { return false; } }
+function crLectAnimStop() { const S = crLect; if (S && S.anim) { cancelAnimationFrame(S.anim.raf); S.anim = null; } }
 function crLectAnim() {
-  const S = crLect; if (!S) return; const it = S.items[S.k], x = it.x, L = S.sec === 'gb' ? (x.gb || {}).schemaLib : x.schemaLib;
-  if (L && crSchAnimOk(L)) schPlayerOpenData((x.name || 'Exercice') + (S.sec === 'gb' ? ' · GB' : ''), L.drawings);
+  const S = crLect, L = crLectCurL(); if (!S || !L || !crSchAnimOk(L)) return;
+  crLectAnimStop();
+  const tl = schTimeline(L.drawings); let ratio = 0;
+  tl.ph.forEach(ph => { const vb = schView(ph.d.view).vb; if (vb[2] > 0) ratio = Math.max(ratio, vb[3] / vb[2]); });
+  S.anim = { tl, t: 0, playing: true, last: performance.now(), raf: 0, hold: 0, done: false, ratio: ratio || 0.8 };
+  crLectFigRefresh(); S.anim.raf = requestAnimationFrame(crLectAnimLoop);
+}
+function crLectAnimReplay() {
+  const S = crLect, a = S && S.anim; if (!a) { crLectAnim(); return; }
+  cancelAnimationFrame(a.raf); a.t = 0; a.hold = 0; a.playing = true; a.done = false; a.last = performance.now();
+  crLectFigRefresh(); a.raf = requestAnimationFrame(crLectAnimLoop);
+}
+function crLectAnimClose() { crLectAnimStop(); crLectFigRefresh(); }
+function crLectLoopToggle() {
+  const on = !crLectLoopOn(); try { localStorage.setItem('crLectLoop', on ? '1' : '0'); } catch (e) {}
+  const a = crLect && crLect.anim; if (a && on && a.done) { crLectAnimReplay(); return; } crLectFigRefresh();
+}
+function crLectAnimLoop(now) {
+  const S = crLect, a = S && S.anim; if (!a) return;
+  if (a.playing) {
+    const dt = Math.min(0.1, (now - a.last) / 1000);
+    if (a.hold > 0) { a.hold -= dt; if (a.hold <= 0) { a.hold = 0; a.t = 0; } }
+    else {
+      a.t += dt;
+      if (a.t >= a.tl.total) {
+        a.t = a.tl.total;
+        if (crLectLoopOn()) a.hold = 0.9; else { a.playing = false; a.done = true; crLectDrawAnim(); crLectFigRefresh(); return; }
+      }
+    }
+    crLectDrawAnim();
+  }
+  a.last = now; a.raf = requestAnimationFrame(crLectAnimLoop);
+}
+function crLectDrawAnim() {
+  const S = crLect, a = S && S.anim, st = document.getElementById('crl-stage'); if (!a || !st) return;
+  const r = schAt(a.tl, a.t), vw = schView(r.view);
+  st.innerHTML = `<svg viewBox="${vw.vb.join(' ')}" xmlns="http://www.w3.org/2000/svg" style="display:block;width:${S.fitW ? S.fitW + 'px' : '100%'};margin:0 auto;border-radius:10px;background:#fff;">${schCourtSvg(r.view)}${schBodySvg(r.frame)}</svg>`;
+  const b = document.getElementById('crl-prog-a'); if (b) b.style.width = Math.round(a.t / a.tl.total * 100) + '%';
+}
+function crLectFigRefresh() {
+  const el = document.getElementById('cr-lect'), c = el && el.querySelector('.crl-figc'); if (!crLect || !c) return;
+  c.innerHTML = crLectFig(); crLectFit(); if (crLect.anim) crLectDrawAnim();
+}
+// zone « schéma » : schéma fixe + étapes, ou animation en cours
+function crLectFig() {
+  const S = crLect, x = S.items[S.k].x, gb = S.sec === 'gb' && crHasGb(x), L = crLectCurL();
+  if (L && L.drawings && L.drawings.length) {
+    const nd = L.drawings.length; if (S.step >= nd) S.step = 0;
+    const can = crSchAnimOk(L), a = S.anim, loop = crLectLoopOn();
+    const leg = `<span class="crl-leg">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe.</span>`;
+    const loopBtn = `<button type="button" class="crl-fbtn${loop ? ' on' : ''}" onclick="crLectLoopToggle()" aria-pressed="${loop}">🔁 En boucle</button>`;
+    if (a) {
+      return `<div class="crl-svg" id="crl-stage"></div><div class="crl-aprog"><i id="crl-prog-a"></i></div>`
+        + `<div class="crl-figbar">${a.done ? `<button type="button" class="crl-anim" onclick="crLectAnimReplay()">↻ Rejouer</button>` : `<button type="button" class="crl-anim" onclick="crLectAnimClose()">■ Arrêter</button>`}${loopBtn}${a.done ? `<button type="button" class="crl-fbtn" onclick="crLectAnimClose()">Revenir au schéma</button>` : ''}</div>`;
+    }
+    const chips = nd > 1 ? `<div class="crl-steps">${L.drawings.map((d, i) => `<button type="button" class="${S.step === i ? 'on' : ''}" onclick="crLectStep(${i})">${crEsc(d.title)}</button>`).join('')}<button type="button" class="${S.step === -1 ? 'on' : ''}" onclick="crLectStep(-1)">Toutes</button></div>` : '';
+    const body = S.step === -1 ? `<div class="crl-all">${L.drawings.map((d, i) => `<figure><figcaption>${crCirc(i + 1)} ${crEsc(d.title)}</figcaption>${schDrawingSvg(d, { showBallStart: false })}</figure>`).join('')}</div>` : `<div class="crl-svg">${schDrawingSvg(L.drawings[S.step], { showBallStart: false })}</div>`;
+    return chips + body + `<div class="crl-figbar">${can ? `<button type="button" class="crl-anim" onclick="crLectAnim()">▶ Animer</button>${loopBtn}<button type="button" class="crl-fbtn" onclick="crLectAnimFull()" title="Lecteur complet : pause, étapes, vitesse, GIF">⛶ Lecteur complet</button>` : ''}${leg}</div>`;
+  }
+  if (!gb && crSchemaHas(x)) return `<div class="crl-old">${crFicheSchema(x.schema)}</div>`;
+  return `<div class="crl-nofig">Pas de schéma pour ${gb ? 'le travail GB' : 'cet exercice'}.</div>`;
+}
+// lecteur plein écran d'origine (pause, étapes, vitesse, GIF) : toujours disponible
+function crLectAnimFull() {
+  const S = crLect, L = crLectCurL(); if (!S || !L || !crSchAnimOk(L)) return; const x = S.items[S.k].x;
+  schPlayerOpenData((x.name || 'Exercice') + (S.sec === 'gb' ? ' · GB' : ''), L.drawings);
 }
 // listes d'un exercice, regroupées par sous-rubrique comme dans la fiche
 function crLectItems(x, k) {
@@ -6502,15 +6578,7 @@ function crLectRender() {
   const it = S.items[S.k], x = it.x, gbOk = crHasGb(x), gb = S.sec === 'gb' && gbOk, g = x.gb || {}, on = crSecOn;
   const nm = (k, d) => (crSecDefs().find(t => t.k === k) || {}).label || d;
   // --- schéma
-  const L = gb ? g.schemaLib : x.schemaLib;
-  let fig = '';
-  if (L && L.drawings && L.drawings.length) {
-    const nd = L.drawings.length; if (S.step >= nd) S.step = 0;
-    const chips = nd > 1 ? `<div class="crl-steps">${L.drawings.map((d, i) => `<button type="button" class="${S.step === i ? 'on' : ''}" onclick="crLectStep(${i})">${crEsc(d.title)}</button>`).join('')}<button type="button" class="${S.step === -1 ? 'on' : ''}" onclick="crLectStep(-1)">Toutes</button></div>` : '';
-    const body = S.step === -1 ? `<div class="crl-all">${L.drawings.map((d, i) => `<figure><figcaption>${crCirc(i + 1)} ${crEsc(d.title)}</figcaption>${schDrawingSvg(d, { showBallStart: false })}</figure>`).join('')}</div>` : `<div class="crl-svg">${schDrawingSvg(L.drawings[S.step], { showBallStart: false })}</div>`;
-    fig = chips + body + `<div class="crl-figbar">${crSchAnimOk(L) ? `<button type="button" class="crl-anim" onclick="crLectAnim()">▶ Animer l'enchaînement</button>` : ''}<span class="crl-leg">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe.</span></div>`;
-  } else if (!gb && crSchemaHas(x)) fig = `<div class="crl-old">${crFicheSchema(x.schema)}</div>`;
-  else fig = `<div class="crl-nofig">Pas de schéma pour ${gb ? 'le travail GB' : 'cet exercice'}.</div>`;
+  const fig = crLectFig();
   // --- texte
   let txt = '';
   if (gb) {
@@ -6549,7 +6617,7 @@ function crLectRender() {
     ${gbOk ? `<div class="crl-seg"><button type="button" class="${!gb ? 'on' : ''}" onclick="crLectSec('main')">Exercice</button><button type="button" class="${gb ? 'on' : ''}" onclick="crLectSec('gb')">🧤 Travail GB</button></div>` : ''}
     <div class="crl-main"><div class="crl-col crl-figc">${fig}</div><div class="crl-col crl-txt">${txt}</div></div>
     <div class="crl-nav"><button type="button" class="crl-prev" onclick="crLectGo(-1)" ${S.k === 0 ? 'disabled' : ''}>← Précédent</button><button type="button" class="crl-mid" onclick="crLectToc()">☰ ${S.k + 1}/${n}</button>${S.k < n - 1 ? `<button type="button" class="crl-next" onclick="crLectGo(1)">Suivant →</button>` : `<button type="button" class="crl-next" onclick="crLectClose()">Fin de séance ✓</button>`}</div>${toc}`;
-  crLectFit();
+  crLectFit(); if (S.anim) crLectDrawAnim();
 }
 // Nombre de colonnes des listes (Besoins, Fonctionnement, Comportements…) dans la fiche et le PDF : 1, 2 ou 3 (mémorisé sur cet appareil)
 function crFicheCols(n) {
