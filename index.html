@@ -808,6 +808,89 @@ textarea.cr-in{resize:vertical;min-height:44px;}
 /* Fiche de séance (aperçu + PDF) */
 #cr-fiche{display:none;position:fixed;inset:0;z-index:1400;background:#fff;color:#0a2a4a;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #cr-fiche.show{display:block;}
+/* ===== Mode « Lire / Terrain » (v26-10-z20) ===== */
+#cr-lect{display:none;position:fixed;inset:0;z-index:1450;background:var(--c-bg);color:var(--c-ink);flex-direction:column;font-family:inherit;padding-top:env(safe-area-inset-top);}
+#cr-lect.show{display:flex;}
+#cr-lect button{font-family:inherit;cursor:pointer;}
+.crl-top{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--c-card);border-bottom:1px solid var(--c-line);flex:none;}
+.crl-back,.crl-tocb{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--c-line);background:var(--c-card);color:var(--c-ink2);font-weight:700;font-size:14px;white-space:nowrap;}
+.crl-ttl{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25;}
+.crl-ttl small{font-size:11px;color:var(--c-mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.crl-ttl b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.crl-prog{display:flex;gap:4px;padding:8px 12px 4px;flex:none;}
+.crl-prog button{flex:1;height:10px;min-width:4px;border:0;border-radius:99px;background:var(--c-line);padding:0;}
+.crl-prog button.past{background:var(--c-acc3);}
+.crl-prog button.on{background:var(--c-acc);}
+.crl-head{display:flex;align-items:center;gap:12px;padding:6px 12px 8px;flex:none;}
+.crl-n{flex:none;width:40px;height:40px;border-radius:50%;background:var(--c-acc);color:var(--c-onacc);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;}
+.crl-head h2{flex:1;min-width:0;margin:0;font-size:24px;line-height:1.2;overflow-wrap:anywhere;color:var(--c-ink);}
+.crl-d{flex:none;font-weight:800;font-size:16px;color:var(--c-acc);background:var(--c-accbg);border-radius:99px;padding:6px 12px;}
+.crl-seg{display:flex;gap:6px;padding:0 12px 8px;flex:none;}
+.crl-seg button,.crl-steps button{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--c-line);background:var(--c-card);color:var(--c-ink2);font-weight:700;font-size:14px;}
+.crl-seg button{flex:1;}
+.crl-seg button.on,.crl-steps button.on{background:var(--c-acc);border-color:var(--c-acc);color:var(--c-onacc);}
+.crl-main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px 12px 16px;}
+.crl-col{min-width:0;}
+.crl-steps{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;}
+.crl-figbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 0 14px;}
+.crl-anim{min-height:52px;padding:0 20px;border-radius:12px;border:0;background:var(--c-acc);color:var(--c-onacc);font-weight:800;font-size:16px;}
+.crl-leg{font-size:11px;color:var(--c-mut);flex:1;min-width:180px;}
+.crl-all{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;}
+.crl-all figure{margin:0;}.crl-all figcaption{font-size:13px;font-weight:800;margin-bottom:4px;}
+.crl-nofig,.crl-empty{padding:22px;border:1px dashed var(--c-line);border-radius:14px;color:var(--c-mut);text-align:center;font-size:15px;margin:6px 0 12px;}
+.crl-theme{font-size:13px;color:var(--c-mut);margin:0 0 8px;font-weight:700;}
+.crl-obj{background:var(--c-acc);color:var(--c-onacc);border-radius:14px;padding:10px 14px;margin:0 0 8px;}
+.crl-obj h3{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;}
+.crl-obj p{margin:0;font-size:18px;font-weight:700;line-height:1.3;}
+.crl-sec{background:var(--c-card);border:1px solid var(--c-line);border-radius:14px;padding:10px 14px;margin:0 0 8px;}
+.crl-sec h3{margin:0 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-mut);}
+.crl-sec p{margin:0;font-size:17px;line-height:1.4;}
+.crl-sec ul,.crl-sec ol{margin:0;padding-left:20px;}
+.crl-sec li{font-size:17px;line-height:1.4;margin:5px 0;overflow-wrap:anywhere;}
+.crl-sec.key{border-color:var(--c-acc2);border-left-width:6px;background:var(--c-accbg);}
+.crl-sec.key h3{color:var(--c-acc);}
+.crl-sec.key li{font-size:19px;font-weight:600;}
+.crl-sec.simplify h3{color:var(--c-ok);}.crl-sec.complexify h3{color:var(--c-w1);}
+.crl-chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 6px;}
+.crl-chips span{background:var(--c-soft);border-radius:99px;padding:4px 10px;font-size:14px;line-height:1.3;}
+.crl-chips b{color:var(--c-mut);font-size:12px;margin-right:4px;}
+.crl-disp dl{margin:0;display:grid;gap:8px;}
+.crl-disp dl{margin:0;}
+.crl-disp dl>div{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;align-items:baseline;margin:0 0 5px;}
+.crl-disp dt{font-size:13px;font-weight:800;color:var(--c-mut);}
+.crl-disp dd{margin:0;font-size:16px;line-height:1.3;overflow-wrap:anywhere;}
+.crl-disp .hl dt{color:var(--c-acc);}.crl-disp .hl dd{font-weight:700;}
+.crl-tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--c-soft);color:var(--c-ink2);margin-right:6px;vertical-align:middle;}
+.crl-extra{display:block;color:var(--c-mut);font-size:15px;margin-top:2px;font-weight:400;}
+.crl-nav{display:flex;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--c-card);border-top:1px solid var(--c-line);flex:none;}
+.crl-prev,.crl-next,.crl-mid{min-height:56px;border-radius:14px;border:1px solid var(--c-line);background:var(--c-card);color:var(--c-ink2);font-weight:800;font-size:18px;}
+.crl-prev,.crl-next{flex:1;}.crl-mid{min-width:92px;font-size:15px;}
+.crl-next{background:var(--c-acc);border-color:var(--c-acc);color:var(--c-onacc);}
+.crl-prev:disabled{opacity:.4;}
+.crl-toc{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;justify-content:flex-end;z-index:2;}
+.crl-toc-in{width:min(420px,92vw);height:100%;background:var(--c-card);overflow-y:auto;padding:12px;box-sizing:border-box;padding-top:max(12px,env(safe-area-inset-top));}
+.crl-toc-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:16px;}
+.crl-toc-h button{min-height:44px;min-width:44px;border-radius:10px;border:1px solid var(--c-line);background:var(--c-card);color:var(--c-ink2);font-size:16px;}
+.crl-toc-b{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mut);margin:12px 0 4px;}
+.crl-toc-in>button{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:8px;align-items:center;width:100%;min-height:52px;padding:6px 10px;margin:0 0 6px;border-radius:10px;border:1px solid var(--c-line);background:var(--c-card);color:var(--c-ink);text-align:left;font-size:15px;}
+.crl-toc-in>button.on{background:var(--c-accbg);border-color:var(--c-acc2);}
+.crl-toc-in>button span{width:30px;height:30px;border-radius:50%;background:var(--c-acc);color:var(--c-onacc);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;}
+.crl-toc-in>button em{font-style:normal;color:var(--c-mut);font-size:13px;}
+#cr-lect.side .crl-main{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;overflow:hidden;padding-bottom:8px;}
+#cr-lect.side .crl-col{overflow-y:auto;min-height:0;padding-bottom:12px;-webkit-overflow-scrolling:touch;}
+#cr-lect.side .crl-head h2{font-size:26px;}
+#cr-lect.side.narrow .crl-main{gap:10px;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);}
+#cr-lect.side.narrow .crl-head h2{font-size:21px;}
+#cr-lect.side.narrow .crl-obj p{font-size:16px;}
+#cr-lect.side.narrow .crl-sec li,#cr-lect.side.narrow .crl-sec p,#cr-lect.side.narrow .crl-disp dd{font-size:15px;}
+#cr-lect.side.narrow .crl-sec.key li{font-size:16px;}
+#cr-lect.side.narrow .crl-disp dl>div{grid-template-columns:1fr;gap:0;}
+#cr-lect.side.narrow .crl-leg{display:none;}
+#cr-lect.side.narrow .crl-anim{min-height:48px;padding:0 14px;font-size:15px;}
+.crl-lay{min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--c-line);background:var(--c-card);color:var(--c-ink2);font-weight:700;font-size:14px;white-space:nowrap;}
+.crl-lay span{margin-left:6px;}
+@media (max-width:640px){.crl-lay span{display:none;}}
+@media print{#cr-lect{display:none !important;}}
 .cr-fiche-bar{position:sticky;top:0;display:flex;gap:8px;align-items:center;padding:10px 14px;background:#fff;border-bottom:1px solid #dde4ee;z-index:2;}
 .cr-fiche-bar button{border:1px solid #c5d0e0;background:#fff;color:#0a2a4a;border-radius:8px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
 .cr-fiche-bar button.pdf{background:#0a6bb8;border-color:#0a6bb8;color:#fff;}
@@ -941,7 +1024,7 @@ textarea.cr-in{resize:vertical;min-height:44px;}
   #cr-draw.show > .cr-d-pal .cr-d-tool{height:78px;}
   #cr-draw.show > .cr-d-canvas{min-height:0;}
 }
-/* ===== Espace coach : interface claire et épurée (v26-10-z18) — apparence uniquement ===== */
+/* ===== Espace coach : interface claire et épurée (v26-10-z20) — apparence uniquement ===== */
 body:has(#screen-app[style*="block"] #panel-coachs2.active),.content:has(#panel-coachs2.active){background:var(--c-bg);}
 #screen-app:has(#panel-coachs2.active)::before{display:none;}
 #screen-app:has(#panel-coachs2.active) > div:first-child button{background:var(--c-card) !important;border:1px solid var(--c-line) !important;color:var(--c-ink2) !important;border-radius:10px !important;padding:8px 14px !important;font-weight:600;}
@@ -2010,7 +2093,7 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
           <input type="search" class="cr-in" id="cr-search" placeholder="Rechercher : tir, défense, -13…" oninput="crRenderList()" style="margin-bottom:8px;">
           <select class="cr-in" id="cr-cat-filter" onchange="crRenderList()" style="margin-bottom:12px;"></select>
           <div id="cr-list"></div>
-          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z18</div></div>
+          <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;"><button type="button" class="cr-btn" onclick="crBackup()">⬇ Télécharger une copie de sauvegarde</button><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Un fichier avec toutes tes séances (modèles et archivées comprises). Créateur · version 26-10-z20</div></div>
         </div>
         <div id="cr-edit-view" style="display:none;"></div>
         <div id="cr-ex-view" style="display:none;"></div>
@@ -2083,7 +2166,7 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 
       <div class="cs-box" id="cs-box-schemas" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">✏️ Schémas tactiques</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z18) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Étape 4 sur 4 (version 26-10-z20) — bibliothèque d'exercices : enregistrée sur l'appareil (marche sans réseau), puis envoyée automatiquement à Supabase et partagée entre coachs.</div>
         <div id="sch-demo"></div>
       </div>
 
@@ -2304,6 +2387,7 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 
 <div class="cr-modal" id="cr-modal" onclick="crCloseModal(event)"><div class="cr-modal-inner" id="cr-modal-inner"></div></div>
 <div id="cr-fiche"></div>
+<div id="cr-lect"></div>
 <div id="cr-draw"></div>
 
 <script>
@@ -5700,6 +5784,7 @@ function crRenderList() {
       </div>
       <div class="cr-c2-foot">
         <button type="button" class="cr-c2-btn" onclick="crOpen('${p.id}')">Ouvrir</button>
+        <button type="button" class="cr-c2-btn ghost" onclick="crLectOpen('${p.id}')">▶ Terrain</button>
         <button type="button" class="cr-c2-btn ghost" onclick="crOpenFiche('${p.id}')">Fiche PDF</button>
         <button type="button" class="cr-c2-more" aria-label="Plus d'actions" onclick="crMenu(event,'${p.id}')">⋯</button>
       </div>
@@ -5767,6 +5852,7 @@ async function crCreate(key) {
     const res = await fetch(SB_URL + '/rest/v1/seance_plans', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify([base]) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
+    if (!Array.isArray(rows) || !rows[0]) throw new Error('réponse vide');
     crPlans.unshift(rows[0]);
     crRenderFilters();
     crRenderEditor(rows[0]);
@@ -5778,7 +5864,10 @@ async function crCreate(key) {
 // ----- Édition -----
 function crOpen(id) {
   const p = crPlans.find(x => x.id === id);
-  if (p) crRenderEditor(p);
+  if (!p) return;
+  const back = crBackupRestore(p); // modifications d'une session précédente qui n'avaient pas pu être envoyées
+  crRenderEditor(p);
+  if (back) { crTouch(); crSetStatus('↻ Modifications non enregistrées reprises', false); }
 }
 function crSetStatus(txt, err) {
   document.querySelectorAll('.cr-save-status').forEach(el => { el.textContent = txt; el.style.color = err ? '#ff6b6b' : '#2ecc71'; });
@@ -5791,7 +5880,20 @@ function crTouch() {
   crSetStatus('Enregistrement…', false);
   clearTimeout(crSaveTimer);
   crSaveTimer = setTimeout(crSaveNow, 700);
+  clearTimeout(crBkTimer); crBkTimer = setTimeout(() => { if (crCur && crDirty) crBackupPut(crCur); }, 250);
 }
+// ----- Filet de sécurité : tes modifications non enregistrées sont aussi gardées sur cet appareil et reprises à la réouverture de la séance -----
+let crBkTimer = null;
+function crBackupPut(p) { try { if (p && p.id) localStorage.setItem('crUnsaved_' + p.id, JSON.stringify({ at: Date.now(), base: p.updated_at || null, body: crBody(p) })); } catch (e) {} }
+function crBackupDrop(id) { try { localStorage.removeItem('crUnsaved_' + id); } catch (e) {} }
+function crBackupRestore(p) {
+  let b = null; try { b = JSON.parse(localStorage.getItem('crUnsaved_' + p.id) || 'null'); } catch (e) {}
+  if (!b || !b.body || !Array.isArray(b.body.blocks)) return false;
+  if (JSON.stringify(crBody(p)) === JSON.stringify(b.body)) { crBackupDrop(p.id); return false; }
+  Object.assign(p, b.body); return true;
+}
+window.addEventListener('pagehide', () => { if (crCur && crDirty) crBackupPut(crCur); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && crCur && crDirty) crBackupPut(crCur); });
 let crRev = 0, crDirty = false, crPulling = false, crLastSync = 0, crSyncErr = false;
 const crRemote = {}; // versions plus récentes d'une séance ouverte, en attente d'être chargées (id → ligne)
 function crBody(p) {
@@ -5814,7 +5916,7 @@ async function crSaveNow() {
     const rows = await res.json();
     if (!rows.length) { await crConflict(p); return; }
     p.updated_at = rows[0].updated_at || body.updated_at; delete crRemote[p.id]; crNoticeHide();
-    if (crRev === rev0) crDirty = false;
+    if (crRev === rev0) { crDirty = false; crBackupDrop(p.id); }
     crSaveFailed = false;
     crSetStatus('✓ Enregistré', false);
   } catch (e) { crSaveFailed = true; crSetStatus(navigator.onLine === false ? '⚠ Hors connexion : à enregistrer au retour du réseau' : '⚠ Non enregistré', true); }
@@ -5825,11 +5927,13 @@ async function crConflict(p) {
   try {
     const base = SB_URL + '/rest/v1/seance_plans', H = coachAuthHeaders();
     const rr = await fetch(base + '?select=*&id=eq.' + p.id, { headers: H }), rem = rr.ok ? await rr.json() : null;
-    if (!rem) throw new Error('lecture');
+    if (!Array.isArray(rem)) throw new Error('lecture');
     const mine = { ...crBody(p), title: String(p.title || 'Sans titre').slice(0, 80) + (rem[0] ? ' (ma version)' : ''), status: 'brouillon', blocks: (p.blocks || []).map(crCloneBlock), updated_at: new Date().toISOString() };
     const pr = await fetch(base, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify([mine]) });
     if (!pr.ok) throw new Error('copie');
     const copy = (await pr.json())[0];
+    if (!copy || !copy.id) throw new Error('copie vide'); // rien n'est remplacé tant que la copie de ta version n'est pas bien enregistrée
+    crBackupDrop(p.id); // ta version est maintenant gardée côté serveur
     if (rem[0]) {
       Object.keys(p).forEach(k => delete p[k]); Object.assign(p, rem[0]); crPlans.unshift(copy);
       crDirty = false; delete crRemote[p.id]; if (crCur === p) crRenderEditor(p);
@@ -5933,6 +6037,7 @@ function crSetField(k, v) {
 }
 let crInfoOpen = true;
 function crRenderEditor(p) {
+  if (!p || typeof p !== 'object') return; // jamais de séance « vide » : celle qui est ouverte reste intacte
   crCur = p;
   if (!Array.isArray(p.blocks)) p.blocks = [];
   if (!Array.isArray(p.materiel)) p.materiel = [];
@@ -5998,7 +6103,8 @@ function crRenderEditor(p) {
     </div>
     </div></div>
     <div class="cr-foot"><div><div style="font-size:10px;letter-spacing:1px;color:var(--gris-texte);font-weight:800;">DURÉE PRÉVUE</div><div class="cr-total" style="font-size:24px;font-weight:800;color:var(--blanc);">${crFmtDur(crTotal(p))}</div></div>
-      <button type="button" class="cr-btn primary" style="padding:13px 16px;font-size:14px;" onclick="crOpenFiche(crCur.id)">Aperçu fiche &amp; PDF →</button></div>`;
+      <div style="display:flex;gap:8px;"><button type="button" class="cr-btn" style="padding:13px 14px;font-size:14px;" onclick="crLectOpen(crCur.id)">▶ Lire / Terrain</button>
+      <button type="button" class="cr-btn primary" style="padding:13px 16px;font-size:14px;" onclick="crOpenFiche(crCur.id)">Aperçu fiche &amp; PDF →</button></div></div>`;
   crRenderBlocks();
   crRenderVideos();
   window.scrollTo(0, 0);
@@ -6319,6 +6425,132 @@ function crOpenFiche(id, exId) {
   if (exId) { const t = document.getElementById('crfx-' + exId); if (t) t.scrollIntoView(); }
 }
 function crCloseFiche() { document.getElementById('cr-fiche').classList.remove('show'); crFicheRestoreTitle(); }
+// ----- Mode « Lire / Terrain » : la séance se lit exercice par exercice (schéma animable, dispositif, rotations, comportements attendus, critères de réussite), sans passer par le PDF -----
+let crLect = null, crLectBound = false;
+// Mise en page : « côte à côte » (schéma à gauche, texte à droite) ou « empilé » (schéma au-dessus). Par défaut : côte à côte dès que l'écran est assez large (tablette, en paysage comme en portrait) ; le choix du coach est mémorisé sur l'appareil.
+function crLectLayoutPref() { try { const v = localStorage.getItem('crLectLayout'); return v === 'side' || v === 'stack' ? v : ''; } catch (e) { return ''; } }
+function crLectIsSide() { const v = crLectLayoutPref(); return v ? v === 'side' : innerWidth >= 700; }
+function crLectApplyLayout() { const el = document.getElementById('cr-lect'); if (!el) return; el.classList.toggle('side', crLectIsSide()); el.classList.toggle('narrow', innerWidth < 1000); }
+function crLectLayout() { try { localStorage.setItem('crLectLayout', crLectIsSide() ? 'stack' : 'side'); } catch (e) {} crLectRender(); }
+function crLectOpen(id, exId) {
+  const p = (crCur && crCur.id === id) ? crCur : crPlans.find(x => x.id === id);
+  if (!p) return;
+  const items = [];
+  (p.blocks || []).forEach((b, bi) => (b.exercises || []).forEach((raw, ei) => items.push({ x: crNormEx(raw), bname: b.name || 'Bloc', bi, ei })));
+  let k = exId ? items.findIndex(i => i.x.id === exId) : 0; if (k < 0) k = 0;
+  crLect = { p, items, k, sec: 'main', step: 0, toc: false };
+  if (!crLectBound) {
+    crLectBound = true;
+    document.addEventListener('keydown', ev => { if (!crLect || ev.target.closest && ev.target.closest('input,textarea,select')) return; if (ev.key === 'ArrowRight') crLectGo(1); else if (ev.key === 'ArrowLeft') crLectGo(-1); else if (ev.key === 'Escape' && !document.getElementById('sch-player')) crLectClose(); });
+    document.addEventListener('visibilitychange', () => { if (crLect && document.visibilityState === 'visible' && !wakeLock) acquireWakeLock(); });
+    let t0 = null; const el = document.getElementById('cr-lect');
+    el.addEventListener('touchstart', ev => { t0 = ev.touches.length === 1 ? { x: ev.touches[0].clientX, y: ev.touches[0].clientY } : null; }, { passive: true });
+    el.addEventListener('touchend', ev => { if (!t0 || !crLect) return; const t = ev.changedTouches[0], dx = t.clientX - t0.x, dy = t.clientY - t0.y; t0 = null; if (Math.abs(dx) > 80 && Math.abs(dy) < 50 && Math.abs(dx) > 2 * Math.abs(dy)) crLectGo(dx < 0 ? 1 : -1); }, { passive: true });
+  }
+  acquireWakeLock(); // l'écran reste allumé pendant la lecture sur le terrain
+  document.getElementById('cr-lect').classList.add('show'); crLectRender();
+}
+function crLectClose() {
+  crLect = null; const el = document.getElementById('cr-lect'); if (el) { el.classList.remove('show'); el.innerHTML = ''; }
+  if (typeof sessionId === 'undefined' || !sessionId) releaseWakeLock();
+}
+function crLectGo(d, abs) {
+  const S = crLect; if (!S) return; const k = abs ? d : S.k + d;
+  if (k < 0 || k >= S.items.length) return;
+  S.k = k; S.sec = 'main'; S.step = 0; S.toc = false; crLectRender();
+}
+// Le schéma prend toute la place disponible sans déborder (puis le bouton Animer reste visible)
+function crLectFit() {
+  const el = document.getElementById('cr-lect'); if (!crLect || !el) return;
+  crLectApplyLayout();
+  const svg = el.querySelector('.crl-svg svg'), fc = el.querySelector('.crl-figc'); if (!svg || !fc) return;
+  const vb = (svg.getAttribute('viewBox') || '').split(/\s+/).map(Number), ratio = vb[2] > 0 ? vb[3] / vb[2] : 0.8;
+  const w = svg.parentElement.clientWidth; if (!w) return;
+  const two = getComputedStyle(el.querySelector('.crl-main')).display === 'grid';
+  const chips = el.querySelector('.crl-steps'), bar = el.querySelector('.crl-figbar');
+  const avail = two ? fc.clientHeight - (chips ? chips.offsetHeight + 8 : 0) - (bar ? bar.offsetHeight + 20 : 0) - 8 : innerHeight * 0.68;
+  const h = Math.max(160, Math.min(w * ratio, avail));
+  svg.style.width = Math.min(w, h / ratio) + 'px'; svg.style.margin = '0 auto';
+}
+window.addEventListener('resize', () => { if (crLect) { crLectApplyLayout(); crLectFit(); } });
+function crLectSec(s) { const S = crLect; if (!S) return; S.sec = s; S.step = 0; crLectRender(); }
+function crLectStep(i) { const S = crLect; if (!S) return; S.step = i; crLectRender(); }
+function crLectToc() { const S = crLect; if (!S) return; S.toc = !S.toc; crLectRender(); }
+function crLectAnim() {
+  const S = crLect; if (!S) return; const it = S.items[S.k], x = it.x, L = S.sec === 'gb' ? (x.gb || {}).schemaLib : x.schemaLib;
+  if (L && crSchAnimOk(L)) schPlayerOpenData((x.name || 'Exercice') + (S.sec === 'gb' ? ' · GB' : ''), L.drawings);
+}
+// listes d'un exercice, regroupées par sous-rubrique comme dans la fiche
+function crLectItems(x, k) {
+  const subs = crSubs(k);
+  return ((x.items || {})[k] || []).map((it, i) => ({ it, i, g: subs.findIndex(z => z.id === crSubOf(k, it)) })).sort((a, b) => (a.g < 0 ? 99 : a.g) - (b.g < 0 ? 99 : b.g) || a.i - b.i).map(o => ({ ...o.it, tag: crSubName(k, o.it) }));
+}
+function crLectList(title, arr, o) {
+  o = o || {};
+  const it = (arr || []).filter(i => crTxt(i.text) || crTxt(i.extra)); if (!it.length) return '';
+  const li = it.map((i, n) => {
+    const tag = i.tag || (o.auto ? (n === 0 ? 'Principale' : 'Secondaire') : '');
+    return `<li>${tag ? `<span class="crl-tag">${crEsc(tag)}</span>` : ''}${crEsc(i.text).replace(/\n/g, '<br>')}${crTxt(i.extra) ? `<span class="crl-extra">→ ${crEsc(i.extra).replace(/\n/g, '<br>')}</span>` : ''}</li>`;
+  }).join('');
+  return `<section class="crl-sec ${o.cls || ''}"><h3>${crEsc(title)}</h3><${o.num ? 'ol' : 'ul'}>${li}</${o.num ? 'ol' : 'ul'}></section>`;
+}
+function crLectRender() {
+  const S = crLect, el = document.getElementById('cr-lect'); if (!S || !el) return;
+  crLectApplyLayout();
+  const n = S.items.length, p = S.p;
+  if (!n) { el.innerHTML = `<div class="crl-top"><button type="button" class="crl-back" onclick="crLectClose()">← Retour</button><div class="crl-ttl"><small>${crEsc(p.title)}</small><b>Aucun exercice</b></div></div><div class="crl-empty">Cette séance ne contient pas encore d'exercice.</div>`; return; }
+  const it = S.items[S.k], x = it.x, gbOk = crHasGb(x), gb = S.sec === 'gb' && gbOk, g = x.gb || {}, on = crSecOn;
+  const nm = (k, d) => (crSecDefs().find(t => t.k === k) || {}).label || d;
+  // --- schéma
+  const L = gb ? g.schemaLib : x.schemaLib;
+  let fig = '';
+  if (L && L.drawings && L.drawings.length) {
+    const nd = L.drawings.length; if (S.step >= nd) S.step = 0;
+    const chips = nd > 1 ? `<div class="crl-steps">${L.drawings.map((d, i) => `<button type="button" class="${S.step === i ? 'on' : ''}" onclick="crLectStep(${i})">${crEsc(d.title)}</button>`).join('')}<button type="button" class="${S.step === -1 ? 'on' : ''}" onclick="crLectStep(-1)">Toutes</button></div>` : '';
+    const body = S.step === -1 ? `<div class="crl-all">${L.drawings.map((d, i) => `<figure><figcaption>${crCirc(i + 1)} ${crEsc(d.title)}</figcaption>${schDrawingSvg(d, { showBallStart: false })}</figure>`).join('')}</div>` : `<div class="crl-svg">${schDrawingSvg(L.drawings[S.step], { showBallStart: false })}</div>`;
+    fig = chips + body + `<div class="crl-figbar">${crSchAnimOk(L) ? `<button type="button" class="crl-anim" onclick="crLectAnim()">▶ Animer l'enchaînement</button>` : ''}<span class="crl-leg">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe.</span></div>`;
+  } else if (!gb && crSchemaHas(x)) fig = `<div class="crl-old">${crFicheSchema(x.schema)}</div>`;
+  else fig = `<div class="crl-nofig">Pas de schéma pour ${gb ? 'le travail GB' : 'cet exercice'}.</div>`;
+  // --- texte
+  let txt = '';
+  if (gb) {
+    const geq = crEquipText(crNormEquip(g.equipment));
+    txt = (crTxt(g.objective) ? `<section class="crl-obj"><h3>Objectif GB</h3><p>${crEsc(g.objective).replace(/\n/g, '<br>')}</p></section>` : '')
+      + (geq ? `<section class="crl-sec"><h3>Matériel</h3><p>${crEsc(geq)}</p></section>` : '')
+      + crLectList('Consignes GB', g.instructions) + crLectList('Critères de réussite GB', g.success, { cls: 'key' });
+  } else {
+    const eq = crEquipText(crNormEquip(x.equipment).concat(parseInt(x.balls, 10) > 0 ? [{ name: 'Ballons', qty: parseInt(x.balls, 10) }] : []));
+    const theme = [crTxt(x.theme), crTxt(x.subTheme)].filter(Boolean).join(' · ');
+    const rows = [['Effectif', crHeadcountText(x), 0], ['Espace', x.space, 0], ['Matériel', eq, 0], ['Disposition', x.org.setup, 1], ['Groupes', x.org.groups, 1], ['Rotations', x.org.rotations, 1], ['Rôles', x.org.roles, 1]].filter(r => crTxt(r[1]));
+    const chipsR = rows.filter(r => !r[2]), bigR = rows.filter(r => r[2]);
+    const disp = rows.length ? `<section class="crl-sec crl-disp"><h3>Dispositif</h3>${chipsR.length ? `<div class="crl-chips">${chipsR.map(r => `<span><b>${r[0]}</b> ${crEsc(r[1])}</span>`).join('')}</div>` : ''}${bigR.length ? `<dl>${bigR.map(r => `<div class="hl"><dt>${r[0]}</dt><dd>${crEsc(r[1]).replace(/\n/g, '<br>')}</dd></div>`).join('')}</dl>` : ''}</section>` : '';
+    const evs = (x.evolutions || []).filter(e => crTxt(e.title) || crTxt(e.text));
+    const evo = (on('evolutions') && evs.length) ? `<section class="crl-sec"><h3>Évolutions</h3><ul>${evs.map((e, i) => `<li><span class="crl-tag">Évolution N°${i + 1}</span>${crTxt(e.title) ? '<b>' + crEsc(e.title) + '</b> ' : ''}${crEsc(e.text || '').replace(/\n/g, '<br>')}</li>`).join('')}</ul></section>` : '';
+    const L1 = (k, t, o) => on(k) ? crLectList(nm(k, t), crLectItems(x, k), o) : '';
+    txt = (crTxt(x.objective) ? `<section class="crl-obj"><h3>Objectif</h3><p>${crEsc(x.objective).replace(/\n/g, '<br>')}</p></section>` : '') + disp
+      + L1('comportements', 'Comportements attendus', { cls: 'key' }) + L1('reussite', 'Critères de réussite', { cls: 'key' })
+      + (on('consignes') ? crLectList('Consignes', crLectItems(x, 'consignes'), { auto: true }) : '')
+      + L1('besoins', 'Besoins') + L1('fonctionnement', 'Fonctionnement') + evo
+      + (on('realisation') ? crLectList('Critères de réalisation', crLectItems(x, 'realisation')) : '')
+      + (on('variables') ? crLectList('Simplifier ↓', crLectItems(x, 'simplify'), { cls: 'simplify' }) + crLectList('Complexifier ↑', crLectItems(x, 'complexify'), { cls: 'complexify' }) : '')
+      + (on('vigilance') ? crLectList('Points de vigilance', crLectItems(x, 'vigilance')) : '')
+      + (on('corrections') ? crLectList('Corrections / régulations', crLectItems(x, 'corrections'), { num: true }) : '')
+      + (on('progression') ? crLectList('Progression', crLectItems(x, 'progression')) + crLectList('Régression', crLectItems(x, 'regression')) : '')
+      + crCfgGet().custom.filter(c => on(c.k)).map(c => crLectList(nm(c.k, c.name), crLectItems(x, c.k))).join('');
+    if (theme) txt = `<div class="crl-theme">${crEsc(theme)}</div>` + txt;
+  }
+  if (!txt) txt = `<div class="crl-nofig">Rien de renseigné pour ${gb ? 'le travail GB' : 'cet exercice'}.</div>`;
+  // --- cadre
+  const seg = Array.from({ length: n }, (_, i) => `<button type="button" class="${i === S.k ? 'on' : (i < S.k ? 'past' : '')}" onclick="crLectGo(${i},true)" aria-label="Exercice ${i + 1}"></button>`).join('');
+  const toc = S.toc ? `<div class="crl-toc"><div class="crl-toc-in"><div class="crl-toc-h"><b>Déroulé de la séance</b><button type="button" onclick="crLectToc()" aria-label="Fermer">✕</button></div>${(() => { let h = '', last = -1; S.items.forEach((q, i) => { if (q.bi !== last) { last = q.bi; h += `<div class="crl-toc-b">${crEsc(q.bname)}</div>`; } h += `<button type="button" class="${i === S.k ? 'on' : ''}" onclick="crLectGo(${i},true)"><span>${i + 1}</span><b>${crEsc(q.x.name || 'Exercice')}</b><em>${q.x.minutes ? crFmtDur(q.x.minutes) : ''}</em></button>`; }); return h; })()}</div></div>` : '';
+  el.innerHTML = `<div class="crl-top"><button type="button" class="crl-back" onclick="crLectClose()">← Retour</button><div class="crl-ttl"><small>${crEsc(p.title)}</small><b>${crEsc(it.bname)} · exercice ${S.k + 1} / ${n}</b></div><button type="button" class="crl-lay" onclick="crLectLayout()" aria-label="Changer la mise en page" title="Changer la mise en page">${crLectIsSide() ? '▤' : '◫'}<span>${crLectIsSide() ? 'Empilé' : 'Côte à côte'}</span></button><button type="button" class="crl-tocb" onclick="crLectToc()" aria-label="Sommaire">☰</button></div>
+    <div class="crl-prog">${seg}</div>
+    <div class="crl-head"><span class="crl-n">${S.k + 1}</span><h2>${crEsc(x.name || 'Exercice')}</h2><span class="crl-d">${x.minutes ? crFmtDur(x.minutes) : ''}</span></div>
+    ${gbOk ? `<div class="crl-seg"><button type="button" class="${!gb ? 'on' : ''}" onclick="crLectSec('main')">Exercice</button><button type="button" class="${gb ? 'on' : ''}" onclick="crLectSec('gb')">🧤 Travail GB</button></div>` : ''}
+    <div class="crl-main"><div class="crl-col crl-figc">${fig}</div><div class="crl-col crl-txt">${txt}</div></div>
+    <div class="crl-nav"><button type="button" class="crl-prev" onclick="crLectGo(-1)" ${S.k === 0 ? 'disabled' : ''}>← Précédent</button><button type="button" class="crl-mid" onclick="crLectToc()">☰ ${S.k + 1}/${n}</button>${S.k < n - 1 ? `<button type="button" class="crl-next" onclick="crLectGo(1)">Suivant →</button>` : `<button type="button" class="crl-next" onclick="crLectClose()">Fin de séance ✓</button>`}</div>${toc}`;
+  crLectFit();
+}
 // Nombre de colonnes des listes (Besoins, Fonctionnement, Comportements…) dans la fiche et le PDF : 1, 2 ou 3 (mémorisé sur cet appareil)
 function crFicheCols(n) {
   if (n == null) { try { n = parseInt(localStorage.getItem('crFicheCols'), 10); } catch (e) {} }
