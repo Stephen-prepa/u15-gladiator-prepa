@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — sw.js — dernière modification : version z27 (05/11/2026)
+// Prépa U15 HBCCS — sw.js — dernière modification : version z27b (05/11/2026)
 const CACHE_NAME = 'prepa-u15-hbccs-v2';
 const APP_SHELL = [
   './',

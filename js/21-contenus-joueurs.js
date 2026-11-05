@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/21-contenus-joueurs.js — dernière modification : version z26 (05/11/2026)
+// Prépa U15 HBCCS — js/21-contenus-joueurs.js — dernière modification : version z27b (05/11/2026)
 // ===================== CONTENUS PUBLIÉS AUX JOUEURS (lecture seule) =====================
 // Le coach « publie » une COPIE d'un schéma ou d'une séance dans la table Supabase contenus_joueurs.
 // Les joueurs ne lisent que ces copies (jamais la bibliothèque du coach). Modifier l'original ne change
@@ -33,9 +33,19 @@ function ejcRender() {
     el.innerHTML = list.map(x => {
       const n = x.kind === 'seance' ? ejcExCount(x.payload) : ((x.payload && x.payload.drawings) || []).length;
       const sub = x.kind === 'seance' ? `${n} exercice${n > 1 ? 's' : ''}` : `${n} étape${n > 1 ? 's' : ''}`;
-      return `<button type="button" class="ejc-card" onclick="ejcOpen('${x.id}')"><span class="ejc-ic">${x.kind === 'seance' ? '📋' : '▶'}</span><span class="ejc-t"><b>${ejcEsc(x.title)}</b><small>${sub} · publié le ${ejcDate(x.published_at)}</small></span></button>`;
+      const th = ejcThumb(x);
+      return `<button type="button" class="ejc-card" onclick="ejcOpen('${x.id}')">${th ? `<span class="ejc-th">${th}</span>` : `<span class="ejc-ic">${x.kind === 'seance' ? '📋' : '▶'}</span>`}<span class="ejc-t"><b>${ejcEsc(x.title)}</b><small>${sub} · publié le ${ejcDate(x.published_at)}</small></span></button>`;
     }).join('');
   });
+}
+// Miniature : première étape du schéma (ou du premier exercice illustré d'une séance)
+function ejcThumb(x) {
+  try {
+    let d = null;
+    if (x.kind === 'schema') d = x.payload && x.payload.drawings && x.payload.drawings[0];
+    else ((x.payload && x.payload.blocks) || []).some(b => (b.exercises || []).some(e => (d = e.drawings && e.drawings[0])));
+    return d && typeof schDrawingSvg === 'function' ? schDrawingSvg(d, { showBallStart: false }) : '';
+  } catch (e) { return ''; }
 }
 function ejcExCount(p) { return ((p && p.blocks) || []).reduce((s, b) => s + (b.exercises || []).length, 0); }
 function ejcOpen(id) {

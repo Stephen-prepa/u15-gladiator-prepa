@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z27 (05/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z27b (05/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1264,3 +1264,5 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 .qj-adm{border:1px solid rgba(128,150,190,.35);border-radius:10px;padding:10px;margin-top:10px;display:flex;flex-direction:column;gap:6px;}
 .qj-adm-h{display:flex;flex-direction:column;gap:2px;font-size:13px;}.qj-adm-h small{font-size:11px;color:var(--gris-texte);}
 .qj-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.ejc-th{flex:0 0 84px;height:58px;border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;}
+.ejc-th svg{width:100%;height:100%;display:block;}

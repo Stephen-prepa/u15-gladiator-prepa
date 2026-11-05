@@ -138,6 +138,7 @@ Tables utilisées par le code : `players`, `completions`, `presences`, `matches`
 |---|---|---|---|
 | 2026-11-04 | z19-z21 | Mode Lire / Terrain ; sauvegarde renforcée ; animation dans le schéma | (fichier unique, avant découpage) |
 | 2026-11-05 | z22 | Types d'exercice (jeu ludique, renforcement) ; chronomètre de terrain ; fiche PDF adaptée | (fichier unique, avant découpage) |
+| 2026-11-05 | z27b | Miniatures des schémas dans les cartes de l'Espace Joueurs (première étape du schéma) | `js/21-contenus-joueurs.js`, `css/style.css`, `js/00-version.js` (+ en-têtes) |
 | 2026-11-05 | z27 | Questions des joueurs (table `questions_joueurs`, fonction `poser_question`), rubrique joueur, gestion coach | `js/22-questions-joueurs.js` (nouveau), `index.html`, `css/style.css`, `sw.js`, `js/05-espace-coachs.js`, `js/00-version.js` |
 | 2026-11-05 | z26 | Publication aux joueurs (table Supabase `contenus_joueurs`, copie en lecture seule), 3 rubriques, lecteur de séance, gestion des contenus publiés | `js/21-contenus-joueurs.js` (nouveau), `index.html`, `css/style.css`, `sw.js`, `js/05-espace-coachs.js`, `js/08-createur-seances.js`, `js/16-editeur-schemas-outils.js`, `js/00-version.js` |
 | 2026-11-05 | z25 | Espace Joueurs : registre des rubriques (`js/20-espace-joueurs.js`), réglages générés (visibilité, ordre, titre, options), enregistré dans `app_settings.ej_modules` ; Réglages 2 colonnes dès 720 px | `js/20-espace-joueurs.js` (nouveau), `index.html`, `css/style.css`, `js/05-espace-coachs.js`, `sw.js`, `js/00-version.js` |
