@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Prépa U15 HBCCS — index.html — dernière modification : version z23 (05/11/2026) -->
+<!-- Prépa U15 HBCCS — index.html — dernière modification : version z24 (05/11/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -1122,21 +1122,53 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">⚙️ Réglages</h3>
         <div style="font-size:11px;color:var(--gris-texte);margin-bottom:14px;">Accès et codes — s'appliquent immédiatement pour tous, sans mise à jour de l'appli.</div>
 
-        <div id="disp-box" style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(128,150,190,0.25);">
-          <div class="section-title" style="margin:0 0 4px;">🎨 Affichage de cet appareil</div>
+        <div class="rg-tools"><button type="button" class="disp-mini" onclick="rgAll(true)">Tout ouvrir</button><button type="button" class="disp-mini" onclick="rgAll(false)">Tout fermer</button></div>
+        <div class="rg-grid">
+        <div class="rg-col">
+
+<details class="rg-cat" id="disp-box" data-rg="disp">
+          <summary><span class="rg-ttl">🎨 Affichage de cet appareil<small>Thème, taille, onglets, outils, raccourcis</small></span></summary>
+          <div class="rg-body">
           <div style="font-size:11px;color:var(--gris-texte);margin-bottom:10px;">Ces choix ne concernent que cet appareil : ni les autres coachs, ni tes autres appareils.</div>
           <div id="disp-ui"></div>
-        </div>
+        </div></details>
 
-        <div id="crc-box" style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(128,150,190,0.25);">
-          <div class="section-title" style="margin:0 0 4px;">📋 Modèle de séance (mes cahiers)</div>
+<details class="rg-cat" id="crc-box" data-rg="crc">
+          <summary><span class="rg-ttl">📋 Modèle de séance (mes cahiers)<small>Sections de la page d'un exercice</small></span></summary>
+          <div class="rg-body">
           <div style="font-size:11px;color:var(--gris-texte);margin-bottom:10px;">Active ou masque les sections de la page d’un exercice, renomme-les, ajoute des sous-items et des listes en un clic. Valable sur tous tes appareils. Les exercices déjà écrits ne sont jamais modifiés.</div>
           <div id="crc-ui"></div>
           <div id="crc-msg" style="font-size:11px;min-height:14px;margin-top:6px;"></div>
-        </div>
+        </div></details>
 
-        <div id="pw-box" style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(128,150,190,0.25);">
-          <div class="section-title" style="margin:0 0 4px;">🔐 Mon compte et mot de passe</div>
+        </div>
+        <div class="rg-col">
+
+<details class="rg-cat" id="dash-ej-settings-box" data-rg="ej">
+          <summary><span class="rg-ttl">🏠 Espace Joueurs<small>Visibilité sur l'accueil, code d'accès</small></span></summary>
+          <div class="rg-body">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gris-clair);margin-bottom:10px;cursor:pointer;">
+            <input type="checkbox" id="ej-settings-visible" style="width:18px;height:18px;">
+            Visible sur l'accueil
+          </label>
+          <input type="text" id="ej-settings-code" class="login-input" placeholder="Code d'accès (vide = aucun code)" style="width:100%;box-sizing:border-box;margin-bottom:8px;text-transform:none;letter-spacing:normal;font-size:14px;">
+          <button onclick="ejSettingsSave()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
+          <div id="ej-settings-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
+        </div></details>
+
+<details class="rg-cat" id="codes-box" data-rg="codes">
+          <summary><span class="rg-ttl">🔑 Codes joueurs<small>Débloquer ou réinitialiser le code d'un joueur</small></span></summary>
+          <div class="rg-body">
+          <button onclick="codesOpenEditor()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:800;font-size:12px;cursor:pointer;margin-bottom:14px;">🔑 Gérer les codes joueurs</button>
+          <div id="codes-editor" style="display:none;">
+            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">🔓 Débloquer = le joueur pourra se reconnecter avec son code sur un autre appareil sans confirmer son prénom. ♻️ Réinitialiser = efface le prénom, le code redevient neuf (l'historique déjà enregistré est conservé).</div>
+            <div id="codes-editor-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
+          </div>
+        </div></details>
+
+<details class="rg-cat" id="pw-box" data-rg="pw">
+          <summary><span class="rg-ttl">🔐 Mon compte et mot de passe<small>Mot de passe, code de secours, dépannage</small></span></summary>
+          <div class="rg-body">
           <details class="pw-det"><summary>Changer mon mot de passe</summary><div class="pw-in">
             <input type="password" id="pw-old" class="login-input" placeholder="Mot de passe actuel" autocomplete="current-password" style="text-transform:none;letter-spacing:normal;font-size:14px;">
             <input type="password" id="pw-new" class="login-input" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password" style="text-transform:none;letter-spacing:normal;font-size:14px;">
@@ -1161,26 +1193,9 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
             <button id="pw-help-btn" class="pw-btn" style="margin-top:10px;" onclick="pwHelp()">Définir ce mot de passe</button>
             <div id="pw-help-msg" class="pw-msg"></div>
           </div></details>
-        </div>
+        </div></details>
 
-        <div id="dash-ej-settings-box">
-          <div class="section-title" style="margin:0 0 8px;">🏠 Espace Joueurs</div>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gris-clair);margin-bottom:10px;cursor:pointer;">
-            <input type="checkbox" id="ej-settings-visible" style="width:18px;height:18px;">
-            Visible sur l'accueil
-          </label>
-          <input type="text" id="ej-settings-code" class="login-input" placeholder="Code d'accès (vide = aucun code)" style="width:100%;box-sizing:border-box;margin-bottom:8px;text-transform:none;letter-spacing:normal;font-size:14px;">
-          <button onclick="ejSettingsSave()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
-          <div id="ej-settings-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
         </div>
-
-        <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
-          <div class="section-title" style="margin:0 0 8px;">🔑 Codes joueurs</div>
-          <button onclick="codesOpenEditor()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:800;font-size:12px;cursor:pointer;margin-bottom:14px;">🔑 Gérer les codes joueurs</button>
-          <div id="codes-editor" style="display:none;">
-            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">🔓 Débloquer = le joueur pourra se reconnecter avec son code sur un autre appareil sans confirmer son prénom. ♻️ Réinitialiser = efface le prénom, le code redevient neuf (l'historique déjà enregistré est conservé).</div>
-            <div id="codes-editor-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
-          </div>
         </div>
       </div>
 

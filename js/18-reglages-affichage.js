@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/18-reglages-affichage.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/18-reglages-affichage.js — dernière modification : version z24 (05/11/2026)
 // ===================== ROLE (JOUEUR / GARDIEN) =====================
 function setRole(role) {
   appState.role = role;
@@ -267,12 +267,37 @@ function dispReset() {
   dispCfg = dispDefaults();
   dispSave(); dispApply(); dispRenderUi();
 }
+// ----- Réglages : catégories déroulantes (état ouvert/fermé mémorisé sur cet appareil) -----
+const RG_KEY = 'prepa_reglages_open_v1';
+let rgOpenState = {};
+try { rgOpenState = JSON.parse(localStorage.getItem(RG_KEY) || '{}') || {}; } catch (e) { rgOpenState = {}; }
+function rgIsOpen(k) { return !!rgOpenState[k]; }
+function rgToggle(k, open) {
+  if (!!rgOpenState[k] === !!open) return;
+  rgOpenState[k] = !!open;
+  try { localStorage.setItem(RG_KEY, JSON.stringify(rgOpenState)); } catch (e) {}
+}
+function rgSub(key, title, inner) {
+  return `<details class="rg-sub" data-rgk="${key}" ${rgIsOpen('sub-' + key) ? 'open' : ''} ontoggle="rgToggle('sub-${key}',this.open)"><summary>${title}</summary><div class="rg-subbody">${inner}</div></details>`;
+}
+function rgAll(open) {
+  document.querySelectorAll('#cs-box-reglages details.rg-cat').forEach(d => { d.open = open; });
+}
+function rgInit() {
+  document.querySelectorAll('#cs-box-reglages details.rg-cat').forEach(d => {
+    d.open = rgIsOpen(d.dataset.rg);
+    d.addEventListener('toggle', () => rgToggle(d.dataset.rg, d.open));
+  });
+}
+rgInit();
+
 function dispRenderUi() {
   const el = document.getElementById('disp-ui');
   if (!el || !dispCfg) return;
   const chip = (on, label, fn) => `<button type="button" class="disp-chip${on ? ' on' : ''}" onclick="${fn}">${label}</button>`;
   const lab = t => `<div style="font-size:12px;font-weight:700;color:var(--gris-clair);margin:12px 0 6px;">${t}</div>`;
   let h = '';
+  const secs = [];
   h += lab('Thème');
   h += `<div style="display:flex;gap:6px;flex-wrap:wrap;">` +
     chip(dispCfg.theme === 'auto', '🌗 Auto', "dispSet('theme','auto')") +
@@ -291,6 +316,7 @@ function dispRenderUi() {
     chip(dispCfg.density === 'compact', 'Compact', "dispSet('density','compact')") +
     chip(dispCfg.density === 'normal', 'Normal', "dispSet('density','normal')") +
     chip(dispCfg.density === 'comfortable', 'Confortable', "dispSet('density','comfortable')") + `</div>`;
+  secs.push(rgSub('app', '🎨 Apparence', h)); h = '';
   h += lab('Barre du bas (Stats, Programme, Évals, Réglages)');
   h += `<div style="font-size:11px;color:var(--gris-clair);margin:2px 0 4px;">Taille</div><div style="display:flex;gap:6px;flex-wrap:wrap;">` +
     chip(dispCfg.barSize === 'compact', 'Compacte', "dispSet('barSize','compact')") + chip(dispCfg.barSize === 'normal', 'Normale', "dispSet('barSize','normal')") + `</div>`;
@@ -310,6 +336,7 @@ function dispRenderUi() {
       <button type="button" class="disp-mini" ${k >= sameBar.length - 1 ? 'disabled' : ''} onclick="dispTabMove('${t.id}',1)">↓</button>
     </div>`;
   });
+  secs.push(rgSub('nav', '🧭 Navigation : barre du bas et onglets', h)); h = '';
   h += lab('Outils de la planche tactique');
   const tp = schToolPrefs();
   h += `<div style="font-size:11px;color:var(--gris-clair);margin:2px 0 4px;">Affichage</div><div style="display:flex;gap:6px;flex-wrap:wrap;">` +
@@ -334,8 +361,9 @@ function dispRenderUi() {
     });
     h += `<button type="button" class="disp-mini" style="margin-top:6px;width:100%;padding:9px;" onclick="dispToolReset()">Outils : tout remettre par défaut</button>`;
   } catch (e) {}
+  secs.push(rgSub('outils', '✏️ Éditeur de schémas : outils', h)); h = '';
   try {
-    h += `<details class="disp-keys" ${dispKeysOpen ? 'open' : ''} ontoggle="dispKeysOpen=this.open" style="margin-top:14px;"><summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--gris-clair);">⌨️ Raccourcis clavier (ordinateur)</summary>`;
+    h += `<details class="disp-keys rg-sub" ${dispKeysOpen ? 'open' : ''} ontoggle="dispKeysOpen=this.open" ><summary>⌨️ Raccourcis clavier (ordinateur)</summary><div class="rg-subbody">`;
     h += `<div style="font-size:10px;color:var(--gris-texte);margin:6px 0;">Touche « Définir » puis appuie sur la touche voulue (avec Maj ou Alt si tu veux). Sans Ctrl / ⌘. Une touche déjà prise est reprise à l'autre action. Fixes : Ctrl+Z / Ctrl+Y (annuler / rétablir), Suppr (supprimer), Échap (désélectionner).</div>`;
     if (dispKeyMsg) h += `<div style="font-size:12px;color:var(--jaune);margin-bottom:6px;">${dispKeyMsg}</div>`;
     let grp = '';
@@ -347,10 +375,10 @@ function dispRenderUi() {
           : `<span class="disp-kbd ${k ? '' : 'none'}">${k ? schKeyLabel(k) : '—'}</span><button type="button" class="disp-mini" onclick="dispKeyStart('${a.id}')">Définir</button><button type="button" class="disp-mini" ${k ? '' : 'disabled'} onclick="dispKeyClear('${a.id}')" aria-label="Effacer">✕</button>`)
         + `</div>`;
     });
-    h += `<button type="button" class="disp-mini" style="margin-top:8px;width:100%;padding:9px;" onclick="dispKeyReset()">Raccourcis : tout remettre par défaut</button></details>`;
+    h += `<button type="button" class="disp-mini" style="margin-top:8px;width:100%;padding:9px;" onclick="dispKeyReset()">Raccourcis : tout remettre par défaut</button></div></details>`;
   } catch (e) {}
   h += `<button type="button" class="disp-mini" style="margin-top:10px;width:100%;padding:9px;" onclick="dispReset()">Rétablir l'affichage par défaut</button>`;
-  el.innerHTML = h;
+  el.innerHTML = secs.join('') + h;
 }
 
 // ---------- Mot de passe des coachs ----------

@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z23 (05/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z24 (05/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1192,3 +1192,22 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 /* ---- Numéro de version (accueil) : fixé en bas à droite de l'écran, toujours visible sans défiler ---- */
 .app-version{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.6px;color:var(--gris-texte);opacity:.8;text-align:right;}
 #screen-home > .app-version{position:fixed;right:12px;bottom:calc(8px + env(safe-area-inset-bottom, 0px));margin:0;padding:0;z-index:5;pointer-events:none;}
+
+/* ---- Réglages : catégories déroulantes, 2 colonnes sur grand écran (z24) ---- */
+.rg-tools{display:flex;gap:6px;justify-content:flex-end;margin:-6px 0 10px;}
+.rg-grid{display:block;}
+.rg-col{min-width:0;}
+@media (min-width:900px){.rg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;}}
+.rg-cat,.rg-sub{border:1px solid rgba(128,150,190,.35);border-radius:12px;background:rgba(128,150,190,.09);margin:0 0 10px;}
+.rg-cat > summary,.rg-sub > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;color:inherit;-webkit-tap-highlight-color:transparent;}
+.rg-cat > summary::-webkit-details-marker,.rg-sub > summary::-webkit-details-marker{display:none;}
+.rg-cat > summary::after,.rg-sub > summary::after{content:'›';margin-left:auto;font-size:22px;line-height:1;opacity:.6;transition:transform .15s;}
+.rg-cat[open] > summary::after,.rg-sub[open] > summary::after{transform:rotate(90deg);}
+.rg-cat > summary{padding:14px;font-weight:800;font-size:14px;}
+.rg-ttl{display:block;}
+.rg-ttl small{display:block;font-weight:500;font-size:11px;opacity:.65;margin-top:2px;}
+.rg-cat[open] > summary{border-bottom:1px solid rgba(128,150,190,.3);}
+.rg-body{padding:12px 14px 14px;}
+.rg-sub{margin:10px 0 0;border-radius:10px;}
+.rg-sub > summary{padding:11px 12px;font-weight:700;font-size:13px;}
+.rg-subbody{padding:0 12px 12px;}
