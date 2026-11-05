@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z26 (05/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z27 (05/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1249,3 +1249,18 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 .ejc-sm{font-size:11px;color:#9fb0cc;}
 .ejc-btns{display:flex;gap:8px;}.ejc-btns button{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:none;color:#fff;font-weight:700;cursor:pointer;}
 .ejc-btns .ok{background:var(--jaune);color:#111;border-color:var(--jaune);}
+
+/* ---- Questions des joueurs (z27) ---- */
+.qj-ask{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.qj-ask textarea,.qj-adm textarea{width:100%;box-sizing:border-box;padding:9px;border-radius:8px;border:1px solid rgba(128,150,190,.4);background:rgba(255,255,255,.05);color:inherit;font-size:14px;font-family:inherit;}
+.qj-ask button{padding:11px;border:none;border-radius:8px;background:var(--jaune);color:#111;font-weight:800;cursor:pointer;}
+.qj-msg{font-size:12px;color:var(--gris-texte);text-align:center;min-height:14px;}
+.qj-card{border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px;margin-bottom:8px;background:rgba(255,255,255,.04);}
+.qj-q{font-weight:700;font-size:14px;margin-bottom:6px;}
+.qj-a{font-size:14px;line-height:1.5;}
+.qj-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.qj-links button,.qj-links a{padding:8px 12px;border-radius:8px;border:1px solid var(--jaune);background:none;color:var(--jaune);font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;}
+.qj-links:empty{display:none;}
+.qj-adm{border:1px solid rgba(128,150,190,.35);border-radius:10px;padding:10px;margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.qj-adm-h{display:flex;flex-direction:column;gap:2px;font-size:13px;}.qj-adm-h small{font-size:11px;color:var(--gris-texte);}
+.qj-btns{display:flex;gap:6px;flex-wrap:wrap;}

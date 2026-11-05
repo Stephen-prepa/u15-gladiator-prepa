@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Prépa U15 HBCCS — index.html — dernière modification : version z26 (05/11/2026) -->
+<!-- Prépa U15 HBCCS — index.html — dernière modification : version z27 (05/11/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -197,6 +197,10 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
     <div class="club-box" id="ej-mod-fonctionnement" style="background:var(--gris-fonce);border-radius:10px;padding:16px;">
       <h3 id="ej-mod-fonctionnement-title" style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">🧭 Fonctionnement</h3>
       <div id="ej-c-fonctionnement"><div style="text-align:center;padding:14px;color:var(--gris-texte);font-size:12px;">Chargement...</div></div>
+    </div>
+    <div class="club-box" id="ej-mod-questions" style="background:var(--gris-fonce);border-radius:10px;padding:16px;">
+      <h3 id="ej-mod-questions-title" style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">❓ Questions / réponses</h3>
+      <div id="ej-c-questions"><div style="text-align:center;padding:14px;color:var(--gris-texte);font-size:12px;">Chargement...</div></div>
     </div>
     </div>
     <div id="ej-empty" style="display:none;text-align:center;padding:30px 10px;color:var(--gris-texte);font-size:13px;">Rien à afficher pour le moment.</div>
@@ -1180,6 +1184,10 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
           <summary><span class="rg-ttl">📢 Contenus publiés<small>Schémas et séances visibles par les joueurs</small></span></summary>
           <div class="rg-body"><div id="ejc-admin"></div></div></details>
 
+<details class="rg-cat" id="qj-box" data-rg="qj" ontoggle="if(this.open&&typeof qjAdminLoad==='function')qjAdminLoad()">
+          <summary><span class="rg-ttl">❓ Questions des joueurs<small>Valider, répondre, publier<span id="qj-badge"></span></small></span></summary>
+          <div class="rg-body"><div id="qj-admin"></div></div></details>
+
 <details class="rg-cat" id="codes-box" data-rg="codes">
           <summary><span class="rg-ttl">🔑 Codes joueurs<small>Débloquer ou réinitialiser le code d'un joueur</small></span></summary>
           <div class="rg-body">
@@ -1333,6 +1341,7 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
 <script src="js/18-reglages-affichage.js"></script>
 <script src="js/20-espace-joueurs.js"></script>
 <script src="js/21-contenus-joueurs.js"></script>
+<script src="js/22-questions-joueurs.js"></script>
 <script src="js/19-init.js"></script>
 </body>
 </html>

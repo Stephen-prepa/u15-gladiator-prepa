@@ -58,6 +58,7 @@ Application web installable (PWA) du HBCCS (Handball Club Clermont Salagou), cat
 | `18-reglages-affichage.js` | Rôle joueur/gardien, accordéons, progression globale, enregistrement du service worker, affichage de l'appareil, gestion des mots de passe coachs |
 | `19-init.js` | Démarrage de l'application (**doit rester le dernier script** dans `index.html`) |
 | `21-contenus-joueurs.js` | Contenus publiés aux joueurs : publication (séances, schémas), lecteur de séance côté joueur, gestion dans Réglages › Contenus publiés. Chargé avant `19-init.js` |
+| `22-questions-joueurs.js` | Questions des joueurs : poser (fonction serveur `poser_question`), lire les réponses publiées, gestion coach dans Réglages › Questions des joueurs. Chargé avant `19-init.js` |
 | `20-espace-joueurs.js` | Espace Joueurs : registre des rubriques (`ejRegister`), affichage/ordre/titres/options choisis par le coach, page Réglages générée. Chargé **avant** `19-init.js` dans `index.html` (donc son numéro n'indique pas l'ordre) |
 
 ## 4. Règles à respecter (sinon, ça casse)
@@ -125,6 +126,7 @@ Tables utilisées par le code : `players`, `completions`, `presences`, `matches`
 - **2-3 novembre** (z17-z18) : barre du bas réglable, fiche PDF en colonnes, report des modifications sur les étapes suivantes, apparence Clair / Doux / Sombre, bibliothèque en grille de vignettes.
 - **4 novembre** (z19-z21) : mode **Lire / Terrain** (la séance se lit dans l'appli, écran allumé), lecture côte à côte en portrait, sauvegarde renforcée (copie locale par séance, copie « (ma version) » en cas de conflit), animation directement dans le schéma.
 - **5 novembre** (z22) : types d'exercice (situation avec schéma, jeu ludique, renforcement musculaire), chronomètre de terrain avec bips, vibration et bouton muet, fiche PDF adaptée.
+- **5 novembre 2026 (z27)** : questions des joueurs (poser, valider, répondre en texte / lien YouTube / schéma animé, publier anonymement), rubrique « Questions / réponses », compteur d'attente.
 - **5 novembre 2026 (z26)** : contenus publiés aux joueurs en lecture seule : bouton « 📢 Publier aux joueurs » (menu ⋯ d'une séance, fiche d'un schéma), 3 nouvelles rubriques (Séance du jour, Enclenchements d'attaque, Fonctionnement), lecteur de séance exercice par exercice, animation des schémas sans bouton GIF, gestion dans Réglages › Contenus publiés.
 - **5 novembre 2026 (z25)** : Réglages de l'Espace Joueurs : registre des rubriques, interrupteur / ordre / titre par rubrique, options par rubrique, génération automatique des réglages ; Réglages en 2 colonnes dès ~720 px (iPad vertical).
 - **5 novembre 2026 (z24)** : page Réglages réorganisée (catégories déroulantes, deux colonnes sur grand écran, état mémorisé).
@@ -136,6 +138,7 @@ Tables utilisées par le code : `players`, `completions`, `presences`, `matches`
 |---|---|---|---|
 | 2026-11-04 | z19-z21 | Mode Lire / Terrain ; sauvegarde renforcée ; animation dans le schéma | (fichier unique, avant découpage) |
 | 2026-11-05 | z22 | Types d'exercice (jeu ludique, renforcement) ; chronomètre de terrain ; fiche PDF adaptée | (fichier unique, avant découpage) |
+| 2026-11-05 | z27 | Questions des joueurs (table `questions_joueurs`, fonction `poser_question`), rubrique joueur, gestion coach | `js/22-questions-joueurs.js` (nouveau), `index.html`, `css/style.css`, `sw.js`, `js/05-espace-coachs.js`, `js/00-version.js` |
 | 2026-11-05 | z26 | Publication aux joueurs (table Supabase `contenus_joueurs`, copie en lecture seule), 3 rubriques, lecteur de séance, gestion des contenus publiés | `js/21-contenus-joueurs.js` (nouveau), `index.html`, `css/style.css`, `sw.js`, `js/05-espace-coachs.js`, `js/08-createur-seances.js`, `js/16-editeur-schemas-outils.js`, `js/00-version.js` |
 | 2026-11-05 | z25 | Espace Joueurs : registre des rubriques (`js/20-espace-joueurs.js`), réglages générés (visibilité, ordre, titre, options), enregistré dans `app_settings.ej_modules` ; Réglages 2 colonnes dès 720 px | `js/20-espace-joueurs.js` (nouveau), `index.html`, `css/style.css`, `js/05-espace-coachs.js`, `sw.js`, `js/00-version.js` |
 | 2026-11-05 | z24 | Page Réglages : 5 catégories déroulantes, sous-catégories pour « Affichage », 2 colonnes ≥ 900 px, boutons Tout ouvrir / Tout fermer | `index.html`, `css/style.css`, `js/18-reglages-affichage.js`, `js/00-version.js` |
@@ -150,7 +153,8 @@ Objectif : donner aux joueurs, en lecture seule, du contenu lié à l'entraînem
 1. **z24** : Réglages lisibles (fait).
 2. **z25** (fait) : Réglages de l'Espace Joueurs. Un registre central des rubriques génère la page de réglages : chaque nouvelle rubrique y apparaît toute seule avec son interrupteur (affichée ou non, ordre, titre).
 3. **z26** (fait ; table `contenus_joueurs` créée par migration `z26_contenus_joueurs` : lecture publique des lignes `visible=true`, écriture coachs seulement) : contenu pour les joueurs. Le coach « publie » depuis la bibliothèque de schémas et les séances. Choix retenu : publier une **copie** (le joueur voit ce qui a été publié ; republier après modification). Le camembert de présence et le programme ne sont plus au centre de l'espace.
-4. **z27** : questions des joueurs.
+4. **z27** (fait) : questions des joueurs.
+5. **z28** : sécurité de `players` (voir ci-dessous).
 
 Décisions pour les questions :
 - Le joueur ou le coach peut poser une question. Si c'est un joueur, le coach voit son prénom ou son code personnel.
@@ -172,3 +176,9 @@ Sécurité (accord donné le 5 novembre ; le SQL est montré avant toute applica
 ### Table `contenus_joueurs` (z26)
 Colonnes : `id`, `kind` (`schema` | `seance`), `rubrique` (`seance` | `enclenchements` | `fonctionnement`, texte libre), `title`, `source_id` (id de l'original, sert à remplacer la copie à la republication), `payload` (copie JSON), `visible`, `sort_order`, `published_at`, `published_by`. Lecture publique : uniquement `visible = true`. Ne rien publier de confidentiel (la table est lisible par quiconque connaît l'adresse de l'appli).
 La copie d'une séance ne garde que les rubriques utiles aux joueurs (objectif, fonctionnement, consignes, réalisation, critères de réussite, comportements attendus) et les dessins des schémas ; les notes coach (vigilance, corrections, variantes…) ne sont pas publiées. Les jeux ludiques et le renforcement musculaire ne publient pour l'instant que ces rubriques texte (pas le détail des règles ni des mouvements).
+
+### Questions des joueurs (z27)
+Table `questions_joueurs` (migration `z27_questions_joueurs`). Le public ne peut lire que les questions `publiee` et seulement les colonnes : id, question, status, answer_text, answer_youtube, answer_title, answer_drawings, published_at (jamais `player_name` ni `player_code`). Il ne peut pas écrire : une question se pose via la fonction `poser_question(p_code, p_question)` (vérifie que le code joueur existe, max 3 questions en attente, 3 à 300 caractères). Seuls les liens YouTube sont acceptés comme vidéo. Les réponses sont toujours affichées sans nom.
+
+### Chantier z28 : sécurité de `players` (à faire, accord du 5 novembre)
+Constat : l'appli lit `players` en accès public à une vingtaine d'endroits (connexion joueur, listes de noms, présences, compositions, stats) et la table expose `device_token`. Fermer la lecture d'un coup casserait la connexion des joueurs. Plan : remplacer chaque lecture publique par des fonctions serveur (connexion par code, liste de noms sans `device_token`, etc.), tester, puis retirer la politique « public read players ». Même chantier : vérifier le code d'accès de l'Espace Joueurs côté serveur (aujourd'hui lisible dans `app_settings`). SQL montré avant application.
