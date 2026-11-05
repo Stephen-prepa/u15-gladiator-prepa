@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z26 (05/11/2026)
 // ---------- Créateur de séances (coach) ----------
 const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-17 ans', '-18 ans', 'Seniors', 'Loisirs', 'Détection', 'Gardiens'];
 const CR_PUBLICS = ['Mixte', 'Garçons', 'Filles'];
@@ -110,6 +110,7 @@ function crRenderList() {
         <button type="button" class="cr-c2-more" aria-label="Plus d'actions" onclick="crMenu(event,'${p.id}')">⋯</button>
       </div>
       <div class="cr-c2-menu" id="crm-${p.id}">
+        <button type="button" onclick="ejcPubSeance('${p.id}')">📢 Publier aux joueurs</button>
         <button type="button" onclick="crDuplicate('${p.id}')">Dupliquer</button>
         <button type="button" onclick="crToggleTemplate('${p.id}')">${p.is_template ? 'Retirer des modèles' : 'Enregistrer comme modèle'}</button>
         <button type="button" onclick="crArchive('${p.id}')">${p.status === 'archivee' ? 'Désarchiver' : 'Archiver'}</button>
