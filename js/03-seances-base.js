@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/03-seances-base.js — dernière modification : version z23 (05/11/2026)
 // ===================== SESSION BUILDER HELPERS =====================
 function circuitWarmup(tours, exDur, restDur, exList) {
   const steps = [];

@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/01-audio-voix.js — dernière modification : version z23 (05/11/2026)
 // ===================== AUDIO =====================
 let audioCtx = null;
 function unlockAudio() {

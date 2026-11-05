@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/11-schema-modele.js — dernière modification : version z23 (05/11/2026)
 // ----- Schéma (terrain) : modèle, rendu, éditeur image par image -----
 const CR_COURT = { half: { w: 200, h: 200, vb: [-10, -10, 220, 220], k: 1 }, full: { w: 400, h: 200, vb: [-10, -10, 420, 220], k: 1.35 }, free: { w: 300, h: 200, vb: [-10, -10, 320, 220], k: 1.1 } };
 const CR_MAX_FRAMES = 40;

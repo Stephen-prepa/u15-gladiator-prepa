@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/19-init.js — dernière modification : version z23 (05/11/2026)
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded', () => {
   try { dispInit(); } catch (e) { console.error(e); }

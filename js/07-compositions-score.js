@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/07-compositions-score.js — dernière modification : version z23 (05/11/2026)
 // ---------- Mode de composition : mixte / Éq.1 entre eux / Éq.2 entre eux / 2 terrains ----------
 const OUTILS_MODE_HELP = {
   mixte: "Tous les présents mélangés, répartis de façon équilibrée par poste et par niveau.",

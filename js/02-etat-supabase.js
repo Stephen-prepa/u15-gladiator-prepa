@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/02-etat-supabase.js — dernière modification : version z23 (05/11/2026)
 // ===================== STATE =====================
 const SK = 'hbccs_prepa_u15_v7';
 let appState = {};

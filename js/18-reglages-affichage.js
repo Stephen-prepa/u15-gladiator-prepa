@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/18-reglages-affichage.js — dernière modification : version z23 (05/11/2026)
 // ===================== ROLE (JOUEUR / GARDIEN) =====================
 function setRole(role) {
   appState.role = role;

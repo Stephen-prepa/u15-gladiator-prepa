@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/12-editeur-schema-plein-ecran.js — dernière modification : version z23 (05/11/2026)
 // ----- Éditeur de schéma plein écran -----
 let crD = null;
 let crDRaf = null;
@@ -38,7 +39,7 @@ function crOpenDraw() {
     <div class="cr-d-top">
       <button type="button" class="cr-d-ib" onclick="crDClose(false)" aria-label="Retour">←</button>
       <div id="cr-d-title" style="flex:1;font-weight:800;font-size:16px;color:#0a3f7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-      <span style="font-size:10px;color:#6b7c93;white-space:nowrap;" title="Version de l'éditeur">éditeur v${CR_BUILD}</span>
+      <span style="font-size:10px;color:#6b7c93;white-space:nowrap;" title="Version de l'éditeur">éditeur ${CR_BUILD}</span>
       <button type="button" class="cr-d-ok" onclick="crDClose(true)">✓ Valider</button>
     </div>
     <div class="cr-d-top" style="padding-top:0;">
@@ -660,7 +661,7 @@ function crDStop() {
 }
 // ----- Interaction canvas -----
 // ----- Précision (doigt, stylet Apple Pencil, souris) -----
-const CR_BUILD = '19-10-f'; // repère de version : permet de vérifier que la tablette affiche bien la dernière mise à jour
+const CR_BUILD = APP_VERSION; // repère de version affiché dans l'éditeur : identique à la version de l'application (voir 00-version.js)
 const CR_SNAP = 5; // pas de l'aimant : 5 unités = 50 cm
 function crDSnapPref() { try { return localStorage.getItem('cr_snap') === '1'; } catch (x) { return false; } }
 function crDToggleSnap() {

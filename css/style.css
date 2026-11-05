@@ -1,3 +1,4 @@
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z23 (05/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1187,3 +1188,7 @@ html[data-coach=soft]{--c-card:#F6F4EF;--c-bg:#E7E4DD;--c-bg2:#E0DDD5;--c-line:#
 html[data-coach=soft] #coachs2-app .cr-card,html[data-coach=soft] #coachs2-app .cr-block,html[data-coach=soft] .cr-c2-card{box-shadow:none;}
 html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#26406E;--c-line2:#1C335C;--c-soft:#1A3060;--c-ink:#FFFFFF;--c-ink2:#C8D4E8;--c-mut:#8AA0C0;--c-bar:rgba(10,22,40,.96);
   --c-acc:#F5C400;--c-onacc:#111111;--c-accbg:rgba(245,196,0,.14);--c-acc2:#F5C400;--c-acc3:#7A6A1A;--c-ok:#2ECC71;--c-ok2:#2ECC71;--c-okbg:rgba(46,204,113,.16);--c-red:#FF6B6B;--c-redline:rgba(255,107,107,.45);--c-w1:#E67E22;--c-w2:#F39C12;}
+
+/* ---- Numéro de version (accueil) : fixé en bas à droite de l'écran, toujours visible sans défiler ---- */
+.app-version{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.6px;color:var(--gris-texte);opacity:.8;text-align:right;}
+#screen-home > .app-version{position:fixed;right:12px;bottom:calc(8px + env(safe-area-inset-bottom, 0px));margin:0;padding:0;z-index:5;pointer-events:none;}

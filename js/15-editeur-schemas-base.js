@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z23 (05/11/2026)
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [

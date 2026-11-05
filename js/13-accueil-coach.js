@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z23 (05/11/2026)
 // ===== Partage en GIF d'un schéma de la bibliothèque (module Schémas) =====
 // Même principe que l'ancien export : une image par instant de l'animation (celle que montre le lecteur), puis GIF 256 couleurs ; image fixe (PNG) s'il n'y a rien à animer.
 function schGifPalette(svgs) {

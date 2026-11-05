@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z23 (05/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }

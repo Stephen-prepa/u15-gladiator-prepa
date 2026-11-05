@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — sw.js — dernière modification : version z23 (05/11/2026)
 const CACHE_NAME = 'prepa-u15-hbccs-v2';
 const APP_SHELL = [
   './',
@@ -7,6 +8,7 @@ const APP_SHELL = [
   './icon-512.png',
   // Code de l'application (découpé en fichiers) : chaque fichier DOIT exister, sinon le mode hors-ligne ne s'installe pas
   './css/style.css',
+  './js/00-version.js',
   './js/01-audio-voix.js',
   './js/02-etat-supabase.js',
   './js/03-seances-base.js',

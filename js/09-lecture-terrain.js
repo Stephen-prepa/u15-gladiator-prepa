@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/09-lecture-terrain.js — dernière modification : version z23 (05/11/2026)
 // ===== Lecture / Terrain : jeu ludique et renforcement musculaire (v26-10-z22) =====
 function crLectHasSchema(x) { return !!((x.schemaLib && x.schemaLib.drawings && x.schemaLib.drawings.length) || crSchemaHas(x)); }
 // jeu : but, équipes, règles (numérotées, en gros), points

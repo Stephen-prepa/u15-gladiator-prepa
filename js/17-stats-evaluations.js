@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z23 (05/11/2026)
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
 let statsPlayerRows = [];
 let statsGlobalCounts = { present: 0, absent: 0, excuse: 0, retard: 0 };

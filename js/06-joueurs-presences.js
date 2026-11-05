@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z23 (05/11/2026)
 // ===================== GESTION DES CODES JOUEURS =====================
 function codesOpenEditor() {
   const box = document.getElementById('codes-editor');

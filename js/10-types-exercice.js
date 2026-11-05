@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/10-types-exercice.js — dernière modification : version z23 (05/11/2026)
 // ===== Types d'exercice : situation avec schéma (par défaut), jeu ludique, renforcement musculaire =====
 // x.kind absent = « schéma » (tous les exercices existants). Les données propres à un type (x.jeu, x.renfo) sont conservées quand on change de type : seules les rubriques affichées changent.
 const CR_KINDS = {

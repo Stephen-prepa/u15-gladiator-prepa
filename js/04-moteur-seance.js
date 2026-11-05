@@ -1,3 +1,4 @@
+// Prépa U15 HBCCS — js/04-moteur-seance.js — dernière modification : version z23 (05/11/2026)
 // ===================== SESSION ENGINE =====================
 // ===================== WAKE LOCK (empeche l'ecran de se verrouiller pendant une seance) =====================
 let wakeLock = null;
