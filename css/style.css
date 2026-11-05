@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z24 (05/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z25 (05/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1197,7 +1197,7 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 .rg-tools{display:flex;gap:6px;justify-content:flex-end;margin:-6px 0 10px;}
 .rg-grid{display:block;}
 .rg-col{min-width:0;}
-@media (min-width:900px){.rg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;}}
+@media (min-width:720px){.rg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;}}
 .rg-cat,.rg-sub{border:1px solid rgba(128,150,190,.35);border-radius:12px;background:rgba(128,150,190,.09);margin:0 0 10px;}
 .rg-cat > summary,.rg-sub > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;color:inherit;-webkit-tap-highlight-color:transparent;}
 .rg-cat > summary::-webkit-details-marker,.rg-sub > summary::-webkit-details-marker{display:none;}
@@ -1211,3 +1211,13 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 .rg-sub{margin:10px 0 0;border-radius:10px;}
 .rg-sub > summary{padding:11px 12px;font-weight:700;font-size:13px;}
 .rg-subbody{padding:0 12px 12px;}
+
+/* ---- Réglages › Espace Joueurs › rubriques (z25) ---- */
+.rg-sep{height:1px;background:rgba(128,150,190,.35);margin:14px 0 10px;}
+.ej-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(128,150,190,.2);}
+.ej-row .nm{flex:1;min-width:120px;display:flex;flex-direction:column;font-size:13px;}
+.ej-row .nm small{font-size:11px;color:var(--gris-texte);font-weight:400;}
+.ej-title-input{flex:1 1 100%;box-sizing:border-box;padding:7px 9px;border-radius:7px;border:1px solid rgba(128,150,190,.4);background:transparent;color:inherit;font-size:12px;}
+.ej-opts{flex:1 1 100%;display:flex;flex-direction:column;gap:4px;font-size:12px;}
+.ej-opt{display:flex;align-items:center;gap:6px;cursor:pointer;}
+.disp-mini[disabled]{opacity:.35;cursor:default;}

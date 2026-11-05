@@ -56,7 +56,8 @@ Application web installable (PWA) du HBCCS (Handball Club Clermont Salagou), cat
 | `16-editeur-schemas-outils.js` | Éditeur de schémas : outils, sélection, gestes, crayon, gomme, panneau d'options, liste d'exercices |
 | `17-stats-evaluations.js` | Statistiques, évaluations (référentiel filière), connexion coach, tableau de progression des joueurs |
 | `18-reglages-affichage.js` | Rôle joueur/gardien, accordéons, progression globale, enregistrement du service worker, affichage de l'appareil, gestion des mots de passe coachs |
-| `19-init.js` | Démarrage de l'application |
+| `19-init.js` | Démarrage de l'application (**doit rester le dernier script** dans `index.html`) |
+| `20-espace-joueurs.js` | Espace Joueurs : registre des rubriques (`ejRegister`), affichage/ordre/titres/options choisis par le coach, page Réglages générée. Chargé **avant** `19-init.js` dans `index.html` (donc son numéro n'indique pas l'ordre) |
 
 ## 4. Règles à respecter (sinon, ça casse)
 
@@ -123,6 +124,7 @@ Tables utilisées par le code : `players`, `completions`, `presences`, `matches`
 - **2-3 novembre** (z17-z18) : barre du bas réglable, fiche PDF en colonnes, report des modifications sur les étapes suivantes, apparence Clair / Doux / Sombre, bibliothèque en grille de vignettes.
 - **4 novembre** (z19-z21) : mode **Lire / Terrain** (la séance se lit dans l'appli, écran allumé), lecture côte à côte en portrait, sauvegarde renforcée (copie locale par séance, copie « (ma version) » en cas de conflit), animation directement dans le schéma.
 - **5 novembre** (z22) : types d'exercice (situation avec schéma, jeu ludique, renforcement musculaire), chronomètre de terrain avec bips, vibration et bouton muet, fiche PDF adaptée.
+- **5 novembre 2026 (z25)** : Réglages de l'Espace Joueurs : registre des rubriques, interrupteur / ordre / titre par rubrique, options par rubrique, génération automatique des réglages ; Réglages en 2 colonnes dès ~720 px (iPad vertical).
 - **5 novembre 2026 (z24)** : page Réglages réorganisée (catégories déroulantes, deux colonnes sur grand écran, état mémorisé).
 - **5 novembre 2026** : numéro de version affiché en bas à droite de l'accueil (z23), avec une ligne d'identification en tête de chaque fichier ; découpage du fichier unique en 1 style + 19 fichiers JS ; adaptation de `sw.js`.
 
@@ -132,6 +134,7 @@ Tables utilisées par le code : `players`, `completions`, `presences`, `matches`
 |---|---|---|---|
 | 2026-11-04 | z19-z21 | Mode Lire / Terrain ; sauvegarde renforcée ; animation dans le schéma | (fichier unique, avant découpage) |
 | 2026-11-05 | z22 | Types d'exercice (jeu ludique, renforcement) ; chronomètre de terrain ; fiche PDF adaptée | (fichier unique, avant découpage) |
+| 2026-11-05 | z25 | Espace Joueurs : registre des rubriques (`js/20-espace-joueurs.js`), réglages générés (visibilité, ordre, titre, options), enregistré dans `app_settings.ej_modules` ; Réglages 2 colonnes dès 720 px | `js/20-espace-joueurs.js` (nouveau), `index.html`, `css/style.css`, `js/05-espace-coachs.js`, `sw.js`, `js/00-version.js` |
 | 2026-11-05 | z24 | Page Réglages : 5 catégories déroulantes, sous-catégories pour « Affichage », 2 colonnes ≥ 900 px, boutons Tout ouvrir / Tout fermer | `index.html`, `css/style.css`, `js/18-reglages-affichage.js`, `js/00-version.js` |
 | 2026-11-05 | z23 | Numéro de version unique (`js/00-version.js`) affiché sur l'accueil et dans l'éditeur ; ligne d'identification en tête de chaque fichier ; `CR_BUILD` suit désormais `APP_VERSION` | tous les fichiers + `js/00-version.js` (nouveau) |
 | 2026-11-05 | z22 | Découpage en fichiers (aucun changement de comportement) ; `sw.js` : liste des nouveaux fichiers, code en « réseau d'abord » ; chemin de l'image de fond adapté dans `css/style.css` | `index.html`, `css/style.css`, `js/*`, `sw.js` |
@@ -142,14 +145,14 @@ Objectif : donner aux joueurs, en lecture seule, du contenu lié à l'entraînem
 
 Étapes prévues, une version chacune, avec une pause de test entre deux :
 1. **z24** : Réglages lisibles (fait).
-2. **z25** : Réglages de l'Espace Joueurs. Un registre central des rubriques génère la page de réglages : chaque nouvelle rubrique y apparaît toute seule avec son interrupteur (affichée ou non, ordre, titre).
+2. **z25** (fait) : Réglages de l'Espace Joueurs. Un registre central des rubriques génère la page de réglages : chaque nouvelle rubrique y apparaît toute seule avec son interrupteur (affichée ou non, ordre, titre).
 3. **z26** : contenu pour les joueurs. Le coach « publie » depuis la bibliothèque de schémas et les séances. Choix retenu : publier une **copie** (le joueur voit ce qui a été publié ; republier après modification). Le camembert de présence et le programme ne sont plus au centre de l'espace.
 4. **z27** : questions des joueurs.
 
 Décisions pour les questions :
 - Le joueur ou le coach peut poser une question. Si c'est un joueur, le coach voit son prénom ou son code personnel.
 - Le coach **valide chaque question avant publication**, éventuellement de façon anonyme.
-- Les joueurs voient les questions publiées, **anonymes**. Les réponses sont visibles par tous *(formulation d'origine ambiguë, à reconfirmer avant l'étape 4)*.
+- Les joueurs voient les questions publiées, **anonymes**. Les réponses sont visibles par tous *(confirmé le 5 novembre)*.
 - Réponse du coach : texte, schéma de la bibliothèque, ou lien YouTube. Pas d'envoi de fichiers vidéo pour l'instant.
 
 Sécurité (accord donné le 5 novembre ; le SQL est montré avant toute application, au plus tard avant l'étape 4) :
@@ -157,3 +160,8 @@ Sécurité (accord donné le 5 novembre ; le SQL est montré avant toute applica
 - Le code d'accès de l'Espace Joueurs est dans `app_settings`, lisible par tous : à faire vérifier côté serveur.
 - `exercices_schemas` et `seance_plans` ne sont lisibles que par les coachs : les joueurs ne liront que les copies publiées.
 - Aucun espace de stockage de fichiers n'existe dans Supabase.
+
+### Comment ajouter une rubrique à l'Espace Joueurs (à partir de z25)
+1. Dans `index.html`, créer le cadre dans `#ej-modules` avec un `id` (ex. `ej-mod-seance`) et un titre avec un `id` (ex. `ej-mod-seance-title`).
+2. Dans `js/20-espace-joueurs.js`, ajouter `ejRegister({ id:'seance', title:'…', desc:'…', box:'ej-mod-seance', titleEl:'ej-mod-seance-title', options:[{id:'anim', label:'…', def:true}] })`.
+3. C'est tout : l'interrupteur, l'ordre, le titre modifiable et les options apparaissent seuls dans Réglages › Espace Joueurs. Le code de la rubrique lit ses options avec `ejOpt('seance','anim')`.

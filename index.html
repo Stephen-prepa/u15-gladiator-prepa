@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Prépa U15 HBCCS — index.html — dernière modification : version z24 (05/11/2026) -->
+<!-- Prépa U15 HBCCS — index.html — dernière modification : version z25 (05/11/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -171,13 +171,14 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
     <h2 style="font-size:20px;font-weight:900;color:var(--blanc);margin-bottom:4px;">📊 Espace Joueurs</h2>
     <div style="font-size:12px;color:var(--gris-texte);margin-bottom:20px;">Vue d'ensemble de l'équipe — pas de données individuelles.</div>
 
-    <div class="club-box" style="background:var(--gris-fonce);border-radius:10px;padding:16px;margin-bottom:16px;">
-      <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">Présence de l'équipe</h3>
+    <div id="ej-modules" style="display:flex;flex-direction:column;gap:16px;">
+    <div class="club-box" id="ej-mod-presence" style="background:var(--gris-fonce);border-radius:10px;padding:16px;">
+      <h3 id="ej-mod-presence-title" style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">Présence de l'équipe</h3>
       <div id="club-stats-pie"><div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div></div>
     </div>
 
-    <div class="club-box" style="background:var(--gris-fonce);border-radius:10px;padding:16px;">
-      <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">🗓️ Programme — objectifs collectifs</h3>
+    <div class="club-box" id="ej-mod-programme" style="background:var(--gris-fonce);border-radius:10px;padding:16px;">
+      <h3 id="ej-mod-programme-title" style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:10px;">🗓️ Programme — objectifs collectifs</h3>
       <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;">
         <button onclick="clubProgressShiftMonth(-1)" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:6px 10px;cursor:pointer;">←</button>
         <div id="club-progress-month-label" style="font-size:13px;font-weight:800;color:var(--jaune);min-width:120px;text-align:center;text-transform:capitalize;"></div>
@@ -185,6 +186,8 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
       </div>
       <div id="club-programme-list"><div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div></div>
     </div>
+    </div>
+    <div id="ej-empty" style="display:none;text-align:center;padding:30px 10px;color:var(--gris-texte);font-size:13px;">Rien à afficher pour le moment.</div>
   </div>
 </div>
 
@@ -1154,6 +1157,11 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
           <input type="text" id="ej-settings-code" class="login-input" placeholder="Code d'accès (vide = aucun code)" style="width:100%;box-sizing:border-box;margin-bottom:8px;text-transform:none;letter-spacing:normal;font-size:14px;">
           <button onclick="ejSettingsSave()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
           <div id="ej-settings-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
+          <div class="rg-sep"></div>
+          <div style="font-size:13px;font-weight:800;margin-bottom:4px;">Rubriques de l'espace joueurs</div>
+          <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Coche = visible par les joueurs. Les nouvelles rubriques ajoutées à l'appli apparaissent ici automatiquement.</div>
+          <div id="ej-modules-ui"></div>
+          <div id="ej-modules-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
         </div></details>
 
 <details class="rg-cat" id="codes-box" data-rg="codes">
@@ -1307,6 +1315,7 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
 <script src="js/16-editeur-schemas-outils.js"></script>
 <script src="js/17-stats-evaluations.js"></script>
 <script src="js/18-reglages-affichage.js"></script>
+<script src="js/20-espace-joueurs.js"></script>
 <script src="js/19-init.js"></script>
 </body>
 </html>
