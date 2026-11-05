@@ -11,7 +11,7 @@ async function statsLoad() {
     await ensureCoachSession();
     const [presRes, playersRes] = await Promise.all([
       fetch(SB_URL + '/rest/v1/presences?select=player_code,status,session_date&order=session_date', { headers: coachAuthHeaders() }),
-      fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null', { headers: SB_HEADERS }),
+      fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null', { headers: coachAuthHeaders() }),
     ]);
     if (!presRes.ok) throw new Error('load failed');
     const pres = await presRes.json();
@@ -465,7 +465,8 @@ async function evaluationsInit() {
 
 async function evaluationsLoadRoster() {
   try {
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,numero&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,numero&claimed_at=not.is.null&order=name', { headers: coachAuthHeaders() });
     evalRoster = res.ok ? await res.json() : [];
   } catch (e) { evalRoster = []; }
 }
@@ -665,8 +666,9 @@ async function loadCoachData() {
   const wrap = document.getElementById('coach-table-wrap');
   wrap.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gris-texte);">Chargement...</div>';
   try {
+    await ensureCoachSession();
     const [pRes, cRes] = await Promise.all([
-      fetch(SB_URL + '/rest/v1/players?select=code,name,claimed_at,device_token,role&order=name', { headers: SB_HEADERS }),
+      fetch(SB_URL + '/rest/v1/players?select=code,name,claimed_at,device_token,role&order=name', { headers: coachAuthHeaders() }),
       fetch(SB_URL + '/rest/v1/completions?select=player_code,session_id,completed_at,difficulty', { headers: SB_HEADERS }),
     ]);
     const players = await pRes.json();

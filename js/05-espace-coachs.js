@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z27b (05/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z28a (05/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -248,8 +248,10 @@ function applyAppSettingsToHome() {
   const btn = document.getElementById('home-btn-ej');
   if (btn) btn.style.display = (appSettings.espace_joueurs_visible === 'false') ? 'none' : 'flex';
 }
-function enterClubSpaceGated() {
-  if (appSettings.espace_joueurs_code) {
+async function enterClubSpaceGated() {
+  let requis = !!appSettings.espace_joueurs_code;   // valeur de secours si le serveur ne répond pas
+  try { requis = !!(await sbRpc('ej_code_requis')); } catch (e) {}
+  if (requis) {
     document.getElementById('ej-code-input').value = '';
     document.getElementById('ej-code-error').textContent = '';
     document.getElementById('ej-code-overlay').style.display = 'flex';
@@ -258,9 +260,11 @@ function enterClubSpaceGated() {
     enterClubSpace();
   }
 }
-function submitEjCode() {
+async function submitEjCode() {
   const val = document.getElementById('ej-code-input').value.trim();
-  if (val && val === appSettings.espace_joueurs_code) {
+  let ok = false;
+  try { ok = !!val && !!(await sbRpc('ej_verifier_code', { p_code: val })); } catch (e) { ok = !!val && val === appSettings.espace_joueurs_code; }
+  if (ok) {
     document.getElementById('ej-code-overlay').style.display = 'none';
     enterClubSpace();
   } else {
@@ -273,6 +277,11 @@ function ejSettingsLoadIntoForm() {
   if (!cb || !codeInput) return;
   cb.checked = appSettings.espace_joueurs_visible !== 'false';
   codeInput.value = appSettings.espace_joueurs_code || '';
+  // Le coach relit le code avec sa propre connexion (le public ne pourra plus le lire après z28b)
+  if (typeof coachSession !== 'undefined' && coachSession) {
+    fetch(SB_URL + '/rest/v1/app_settings?key=eq.espace_joueurs_code&select=value', { headers: coachAuthHeaders() })
+      .then(r => r.ok ? r.json() : []).then(rows => { if (rows[0] && !codeInput.matches(':focus')) codeInput.value = rows[0].value || ''; }).catch(() => {});
+  }
 }
 async function ejSettingsSave() {
   const visible = document.getElementById('ej-settings-visible').checked ? 'true' : 'false';
@@ -481,7 +490,8 @@ function compositionShiftDay(delta) {
 async function compositionLoadRoster() {
   document.getElementById('composition-roster-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Chargement...</div>';
   try {
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes,numero&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes,numero&claimed_at=not.is.null&order=name', { headers: coachAuthHeaders() });
     const rows = await res.json();
     compositionRoster = rows.filter(p => p.code !== 'COACHTEST' && p.name);
   } catch (e) { compositionRoster = []; }

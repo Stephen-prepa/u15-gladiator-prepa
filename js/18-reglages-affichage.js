@@ -9,11 +9,7 @@ function setRole(role) {
 async function sbSyncRole(role) {
   if (!appState.playerCode) return;
   try {
-    await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(appState.playerCode), {
-      method: 'PATCH',
-      headers: { ...SB_HEADERS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role }),
-    });
+    await sbRpc('joueur_role', { p_code: appState.playerCode, p_token: getOrCreateDeviceToken(), p_role: role });
   } catch (e) { /* pas grave, se resynchronisera au prochain changement de role */ }
 }
 function applyRole() {

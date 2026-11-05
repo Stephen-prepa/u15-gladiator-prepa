@@ -170,7 +170,7 @@ async function getPlayerLineupLevels(forceRefresh) {
     await ensureCoachSession();
     const [lineupRes, playersRes] = await Promise.all([
       fetch(SB_URL + '/rest/v1/match_lineup?select=player_code,equipe&equipe=in.(1,2)', { headers: coachAuthHeaders() }),
-      fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null', { headers: SB_HEADERS }),
+      fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null', { headers: coachAuthHeaders() }),
     ]);
     const lineupRows = lineupRes.ok ? await lineupRes.json() : [];
     const players = playersRes.ok ? await playersRes.json() : [];

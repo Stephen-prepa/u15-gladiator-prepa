@@ -16,18 +16,19 @@ const SB_URL = 'https://cponudkorfxtwptwtulq.supabase.co';
 const SB_KEY = 'sb_publishable_nJX25A0br_xcAsvEzUrJCg_olfuuySe';
 const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY };
 
-async function sbValidateCode(code) {
-  const res = await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code) + '&select=*', { headers: SB_HEADERS });
+// Appel d'une fonction serveur Supabase (z28a) : la connexion joueur ne lit plus la table players directement.
+async function sbRpc(fn, args) {
+  const res = await fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { ...SB_HEADERS, 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
   if (!res.ok) throw new Error('network');
-  const rows = await res.json();
-  return rows[0] || null;
+  const t = await res.text();
+  return t ? JSON.parse(t) : null;
+}
+// Renvoie null (code inconnu) ou { claimed, has_token, locked, name, role } — jamais le device_token.
+async function sbValidateCode(code) {
+  return await sbRpc('joueur_connexion', { p_code: code, p_token: getOrCreateDeviceToken() });
 }
 async function sbClaimPlayer(code, name, deviceToken) {
-  await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
-    method: 'PATCH',
-    headers: { ...SB_HEADERS, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: name, claimed_at: new Date().toISOString(), device_token: deviceToken }),
-  }).catch(() => {});
+  return await sbRpc('joueur_reclamer', { p_code: code, p_name: name, p_token: deviceToken });
 }
 function getOrCreateDeviceToken() {
   if (!appState.deviceToken) {
@@ -123,7 +124,7 @@ async function submitLoginCode() {
       return;
     }
     const myDeviceToken = getOrCreateDeviceToken();
-    const locked = code !== 'COACHTEST' && player.claimed_at && player.device_token && player.device_token !== myDeviceToken;
+    const locked = code !== 'COACHTEST' && !!player.locked;
 
     if (locked && nameWrap.dataset.mode !== 'unlock') {
       // Self-service unlock instead of a hard block: ask for the first name on file
@@ -138,18 +139,13 @@ async function submitLoginCode() {
       return;
     }
     if (locked && nameWrap.dataset.mode === 'unlock') {
-      const entered = normalizeName(nameInput.value);
-      if (!entered || entered !== normalizeName(player.name)) {
+      const unlockedName = await sbRpc('joueur_debloquer', { p_code: code, p_name: nameInput.value, p_token: myDeviceToken });   // prénom comparé côté serveur
+      if (!unlockedName) {
         errEl.textContent = 'Prénom incorrect — demande à ton coach de réinitialiser ce code.';
         btn.disabled = false; btn.textContent = 'Redébloquer';
         return;
       }
-      await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
-        method: 'PATCH',
-        headers: { ...SB_HEADERS, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ device_token: myDeviceToken }),
-      }).catch(() => {});
-      appState.playerName = player.name;
+      appState.playerName = unlockedName;
       appState.playerCode = code;
       nameWrap.dataset.mode = '';
       hintEl.style.display = 'none';
@@ -163,7 +159,7 @@ async function submitLoginCode() {
       handlePendingHomeLaunch();
       return;
     }
-    if (!player.claimed_at && nameWrap.style.display === 'none') {
+    if (!player.claimed && nameWrap.style.display === 'none') {
       // First time with this code: ask for a first name
       nameWrap.style.display = 'block';
       nameWrap.dataset.mode = 'claim';
@@ -172,18 +168,15 @@ async function submitLoginCode() {
       nameInput.focus();
       return;
     }
-    if (!player.claimed_at) {
+    if (!player.claimed) {
       const name = nameInput.value.trim();
       if (!name) { errEl.textContent = 'Entre ton prénom.'; btn.disabled = false; btn.textContent = 'Confirmer'; return; }
-      await sbClaimPlayer(code, name, myDeviceToken);
+      const okClaim = await sbClaimPlayer(code, name, myDeviceToken);
+      if (!okClaim) { errEl.textContent = 'Ce code vient d’être utilisé — demande à ton coach.'; btn.disabled = false; btn.textContent = 'Confirmer'; return; }
       appState.playerName = name;
-    } else if (!player.device_token) {
+    } else if (!player.has_token) {
       // Deja revendique avant l'ajout du verrouillage : on adopte cet appareil comme reference
-      await fetch(SB_URL + '/rest/v1/players?code=eq.' + encodeURIComponent(code), {
-        method: 'PATCH',
-        headers: { ...SB_HEADERS, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ device_token: myDeviceToken }),
-      }).catch(() => {});
+      await sbRpc('joueur_adopter', { p_code: code, p_token: myDeviceToken }).catch(() => {});
       appState.playerName = player.name;
     } else {
       appState.playerName = player.name;

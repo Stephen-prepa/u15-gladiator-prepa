@@ -107,6 +107,7 @@ async function homeSessionTrackingLoad() {
   box.style.display = 'block';
   wrap.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
   try {
+    await ensureCoachSession();
     const res = await fetch(SB_URL + '/rest/v1/completions?session_id=eq.' + encodeURIComponent(sid) + '&select=player_code,difficulty,completed_at&order=completed_at.desc', { headers: SB_HEADERS });
     const rows = res.ok ? await res.json() : [];
     if (!rows.length) {
@@ -114,7 +115,7 @@ async function homeSessionTrackingLoad() {
       return;
     }
     const codesParam = rows.map(r => encodeURIComponent(r.player_code)).join(',');
-    const pRes = await fetch(SB_URL + '/rest/v1/players?code=in.(' + codesParam + ')&select=code,name', { headers: SB_HEADERS });
+    const pRes = await fetch(SB_URL + '/rest/v1/players?code=in.(' + codesParam + ')&select=code,name', { headers: coachAuthHeaders() });
     const players = pRes.ok ? await pRes.json() : [];
     const nameByCode = {};
     players.forEach(p => { nameByCode[p.code] = p.name; });

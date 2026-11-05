@@ -126,6 +126,7 @@ Tables utilisées par le code : `players`, `completions`, `presences`, `matches`
 - **2-3 novembre** (z17-z18) : barre du bas réglable, fiche PDF en colonnes, report des modifications sur les étapes suivantes, apparence Clair / Doux / Sombre, bibliothèque en grille de vignettes.
 - **4 novembre** (z19-z21) : mode **Lire / Terrain** (la séance se lit dans l'appli, écran allumé), lecture côte à côte en portrait, sauvegarde renforcée (copie locale par séance, copie « (ma version) » en cas de conflit), animation directement dans le schéma.
 - **5 novembre** (z22) : types d'exercice (situation avec schéma, jeu ludique, renforcement musculaire), chronomètre de terrain avec bips, vibration et bouton muet, fiche PDF adaptée.
+- **5 novembre 2026 (z28a)** : sécurité des joueurs, étape 1 : la connexion joueur, le changement de rôle et le code d'accès de l'Espace Joueurs passent par des fonctions serveur ; les écrans coach lisent `players` avec la connexion coach. Les anciennes règles publiques sont encore actives (fermeture = z28b).
 - **5 novembre 2026 (z27)** : questions des joueurs (poser, valider, répondre en texte / lien YouTube / schéma animé, publier anonymement), rubrique « Questions / réponses », compteur d'attente.
 - **5 novembre 2026 (z26)** : contenus publiés aux joueurs en lecture seule : bouton « 📢 Publier aux joueurs » (menu ⋯ d'une séance, fiche d'un schéma), 3 nouvelles rubriques (Séance du jour, Enclenchements d'attaque, Fonctionnement), lecteur de séance exercice par exercice, animation des schémas sans bouton GIF, gestion dans Réglages › Contenus publiés.
 - **5 novembre 2026 (z25)** : Réglages de l'Espace Joueurs : registre des rubriques, interrupteur / ordre / titre par rubrique, options par rubrique, génération automatique des réglages ; Réglages en 2 colonnes dès ~720 px (iPad vertical).
@@ -138,6 +139,7 @@ Tables utilisées par le code : `players`, `completions`, `presences`, `matches`
 |---|---|---|---|
 | 2026-11-04 | z19-z21 | Mode Lire / Terrain ; sauvegarde renforcée ; animation dans le schéma | (fichier unique, avant découpage) |
 | 2026-11-05 | z22 | Types d'exercice (jeu ludique, renforcement) ; chronomètre de terrain ; fiche PDF adaptée | (fichier unique, avant découpage) |
+| 2026-11-05 | z28a | Fonctions serveur `joueur_*` et `ej_*` ; connexion joueur, rôle et code d'accès via ces fonctions ; écrans coach : lecture de `players` avec la connexion coach | `js/02-etat-supabase.js`, `js/05-espace-coachs.js`, `js/06-joueurs-presences.js`, `js/07-compositions-score.js`, `js/13-accueil-coach.js`, `js/17-stats-evaluations.js`, `js/18-reglages-affichage.js`, `js/00-version.js` |
 | 2026-11-05 | z27b | Miniatures des schémas dans les cartes de l'Espace Joueurs (première étape du schéma) | `js/21-contenus-joueurs.js`, `css/style.css`, `js/00-version.js` (+ en-têtes) |
 | 2026-11-05 | z27 | Questions des joueurs (table `questions_joueurs`, fonction `poser_question`), rubrique joueur, gestion coach | `js/22-questions-joueurs.js` (nouveau), `index.html`, `css/style.css`, `sw.js`, `js/05-espace-coachs.js`, `js/00-version.js` |
 | 2026-11-05 | z26 | Publication aux joueurs (table Supabase `contenus_joueurs`, copie en lecture seule), 3 rubriques, lecteur de séance, gestion des contenus publiés | `js/21-contenus-joueurs.js` (nouveau), `index.html`, `css/style.css`, `sw.js`, `js/05-espace-coachs.js`, `js/08-createur-seances.js`, `js/16-editeur-schemas-outils.js`, `js/00-version.js` |
@@ -155,7 +157,7 @@ Objectif : donner aux joueurs, en lecture seule, du contenu lié à l'entraînem
 2. **z25** (fait) : Réglages de l'Espace Joueurs. Un registre central des rubriques génère la page de réglages : chaque nouvelle rubrique y apparaît toute seule avec son interrupteur (affichée ou non, ordre, titre).
 3. **z26** (fait ; table `contenus_joueurs` créée par migration `z26_contenus_joueurs` : lecture publique des lignes `visible=true`, écriture coachs seulement) : contenu pour les joueurs. Le coach « publie » depuis la bibliothèque de schémas et les séances. Choix retenu : publier une **copie** (le joueur voit ce qui a été publié ; republier après modification). Le camembert de présence et le programme ne sont plus au centre de l'espace.
 4. **z27** (fait) : questions des joueurs.
-5. **z28** : sécurité de `players` (voir ci-dessous).
+5. **z28a** (fait) puis **z28b** (à faire) : sécurité de `players` (voir ci-dessous).
 
 Décisions pour les questions :
 - Le joueur ou le coach peut poser une question. Si c'est un joueur, le coach voit son prénom ou son code personnel.
@@ -183,3 +185,8 @@ Table `questions_joueurs` (migration `z27_questions_joueurs`). Le public ne peut
 
 ### Chantier z28 : sécurité de `players` (à faire, accord du 5 novembre)
 Constat : l'appli lit `players` en accès public à une vingtaine d'endroits (connexion joueur, listes de noms, présences, compositions, stats) et la table expose `device_token`. Fermer la lecture d'un coup casserait la connexion des joueurs. Plan : remplacer chaque lecture publique par des fonctions serveur (connexion par code, liste de noms sans `device_token`, etc.), tester, puis retirer la politique « public read players ». Même chantier : vérifier le code d'accès de l'Espace Joueurs côté serveur (aujourd'hui lisible dans `app_settings`). SQL montré avant application.
+
+### Sécurité joueurs : état après z28a
+Migrations appliquées : `z28a_fonctions_joueur` et `z28a_fix_norm`. Fonctions serveur (accessibles au public, elles ne renvoient jamais le `device_token`) : `joueur_connexion(code, token)`, `joueur_reclamer(code, prénom, token)`, `joueur_debloquer(code, prénom, token)` (prénom comparé côté serveur), `joueur_adopter(code, token)`, `joueur_role(code, token, rôle)` (rôles `joueur` / `gb`), `ej_code_requis()`, `ej_verifier_code(code)`. Règle ajoutée : `players_coach_select` (lecture complète pour les coachs connectés). Dans l'appli, l'appel se fait par `sbRpc(nom, arguments)` (`js/02-etat-supabase.js`).
+Toujours ouvert tant que z28b n'est pas fait : règle publique « public read players » (lecture de toute la table) et « public claim player » (modification des joueurs non réclamés), lecture publique de `app_settings` (dont le code d'accès et `coach_cfg_…`) et de `completions`.
+z28b (après test de z28a) : retirer ces règles publiques ; masquer `espace_joueurs_code` et `coach_cfg_*` à la lecture publique ; décider du sort de `completions` (lecture publique : les écrans joueur lisent-ils cette table ?). Retour arrière prévu : recréer `create policy "public read players" on public.players for select using (true);`.

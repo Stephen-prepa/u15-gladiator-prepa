@@ -473,7 +473,8 @@ async function playerAddManual() {
 async function presenceLoadRoster() {
   document.getElementById('presence-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Chargement...</div>';
   try {
-    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes,numero,device_token&claimed_at=not.is.null&order=name', { headers: SB_HEADERS });
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/players?select=code,name,postes,numero,device_token&claimed_at=not.is.null&order=name', { headers: coachAuthHeaders() });
     const rows = await res.json();
     presenceRoster = rows.filter(p => p.code !== 'COACHTEST' && p.name);
   } catch (e) { presenceRoster = []; }
