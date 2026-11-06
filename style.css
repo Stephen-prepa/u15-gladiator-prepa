@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z28c (06/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z30 (06/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1270,3 +1270,4 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 /* ---- Alerte questions en attente (coach) ---- */
 #qj-alert{display:block;width:100%;box-sizing:border-box;margin:0 0 12px;padding:12px 14px;border:none;border-radius:10px;background:var(--jaune);color:#111;font-weight:800;font-size:14px;text-align:left;cursor:pointer;font-family:inherit;}
 .qj-dot{position:absolute;top:2px;right:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--rouge);color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;}
+.qj-star{position:absolute;top:8px;right:10px;min-width:24px;height:24px;padding:0 7px;box-sizing:border-box;border-radius:12px;background:var(--rouge);color:#fff;font-size:14px;font-weight:800;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.4);}

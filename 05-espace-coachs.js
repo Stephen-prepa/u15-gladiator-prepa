@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z28c (06/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z30 (06/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -217,6 +217,7 @@ function closeMatchDetail(e) {
 }
 
 function goHome() {
+  if (typeof qjAlertTick === 'function') setTimeout(qjAlertTick, 300);
   document.getElementById('screen-app').style.display = 'none';
   document.getElementById('screen-home').style.display = 'flex';
   document.getElementById('login-overlay').style.display = 'none';
@@ -311,6 +312,7 @@ async function ejSettingsSave() {
   }
 }
 function goHomeFromClub() {
+  if (typeof qjAlertTick === 'function') setTimeout(qjAlertTick, 300);
   document.getElementById('screen-club').style.display = 'none';
   document.getElementById('screen-home').style.display = 'flex';
 }

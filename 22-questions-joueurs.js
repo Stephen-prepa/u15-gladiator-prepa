@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/22-questions-joueurs.js — dernière modification : version z28c (06/11/2026)
+// Prépa U15 HBCCS — js/22-questions-joueurs.js — dernière modification : version z30 (06/11/2026)
 // ===================== QUESTIONS DES JOUEURS =====================
 // Table Supabase questions_joueurs. Le joueur pose sa question via la fonction serveur poser_question(code, texte)
 // (elle vérifie le code joueur ; max 3 questions en attente). Le coach valide, répond (texte, lien YouTube, schéma animé)
@@ -136,6 +136,13 @@ async function qjAlertTick() {
 }
 function qjAlertShow() {
   const n = qjPending;
+  // Astérisque sur la carte « Coachs » de la page d'accueil
+  const hb = document.getElementById('home-btn-coachs');
+  if (hb) {
+    let st = hb.querySelector('.qj-star');
+    if (n && !st) { st = document.createElement('span'); st.className = 'qj-star'; st.setAttribute('aria-label', 'Question de joueur à valider'); hb.style.position = 'relative'; hb.appendChild(st); }
+    if (st) { st.textContent = n > 1 ? '✱ ' + n : '✱'; st.style.display = n ? 'flex' : 'none'; }
+  }
   // Pastille sur l'onglet Réglages
   const tab = document.getElementById('cs-subtab-reglages');
   if (tab) {
