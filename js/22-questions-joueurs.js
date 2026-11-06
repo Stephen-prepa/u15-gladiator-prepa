@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/22-questions-joueurs.js — dernière modification : version z27 (05/11/2026)
+// Prépa U15 HBCCS — js/22-questions-joueurs.js — dernière modification : version z30 (06/11/2026)
 // ===================== QUESTIONS DES JOUEURS =====================
 // Table Supabase questions_joueurs. Le joueur pose sa question via la fonction serveur poser_question(code, texte)
 // (elle vérifie le code joueur ; max 3 questions en attente). Le coach valide, répond (texte, lien YouTube, schéma animé)
@@ -72,6 +72,7 @@ function qjAdminRender() {
   const el = document.getElementById('qj-admin'); if (!el) return;
   const nb = qjAdmin.filter(q => q.status === 'en_attente').length;
   const badge = document.getElementById('qj-badge'); if (badge) badge.textContent = nb ? ' · ' + nb + ' en attente' : '';
+  qjPending = nb; qjAlertShow();
   const lbl = { en_attente: '🟡 En attente', publiee: '🟢 Publiée', rejetee: '⚪ Rejetée' };
   const schemas = (typeof schEnsure === 'function') ? (schEnsure(), (schDemo || [])) : [];
   const add = `<div class="ej-row"><input type="text" class="ej-title-input" id="qj-new" maxlength="300" placeholder="Poser une question toi-même (coach)…" style="flex:1 1 70%"><button type="button" class="disp-mini" onclick="qjAdminNew()">Ajouter</button></div>`;
@@ -120,6 +121,51 @@ async function qjAdminDel(id) {
     qjAdmin = qjAdmin.filter(x => x.id !== id); qjAdminRender();
   } catch (e) { alert('Erreur — réessaie.'); }
 }
+
+// ---------------------------------------------------------------- Alerte coach : questions en attente
+let qjPending = 0;
+async function qjAlertTick() {
+  if (typeof coachSession === 'undefined' || !coachSession || document.hidden) return;
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/questions_joueurs?select=id&status=eq.en_attente', { headers: coachAuthHeaders() });
+    if (!res.ok) return;
+    qjPending = (await res.json()).length;
+  } catch (e) { return; }
+  qjAlertShow();
+}
+function qjAlertShow() {
+  const n = qjPending;
+  // Astérisque sur la carte « Coachs » de la page d'accueil
+  const hb = document.getElementById('home-btn-coachs');
+  if (hb) {
+    let st = hb.querySelector('.qj-star');
+    if (n && !st) { st = document.createElement('span'); st.className = 'qj-star'; st.setAttribute('aria-label', 'Question de joueur à valider'); hb.style.position = 'relative'; hb.appendChild(st); }
+    if (st) { st.textContent = n > 1 ? '✱ ' + n : '✱'; st.style.display = n ? 'flex' : 'none'; }
+  }
+  // Pastille sur l'onglet Réglages
+  const tab = document.getElementById('cs-subtab-reglages');
+  if (tab) {
+    let b = tab.querySelector('.qj-dot');
+    if (n && !b) { b = document.createElement('span'); b.className = 'qj-dot'; tab.style.position = 'relative'; tab.appendChild(b); }
+    if (b) { b.textContent = n || ''; b.style.display = n ? 'flex' : 'none'; }
+  }
+  // Bannière en haut de l'accueil coach
+  const box = document.getElementById('cs-box-dashboard');
+  if (!box) return;
+  let a = document.getElementById('qj-alert');
+  if (!n) { if (a) a.style.display = 'none'; return; }
+  if (!a) { a = document.createElement('button'); a.type = 'button'; a.id = 'qj-alert'; a.onclick = qjAlertOpen; box.insertBefore(a, box.firstChild); }
+  a.style.display = 'block';
+  a.textContent = '❓ ' + n + ' question' + (n > 1 ? 's' : '') + ' de joueur' + (n > 1 ? 's' : '') + ' à valider — appuie pour répondre';
+}
+function qjAlertOpen() {
+  coachSubtabSwitch('reglages');
+  const d = document.getElementById('qj-box');
+  if (d) { d.open = true; qjAdminLoad(); setTimeout(() => d.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150); }
+}
+setInterval(qjAlertTick, 60000);
+setTimeout(qjAlertTick, 3000);
 
 ejRegister({ id: 'questions', title: '❓ Questions / réponses', desc: 'Poser une question au coach, réponses publiées (anonymes)', box: 'ej-mod-questions', titleEl: 'ej-mod-questions-title' });
 ejModulesRenderUi();
