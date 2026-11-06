@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z30 (06/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z34 (06/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -7,6 +7,8 @@ const COACH_LOGINS = [
   { login: 'arthur', name: 'Arthur' },
   { login: 'nicolas', name: 'Nicolas' },
 ];
+// Coachs exemptés du verrou « un seul appareil actif » (plusieurs appareils en même temps, sans reconnexion)
+const COACH_SANS_VERROU = ['stephen'];
 const CSK = 'hbccs_coach_session'; // localStorage key, distinct from player appState
 const CDK = 'hbccs_coach_device_token';
 function getOrCreateCoachDeviceToken() {

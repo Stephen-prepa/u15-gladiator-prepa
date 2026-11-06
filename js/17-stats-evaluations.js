@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z34 (06/11/2026)
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
 let statsPlayerRows = [];
 let statsGlobalCounts = { present: 0, absent: 0, excuse: 0, retard: 0 };
@@ -204,7 +204,7 @@ async function coachAuthLogin() {
     // Verrou un seul appareil actif (même principe que côté joueurs) : si ce compte est déjà
     // utilisé sur un autre appareil, on demande confirmation avant de prendre le relais ici.
     const myDeviceToken = getOrCreateCoachDeviceToken();
-    try {
+    if (!COACH_SANS_VERROU.includes(login)) try {
       const cRes = await fetch(SB_URL + '/rest/v1/coaches?id=eq.' + encodeURIComponent(coachSession.id) + '&select=device_token', {
         headers: { apikey: SB_KEY, Authorization: 'Bearer ' + coachSession.access_token },
       });
@@ -274,6 +274,7 @@ async function ensureCoachSession() {
 // (verrou un seul appareil actif). Si un autre appareil a pris le relais depuis, déconnexion propre.
 async function checkCoachDeviceStillActive() {
   if (!coachSession || !coachSession.id) return;
+  if (COACH_SANS_VERROU.includes(coachSession.login)) return;
   try {
     const myDeviceToken = getOrCreateCoachDeviceToken();
     const res = await fetch(SB_URL + '/rest/v1/coaches?id=eq.' + encodeURIComponent(coachSession.id) + '&select=device_token', {
@@ -669,7 +670,7 @@ async function loadCoachData() {
     await ensureCoachSession();
     const [pRes, cRes] = await Promise.all([
       fetch(SB_URL + '/rest/v1/players?select=code,name,claimed_at,device_token,role&order=name', { headers: coachAuthHeaders() }),
-      fetch(SB_URL + '/rest/v1/completions?select=player_code,session_id,completed_at,difficulty', { headers: SB_HEADERS }),
+      fetch(SB_URL + '/rest/v1/completions?select=player_code,session_id,completed_at,difficulty', { headers: coachAuthHeaders() }),
     ]);
     const players = await pRes.json();
     const completions = await cRes.json();
