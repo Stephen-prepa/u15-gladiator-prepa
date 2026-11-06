@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z26 (05/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z31 (06/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -640,29 +640,31 @@ function schDemoData() {
   ];
 }
 let schDemo = null, schUi = { ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '', open: false };
-try { const f = JSON.parse(localStorage.getItem('sch_filter_v1') || '{}'); if (f && SCH_KINDS[f.fk] || f.fk === '-') schUi.fk = f.fk; if (f && SCH_THEMES[f.ft] || f.ft === '-') schUi.ft = f.ft; } catch (e) {}
+try { const f = JSON.parse(localStorage.getItem('sch_filter_v1') || '{}'); if (f && SCH_KINDS[f.fk] || f.fk === '-') schUi.fk = f.fk; if (f && SCH_THEMES[f.ft] || f.ft === '-') schUi.ft = f.ft; if (f && (f.fp === 'pub' || f.fp === 'nopub')) schUi.fp = f.fp; } catch (e) {}
 function schInit() {
   schEnsure();
   schRenderDemo(); schSyncAll();
+  if (typeof ejcPubRefresh === 'function') ejcPubRefresh().then(() => schRenderDemo());
 }
 function schRenderDemo() {
   const box = document.getElementById('sch-demo'); if (!box) return;
   const ex = schDemo[schUi.ex], d0 = ex.drawings[Math.min(schUi.step, ex.drawings.length - 1)], d = schUi.view ? { ...d0, view: schUi.view + (schViewParse(d0.view).rot ? '@' + schViewParse(d0.view).rot : '') } : d0;
   const btn = (on, fn, label) => `<button type="button" class="sch-chip ${on ? 'on' : ''}" onclick="${fn}">${label}</button>`;
   const q = (schUi.q || '').trim().toLowerCase();
-  const okE = e => (schUi.fk === '' || (schUi.fk === '-' ? !e.kind : e.kind === schUi.fk)) && (schUi.ft === '' || (schUi.ft === '-' ? !e.theme : e.theme === schUi.ft)) && (!q || String(e.name).toLowerCase().includes(q));
+  const okE = e => (schUi.fk === '' || (schUi.fk === '-' ? !e.kind : e.kind === schUi.fk)) && (schUi.ft === '' || (schUi.ft === '-' ? !e.theme : e.theme === schUi.ft)) && (!q || String(e.name).toLowerCase().includes(q)) && (!schUi.fp || (schUi.fp === 'pub') === (typeof ejcIsPublished === 'function' && ejcIsPublished(e)));
   const shown = schDemo.map((e, i) => [e, i]).filter(([e, i]) => i === schUi.ex || okE(e)); // l'exercice ouvert reste toujours visible
   const opts = (map, cur, all) => `<option value="">${all}</option>` + Object.keys(map).map(k => `<option value="${k}" ${cur === k ? 'selected' : ''}>${schEsc(map[k])}</option>`).join('') + `<option value="-" ${cur === '-' ? 'selected' : ''}>Non classé</option>`;
   const nMatch = schDemo.filter(okE).length;
   const keepQ = document.activeElement && document.activeElement.id === 'sch-q';
   const fold = `<button type="button" class="sch-fold${schUi.open ? ' open' : ''}" aria-expanded="${schUi.open ? 'true' : 'false'}" onclick="schToggleFolder()"><span class="sch-fold-i">${schUi.open ? '📂' : '📁'}</span><span class="sch-fold-t"><span><b>Mes schémas</b> <small>(${schDemo.length})</small></span><span class="sch-fold-c">${schEsc(ex.name)}</span></span><span class="sch-fold-a">${schUi.open ? '▴' : '▾'}</span></button>`;
-  box.innerHTML = fold + (!schUi.open ? '' : `<div class="sch-bar sch-filt"><select class="sch-fsel" aria-label="Filtrer par type" onchange="schSetFilter('fk',this.value)">${opts(SCH_KINDS, schUi.fk, 'Tous les types')}</select><select class="sch-fsel" aria-label="Filtrer par thème" onchange="schSetFilter('ft',this.value)">${opts(SCH_THEMES, schUi.ft, 'Tous les thèmes')}</select><input id="sch-q" class="sch-fq" type="search" placeholder="Rechercher…" value="${schEsc(schUi.q || '')}" oninput="schSetQuery(this.value)" aria-label="Rechercher un schéma"><span class="sch-fn">${nMatch} / ${schDemo.length}</span></div>`
+  box.innerHTML = fold + (!schUi.open ? '' : `<div class="sch-bar sch-filt"><select class="sch-fsel" aria-label="Filtrer par type" onchange="schSetFilter('fk',this.value)">${opts(SCH_KINDS, schUi.fk, 'Tous les types')}</select><select class="sch-fsel" aria-label="Filtrer par thème" onchange="schSetFilter('ft',this.value)">${opts(SCH_THEMES, schUi.ft, 'Tous les thèmes')}</select><select class="sch-fsel" aria-label="Filtrer par publication" onchange="schSetFilter('fp',this.value)"><option value="">Publiés ou non</option><option value="pub" ${schUi.fp === 'pub' ? 'selected' : ''}>📢 Publiés aux joueurs</option><option value="nopub" ${schUi.fp === 'nopub' ? 'selected' : ''}>Non publiés</option></select><input id="sch-q" class="sch-fq" type="search" placeholder="Rechercher…" value="${schEsc(schUi.q || '')}" oninput="schSetQuery(this.value)" aria-label="Rechercher un schéma"><span class="sch-fn">${nMatch} / ${schDemo.length}</span></div>`
     + `<div class="sch-bar"><button type="button" class="sch-play alt" onclick="schNewExAsk()">＋ Nouvel exercice</button></div>`
-    + `<div class="sch-grid" id="sch-grid">${shown.map(([e, i]) => { const n = (e.drawings || []).length, tg = schTagText(e); return `<button type="button" class="sch-gc ${i === schUi.ex ? 'on' : ''}" onclick="schSet('ex',${i})"><span class="sch-gt">${n ? schDrawingSvg(e.drawings[0], { showBallStart: false }) : ''}</span><span class="sch-gn">${e.user ? '✎ ' : ''}${schEsc(e.name)}</span><span class="sch-gm">${tg ? `<em>${schEsc(tg)}</em>` : ''}<em>${n} étape${n > 1 ? 's' : ''}</em></span></button>`; }).join('') || '<span>Aucun schéma ne correspond.</span>'}</div>`)
+    + `<div class="sch-grid" id="sch-grid">${shown.map(([e, i]) => { const n = (e.drawings || []).length, tg = schTagText(e); return `<button type="button" class="sch-gc ${i === schUi.ex ? 'on' : ''}" onclick="schSet('ex',${i})"><span class="sch-gt">${n ? schDrawingSvg(e.drawings[0], { showBallStart: false }) : ''}</span><span class="sch-gn">${e.user ? '✎ ' : ''}${schEsc(e.name)}</span><span class="sch-gm">${typeof ejcIsPublished === 'function' && ejcIsPublished(e) ? '<em>📢 publié</em>' : ''}${tg ? `<em>${schEsc(tg)}</em>` : ''}<em>${n} étape${n > 1 ? 's' : ''}</em></span></button>`; }).join('') || '<span>Aucun schéma ne correspond.</span>'}</div>`)
     + (schUi.open ? '' : (ex.drawings.length > 1 ? `<div class="sch-bar">${ex.drawings.map((x, i) => btn(i === schUi.step, `schSet('step',${i})`, schEsc(x.title))).join('')}</div>` : '')
     + `<label class="sch-chk"><input type="checkbox" ${schUi.ball ? 'checked' : ''} onchange="schSet('ball',this.checked)"> Afficher le départ du ballon</label>`
     + `<div class="sch-bar"><span id="sch-sync" class="sch-sync">${schSyncLabel(false)}</span><button type="button" class="sch-chip" onclick="schSyncAll()">↻ Synchroniser</button></div>`
-    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schShareCur(this)">📤 Partager (GIF)</button><button type="button" class="sch-play alt" onclick="ejcPubSchema(${schUi.ex})">📢 Publier aux joueurs</button><button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? '✏️ Modifier' : '✏️ Copier et modifier'}</button><button type="button" class="sch-play alt" onclick="schNewExAsk()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
+    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schShareCur(this)">📤 Partager (GIF)</button><button type="button" class="sch-play alt" onclick="ejcPubSchema(${schUi.ex})">${ejcIsPublished(ex) ? '🔄 Republier (mettre à jour)' : '📢 Publier aux joueurs'}</button>${ejcIsPublished(ex) ? `<button type="button" class="sch-play alt" onclick="ejcUnpubSchema(${schUi.ex})">🚫 Dépublier</button>` : ''}<button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? '✏️ Modifier' : '✏️ Copier et modifier'}</button><button type="button" class="sch-play alt" onclick="schNewExAsk()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
+    + (ejcViewLine(ex) ? `<div class="sch-bar"><span class="sch-sync">${ejcViewLine(ex)}</span></div>` : '')
     + `<div class="sch-svg">${schDrawingSvg(d, { showBallStart: schUi.ball })}</div>`
     + (ex.user ? `<div class="sch-bar"><button type="button" class="sch-chip" onclick="schClassUi('edit', schDemo[schUi.ex])">🏷 ${schTagText(ex) ? 'Type et thème : ' + schEsc(schTagText(ex)) : 'Classer ce schéma (type et thème)'}</button></div>` : ''));
   const L = document.getElementById('sch-list'), on = L && L.querySelector('.sch-chip.on'); if (L && on) L.scrollTop = Math.max(0, on.offsetTop - L.offsetTop - 4);
@@ -670,6 +672,6 @@ function schRenderDemo() {
 }
 function schSet(k, v) { schUi[k] = v; if (k === 'ex') { schUi.step = 0; schUi.open = false; } schRenderDemo(); } // choisir un schéma referme le dossier
 function schToggleFolder() { schUi.open = !schUi.open; schRenderDemo(); }
-function schSetFilter(k, v) { schUi[k] = v; try { localStorage.setItem('sch_filter_v1', JSON.stringify({ fk: schUi.fk, ft: schUi.ft })); } catch (e) {} schRenderDemo(); }
+function schSetFilter(k, v) { schUi[k] = v; try { localStorage.setItem('sch_filter_v1', JSON.stringify({ fk: schUi.fk, ft: schUi.ft, fp: schUi.fp })); } catch (e) {} schRenderDemo(); }
 function schSetQuery(v) { schUi.q = v; schRenderDemo(); }
 

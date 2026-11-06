@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/21-contenus-joueurs.js — dernière modification : version z27b (05/11/2026)
+// Prépa U15 HBCCS — js/21-contenus-joueurs.js — dernière modification : version z31 (06/11/2026)
 // ===================== CONTENUS PUBLIÉS AUX JOUEURS (lecture seule) =====================
 // Le coach « publie » une COPIE d'un schéma ou d'une séance dans la table Supabase contenus_joueurs.
 // Les joueurs ne lisent que ces copies (jamais la bibliothèque du coach). Modifier l'original ne change
@@ -50,6 +50,8 @@ function ejcThumb(x) {
 function ejcExCount(p) { return ((p && p.blocks) || []).reduce((s, b) => s + (b.exercises || []).length, 0); }
 function ejcOpen(id) {
   const x = ejcItems.find(i => i.id === id); if (!x) return;
+  // Consultation enregistrée pour le coach (une ouverture = une lecture ; discret, sans message au joueur)
+  if (appState && appState.playerCode && typeof sbRpc === 'function') sbRpc('joueur_vue_contenu', { p_code: appState.playerCode, p_token: getOrCreateDeviceToken(), p_contenu: id }).catch(() => {});
   if (x.kind === 'seance') ejcSeanceOpen(x);
   else ejcPlay(x.title, x.payload && x.payload.drawings);
 }
@@ -121,6 +123,10 @@ async function ejcSave(kind, rubrique, title, sourceId, payload) {
   if (sourceId) {
     const r = await fetch(base + '?select=id&kind=eq.' + kind + '&source_id=eq.' + encodeURIComponent(sourceId), { headers: coachAuthHeaders() });
     if (r.ok) existing = (await r.json())[0] || null;
+  } else if (kind === 'schema' && payload) {
+    // schéma intégré à l'appli (sans identifiant) : on retrouve sa copie par sa clé, ou à défaut par son titre d'origine
+    const r = await fetch(base + '?select=id,title,src_key:payload->>src_key&kind=eq.schema&source_id=is.null', { headers: coachAuthHeaders() });
+    if (r.ok) { const rows = await r.json(); existing = rows.find(x => payload.src_key ? x.src_key === payload.src_key : false) || rows.find(x => !x.src_key && x.title === (payload.orig_name || title)) || null; }
   }
   const row = { kind, rubrique, title, source_id: sourceId || null, payload, visible: true, published_at: new Date().toISOString() };
   const res = existing
@@ -149,7 +155,53 @@ function ejcPubSeance(id) {
 function ejcPubSchema(i) {
   const ex = schDemo[i]; if (!ex || !(ex.drawings || []).length) { alert("Ce schéma n'a pas d'étape à publier."); return; }
   const src = (typeof ex.id === 'string' && /^[0-9a-f-]{36}$/i.test(ex.id)) ? ex.id : null;
-  ejcPubDialog('enclenchements', ['enclenchements', 'fonctionnement'], ex.name || 'Schéma', (t, r) => ejcSave('schema', r, t, src, { drawings: JSON.parse(JSON.stringify(ex.drawings)) }));
+  ejcPubDialog('enclenchements', ['enclenchements', 'fonctionnement'], ex.name || 'Schéma', async (t, r) => {
+    await ejcSave('schema', r, t, src, { drawings: JSON.parse(JSON.stringify(ex.drawings)), src_key: src ? null : (ex.key || ex.name), orig_name: ex.name || '' });
+    await ejcPubRefresh(); if (typeof schRenderDemo === 'function') schRenderDemo();
+  });
+}
+
+// ---------------------------------------------------------------- Côté coach : état de publication des schémas + lectures
+let ejcPubList = [];   // copies de schémas (visibles ou non) : id, title, source_id, visible, src_key
+let ejcViews = [];     // consultations : contenu_id, player_code, nb_vues, derniere_vue
+async function ejcPubRefresh() {
+  if (typeof coachSession === 'undefined' || !coachSession) return;
+  try {
+    await ensureCoachSession();
+    const [a, v] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/contenus_joueurs?select=id,kind,title,source_id,visible,src_key:payload->>src_key&kind=eq.schema&limit=500', { headers: coachAuthHeaders() }),
+      fetch(SB_URL + '/rest/v1/vues_contenus?select=contenu_id,player_code,nb_vues,derniere_vue&limit=5000', { headers: coachAuthHeaders() }),
+    ]);
+    if (a.ok) ejcPubList = await a.json();
+    if (v.ok) ejcViews = await v.json();
+  } catch (e) {}
+}
+// Copie publiée (visible ou non) correspondant à un schéma de la bibliothèque
+function ejcPubRow(ex) {
+  if (!ex) return null;
+  if (ex.user && typeof ex.id === 'string') return ejcPubList.find(r => r.source_id === ex.id) || null;
+  return ejcPubList.find(r => !r.source_id && (r.src_key ? r.src_key === (ex.key || ex.name) : r.title === ex.name)) || null;
+}
+function ejcIsPublished(ex) { const r = ejcPubRow(ex); return !!(r && r.visible); }
+function ejcViewStats(contenuId) {
+  const v = ejcViews.filter(x => x.contenu_id === contenuId);
+  const lectures = v.reduce((s, x) => s + (x.nb_vues || 0), 0);
+  return { joueurs: v.length, lectures, relectures: Math.max(0, lectures - v.length), rows: v };
+}
+function ejcViewLine(ex) {
+  const r = ejcPubRow(ex); if (!r || !r.visible) return '';
+  const s = ejcViewStats(r.id);
+  return `👁 ${s.joueurs} joueur${s.joueurs > 1 ? 's' : ''} · ${s.lectures} lecture${s.lectures > 1 ? 's' : ''} dont ${s.relectures} relecture${s.relectures > 1 ? 's' : ''}`;
+}
+async function ejcUnpubSchema(i) {
+  const ex = schDemo[i], r = ejcPubRow(ex); if (!r) return;
+  if (!confirm('Retirer « ' + (r.title || ex.name) + ' » de l’Espace Joueurs ?\n(L’original reste intact, tu pourras le republier. Les statistiques de lecture sont conservées.)')) return;
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/contenus_joueurs?id=eq.' + r.id, { method: 'PATCH', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ visible: false }) });
+    if (!res.ok) throw new Error();
+    await ejcPubRefresh(); schRenderDemo();
+  } catch (e) { alert('Erreur — réessaie (connexion coach ?).'); }
 }
 
 // ---------------------------------------------------------------- Côté coach : gestion (Réglages › Contenus publiés)
@@ -161,17 +213,30 @@ async function ejcAdminLoad() {
     const res = await fetch(SB_URL + '/rest/v1/contenus_joueurs?select=id,kind,rubrique,title,visible,published_at&order=published_at.desc&limit=200', { headers: coachAuthHeaders() });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     ejcAdmin = await res.json();
+    await ejcPubRefresh();
+    try {
+      const pr = await fetch(SB_URL + '/rest/v1/players?select=code,name&claimed_at=not.is.null&code=neq.COACHTEST&order=name', { headers: coachAuthHeaders() });
+      ejcPlayers = pr.ok ? await pr.json() : [];
+    } catch (e) { ejcPlayers = []; }
   } catch (e) { el.innerHTML = '<div style="color:#e74c3c;font-size:12px;">Impossible de charger (connecte-toi en coach puis rouvre).</div>'; return; }
   ejcAdminRender();
 }
 let ejcAdmin = [];
+let ejcPlayers = [];
 function ejcAdminRender() {
   const el = document.getElementById('ejc-admin'); if (!el) return;
   if (!ejcAdmin.length) { el.innerHTML = '<div style="color:var(--gris-texte);font-size:12px;">Rien de publié. Utilise « 📢 Publier aux joueurs » sur une séance (menu ⋯) ou un schéma.</div>'; return; }
-  el.innerHTML = ejcAdmin.map(x => `<div class="ej-row">
+  const nm = c => { const p = ejcPlayers.find(x => x.code === c); return p ? p.name : 'Joueur'; };
+  el.innerHTML = ejcAdmin.map(x => {
+    const s = ejcViewStats(x.id), seen = new Set(s.rows.map(r => r.player_code));
+    const unseen = ejcPlayers.filter(p => !seen.has(p.code)).map(p => ejcEsc(p.name));
+    const det = `<details class="ejc-views"><summary>👁 ${s.joueurs}${ejcPlayers.length ? ' / ' + ejcPlayers.length : ''} joueur${s.joueurs > 1 ? 's' : ''} · ${s.lectures} lecture${s.lectures > 1 ? 's' : ''} dont ${s.relectures} relecture${s.relectures > 1 ? 's' : ''}</summary>
+      ${s.rows.length ? '<ul>' + s.rows.slice().sort((a, b) => b.nb_vues - a.nb_vues).map(r => `<li><b>${ejcEsc(nm(r.player_code))}</b> — ${r.nb_vues} lecture${r.nb_vues > 1 ? 's' : ''} (${Math.max(0, r.nb_vues - 1)} relecture${r.nb_vues > 2 ? 's' : ''}), dernière le ${ejcDate(r.derniere_vue)}</li>`).join('') + '</ul>' : '<div class="ejc-sm">Personne n’a encore ouvert ce contenu.</div>'}
+      ${unseen.length && s.rows.length ? `<div class="ejc-sm"><b>Pas encore ouvert :</b> ${unseen.join(', ')}</div>` : ''}</details>`;
+    return `<div class="ej-row">
     <input type="checkbox" ${x.visible ? 'checked' : ''} style="width:18px;height:18px;" aria-label="Visible par les joueurs" onchange="ejcAdminSet('${x.id}',{visible:this.checked})">
-    <span class="nm"><b>${ejcEsc(x.title)}</b><small>${ejcEsc(EJC_RUBS[x.rubrique] || x.rubrique)} · publié le ${ejcDate(x.published_at)}</small></span>
-    <button type="button" class="disp-mini" onclick="ejcAdminDel('${x.id}')">Supprimer</button></div>`).join('')
+    <span class="nm"><b>${ejcEsc(x.title)}</b><small>${ejcEsc(EJC_RUBS[x.rubrique] || x.rubrique)} · ${x.visible ? 'publié' : 'masqué'} le ${ejcDate(x.published_at)}</small></span>
+    <button type="button" class="disp-mini" onclick="ejcAdminDel('${x.id}')">Supprimer</button>${det}</div>`; }).join('')
     + '<div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Pour mettre à jour un contenu : republie-le depuis son original (il remplace l’ancienne copie).</div>';
 }
 async function ejcAdminSet(id, fields) {
