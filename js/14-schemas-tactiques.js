@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z33 (06/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -448,20 +448,30 @@ function schAt(tl, t) {
 // ===================== LECTEUR D'ANIMATION (plein écran) =====================
 // Superposition ajoutée à <html> (pas à <body>) : le zoom CSS du body sur iPad ne la déforme pas.
 let schPl = null;
+const SCH_WATERMARK = 'S G';   // filigrane affiché aux joueurs sur les animations (lecture seule) ; à changer ici
+// Filigrane : motif de textes en diagonale, très discret, qui glisse lentement ; ne capte aucun clic.
+function schWatermarkAdd(el) {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="190" height="130"><text x="95" y="68" transform="rotate(-24 95 65)" text-anchor="middle" font-family="Arial,sans-serif" font-size="26" font-weight="700" letter-spacing="3" fill="rgba(255,255,255,0.16)" stroke="rgba(0,0,0,0.10)" stroke-width="0.6">' + SCH_WATERMARK.replace(/[<>&]/g, '') + '</text></svg>';
+  const w = document.createElement('div'); w.className = 'schp-wm';
+  w.style.cssText = 'position:absolute;inset:0;z-index:5;pointer-events:none;background-image:url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '");background-size:190px 130px;animation:schpWm 40s linear infinite;';
+  el.appendChild(w);
+  if (!document.getElementById('schp-wm-style')) { const st = document.createElement('style'); st.id = 'schp-wm-style'; st.textContent = '@keyframes schpWm{from{background-position:0 0}to{background-position:190px 130px}}'; document.head.appendChild(st); }
+}
 function schFmtT(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
 function schPlayerOpen(exIdx, fromStep) { // fromStep : numéro d'étape (0 = première) où démarrer ; depuis l'éditeur, l'étape en cours
   schEnsure();
   const ex = schDemo[exIdx == null ? schUi.ex : exIdx]; if (!ex) return;
   schPlayerOpenData(ex.name, ex.drawings, fromStep);
 }
-function schPlayerOpenData(name, drawings, fromStep) {
+function schPlayerOpenData(name, drawings, fromStep, opts) {
+  const ro = !!(opts && opts.readOnly);   // lecture seule (joueurs) : aucun bouton GIF, et l'export est refusé
   const ex = { name, drawings };
   schPlayerClose();
   const tl = schTimeline(ex.drawings);
   const css = 'position:fixed;inset:0;z-index:99999;background:#0B1220;display:flex;flex-direction:column;color:#fff;font-family:Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;';
   const el = document.createElement('div'); el.id = 'sch-player'; el.style.cssText = css;
   const sp = [0.5, 1, 1.5, 2];
-  el.innerHTML = `<div class="schp-top"><div class="schp-title" id="schp-title"></div><div style="display:flex;gap:8px;"><button type="button" class="schp-btn" id="schp-gif" aria-label="Partager en GIF" style="font-size:15px;padding:0 14px;">📤 GIF</button><button type="button" class="schp-btn" id="schp-close" aria-label="Fermer">✕</button></div></div>`
+  el.innerHTML = `<div class="schp-top"><div class="schp-title" id="schp-title"></div><div style="display:flex;gap:8px;">${ro ? '' : '<button type="button" class="schp-btn" id="schp-gif" aria-label="Partager en GIF" style="font-size:15px;padding:0 14px;">📤 GIF</button>'}<button type="button" class="schp-btn" id="schp-close" aria-label="Fermer">✕</button></div></div>`
     + `<div class="schp-stage" id="schp-stage"></div><div class="schp-warn" id="schp-warn"></div>`
     + `<div class="schp-ctl"><input type="range" id="schp-seek" min="0" max="1000" value="0" aria-label="Position">`
     + `<div class="schp-row"><button type="button" class="schp-btn" id="schp-prev" aria-label="Étape précédente">⏮</button><button type="button" class="schp-btn schp-main" id="schp-play" aria-label="Lecture">⏸</button><button type="button" class="schp-btn" id="schp-next" aria-label="Étape suivante">⏭</button><span class="schp-time" id="schp-time"></span>`
@@ -472,7 +482,9 @@ function schPlayerOpenData(name, drawings, fromStep) {
   document.documentElement.style.overflow = 'hidden';
   const $ = id => el.querySelector('#' + id);
   $('schp-close').onclick = schPlayerClose;
-  $('schp-gif').onclick = () => { if (schPl) schShareGif(schPl.name, schPl.tl.ph.map(x => x.d), $('schp-gif')); };
+  schPl.ro = ro;
+  if (ro) { schWatermarkAdd(el); el.style.webkitTouchCallout = 'none'; el.addEventListener('contextmenu', e => e.preventDefault()); }   // joueurs : filigrane + pas de menu « enregistrer / copier »
+  if ($('schp-gif')) $('schp-gif').onclick = () => { if (schPl && !schPl.ro) schShareGif(schPl.name, schPl.tl.ph.map(x => x.d), $('schp-gif')); };
   $('schp-play').onclick = schPlToggle;
   $('schp-stage').onclick = schPlToggle;
   $('schp-prev').onclick = () => schPlStep(-1);
