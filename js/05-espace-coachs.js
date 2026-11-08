@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z34 (06/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z35 (08/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -203,6 +203,9 @@ function openMatchDetail(matchId) {
         return `<div style="display:flex;justify-content:space-between;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;color:var(--gris-clair);"><span>Tiers-temps ${i + 1}</span><span style="font-weight:800;color:var(--blanc);">${pd}</span></div>`;
       }).join('') + '</div>';
   }
+  const sheetHtml = (m.url_ffhb && /^https:\/\/(www\.)?ffhandball\.fr\//i.test(m.url_ffhb))
+    ? `<a href="${m.url_ffhb}" target="_blank" rel="noopener" style="display:block;margin-top:16px;padding:11px 12px;border-radius:10px;background:var(--jaune);color:#0a1628;font-weight:800;font-size:13px;text-align:center;text-decoration:none;">📄 Feuille de match (site FFHandball)</a>`
+    : '';
   document.getElementById('match-lightbox-content').innerHTML = `
     <div style="text-align:center;">
       <div style="font-size:11px;color:var(--gris-texte);margin-bottom:4px;">Équipe ${m.equipe} · ${homeFmtDateShort(m.debut)}</div>
@@ -210,8 +213,12 @@ function openMatchDetail(matchId) {
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:var(--jaune);">${scoreDisplay}</div>
     </div>
     ${periodsHtml}
+    ${sheetHtml}
   `;
-  document.getElementById('match-lightbox').classList.add('show');
+  // La fenêtre est rangée dans le niveau de la page (et non dans l'écran « Prépa estivale », masqué à l'accueil)
+  const lb = document.getElementById('match-lightbox');
+  if (lb.parentElement !== document.body) document.body.appendChild(lb);
+  lb.classList.add('show');
 }
 function closeMatchDetail(e) {
   if (e && e.target.closest('.img-lightbox-inner') && !e.target.classList.contains('img-lightbox-close')) return;

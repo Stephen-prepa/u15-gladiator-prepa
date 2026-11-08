@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/01-audio-voix.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/01-audio-voix.js — dernière modification : version z35 (08/11/2026)
 // ===================== AUDIO =====================
 let audioCtx = null;
 function unlockAudio() {
@@ -56,7 +56,9 @@ function openImageLightbox(key) {
   if (!key) return;
   document.getElementById('img-lightbox-img').src = IMAGE_BASE + key + '.jpg';
   document.getElementById('img-lightbox-caption').textContent = '';
-  document.getElementById('img-lightbox').classList.add('show');
+  const lbi = document.getElementById('img-lightbox');
+  if (lbi.parentElement !== document.body) document.body.appendChild(lbi);
+  lbi.classList.add('show');
 }
 function closeImageLightbox(e) {
   if (e && e.target.closest('.img-lightbox-inner') && !e.target.classList.contains('img-lightbox-close')) return;
