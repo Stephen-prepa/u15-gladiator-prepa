@@ -1,11 +1,12 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z40 (08/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z41 (08/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
 // Les données viennent de la fonction serveur `ffhb-sync` (bouton « Mettre à jour »). Écrit pour les navigateurs anciens (pas de ?. ni ??).
 const MS_BAREME_KEY = 'coach_cfg_bareme';
 const MS_CLUB = 'CLERMONT SALAGOU';
-const msState = { view: 'matchs', eq: '1', src: null, j: null, data: null, busy: false, jd: null, jeq: 'all', jopen: null };
+const msState = { view: 'matchs', eq: '1', src: null, j: null, data: null, busy: false, jd: null, jeq: 'all', jopen: null, jlay: 'A', jper: 'all', jsort: 'b', jdir: -1 };
+try { var _jl = localStorage.getItem('ms_jlay_v1'); if (_jl === 'A' || _jl === 'B' || _jl === 'C') msState.jlay = _jl; } catch (e) {}
 try { var _v = localStorage.getItem('ms_view_v1'); if (_v === 'joueurs' || _v === 'matchs') msState.view = _v; } catch (e) {}
 
 function msEsc(s) { return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -42,7 +43,7 @@ function msPts(sa, sb, tiers) {
   return { a: pa, b: pb, hasT: hasT };
 }
 
-// ---------- Bascule Matchs | Joueurs (la partie « Joueurs » est l'ancien onglet Stats, inchangé) ----------
+// ---------- Bascule Matchs | Joueurs (la partie « Joueurs » = stats de match ; les stats de présence sont dans Présences › Statistiques depuis z41) ----------
 function msViewSet(v) {
   msState.view = v === 'joueurs' ? 'joueurs' : 'matchs';
   try { localStorage.setItem('ms_view_v1', msState.view); } catch (e) {}
@@ -53,7 +54,7 @@ function msViewSet(v) {
     var b = document.getElementById('ms-sw-' + k);
     if (b) b.className = 'ms-sw' + (k === msState.view ? ' on' : '');
   });
-  if (msState.view === 'matchs') msLoad(); else { msJLoad(); if (typeof statsLoad === 'function') statsLoad(); }
+  if (msState.view === 'matchs') msLoad(); else msJLoad();
 }
 function msInit() { msViewSet(msState.view); }
 
@@ -369,42 +370,144 @@ function msJRender() {
       }).join('') + '<button class="ms-btn ms-main" onclick="msJAssocSave()">Enregistrer les liens</button><div id="ms-jassoc-msg" class="ms-info"></div></details>';
   }
 
-  // cumul de saison par joueur
-  var agg = {}, any = false;
+  // ---- z41 : matchs retenus (équipe + période) ----
+  var mdate = {}, mcodes = [];
   d.stats.forEach(function (s) {
     if (msState.jeq !== 'all' && String(s.equipe) !== msState.jeq) return;
-    any = true;
-    var a = agg[s.licence] || (agg[s.licence] = { lic: s.licence, f: 0, b: 0, b7: 0, t: 0, ar: 0, av: 0, d2: 0, dis: 0, rows: [] });
-    a.f++; a.b += s.buts; a.b7 += s.buts_7m; a.t += s.tirs; a.ar += s.arrets; a.av += s.avertissements; a.d2 += s.deux_min; a.dis += s.disqualifications; a.rows.push(s);
+    if (!mdate[s.fdm_code]) { mdate[s.fdm_code] = s.match_date || ''; mcodes.push(s.fdm_code); }
   });
-  var list = Object.keys(agg).map(function (k) { return agg[k]; }).sort(function (x, y) { return y.b - x.b || y.ar - x.ar || y.t - x.t; });
+  mcodes.sort(function (x, y) { return mdate[x] < mdate[y] ? 1 : mdate[x] > mdate[y] ? -1 : 0; });
+  var nKeep = msState.jper === 'last' ? 1 : msState.jper === 'last3' ? 3 : mcodes.length, keep = {};
+  mcodes.slice(0, nKeep).forEach(function (c) { keep[c] = 1; });
+  var nbMatch = Math.min(nKeep, mcodes.length);
+
+  // gardien = jamais de tir sur l'ensemble des feuilles, avec des arrêts (ou n° 1 sans tir)
+  var gl = {};
+  d.stats.forEach(function (s) { var g = gl[s.licence] || (gl[s.licence] = { ar: 0, t: 0, b: 0 }); g.ar += s.arrets; g.t += s.tirs; g.b += s.buts; });
+  var isGk = function (lic) { var g = gl[lic] || { ar: 0, t: 0, b: 0 }, j = jinfo[lic] || {}; return g.t === 0 && g.b === 0 && (g.ar > 0 || j.numero === 1); };
+
+  // cumul par joueur sur la sélection
+  var agg = {}, any = false, perMatchGk = {};
+  d.stats.forEach(function (s) {
+    if (!keep[s.fdm_code]) return;
+    any = true;
+    var a = agg[s.licence] || (agg[s.licence] = { lic: s.licence, f: 0, b: 0, b7: 0, t: 0, ar: 0, av: 0, d2: 0, dis: 0, sa: 0, so: 0, sm: 0, rows: [] });
+    a.f++; a.b += s.buts; a.b7 += s.buts_7m; a.t += s.tirs; a.ar += s.arrets; a.av += s.avertissements; a.d2 += s.deux_min; a.dis += s.disqualifications; a.rows.push(s);
+    if (isGk(s.licence)) (perMatchGk[s.fdm_code] || (perMatchGk[s.fdm_code] = [])).push(s);
+  });
+  // buts encaissés = score adverse (déjà en base) ; % d'arrêts = arrêts / (arrêts + buts encaissés)
+  var tg = { ar: 0, enc: 0, m: 0 };
+  Object.keys(keep).forEach(function (code) {
+    var pm = pmatch[code], gs = perMatchGk[code] || [];
+    if (!pm || pm.score1 === null || pm.score1 === undefined || pm.score2 === null || pm.score2 === undefined) return;
+    var enc = msIsUs(pm.team1) ? pm.score2 : pm.score1, sum = 0, actifs = [];
+    gs.forEach(function (s) { sum += s.arrets; if (s.arrets > 0) actifs.push(s); });
+    tg.ar += sum; tg.enc += enc; tg.m++;
+    if (actifs.length === 1 && agg[actifs[0].licence]) { var a = agg[actifs[0].licence]; a.sa += actifs[0].arrets; a.so += enc; a.sm++; }
+  });
   var nameOf = function (lic) { var j = jinfo[lic] || {}; return j.player_code && pname[j.player_code] ? pname[j.player_code] : (j.nom || lic); };
-  var tot = { f: 0, b: 0, b7: 0, t: 0, ar: 0, av: 0, d2: 0, dis: 0 };
-  var rowsHtml = list.map(function (a) {
-    ['b', 'b7', 't', 'ar', 'av', 'd2', 'dis'].forEach(function (k) { tot[k] += a[k]; });
-    var open = msState.jopen === a.lic;
-    var det = open ? '<tr class="ms-jdet"><td colspan="6">' + a.rows.map(function (s) {
+  var all = Object.keys(agg).map(function (k) { return agg[k]; });
+  var field = all.filter(function (a) { return !isGk(a.lic); }), gks = all.filter(function (a) { return isGk(a.lic); });
+  var tot = { b: 0, b7: 0, t: 0, av: 0, d2: 0, dis: 0 };
+  field.forEach(function (a) { ['b', 'b7', 't', 'av', 'd2', 'dis'].forEach(function (k) { tot[k] += a[k]; }); });
+  var key = msState.jsort, dir = msState.jdir;
+  var val = function (a) { return key === 'pct' ? (a.t ? a.b / a.t : -1) : key === 't' ? a.t : key === 'n' ? ((jinfo[a.lic] || {}).numero || 0) : key === 'nom' ? nameOf(a.lic).toLowerCase() : a.b; };
+  field.sort(function (x, y) { var u = val(x), v = val(y); var c = u < v ? -1 : u > v ? 1 : 0; return c ? c * dir : (y.b - x.b || y.t - x.t); });
+  gks.sort(function (x, y) { return y.ar - x.ar; });
+
+  // bandeau des leaders
+  var minT = msState.jper === 'all' ? 8 : msState.jper === 'last3' ? 5 : 3;
+  var topB = null, topP = null, topG = null;
+  field.forEach(function (a) { if (!topB || a.b > topB.b) topB = a; if (a.t >= minT && (!topP || a.b / a.t > topP.b / topP.t)) topP = a; });
+  gks.forEach(function (a) { if (!topG || a.ar > topG.ar) topG = a; });
+  var savePct = tg.ar + tg.enc > 0 ? Math.round(100 * tg.ar / (tg.ar + tg.enc)) : null;
+  var leaders = '<div class="mj-lead">' +
+    '<div class="mj-lc mj-hero"><small>Meilleur buteur</small><b>' + (topB && topB.b ? topB.b + ' but' + (topB.b > 1 ? 's' : '') : '–') + '</b><span>' + (topB && topB.b ? msEsc(nameOf(topB.lic)) : '') + '</span></div>' +
+    '<div class="mj-lc"><small>Meilleur % (' + minT + ' tirs min.)</small><b>' + (topP ? msPctJ(topP.b, topP.t) : '–') + '</b><span>' + (topP ? msEsc(nameOf(topP.lic)) : '') + '</span></div>' +
+    '<div class="mj-lc"><small>Meilleur gardien</small><b>' + (topG && topG.ar ? topG.ar + ' arrêt' + (topG.ar > 1 ? 's' : '') : '–') + '</b><span>' + (topG && topG.ar ? msEsc(nameOf(topG.lic)) : '') + '</span></div>' +
+    '<div class="mj-lc"><small>Équipe</small><b>' + tot.b + ' but' + (tot.b > 1 ? 's' : '') + '</b><span>' + msPctJ(tot.b, tot.t) + ' · ' + tot.t + ' tirs · ' + nbMatch + ' match' + (nbMatch > 1 ? 's' : '') + '</span></div></div>';
+
+  // commandes : période, présentation, tri
+  var chip = function (on, fn, lbl) { return '<button class="ms-chip' + (on ? ' on' : '') + '" onclick="' + fn + '">' + lbl + '</button>'; };
+  var perRow = [['all', 'Saison'], ['last', 'Dernier match'], ['last3', '3 derniers']].map(function (c) { return chip(msState.jper === c[0], 'msJPer(\'' + c[0] + '\')', c[1]); }).join('');
+  var layRow = [['A', 'Liste'], ['B', 'Tableau'], ['C', 'Cartes']].map(function (c) { return chip(msState.jlay === c[0], 'msJLay(\'' + c[0] + '\')', c[1]); }).join('');
+  var sortRow = [['b', 'Buts'], ['pct', '%'], ['t', 'Tirs'], ['n', 'N°'], ['nom', 'Nom']].map(function (c) {
+    return chip(key === c[0], 'msJSort(\'' + c[0] + '\')', c[1] + (key === c[0] ? (dir < 0 ? ' ▾' : ' ▴') : ''));
+  }).join('');
+  var ctrl = '<div class="mj-ctl"><span class="mj-ctl-l">Période</span><span class="ms-chips">' + perRow + '</span></div>' +
+    '<div class="mj-ctl"><span class="mj-ctl-l">Vue</span><span class="ms-chips">' + layRow + '</span></div>' +
+    (msState.jlay === 'B' ? '' : '<div class="mj-ctl"><span class="mj-ctl-l">Trier</span><span class="ms-chips">' + sortRow + '</span></div>');
+
+  // blocs réutilisés
+  var pills = function (a) {
+    var s = '';
+    if (a.av) s += '<span class="mj-pl mj-av">AV' + (a.av > 1 ? ' ×' + a.av : '') + '</span>';
+    if (a.d2) s += '<span class="mj-pl mj-d2">2′' + (a.d2 > 1 ? ' ×' + a.d2 : '') + '</span>';
+    if (a.dis) s += '<span class="mj-pl mj-dq">DQ' + (a.dis > 1 ? ' ×' + a.dis : '') + '</span>';
+    return s;
+  };
+  var col = function (p) { return p >= 60 ? 'mj-g' : p >= 40 ? 'mj-o' : 'mj-r'; };
+  var pcn = function (a) { return a.t ? Math.round(100 * a.b / a.t) : 0; };
+  var numOf = function (a) { var j = jinfo[a.lic] || {}; return j.numero !== null && j.numero !== undefined ? j.numero : '·'; };
+  var gkPct = function (a) { return a.sm ? '≈ ' + Math.round(100 * a.sa / (a.sa + a.so)) + ' % d\'arrêts (' + a.sm + ' match' + (a.sm > 1 ? 's' : '') + ' en solo)' : '% d\'arrêts n.d.'; };
+  var detail = function (a) {
+    return a.rows.filter(function (s) { return keep[s.fdm_code]; }).map(function (s) {
       var pm = pmatch[s.fdm_code], lbl = pm ? (pm.journee_num ? 'J' + pm.journee_num + ' · ' : '') + msEsc((msIsUs(pm.team1) ? 'vs ' + pm.team2 : 'à ' + pm.team1)) : msEsc(msDateShort(s.match_date));
-      var bits = [s.buts + ' but' + (s.buts > 1 ? 's' : '') + (s.tirs ? ' / ' + s.tirs + ' tir' + (s.tirs > 1 ? 's' : '') + ' (' + msPctJ(s.buts, s.tirs) + ')' : '')];
+      var bits = [];
+      if (s.tirs || s.buts) bits.push(s.buts + ' but' + (s.buts > 1 ? 's' : '') + (s.tirs ? ' / ' + s.tirs + ' tir' + (s.tirs > 1 ? 's' : '') + ' (' + msPctJ(s.buts, s.tirs) + ')' : ''));
       if (s.buts_7m) bits.push(s.buts_7m + ' sur 7 m');
       if (s.arrets) bits.push(s.arrets + ' arrêt' + (s.arrets > 1 ? 's' : ''));
       if (s.avertissements) bits.push('avert.');
       if (s.deux_min) bits.push(s.deux_min + '× 2 min');
       if (s.disqualifications) bits.push('disqual.');
       if (s.commotions) bits.push('commotion');
-      return '<div><b>' + lbl + '</b> — ' + bits.join(' · ') + '</div>';
-    }).join('') + '</td></tr>' : '';
-    var sanc = [];
-    if (a.av) sanc.push('AV' + (a.av > 1 ? '×' + a.av : ''));
-    if (a.d2) sanc.push('2′' + (a.d2 > 1 ? '×' + a.d2 : ''));
-    if (a.dis) sanc.push('DQ' + (a.dis > 1 ? '×' + a.dis : ''));
-    return '<tr class="ms-jrow" onclick="msJToggle(\'' + msEsc(a.lic) + '\')"><td class="ms-l">' + '<span class="ms-nm">' + (open ? '▾ ' : '▸ ') + msEsc(nameOf(a.lic)) + '</span><br><span class="ms-na">' + a.f + ' feuille' + (a.f > 1 ? 's' : '') + '</span></td>' +
-      '<td><b>' + a.b + '</b>' + (a.b7 ? '<br><span class="ms-na">dont ' + a.b7 + ' 7 m</span>' : '') + '</td><td>' + a.t + '</td><td>' + msPctJ(a.b, a.t) + '</td><td>' + (a.ar || '–') + '</td><td>' + (sanc.length ? sanc.join(' ') : '–') + '</td></tr>' + det;
-  }).join('');
-  var nbF = {}; d.stats.forEach(function (s) { if (msState.jeq === 'all' || String(s.equipe) === msState.jeq) nbF[s.fdm_code] = 1; });
-  var table = any ? '<div class="ms-scroll"><table class="ms-tbl ms-jtbl"><thead><tr><th class="ms-l">Joueur</th><th>Buts</th><th>Tirs</th><th>%</th><th>Arrêts</th><th>Sanct.</th></tr></thead><tbody>' + rowsHtml +
-      '<tr class="ms-us"><td class="ms-l">Total équipe<br><span class="ms-na">' + Object.keys(nbF).length + ' match' + (Object.keys(nbF).length > 1 ? 's' : '') + '</span></td><td>' + tot.b + (tot.b7 ? '<br><span class="ms-na">dont ' + tot.b7 + ' 7 m</span>' : '') + '</td><td>' + tot.t + '</td><td>' + msPctJ(tot.b, tot.t) + '</td><td>' + (tot.ar || '–') + '</td><td>' + ((tot.av || tot.d2 || tot.dis) ? 'AV ' + tot.av + ' · 2′ ' + tot.d2 + (tot.dis ? ' · DQ ' + tot.dis : '') : '–') + '</td></tr></tbody></table></div>' +
-      '<div class="ms-legend">Touche un joueur pour voir match par match. Tirs = total des tirs, buts compris (tirs manqués = tirs − buts). AV = avertissement, 2′ = exclusion de 2 minutes, DQ = disqualification. « feuilles » = feuilles de match où le joueur est inscrit : la feuille ne dit pas s\'il est réellement entré en jeu.</div>'
+      return '<div><b>' + lbl + '</b> — ' + (bits.length ? bits.join(' · ') : 'sur la feuille, sans action') + '</div>';
+    }).join('');
+  };
+  var click = function (a) { return 'onclick="msJToggle(\'' + msEsc(a.lic) + '\')"'; };
+  var isOpen = function (a) { return msState.jopen === a.lic; };
+  var feu = function (a) { return a.f + ' feuille' + (a.f > 1 ? 's' : ''); };
+  var fh = '', gh = '';
+
+  if (msState.jlay === 'B') {
+    var th = function (k, lbl, w) { return '<th class="' + (k === 'nom' ? 'ms-l ' : '') + (key === k ? 'mj-on' : '') + '" style="width:' + w + '%" onclick="msJSort(\'' + k + '\')">' + lbl + (key === k ? (dir < 0 ? ' ▾' : ' ▴') : '') + '</th>'; };
+    fh = '<table class="mj-tbl"><thead><tr>' + th('nom', 'Joueur', 35) + th('b', 'Buts', 14) + th('t', 'Tirs', 12) + th('pct', '%', 21) + '<th style="width:18%">Sanct.</th></tr></thead><tbody>' +
+      field.map(function (a) {
+        var p = pcn(a);
+        return '<tr class="mj-r" ' + click(a) + '><td class="ms-l"><b class="mj-nm">' + (isOpen(a) ? '▾ ' : '') + msEsc(nameOf(a.lic)) + '</b><span class="mj-s">n°' + numOf(a) + ' · ' + feu(a) + '</span></td><td class="mj-bn">' + a.b + '</td><td>' + a.t + '</td><td>' +
+          (a.t ? '<b class="mj-t ' + col(p) + '">' + p + ' %</b><div class="mj-mini"><u class="' + col(p) + '" style="width:' + p + '%"></u></div>' : '–') + '</td><td>' + (pills(a) || '–') + '</td></tr>' +
+          (isOpen(a) ? '<tr class="mj-dr"><td colspan="5">' + detail(a) + '</td></tr>' : '');
+      }).join('') +
+      '<tr class="mj-tot"><td class="ms-l"><b>Total équipe</b></td><td class="mj-bn">' + tot.b + '</td><td>' + tot.t + '</td><td><b>' + msPctJ(tot.b, tot.t) + '</b></td><td>' + ((tot.av || tot.d2 || tot.dis) ? 'AV ' + tot.av + ' · 2′ ' + tot.d2 + (tot.dis ? ' · DQ ' + tot.dis : '') : '–') + '</td></tr></tbody></table>';
+    gh = '<table class="mj-tbl"><thead><tr><th class="ms-l" style="width:46%">Gardien</th><th style="width:16%">Feuilles</th><th class="mj-on" style="width:16%">Arrêts</th><th style="width:22%">% arrêts</th></tr></thead><tbody>' +
+      gks.map(function (a) {
+        return '<tr class="mj-r" ' + click(a) + '><td class="ms-l"><b class="mj-nm">' + (isOpen(a) ? '▾ ' : '') + msEsc(nameOf(a.lic)) + '</b><span class="mj-s">n°' + numOf(a) + '</span></td><td>' + a.f + '</td><td class="mj-bn">' + a.ar + '</td><td>' + (a.sm ? '≈ ' + Math.round(100 * a.sa / (a.sa + a.so)) + ' %' : 'n.d.') + '</td></tr>' +
+          (isOpen(a) ? '<tr class="mj-dr"><td colspan="4">' + detail(a) + '<div>' + gkPct(a) + '</div></td></tr>' : '');
+      }).join('') + '</tbody></table>';
+  } else if (msState.jlay === 'C') {
+    var card = function (a, gk) {
+      var p = pcn(a);
+      var main = gk ? '<div class="mj-gl">' + a.ar + ' <small>arrêt' + (a.ar > 1 ? 's' : '') + '</small></div><div class="mj-st"><span>' + (a.sm ? '≈ ' + Math.round(100 * a.sa / (a.sa + a.so)) + ' % d\'arrêts' : '% n.d.') + '</span></div>'
+        : '<div class="mj-gl">' + a.b + ' <small>but' + (a.b > 1 ? 's' : '') + '</small></div><div class="mj-bar"><u class="' + col(p) + '" style="width:' + p + '%"></u></div><div class="mj-st"><span>' + a.b + '/' + a.t + ' · <b class="mj-t ' + col(p) + '">' + (a.t ? p + ' %' : '–') + '</b></span><span>' + pills(a) + '</span></div>';
+      return '<div class="mj-card' + (isOpen(a) ? ' mj-wide' : '') + '" ' + click(a) + '><span class="mj-bd">' + numOf(a) + '</span><div class="mj-cn">' + msEsc(nameOf(a.lic)) + '</div>' + main +
+        (isOpen(a) ? '<div class="mj-cdet">' + detail(a) + (gk ? '<div>' + gkPct(a) + '</div>' : '') + '</div>' : '') + '</div>';
+    };
+    fh = '<div class="mj-grid">' + field.map(function (a) { return card(a, false); }).join('') + '</div>';
+    gh = '<div class="mj-grid">' + gks.map(function (a) { return card(a, true); }).join('') + '</div>';
+  } else {
+    fh = field.map(function (a) {
+      var p = pcn(a);
+      return '<div class="mj-row" ' + click(a) + '><span class="mj-bd">' + numOf(a) + '</span><div class="mj-mid"><div class="mj-nm">' + msEsc(nameOf(a.lic)) + pills(a) + '</div><div class="mj-s">' + a.b + '/' + a.t + ' tirs · ' + (a.t ? p + ' %' : '–') + (a.b7 ? ' · ' + a.b7 + ' sur 7 m' : '') + ' · ' + feu(a) + '</div><div class="mj-bar"><u class="' + col(p) + '" style="width:' + p + '%"></u></div></div><div class="mj-big"><b>' + a.b + '</b><small>BUTS</small></div></div>' +
+        (isOpen(a) ? '<div class="mj-det">' + detail(a) + '</div>' : '');
+    }).join('');
+    gh = gks.map(function (a) {
+      return '<div class="mj-row" ' + click(a) + '><span class="mj-bd">' + numOf(a) + '</span><div class="mj-mid"><div class="mj-nm">' + msEsc(nameOf(a.lic)) + '</div><div class="mj-s">' + feu(a) + ' · ' + (a.sm ? '≈ ' + Math.round(100 * a.sa / (a.sa + a.so)) + ' % d\'arrêts' : '% n.d.') + '</div></div><div class="mj-big"><b>' + a.ar + '</b><small>ARRÊTS</small></div></div>' +
+        (isOpen(a) ? '<div class="mj-det">' + detail(a) + '<div>' + gkPct(a) + '</div></div>' : '');
+    }).join('');
+  }
+  var gkTitle = '<h4 class="mj-h">Gardiens' + (savePct !== null ? ' <span>· arrêts équipe ' + savePct + ' % (' + tg.ar + ' arrêts, ' + tg.enc + ' buts encaissés' + (tg.m < nbMatch ? ', ' + tg.m + '/' + nbMatch + ' matchs' : '') + ')</span>' : '') + '</h4>';
+  var table = any ? leaders + ctrl + '<h4 class="mj-h">Joueurs de champ</h4>' + (field.length ? fh : '<div class="ms-info">Aucun joueur de champ.</div>') + (gks.length ? gkTitle + gh : '') +
+      '<div class="ms-legend">Touche un joueur pour le détail match par match. Tirs = total des tirs, buts compris (manqués = tirs − buts). AV = avertissement, 2′ = exclusion de 2 min, DQ = disqualification. % d\'arrêts équipe = arrêts ÷ (arrêts + buts encaissés). Pour un gardien, « ≈ » = calculé sur les matchs où il est le seul à avoir des arrêts (la feuille ne dit pas qui était dans le but à chaque but). « feuilles » = feuilles où le joueur est inscrit, pas forcément entré en jeu.</div>'
     : '<div class="ms-info">Aucune stat de joueur pour l\'instant : appuie sur « Mettre à jour les stats des joueurs ».</div>';
 
   // actions non classées (à vérifier)
@@ -417,7 +520,10 @@ function msJRender() {
   Array.prototype.forEach.call(box.querySelectorAll('details[data-ms]'), function (el) { if (open[el.getAttribute('data-ms')] === false) el.open = false; });
   var rep2 = document.getElementById('ms-jreport'); if (rep2) rep2.innerHTML = repHtml;
 }
-function msJSetEq(v) { msState.jeq = v; msJRender(); }
+function msJSetEq(v) { msState.jeq = v; msState.jopen = null; msJRender(); }
+function msJLay(v) { msState.jlay = v; try { localStorage.setItem('ms_jlay_v1', v); } catch (e) {} msJRender(); }
+function msJPer(v) { msState.jper = v; msState.jopen = null; msJRender(); }
+function msJSort(k) { if (msState.jsort === k) msState.jdir = -msState.jdir; else { msState.jsort = k; msState.jdir = (k === 'nom' || k === 'n') ? 1 : -1; } msJRender(); }
 function msJToggle(lic) { msState.jopen = msState.jopen === lic ? null : lic; msJRender(); }
 async function msJAssocSave() {
   var msg = document.getElementById('ms-jassoc-msg'), sels = document.querySelectorAll('#ms-jstats select[data-lic]'), n = 0, bad = 0;

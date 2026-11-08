@@ -925,6 +925,11 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
           <button onclick="playerAddToggleForm()" style="background:none;border:1px solid var(--jaune);color:var(--jaune);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">+ Joueur</button>
         </div>
 
+        <div class="ms-switch" style="margin-bottom:12px;">
+          <button type="button" class="ms-sw" id="pr-sw-saisie" onclick="presViewSet('saisie')">✏️ Saisie</button>
+          <button type="button" class="ms-sw" id="pr-sw-stats" onclick="presViewSet('stats')">📊 Statistiques</button>
+        </div>
+        <div id="pr-saisie">
         <div id="player-add-form" style="display:none;background:var(--noir);border-radius:8px;padding:10px;margin-bottom:14px;">
           <input type="text" id="player-add-name" class="login-input" placeholder="Prénom Nom du joueur" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
           <input type="text" id="player-add-code" class="login-input" placeholder="Code personnalisé (optionnel — sinon généré)" maxlength="20" autocapitalize="characters" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
@@ -949,6 +954,14 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         <div id="presence-list" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;"></div>
         <button onclick="presenceSave()" id="presence-save-btn" style="width:100%;margin-top:12px;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:#1a1a1a;font-weight:800;cursor:pointer;">Enregistrer</button>
         <div id="presence-save-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
+        </div><!-- end pr-saisie -->
+        <div id="pr-stats" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin:0;">📊 Statistiques de présence</h3>
+            <button onclick="statsLoad()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">↻ Actualiser</button>
+          </div>
+          <div id="stats-wrap"><div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Charge après le premier enregistrement de présences.</div></div>
+        </div><!-- end pr-stats -->
       </div>
 
       <div class="cs-box" id="cs-box-stats" style="background:var(--gris-fonce);border-radius:10px;padding:14px;">
@@ -959,11 +972,6 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         <div id="ms-matchs" style="display:none;"></div>
         <div id="ms-joueurs" style="display:none;">
         <div id="ms-jstats"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin:0;">📊 Statistiques</h3>
-          <button onclick="statsLoad()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">↻ Actualiser</button>
-        </div>
-        <div id="stats-wrap"><div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Charge après le premier enregistrement de présences.</div></div>
         </div><!-- end ms-joueurs -->
       </div>
       </div><!-- end coachs2-grid -->

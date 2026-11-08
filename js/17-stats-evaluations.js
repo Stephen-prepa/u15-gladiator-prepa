@@ -1,5 +1,23 @@
-// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z34 (06/11/2026)
+// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z41 (08/11/2026)
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
+// ---------- Présences : bascule Saisie | Statistiques (z41) ----------
+function presViewSet(v) {
+  v = v === 'stats' ? 'stats' : 'saisie';
+  try { localStorage.setItem('pres_view_v1', v); } catch (e) {}
+  var a = document.getElementById('pr-saisie'), b = document.getElementById('pr-stats');
+  if (a) a.style.display = v === 'saisie' ? 'block' : 'none';
+  if (b) b.style.display = v === 'stats' ? 'block' : 'none';
+  ['saisie', 'stats'].forEach(function (k) {
+    var x = document.getElementById('pr-sw-' + k);
+    if (x) x.className = 'ms-sw' + (k === v ? ' on' : '');
+  });
+  if (v === 'stats') statsLoad();
+}
+function presViewInit() {
+  var v = 'saisie';
+  try { v = localStorage.getItem('pres_view_v1') === 'stats' ? 'stats' : 'saisie'; } catch (e) {}
+  presViewSet(v);
+}
 let statsPlayerRows = [];
 let statsGlobalCounts = { present: 0, absent: 0, excuse: 0, retard: 0 };
 let statsSelectedCode = null;
