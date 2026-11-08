@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z36 (08/11/2026)
 // ===== Partage en GIF d'un schéma de la bibliothèque (module Schémas) =====
 // Même principe que l'ancien export : une image par instant de l'animation (celle que montre le lecteur), puis GIF 256 couleurs ; image fixe (PNG) s'il n'y a rien à animer.
 function schGifPalette(svgs) {
@@ -69,6 +69,7 @@ async function schBuildGif(name, drawings) {
   return { blob: new Blob([bytes], { type: 'image/gif' }), type: 'image/gif', ext: 'gif', bytes, frames: frames.length, w: W, h: H };
 }
 async function schShareGif(name, drawings, btn) {
+  if (typeof schPl !== 'undefined' && schPl && schPl.ro) return;   // lecteur en lecture seule (joueurs) : pas d'export GIF
   const lab = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
   try {
@@ -108,7 +109,7 @@ async function homeSessionTrackingLoad() {
   wrap.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
   try {
     await ensureCoachSession();
-    const res = await fetch(SB_URL + '/rest/v1/completions?session_id=eq.' + encodeURIComponent(sid) + '&select=player_code,difficulty,completed_at&order=completed_at.desc', { headers: SB_HEADERS });
+    const res = await fetch(SB_URL + '/rest/v1/completions?session_id=eq.' + encodeURIComponent(sid) + '&select=player_code,difficulty,completed_at&order=completed_at.desc', { headers: coachAuthHeaders() });
     const rows = res.ok ? await res.json() : [];
     if (!rows.length) {
       wrap.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-texte);font-size:12px;">Personne n\'a encore fait la séance.</div>';
@@ -159,6 +160,7 @@ async function dashboardNextMatchLoad() {
     }
   } catch (e) { /* pas grave, le rappel n'est qu'indicatif */ }
 }
+// MIS DE CÔTÉ (z36) : plus appelée tant que le bloc #dash-last-session-box est masqué. Conservée pour pouvoir la ressortir.
 async function dashboardLastSessionLoad() {
   const wrap = document.getElementById('dash-last-session-wrap');
   if (!wrap) return;
@@ -228,7 +230,7 @@ async function dashboardLoad() {
   if (nameEl) nameEl.textContent = coachSession ? coachSession.name : '';
   dashboardNextMatchLoad();
   scoresTodoLoad();
-  dashboardLastSessionLoad();
+  // dashboardLastSessionLoad(); // MIS DE CÔTÉ (z36) : bloc « Dernier entraînement » masqué, voir index.html
   homeSessionTrackingLoad();
   loadAppSettings();
   const wrap = document.getElementById('dash-todo-list');

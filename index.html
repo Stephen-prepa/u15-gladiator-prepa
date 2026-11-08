@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Prépa U15 HBCCS — index.html — dernière modification : version z27b (05/11/2026) -->
+<!-- Prépa U15 HBCCS — index.html — dernière modification : version z36 (08/11/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -901,7 +901,8 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         </div>
 
 
-        <div id="dash-last-session-box" style="margin-top:16px;">
+        <!-- MIS DE CÔTÉ (z36) : bloc « Dernier entraînement » masqué. Pour le ressortir : retirer display:none ci-dessous et remettre « dashboardLastSessionLoad();» dans dashboardLoad() (js/13-accueil-coach.js). -->
+        <div id="dash-last-session-box" style="display:none;margin-top:16px;">
           <div class="section-title" style="margin:0 0 8px;">📋 Dernier entraînement</div>
           <div id="dash-last-session-wrap" style="background:var(--noir);border-radius:8px;padding:10px 12px;"></div>
         </div>
