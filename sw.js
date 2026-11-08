@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — sw.js — dernière modification : version z27b (05/11/2026)
+// Prépa U15 HBCCS — sw.js — dernière modification : version z37 (08/11/2026)
 const CACHE_NAME = 'prepa-u15-hbccs-v2';
 const APP_SHELL = [
   './',
@@ -30,7 +30,9 @@ const APP_SHELL = [
   './js/19-init.js',
   './js/20-espace-joueurs.js',
   './js/21-contenus-joueurs.js',
-  './js/22-questions-joueurs.js'
+  './js/22-questions-joueurs.js',
+  './js/23-matchs-stats.js',
+  './js/24-onglets-coach.js'
 ];
 
 self.addEventListener('install', (event) => {

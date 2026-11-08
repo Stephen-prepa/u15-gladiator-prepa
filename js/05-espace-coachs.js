@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z35 (08/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z37 (08/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -453,6 +453,7 @@ function pickCoachLogin(login) {
 }
 
 function coachSubtabSwitch(name) {
+  if (typeof tbApply === 'function') { tbApply(); if (typeof tbPull === 'function') tbPull(); }
   if (name === 'evaluations' && coachSession && coachSession.name === 'Sandrine') name = 'presence';
   const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', schemas: 'cs-box-schemas', composition: 'cs-box-composition', outils: 'cs-box-outils', evaluations: 'cs-box-evaluations', reglages: 'cs-box-reglages' };
   Object.keys(boxes).forEach(key => {
@@ -469,8 +470,10 @@ function coachSubtabSwitch(name) {
   if (name === 'outils') { outilsInit(); outilsPaneInit(); }
   if (name === 'evaluations') evaluationsInit();
   if (name === 'reglages') { loadAppSettings(); try { dispRenderUi(); pwUiInit(); } catch (e) {} try { crCfgRenderUi(); crCfgPull(); } catch (e) {} }
+  if (name === 'stats' && typeof msInit === 'function') msInit();
   if (name === 'seance') seancePaneInit();
   if (name === 'schemas') schInit();
+  if (typeof tbMarkActive === 'function') tbMarkActive(name);
   if (typeof qjAlertTick === 'function') qjAlertTick();
 }
 

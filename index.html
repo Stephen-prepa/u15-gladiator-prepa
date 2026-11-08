@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Prépa U15 HBCCS — index.html — dernière modification : version z36 (08/11/2026) -->
+<!-- Prépa U15 HBCCS — index.html — dernière modification : version z37 (08/11/2026) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -870,7 +870,7 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
       </div>
       <div class="coachs2-subtabs coachs2-subtabs-bottom">
         <button type="button" class="cs-tab" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')">
-          <span class="cs-tab-icon">📊</span><span class="cs-tab-label">Stats</span>
+          <span class="cs-tab-icon">📊</span><span class="cs-tab-label">Matchs & Stats</span>
         </button>
         <button type="button" class="cs-tab" id="cs-subtab-programme" onclick="coachSubtabSwitch('programme')">
           <span class="cs-tab-icon">🗓️</span><span class="cs-tab-label">Programme</span>
@@ -952,11 +952,18 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
       </div>
 
       <div class="cs-box" id="cs-box-stats" style="background:var(--gris-fonce);border-radius:10px;padding:14px;">
+        <div class="ms-switch">
+          <button type="button" class="ms-sw" id="ms-sw-matchs" onclick="msViewSet('matchs')">⚽ Matchs</button>
+          <button type="button" class="ms-sw" id="ms-sw-joueurs" onclick="msViewSet('joueurs')">👥 Joueurs</button>
+        </div>
+        <div id="ms-matchs" style="display:none;"></div>
+        <div id="ms-joueurs" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin:0;">📊 Statistiques</h3>
           <button onclick="statsLoad()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">↻ Actualiser</button>
         </div>
         <div id="stats-wrap"><div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Charge après le premier enregistrement de présences.</div></div>
+        </div><!-- end ms-joueurs -->
       </div>
       </div><!-- end coachs2-grid -->
 
@@ -1189,6 +1196,15 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
           <summary><span class="rg-ttl">❓ Questions des joueurs<small>Valider, répondre, publier<span id="qj-badge"></span></small></span></summary>
           <div class="rg-body"><div id="qj-admin"></div></div></details>
 
+<details class="rg-cat" id="tb-box" data-rg="tb" ontoggle="if(this.open&&typeof tbRenderUi==='function')tbRenderUi()">
+          <summary><span class="rg-ttl">🧭 Organisation des onglets<small>Place chaque onglet : haut, bas ou menu « Plus ▾ »</small></span></summary>
+          <div class="rg-body">
+            <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Appliqué immédiatement et sur tous tes appareils. Accueil et Réglages ne peuvent pas aller dans « Plus ». Conseil : 6 onglets en haut, 4 à 5 en bas, le reste dans « Plus ».</div>
+            <div id="tb-ui"></div>
+            <button onclick="tbReset()" style="width:100%;padding:8px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:12px;cursor:pointer;margin-top:12px;">↺ Remettre l'organisation d'origine</button>
+            <div id="tb-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
+          </div></details>
+
 <details class="rg-cat" id="codes-box" data-rg="codes">
           <summary><span class="rg-ttl">🔑 Codes joueurs<small>Débloquer ou réinitialiser le code d'un joueur</small></span></summary>
           <div class="rg-body">
@@ -1343,6 +1359,8 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
 <script src="js/20-espace-joueurs.js"></script>
 <script src="js/21-contenus-joueurs.js"></script>
 <script src="js/22-questions-joueurs.js"></script>
+<script src="js/23-matchs-stats.js"></script>
+<script src="js/24-onglets-coach.js"></script>
 <script src="js/19-init.js"></script>
 </body>
 </html>
