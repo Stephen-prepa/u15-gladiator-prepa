@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z41 (08/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z42 (08/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -92,7 +92,7 @@ function msRender() {
   var box = document.getElementById('ms-matchs'), d = msState.data;
   if (!box || !d) return;
   var html = '<div class="ms-bar"><button class="ms-btn ms-main" id="ms-sync-btn" onclick="msSync()">🔄 Mettre à jour depuis la FFHandball</button></div>' +
-    '<div id="ms-report"></div>' + msMineHtml(d) + msPouleHtml(d) + msSourcesHtml(d);
+    '<div id="ms-report"></div>' + '<div class="ms-cols"><div class="ms-c1">' + msMineHtml(d) + '</div><div class="ms-c2">' + msPouleHtml(d) + msSourcesHtml(d) + '</div></div>';
   // on garde ouverts les volets <details> déjà ouverts
   var open = {};
   Array.prototype.forEach.call(box.querySelectorAll('details[data-ms]'), function (el) { open[el.getAttribute('data-ms')] = el.open; });
@@ -506,7 +506,8 @@ function msJRender() {
     }).join('');
   }
   var gkTitle = '<h4 class="mj-h">Gardiens' + (savePct !== null ? ' <span>· arrêts équipe ' + savePct + ' % (' + tg.ar + ' arrêts, ' + tg.enc + ' buts encaissés' + (tg.m < nbMatch ? ', ' + tg.m + '/' + nbMatch + ' matchs' : '') + ')</span>' : '') + '</h4>';
-  var table = any ? leaders + ctrl + '<h4 class="mj-h">Joueurs de champ</h4>' + (field.length ? fh : '<div class="ms-info">Aucun joueur de champ.</div>') + (gks.length ? gkTitle + gh : '') +
+  var tLeft = any ? leaders + ctrl + '<h4 class="mj-h">Joueurs de champ</h4>' + (field.length ? fh : '<div class="ms-info">Aucun joueur de champ.</div>') : '';
+  var table = any ? (gks.length ? gkTitle + gh : '') +
       '<div class="ms-legend">Touche un joueur pour le détail match par match. Tirs = total des tirs, buts compris (manqués = tirs − buts). AV = avertissement, 2′ = exclusion de 2 min, DQ = disqualification. % d\'arrêts équipe = arrêts ÷ (arrêts + buts encaissés). Pour un gardien, « ≈ » = calculé sur les matchs où il est le seul à avoir des arrêts (la feuille ne dit pas qui était dans le but à chaque but). « feuilles » = feuilles où le joueur est inscrit, pas forcément entré en jeu.</div>'
     : '<div class="ms-info">Aucune stat de joueur pour l\'instant : appuie sur « Mettre à jour les stats des joueurs ».</div>';
 
@@ -516,7 +517,7 @@ function msJRender() {
   var oddHtml = odd.length ? '<div class="ms-note"><b>Actions de la feuille non classées (à vérifier) :</b><br>' + odd.join('<br>') + '</div>' : '';
 
   var open = {}; Array.prototype.forEach.call(box.querySelectorAll('details[data-ms]'), function (el) { open[el.getAttribute('data-ms')] = el.open; });
-  box.innerHTML = head + assoc + table + oddHtml;
+  box.innerHTML = head + (any ? '<div class="ms-cols"><div class="ms-c1">' + tLeft + '</div><div class="ms-c2">' + assoc + table + oddHtml + '</div></div>' : assoc + table + oddHtml);
   Array.prototype.forEach.call(box.querySelectorAll('details[data-ms]'), function (el) { if (open[el.getAttribute('data-ms')] === false) el.open = false; });
   var rep2 = document.getElementById('ms-jreport'); if (rep2) rep2.innerHTML = repHtml;
 }

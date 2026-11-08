@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/24-onglets-coach.js — dernière modification : version z37 (08/11/2026)
+// Prépa U15 HBCCS — js/24-onglets-coach.js — dernière modification : version z42 (08/11/2026)
 // ===================== ORGANISATION DES ONGLETS DU COACH =====================
 // Chaque onglet peut être placé : rangée du haut, barre du bas, ou menu « Plus ▾ ». L'ordre se règle dans Réglages.
 // Les boutons existent déjà dans index.html (ids cs-subtab-<id>) : on ne fait que les DÉPLACER (rien n'est supprimé).
@@ -67,9 +67,12 @@ function tbApply() {
   var top = document.querySelector('.coachs2-subtabs-top'), bot = document.querySelector('.coachs2-subtabs-bottom'), menu = tbMenuEl();
   if (!top || !bot || !menu) return;
   var cfg = tbCfg();
+  var merge = typeof dispBarMerge === 'function' && dispBarMerge();
   var put = function (zone, ids) { ids.forEach(function (id) { var b = document.getElementById('cs-subtab-' + id); if (b) zone.appendChild(b); }); };
-  put(top, cfg.top); put(bot, cfg.bottom); put(menu, cfg.more);
+  // Grand écran (PC/Mac) : une seule rangée en haut avec tous les onglets (z42) ; pas de barre du bas ni de « Plus »
+  if (merge) put(top, cfg.top.concat(cfg.bottom, cfg.more)); else { put(top, cfg.top); put(bot, cfg.bottom); put(menu, cfg.more); }
   var plus = document.getElementById('cs-subtab-plus');
+  if (merge) { if (plus) plus.remove(); menu.style.display = 'none'; return; }
   if (cfg.more.length) {
     if (!plus) {
       plus = document.createElement('button');

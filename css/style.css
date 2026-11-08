@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z41 (08/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z42 (08/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1380,3 +1380,17 @@ u.mj-g{background:#2ecc71;} u.mj-o{background:#f39c12;} u.mj-r{background:#e74c3
 .mj-gl{font-size:32px;font-weight:800;line-height:1;margin-top:6px;color:var(--blanc);} .mj-gl small{font-size:11px;color:var(--gris-texte);font-weight:700;}
 .mj-st{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:11px;color:var(--gris-texte);margin-top:6px;}
 .mj-cdet{margin-top:8px;padding-top:6px;border-top:1px solid rgba(127,140,170,.25);font-size:11.5px;color:var(--gris-clair);line-height:1.5;}
+
+/* ===== z42 : grand écran PC / Mac (>= 1100 px) — le module affiché prend toute la largeur, centré, avec 2 colonnes dans les pages lourdes ===== */
+@media (min-width:1100px){
+  .coachs2-grid{grid-template-columns:minmax(0,1fr);}
+  .ms-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;}
+  #cs-box-presence:not(.cs-hide){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;align-items:start;}
+  #cs-box-presence > div:first-child{grid-column:1 / -1;}
+  #cs-box-presence > .ms-switch{display:none;}
+  #cs-box-presence #pr-saisie,#cs-box-presence #pr-stats{display:block !important;}
+  .home-wrap,.home-buttons{max-width:1100px;}
+  .home-buttons{grid-template-columns:repeat(4,1fr);}
+}
+@media (min-width:1300px){ .coachs2-wrap{max-width:1260px;} }
+@media (min-width:1400px){ .coachs2-wrap{max-width:1260px;} .home-wrap,.home-buttons{max-width:1260px;} }
