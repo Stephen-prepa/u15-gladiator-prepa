@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z37 (08/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z39 (08/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -20,13 +20,14 @@ function msPdfLink(code, fallbackUrl) {
 }
 
 // ---------- Règle de points (UNE seule fonction, utilisée partout) ----------
-// 1 point par tiers-temps gagné + 3 par match gagné (nul : valeur « nul », 0 par défaut). Tiers-temps nul = 0.
+// Règlement FFHandball « -15 ans Régional » : match gagné 3 pts, nul 2 pts, perdu 1 pt, + 1 pt par tiers-temps gagné (un tiers-temps ne peut pas être nul : but en or).
+// Forfait / pénalité (0 pt) : non détectable automatiquement, compté comme une défaite normale.
 function msBareme() {
-  var b = { tier: 1, win: 3, draw: 0 };
+  var b = { tier: 1, win: 3, draw: 2, lose: 1 };
   try {
     var raw = msState.data && msState.data.bareme;
     var o = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : null;
-    if (o) { ['tier', 'win', 'draw'].forEach(function (k) { var n = parseInt(o[k], 10); if (!isNaN(n) && n >= 0 && n <= 20) b[k] = n; }); }
+    if (o) { ['tier', 'win', 'draw', 'lose'].forEach(function (k) { var n = parseInt(o[k], 10); if (!isNaN(n) && n >= 0 && n <= 20) b[k] = n; }); }
   } catch (e) {}
   return b;
 }
@@ -37,7 +38,7 @@ function msPts(sa, sb, tiers) {
     hasT = true;
     tiers.forEach(function (t) { if (t[0] > t[1]) pa += bar.tier; else if (t[1] > t[0]) pb += bar.tier; });
   }
-  if (sa > sb) pa += bar.win; else if (sb > sa) pb += bar.win; else { pa += bar.draw; pb += bar.draw; }
+  if (sa > sb) { pa += bar.win; pb += bar.lose; } else if (sb > sa) { pb += bar.win; pa += bar.lose; } else { pa += bar.draw; pb += bar.draw; }
   return { a: pa, b: pb, hasT: hasT };
 }
 
@@ -123,7 +124,7 @@ function msMineHtml(d) {
   }).join('');
   return '<div class="ms-h">Mes matchs <span class="ms-chips">' + chips + '</span></div>' +
     (rows ? '<div class="ms-scroll"><table class="ms-tbl"><thead><tr><th>J</th><th>Date</th><th class="ms-l">Match</th><th>Score</th><th>MT</th><th>T1</th><th>T2</th><th>T3</th><th>Pts</th><th>Feuille</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<div class="ms-legend">Scores « nous–eux ». MT = mi-temps. T1/T2/T3 = tiers-temps. Pts = points gagnés par nous – par l\'adversaire (1 par tiers-temps gagné, 3 par match gagné). * = tiers-temps inconnus.</div>'
+      '<div class="ms-legend">Scores « nous–eux ». MT = mi-temps. T1/T2/T3 = tiers-temps. Pts = points gagnés par nous – par l\'adversaire (règlement : victoire 3, nul 2, défaite 1, + 1 par tiers-temps gagné). * = tiers-temps inconnus.</div>'
       : '<div class="ms-info">Aucun match pour cette équipe.</div>');
 }
 function msSetEq(v) { msState.eq = v; msRender(); }
@@ -185,7 +186,7 @@ function msPouleHtml(d) {
     '<div class="ms-scroll"><table class="ms-tbl"><thead><tr><th class="ms-l">Équipe 1</th><th>Score</th><th class="ms-l">Équipe 2</th><th>Tiers-temps</th><th>Pts</th><th>Feuille</th></tr></thead><tbody>' + dayRows + '</tbody></table></div>' +
     '<details class="ms-det" data-ms="glanes"><summary>Points glanés par chaque équipe, journée par journée</summary><div class="ms-scroll"><table class="ms-tbl"><thead><tr><th class="ms-l">Équipe</th>' +
     js.filter(function (n) { return n <= msState.j; }).map(function (n) { return '<th>J' + n + '</th>'; }).join('') + '<th>Total</th></tr></thead><tbody>' + gl + '</tbody></table></div></details>' +
-    '<div class="ms-legend">' + bar.tier + ' point par tiers-temps gagné, ' + bar.win + ' par match gagné' + (bar.draw ? ', ' + bar.draw + ' par nul' : '') + '. Départage : points, différence de buts, buts marqués.' +
+    '<div class="ms-legend">' + bar.tier + ' point par tiers-temps gagné + ' + bar.win + ' par match gagné, ' + bar.draw + ' par nul, ' + bar.lose + ' par défaite (règlement -15 ans Régional ; forfait non géré). Départage : points, différence de buts, buts marqués.' +
     (anyNoTiers ? ' Certains tiers-temps sont inconnus : seuls les points de match sont comptés pour ces rencontres.' : '') + '</div>';
 }
 function msSetSrc(id) { msState.src = id; msState.j = null; msRender(); }
@@ -208,6 +209,7 @@ function msSourcesHtml(d) {
     '<div class="ms-sub">Barème de points</div><div class="ms-add"><label>Par tiers-temps gagné <input id="ms-b-tier" class="ms-in ms-num" type="number" min="0" max="20" value="' + bar.tier + '"></label>' +
     '<label>Par victoire <input id="ms-b-win" class="ms-in ms-num" type="number" min="0" max="20" value="' + bar.win + '"></label>' +
     '<label>Par nul <input id="ms-b-draw" class="ms-in ms-num" type="number" min="0" max="20" value="' + bar.draw + '"></label>' +
+    '<label>Par défaite <input id="ms-b-lose" class="ms-in ms-num" type="number" min="0" max="20" value="' + bar.lose + '"></label>' +
     '<button class="ms-btn" onclick="msBaremeSave()">Enregistrer le barème</button><div id="ms-b-msg" class="ms-info"></div></div></details>';
 }
 
@@ -253,8 +255,8 @@ async function msSrcDel(id) {
 }
 async function msBaremeSave() {
   var msg = document.getElementById('ms-b-msg');
-  var v = { tier: parseInt(document.getElementById('ms-b-tier').value, 10), win: parseInt(document.getElementById('ms-b-win').value, 10), draw: parseInt(document.getElementById('ms-b-draw').value, 10) };
-  if (['tier', 'win', 'draw'].some(function (k) { return isNaN(v[k]) || v[k] < 0 || v[k] > 20; })) { msg.style.color = '#e74c3c'; msg.textContent = 'Valeurs entre 0 et 20.'; return; }
+  var v = { tier: parseInt(document.getElementById('ms-b-tier').value, 10), win: parseInt(document.getElementById('ms-b-win').value, 10), draw: parseInt(document.getElementById('ms-b-draw').value, 10), lose: parseInt(document.getElementById('ms-b-lose').value, 10) };
+  if (['tier', 'win', 'draw', 'lose'].some(function (k) { return isNaN(v[k]) || v[k] < 0 || v[k] > 20; })) { msg.style.color = '#e74c3c'; msg.textContent = 'Valeurs entre 0 et 20.'; return; }
   try {
     await ensureCoachSession();
     var res = await fetch(SB_URL + '/rest/v1/app_settings?on_conflict=key', {
