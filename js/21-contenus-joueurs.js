@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/21-contenus-joueurs.js — dernière modification : version z31 (06/11/2026)
+// Prépa U15 HBCCS — js/21-contenus-joueurs.js — dernière modification : version z32 (06/11/2026)
 // ===================== CONTENUS PUBLIÉS AUX JOUEURS (lecture seule) =====================
 // Le coach « publie » une COPIE d'un schéma ou d'une séance dans la table Supabase contenus_joueurs.
 // Les joueurs ne lisent que ces copies (jamais la bibliothèque du coach). Modifier l'original ne change
@@ -57,8 +57,7 @@ function ejcOpen(id) {
 }
 function ejcPlay(name, drawings) {
   if (!drawings || !drawings.length) { alert("Pas d'animation disponible."); return; }
-  schPlayerOpenData(name, drawings, 0);
-  const p = document.getElementById('sch-player'); if (p) p.classList.add('ej-ro');   // lecture seule : on cache le partage GIF
+  schPlayerOpenData(name, drawings, 0, { readOnly: true });   // lecture seule : pas de bouton GIF (retiré du lecteur, export refusé)
 }
 
 // Lecteur de séance, exercice par exercice

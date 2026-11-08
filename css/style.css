@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z37 (08/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z40 (08/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1281,7 +1281,7 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 .ms-sw.on{border-color:var(--jaune);background:rgba(255,215,0,.12);color:var(--jaune);}
 .ms-bar{margin-bottom:10px;}
 .ms-btn{padding:8px 12px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:transparent;color:var(--gris-clair);font-size:12px;font-weight:700;cursor:pointer;}
-.ms-btn.ms-main{width:100%;border:none;background:var(--jaune);color:#1a1a1a;font-weight:800;font-size:13px;padding:11px;}
+.ms-btn.ms-main{width:100%;border:none;background:var(--jaune);color:var(--c-onacc,#1a1a1a);font-weight:800;font-size:13px;padding:11px;}
 .ms-btn:disabled{opacity:.6;}
 .ms-h{font-size:14px;font-weight:800;color:var(--blanc);margin:16px 0 8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
 .ms-sub{font-size:11px;font-weight:800;color:var(--gris-texte);text-transform:uppercase;margin:12px 0 6px;}
@@ -1328,3 +1328,12 @@ html[data-coach=dark]{--c-card:#0F2142;--c-bg:#0A1628;--c-bg2:#0E1F3D;--c-line:#
 #cs-more-menu .cs-tab-label{font-size:13px;}
 #cs-more-menu .cs-tab-icon{font-size:17px;}
 html[data-bar=normal] #cs-more-menu{bottom:calc(112px + env(safe-area-inset-bottom));}
+
+/* ---- z40 : stats des joueurs (feuilles de match) ---- */
+.ms-jrow{cursor:pointer;} .ms-jrow:active td{background:rgba(255,255,255,.06);}
+.ms-jdet td{text-align:left;font-size:11px;color:var(--gris-clair);white-space:normal;padding:6px 10px 10px;background:rgba(255,255,255,.04);}
+.ms-jdet div{margin:2px 0;}
+.ms-assoc{display:flex;align-items:center;gap:8px;margin:6px 0;} .ms-assoc-n{flex:0 0 46%;font-size:12px;color:var(--blanc);font-weight:700;} .ms-assoc .ms-sel{flex:1;min-width:0;}
+#ms-jstats{margin-bottom:18px;}
+.ms-jtbl td.ms-l{white-space:normal;} .ms-jtbl .ms-na{font-size:10px;font-weight:400;} .ms-jtbl th,.ms-jtbl td{padding:6px 3px;} .ms-jtbl th{font-size:9px;} .ms-jtbl .ms-nm{white-space:nowrap;}
+.ms-jtbl{table-layout:fixed;white-space:normal;} .ms-jtbl th:nth-child(1){width:31%;} .ms-jtbl th:nth-child(2){width:15%;} .ms-jtbl th:nth-child(3){width:12%;} .ms-jtbl th:nth-child(4){width:13%;} .ms-jtbl th:nth-child(5){width:14%;} .ms-jtbl th:nth-child(6){width:15%;}

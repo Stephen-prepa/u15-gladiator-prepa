@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z37 (08/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z38 (08/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -203,8 +203,12 @@ function openMatchDetail(matchId) {
         return `<div style="display:flex;justify-content:space-between;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;color:var(--gris-clair);"><span>Tiers-temps ${i + 1}</span><span style="font-weight:800;color:var(--blanc);">${pd}</span></div>`;
       }).join('') + '</div>';
   }
-  const sheetHtml = (m.url_ffhb && /^https:\/\/(www\.)?ffhandball\.fr\//i.test(m.url_ffhb))
-    ? `<a href="${m.url_ffhb}" target="_blank" rel="noopener" style="display:block;margin-top:16px;padding:11px 12px;border-radius:10px;background:var(--jaune);color:#0a1628;font-weight:800;font-size:13px;text-align:center;text-decoration:none;">📄 Feuille de match (site FFHandball)</a>`
+  // Feuille de match : lien direct vers le PDF si le code FFHandball est connu (rempli par « Mettre à jour » dans Matchs & Stats), sinon page du match
+  const fdm = (m.fdm_code && /^[A-Za-z0-9]{6,}$/.test(m.fdm_code)) ? `https://fdm.fdme.ffhandball.fr/${m.fdm_code[0]}/${m.fdm_code[1]}/${m.fdm_code[2]}/${m.fdm_code[3]}/${m.fdm_code}.pdf` : '';
+  const pageOk = m.url_ffhb && /^https:\/\/(www\.)?ffhandball\.fr\//i.test(m.url_ffhb);
+  const sheetHref = fdm || (pageOk ? m.url_ffhb : '');
+  const sheetHtml = sheetHref
+    ? `<a href="${sheetHref}" target="_blank" rel="noopener" style="display:block;margin-top:16px;padding:11px 12px;border-radius:10px;background:var(--jaune);color:#0a1628;font-weight:800;font-size:13px;text-align:center;text-decoration:none;">${fdm ? '📄 Feuille de match (PDF)' : '🔗 Page du match (FFHandball)'}</a>`
     : '';
   document.getElementById('match-lightbox-content').innerHTML = `
     <div style="text-align:center;">

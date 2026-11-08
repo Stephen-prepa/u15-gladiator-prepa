@@ -1,9 +1,9 @@
-// ffhb-sync (U15 uniquement : équipe 1 et équipe 2) — résultats, mi-temps, tiers-temps et classement de poule depuis ffhandball.fr
-// Modes (POST) : { mode: "preview", url }  |  { mode: "sync", equipe?: 1|2 }
+// ffhb-sync (U15 uniquement : équipe 1 et équipe 2) — résultats, mi-temps, tiers-temps, classement de poule et stats individuelles de NOS joueurs depuis ffhandball.fr
+// Modes (POST) : { mode: "preview", url }  |  { mode: "sync", equipe?: 1|2, refaire_joueurs?: true }
 // Réservé aux coachs connectés. Ne remplace JAMAIS un score déjà saisi.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { getDocumentProxy } from "npm:unpdf@0.12.1";
-import { UA, KEYWORD, norm, parseComponents, competitionBase, num, fdmUrl, parseTiers, deltas, pickOurId, type Item } from "./lib.ts";
+import { UA, KEYWORD, norm, parseComponents, competitionBase, num, fdmUrl, parseTiers, deltas, pickOurId, parseFeuilleJoueurs, type Item, type Feuille } from "./lib.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -24,16 +24,18 @@ async function fetchComponents(url: string) {
   return parseComponents(await r.text());
 }
 
-async function readTiers(code: string) {
+// Lit une feuille de match : tiers-temps (page 1) et, si demandé, les stats des joueurs (toutes les pages).
+async function readFeuille(code: string, wantJoueurs: boolean): Promise<{ tiers: ReturnType<typeof parseTiers>; feuille: Feuille | null }> {
   const r = await fetch(fdmUrl(code), { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(25000) });
   if (!r.ok) throw new Error(`Feuille de match indisponible (${r.status})`);
   const pdf = await getDocumentProxy(new Uint8Array(await r.arrayBuffer()));
-  const page = await pdf.getPage(1);
-  const tc = await page.getTextContent();
-  const items: Item[] = (tc.items as any[])
-    .map((it) => ({ x: it.transform[4], y: it.transform[5], s: String(it.str).trim() }))
-    .filter((i) => i.s);
-  return parseTiers(items);
+  const pages: Item[][] = [];
+  const last = wantJoueurs ? pdf.numPages : 1;
+  for (let p = 1; p <= last; p++) {
+    const tc = await (await pdf.getPage(p)).getTextContent();
+    pages.push((tc.items as any[]).map((it) => ({ x: it.transform[4], y: it.transform[5], w: it.width, s: String(it.str).trim() })).filter((i) => i.s));
+  }
+  return { tiers: parseTiers(pages[0]), feuille: wantJoueurs ? parseFeuilleJoueurs(pages) : null };
 }
 
 async function preview(url: string) {
@@ -49,9 +51,9 @@ async function preview(url: string) {
   return { competition: c["page-header"]?.title || "", phase: phase?.libelle || "", poule: poule.libelle || "", equipes_du_club: ours, nb_matchs_page: rencontres.length };
 }
 
-async function syncAll(only: number | null) {
+async function syncAll(only: number | null, refaireJoueurs = false) {
   const t0 = Date.now();
-  const rep = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, feuilles_restantes: 0, conflits: [] as string[], non_rapproches: [] as string[], erreurs: [] as string[] };
+  const rep = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, conflits: [] as string[], non_rapproches: [] as string[], erreurs: [] as string[] };
   let q = admin.from("ffhb_sources").select("*").eq("active", true);
   if (only) q = q.eq("equipe", only);
   const { data: sources } = await q;
@@ -153,32 +155,59 @@ async function syncAll(only: number | null) {
     }
   }
 
-  // Tiers-temps : feuilles de match (nos matchs d'abord), au plus PDF_BUDGET par passage
+  // Feuilles de match (nos matchs d'abord), au plus PDF_BUDGET par passage : tiers-temps de toute la poule + stats des joueurs de NOS matchs
   try {
     const srcIds = (sources || []).map((s: any) => s.id);
-    const { data: todo } = await admin.from("poule_matches").select("id,ext_rencontre_id,fdm_code,match_date")
+    const eqOf = new Map<string, number>((sources || []).map((s: any) => [s.id, s.equipe]));
+    if (refaireJoueurs && srcIds.length) await admin.from("poule_matches").update({ joueurs_done: false }).in("source_id", srcIds);
+    const { data: todo } = await admin.from("poule_matches").select("id,source_id,ext_rencontre_id,fdm_code,match_date,team1,team2,tiers_done,joueurs_done")
       .in("source_id", srcIds.length ? srcIds : ["00000000-0000-0000-0000-000000000000"])
-      .eq("tiers_done", false).not("fdm_code", "is", null).not("score1", "is", null);
+      .or("tiers_done.eq.false,joueurs_done.eq.false").not("fdm_code", "is", null).not("score1", "is", null);
+    const kw = norm(KEYWORD);
+    const usSide = (p: any): "rec" | "vis" | null => norm(p.team1).includes(kw) ? "rec" : (norm(p.team2).includes(kw) ? "vis" : null);
+    const need = (todo || []).map((p: any) => ({ p, wantT: !p.tiers_done, wantJ: !p.joueurs_done && usSide(p) !== null })).filter((x: any) => x.wantT || x.wantJ);
     const mine = new Set(rows.map((x) => x.ext_rencontre_id).filter(Boolean));
-    const list = (todo || []).sort((a: any, b: any) => (mine.has(b.ext_rencontre_id) ? 1 : 0) - (mine.has(a.ext_rencontre_id) ? 1 : 0));
+    need.sort((a: any, b: any) => (mine.has(b.p.ext_rencontre_id) ? 1 : 0) - (mine.has(a.p.ext_rencontre_id) ? 1 : 0));
     const seen = new Set<string>();
     let used = 0;
-    for (const t of list) {
+    for (const { p: t, wantT, wantJ } of need) {
       if (seen.has(t.fdm_code)) continue;
       if (used >= PDF_BUDGET || Date.now() - t0 > DEADLINE_MS) { rep.feuilles_restantes++; continue; }
       seen.add(t.fdm_code); used++;
-      try {
-        const tiers = await readTiers(t.fdm_code);
+      let fe: Awaited<ReturnType<typeof readFeuille>>;
+      try { fe = await readFeuille(t.fdm_code, wantJ); }
+      catch (e) { rep.erreurs.push(`feuille ${t.fdm_code} : ${(e as Error).message}`); continue; }
+      if (wantT) {
         const upd: Record<string, unknown> = { tiers_done: true };
-        if (tiers) {
-          const f = deltas(tiers.rec), g = deltas(tiers.vis);
+        if (fe.tiers) {
+          const f = deltas(fe.tiers.rec), g = deltas(fe.tiers.vis);
           Object.assign(upd, { t1_1: f[0], t1_2: g[0], t2_1: f[1], t2_2: g[1], t3_1: f[2], t3_2: g[2] });
           rep.tiers_lus++;
         }
         await admin.from("poule_matches").update(upd).eq("fdm_code", t.fdm_code);
-      } catch (e) { rep.erreurs.push(`feuille ${t.fdm_code} : ${(e as Error).message}`); }
+      }
+      if (wantJ) {
+        try {
+          if (!fe.feuille) throw new Error("tableau des joueurs non reconnu");
+          const side = usSide(t)!;
+          const list = side === "rec" ? fe.feuille.rec : fe.feuille.vis;
+          const eq = eqOf.get(t.source_id) || null;
+          const r1 = await admin.from("ffhb_joueurs").upsert(list.map((j) => ({ licence: j.licence, nom: j.nom, numero: j.numero })), { onConflict: "licence" });
+          if (r1.error) throw new Error(r1.error.message);
+          const r2 = await admin.from("player_match_stats").upsert(list.map((j) => ({
+            fdm_code: t.fdm_code, ext_rencontre_id: t.ext_rencontre_id, match_date: t.match_date, equipe: eq, licence: j.licence, numero: j.numero,
+            buts: j.buts, buts_7m: j.buts7m, tirs: j.tirs, arrets: j.arrets, avertissements: j.avert, deux_min: j.deuxMin,
+            disqualifications: j.dis, commotions: j.commotions, autres: Object.keys(j.autres).length ? j.autres : null, updated_at: new Date().toISOString(),
+          })), { onConflict: "fdm_code,licence" });
+          if (r2.error) throw new Error(r2.error.message);
+          await admin.from("poule_matches").update({ joueurs_done: true }).eq("fdm_code", t.fdm_code);
+          rep.joueurs_lus++;
+          list.forEach((j) => j.ecarts.forEach((e) => rep.erreurs.push(`feuille ${t.fdm_code} — ${j.nom} : ${e} (valeur du tableau gardée)`)));
+          list.forEach((j) => { for (const k of Object.keys(j.autres)) rep.erreurs.push(`feuille ${t.fdm_code} — ${j.nom} : action « ${k} » ×${j.autres[k]} (non classée, à vérifier)`); });
+        } catch (e) { rep.erreurs.push(`joueurs feuille ${t.fdm_code} : ${(e as Error).message}`); }
+      }
     }
-  } catch (e) { rep.erreurs.push("tiers-temps : " + (e as Error).message); }
+  } catch (e) { rep.erreurs.push("feuilles : " + (e as Error).message); }
 
   // Copie des tiers-temps vers NOS matchs (cases vides seulement)
   try {
@@ -216,7 +245,7 @@ Deno.serve(async (req) => {
     if (!(await coachId(req))) return json({ error: "Réservé aux coachs connectés" }, 401);
     const body = await req.json().catch(() => ({}));
     if (body.mode === "preview") return json(await preview(String(body.url || "")));
-    if (body.mode === "sync") return json(await syncAll(body.equipe === 1 || body.equipe === 2 ? body.equipe : null));
+    if (body.mode === "sync") return json(await syncAll(body.equipe === 1 || body.equipe === 2 ? body.equipe : null, body.refaire_joueurs === true));
     return json({ error: "mode inconnu" }, 400);
   } catch (e) {
     return json({ error: (e as Error).message }, 500);

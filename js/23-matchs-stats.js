@@ -1,11 +1,11 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z39 (08/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z40 (08/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
 // Les données viennent de la fonction serveur `ffhb-sync` (bouton « Mettre à jour »). Écrit pour les navigateurs anciens (pas de ?. ni ??).
 const MS_BAREME_KEY = 'coach_cfg_bareme';
 const MS_CLUB = 'CLERMONT SALAGOU';
-const msState = { view: 'matchs', eq: '1', src: null, j: null, data: null, busy: false };
+const msState = { view: 'matchs', eq: '1', src: null, j: null, data: null, busy: false, jd: null, jeq: 'all', jopen: null };
 try { var _v = localStorage.getItem('ms_view_v1'); if (_v === 'joueurs' || _v === 'matchs') msState.view = _v; } catch (e) {}
 
 function msEsc(s) { return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -53,7 +53,7 @@ function msViewSet(v) {
     var b = document.getElementById('ms-sw-' + k);
     if (b) b.className = 'ms-sw' + (k === msState.view ? ' on' : '');
   });
-  if (msState.view === 'matchs') msLoad(); else if (typeof statsLoad === 'function') statsLoad();
+  if (msState.view === 'matchs') msLoad(); else { msJLoad(); if (typeof statsLoad === 'function') statsLoad(); }
 }
 function msInit() { msViewSet(msState.view); }
 
@@ -270,27 +270,172 @@ async function msBaremeSave() {
 }
 
 // ----- Mise à jour depuis la FFHandball (fonction serveur ffhb-sync) -----
-async function msSync() {
+async function msSync(pref) {
   if (msState.busy) return;
   msState.busy = true;
-  var btn = document.getElementById('ms-sync-btn'), rep = document.getElementById('ms-report');
+  pref = pref || '';
+  var btn = document.getElementById(pref ? 'ms-jsync-btn' : 'ms-sync-btn'), rep = document.getElementById(pref ? 'ms-jreport' : 'ms-report');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Mise à jour en cours (jusqu\'à 1–2 min)…'; }
   if (rep) rep.innerHTML = '';
   var html = '';
   try {
     var r = await msCall({ mode: 'sync' });
-    var line = r.sources + ' lien(s) lu(s) · ' + r.rencontres + ' rencontre(s) · ' + r.joues + ' de nos matchs joués · ' + r.mis_a_jour + ' mis à jour · ' + r.tiers_lus + ' feuille(s) de match lue(s)';
+    var line = r.sources + ' lien(s) lu(s) · ' + r.rencontres + ' rencontre(s) · ' + r.joues + ' de nos matchs joués · ' + r.mis_a_jour + ' mis à jour · ' + r.tiers_lus + ' feuille(s) lue(s) pour les tiers-temps · ' + (r.joueurs_lus || 0) + ' feuille(s) lue(s) pour les stats joueurs';
     html = '<div class="ms-ok">✓ ' + msEsc(line) + '</div>';
     if (r.feuilles_restantes) html += '<div class="ms-note">Il reste ' + r.feuilles_restantes + ' feuille(s) de match à lire : relance « Mettre à jour » pour continuer.</div>';
     if (r.conflits && r.conflits.length) html += '<div class="ms-note"><b>Scores différents de la FFHandball (je n\'ai rien modifié) :</b><br>' + r.conflits.map(msEsc).join('<br>') + '</div>';
     if (r.non_rapproches && r.non_rapproches.length) html += '<div class="ms-note"><b>Matchs FFHandball absents du calendrier de l\'appli :</b><br>' + r.non_rapproches.map(msEsc).join('<br>') + '</div>';
     if (r.erreurs && r.erreurs.length) html += '<div class="ms-err"><b>À vérifier :</b><br>' + r.erreurs.map(msEsc).join('<br>') + '</div>';
-    html += '<div class="ms-na">Stats individuelles des joueurs : indisponibles sur les feuilles U15 (non lisibles).</div>';
   } catch (e) {
     html = '<div class="ms-err">Mise à jour impossible : ' + msEsc(e.message || 'erreur') + '</div>';
   }
   msState.busy = false;
+  if (btn) { btn.disabled = false; btn.textContent = pref ? '🔄 Mettre à jour les stats des joueurs' : '🔄 Mettre à jour depuis la FFHandball'; }
   await msLoad();
-  var rep2 = document.getElementById('ms-report'); if (rep2) rep2.innerHTML = html;
+  await msJLoad();
+  var rep2 = document.getElementById(pref ? 'ms-jreport' : 'ms-report'); if (rep2) rep2.innerHTML = html;
   if (typeof homeLoadMatches === 'function') homeLoadMatches();
+}
+
+// ===================== STATS DES JOUEURS depuis les feuilles de match (z40) =====================
+// Données : ffhb_joueurs (licence -> nom, numéro, fiche de l'appli), player_match_stats (une ligne par joueur et par match).
+// Seuls NOS joueurs sont enregistrés. « Tirs » = total des tirs, buts compris : tirs manqués = tirs - buts ; réussite = buts / tirs.
+function msPctJ(b, t) { return t > 0 ? Math.round(100 * b / t) + ' %' : '–'; }
+function msPrenomFeuille(nom) { // « GREGOIRE Noah » -> « Noah » (les mots en MAJUSCULES sont le nom de famille)
+  var w = String(nom || '').split(/\s+/).filter(function (x) { return x && x !== x.toUpperCase(); });
+  return w.join(' ');
+}
+function msSuggest(j, players) { // meilleure fiche de l'appli pour un joueur de la feuille (prénom + numéro de maillot), ou '' si doute
+  var pre = msNorm(msPrenomFeuille(j.nom)).replace(/[^A-Z]/g, ''), best = '', bs = 0, tie = false;
+  if (!pre) return '';
+  players.forEach(function (p) {
+    if (!p.name) return;
+    var n = msNorm(p.name).replace(/[^A-Z]/g, ''), sc = 0;
+    if (n.indexOf(pre) === 0) sc += 2;
+    if (j.numero !== null && j.numero !== undefined && p.numero === j.numero) sc += 3;
+    if (sc < 2) return;
+    if (sc > bs) { bs = sc; best = p.code; tie = false; } else if (sc === bs) tie = true;
+  });
+  return tie ? '' : best;
+}
+async function msJLoad() {
+  var box = document.getElementById('ms-jstats');
+  if (!box) return;
+  if (!msState.jd) box.innerHTML = '<div class="ms-info">Chargement des stats des matchs…</div>';
+  try {
+    await ensureCoachSession();
+    if (!coachSession) { box.innerHTML = ''; return; }
+    var H = coachAuthHeaders();
+    var r = await Promise.all([
+      fetch(SB_URL + '/rest/v1/ffhb_joueurs?select=*&order=nom.asc', { headers: H }),
+      fetch(SB_URL + '/rest/v1/player_match_stats?select=*&order=match_date.asc', { headers: H }),
+      fetch(SB_URL + '/rest/v1/players?select=code,name,numero&name=not.is.null&order=name.asc', { headers: H }),
+      fetch(SB_URL + '/rest/v1/poule_matches?select=fdm_code,team1,team2,journee_num,match_date,score1,score2', { headers: H }),
+    ]);
+    if (!r[0].ok || !r[1].ok) throw new Error('lecture impossible');
+    msState.jd = { joueurs: await r[0].json(), stats: await r[1].json(), players: r[2].ok ? await r[2].json() : [], poule: r[3].ok ? await r[3].json() : [] };
+    msJRender();
+  } catch (e) {
+    box.innerHTML = '<div class="ms-info" style="color:#e74c3c;">Stats des matchs indisponibles (la base n\'est peut-être pas encore prête). <button class="ms-btn" onclick="msJLoad()">↻ Réessayer</button></div>';
+  }
+}
+function msJRender() {
+  var box = document.getElementById('ms-jstats'), d = msState.jd;
+  if (!box || !d) return;
+  var rep = document.getElementById('ms-jreport'), repHtml = rep ? rep.innerHTML : '';
+  var pname = {}; d.players.forEach(function (p) { pname[p.code] = p.name; });
+  var jinfo = {}; d.joueurs.forEach(function (j) { jinfo[j.licence] = j; });
+  var pmatch = {}; d.poule.forEach(function (p) { if (p.fdm_code) pmatch[p.fdm_code] = p; });
+  var eqChips = [['all', 'Toutes'], ['1', 'Équipe 1'], ['2', 'Équipe 2']].map(function (c) {
+    return '<button class="ms-chip' + (msState.jeq === c[0] ? ' on' : '') + '" onclick="msJSetEq(\'' + c[0] + '\')">' + c[1] + '</button>';
+  }).join('');
+  var head = '<div class="ms-h">🏐 Stats des matchs (feuilles FFHandball) <span class="ms-chips">' + eqChips + '</span></div>' +
+    '<div class="ms-bar"><button class="ms-btn ms-main" id="ms-jsync-btn" onclick="msSync(\'j\')">🔄 Mettre à jour les stats des joueurs</button></div><div id="ms-jreport"></div>';
+
+  // joueurs de la feuille pas encore reliés à une fiche de l'appli
+  var todo = d.joueurs.filter(function (j) { return !j.player_code; });
+  var assoc = '';
+  if (todo.length) {
+    var opts = function (sel) {
+      return '<option value="">— choisir la fiche —</option>' + d.players.map(function (p) {
+        return '<option value="' + msEsc(p.code) + '"' + (p.code === sel ? ' selected' : '') + '>' + msEsc(p.name) + (p.numero ? ' (n°' + p.numero + ')' : '') + '</option>';
+      }).join('');
+    };
+    assoc = '<details class="ms-det" data-ms="assoc" open><summary>🔗 ' + todo.length + ' joueur(s) à relier à ta liste de joueurs (une seule fois)</summary>' +
+      '<div class="ms-sub">Vérifie chaque ligne : le choix proposé vient du prénom et du numéro de maillot. Laisse vide si le joueur n\'est pas dans l\'appli.</div>' +
+      todo.map(function (j) {
+        return '<div class="ms-assoc"><span class="ms-assoc-n">' + (j.numero !== null && j.numero !== undefined ? 'n°' + j.numero + ' ' : '') + msEsc(j.nom) + '</span>' +
+          '<select class="ms-sel" data-lic="' + msEsc(j.licence) + '">' + opts(msSuggest(j, d.players)) + '</select></div>';
+      }).join('') + '<button class="ms-btn ms-main" onclick="msJAssocSave()">Enregistrer les liens</button><div id="ms-jassoc-msg" class="ms-info"></div></details>';
+  }
+
+  // cumul de saison par joueur
+  var agg = {}, any = false;
+  d.stats.forEach(function (s) {
+    if (msState.jeq !== 'all' && String(s.equipe) !== msState.jeq) return;
+    any = true;
+    var a = agg[s.licence] || (agg[s.licence] = { lic: s.licence, f: 0, b: 0, b7: 0, t: 0, ar: 0, av: 0, d2: 0, dis: 0, rows: [] });
+    a.f++; a.b += s.buts; a.b7 += s.buts_7m; a.t += s.tirs; a.ar += s.arrets; a.av += s.avertissements; a.d2 += s.deux_min; a.dis += s.disqualifications; a.rows.push(s);
+  });
+  var list = Object.keys(agg).map(function (k) { return agg[k]; }).sort(function (x, y) { return y.b - x.b || y.ar - x.ar || y.t - x.t; });
+  var nameOf = function (lic) { var j = jinfo[lic] || {}; return j.player_code && pname[j.player_code] ? pname[j.player_code] : (j.nom || lic); };
+  var tot = { f: 0, b: 0, b7: 0, t: 0, ar: 0, av: 0, d2: 0, dis: 0 };
+  var rowsHtml = list.map(function (a) {
+    ['b', 'b7', 't', 'ar', 'av', 'd2', 'dis'].forEach(function (k) { tot[k] += a[k]; });
+    var open = msState.jopen === a.lic;
+    var det = open ? '<tr class="ms-jdet"><td colspan="6">' + a.rows.map(function (s) {
+      var pm = pmatch[s.fdm_code], lbl = pm ? (pm.journee_num ? 'J' + pm.journee_num + ' · ' : '') + msEsc((msIsUs(pm.team1) ? 'vs ' + pm.team2 : 'à ' + pm.team1)) : msEsc(msDateShort(s.match_date));
+      var bits = [s.buts + ' but' + (s.buts > 1 ? 's' : '') + (s.tirs ? ' / ' + s.tirs + ' tir' + (s.tirs > 1 ? 's' : '') + ' (' + msPctJ(s.buts, s.tirs) + ')' : '')];
+      if (s.buts_7m) bits.push(s.buts_7m + ' sur 7 m');
+      if (s.arrets) bits.push(s.arrets + ' arrêt' + (s.arrets > 1 ? 's' : ''));
+      if (s.avertissements) bits.push('avert.');
+      if (s.deux_min) bits.push(s.deux_min + '× 2 min');
+      if (s.disqualifications) bits.push('disqual.');
+      if (s.commotions) bits.push('commotion');
+      return '<div><b>' + lbl + '</b> — ' + bits.join(' · ') + '</div>';
+    }).join('') + '</td></tr>' : '';
+    var sanc = [];
+    if (a.av) sanc.push('AV' + (a.av > 1 ? '×' + a.av : ''));
+    if (a.d2) sanc.push('2′' + (a.d2 > 1 ? '×' + a.d2 : ''));
+    if (a.dis) sanc.push('DQ' + (a.dis > 1 ? '×' + a.dis : ''));
+    return '<tr class="ms-jrow" onclick="msJToggle(\'' + msEsc(a.lic) + '\')"><td class="ms-l">' + '<span class="ms-nm">' + (open ? '▾ ' : '▸ ') + msEsc(nameOf(a.lic)) + '</span><br><span class="ms-na">' + a.f + ' feuille' + (a.f > 1 ? 's' : '') + '</span></td>' +
+      '<td><b>' + a.b + '</b>' + (a.b7 ? '<br><span class="ms-na">dont ' + a.b7 + ' 7 m</span>' : '') + '</td><td>' + a.t + '</td><td>' + msPctJ(a.b, a.t) + '</td><td>' + (a.ar || '–') + '</td><td>' + (sanc.length ? sanc.join(' ') : '–') + '</td></tr>' + det;
+  }).join('');
+  var nbF = {}; d.stats.forEach(function (s) { if (msState.jeq === 'all' || String(s.equipe) === msState.jeq) nbF[s.fdm_code] = 1; });
+  var table = any ? '<div class="ms-scroll"><table class="ms-tbl ms-jtbl"><thead><tr><th class="ms-l">Joueur</th><th>Buts</th><th>Tirs</th><th>%</th><th>Arrêts</th><th>Sanct.</th></tr></thead><tbody>' + rowsHtml +
+      '<tr class="ms-us"><td class="ms-l">Total équipe<br><span class="ms-na">' + Object.keys(nbF).length + ' match' + (Object.keys(nbF).length > 1 ? 's' : '') + '</span></td><td>' + tot.b + (tot.b7 ? '<br><span class="ms-na">dont ' + tot.b7 + ' 7 m</span>' : '') + '</td><td>' + tot.t + '</td><td>' + msPctJ(tot.b, tot.t) + '</td><td>' + (tot.ar || '–') + '</td><td>' + ((tot.av || tot.d2 || tot.dis) ? 'AV ' + tot.av + ' · 2′ ' + tot.d2 + (tot.dis ? ' · DQ ' + tot.dis : '') : '–') + '</td></tr></tbody></table></div>' +
+      '<div class="ms-legend">Touche un joueur pour voir match par match. Tirs = total des tirs, buts compris (tirs manqués = tirs − buts). AV = avertissement, 2′ = exclusion de 2 minutes, DQ = disqualification. « feuilles » = feuilles de match où le joueur est inscrit : la feuille ne dit pas s\'il est réellement entré en jeu.</div>'
+    : '<div class="ms-info">Aucune stat de joueur pour l\'instant : appuie sur « Mettre à jour les stats des joueurs ».</div>';
+
+  // actions non classées (à vérifier)
+  var odd = [];
+  d.stats.forEach(function (s) { if (s.autres) Object.keys(s.autres).forEach(function (k) { odd.push(msEsc(nameOf(s.licence)) + ' : ' + msEsc(k) + ' ×' + s.autres[k]); }); });
+  var oddHtml = odd.length ? '<div class="ms-note"><b>Actions de la feuille non classées (à vérifier) :</b><br>' + odd.join('<br>') + '</div>' : '';
+
+  var open = {}; Array.prototype.forEach.call(box.querySelectorAll('details[data-ms]'), function (el) { open[el.getAttribute('data-ms')] = el.open; });
+  box.innerHTML = head + assoc + table + oddHtml;
+  Array.prototype.forEach.call(box.querySelectorAll('details[data-ms]'), function (el) { if (open[el.getAttribute('data-ms')] === false) el.open = false; });
+  var rep2 = document.getElementById('ms-jreport'); if (rep2) rep2.innerHTML = repHtml;
+}
+function msJSetEq(v) { msState.jeq = v; msJRender(); }
+function msJToggle(lic) { msState.jopen = msState.jopen === lic ? null : lic; msJRender(); }
+async function msJAssocSave() {
+  var msg = document.getElementById('ms-jassoc-msg'), sels = document.querySelectorAll('#ms-jstats select[data-lic]'), n = 0, bad = 0;
+  var used = {};
+  Array.prototype.forEach.call(sels, function (el) { if (el.value) { if (used[el.value]) bad++; used[el.value] = 1; } });
+  if (bad) { msg.style.color = '#e74c3c'; msg.textContent = 'Une même fiche est choisie pour deux joueurs : corrige avant d\'enregistrer.'; return; }
+  try {
+    await ensureCoachSession();
+    for (var i = 0; i < sels.length; i++) {
+      var el = sels[i]; if (!el.value) continue;
+      var res = await fetch(SB_URL + '/rest/v1/ffhb_joueurs?licence=eq.' + encodeURIComponent(el.getAttribute('data-lic')), {
+        method: 'PATCH', headers: Object.assign({}, coachAuthHeaders(), { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+        body: JSON.stringify({ player_code: el.value }),
+      });
+      if (!res.ok) throw new Error('x');
+      n++;
+    }
+    await msJLoad();
+    var m2 = document.getElementById('ms-jassoc-msg'); if (m2) { m2.style.color = 'var(--vert)'; m2.textContent = '✓ ' + n + ' lien(s) enregistré(s).'; }
+  } catch (e) { msg.style.color = '#e74c3c'; msg.textContent = 'Erreur — réessaie.'; }
 }

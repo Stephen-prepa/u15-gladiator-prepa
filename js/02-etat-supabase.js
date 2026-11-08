@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/02-etat-supabase.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/02-etat-supabase.js — dernière modification : version z29 (06/11/2026)
 // ===================== STATE =====================
 const SK = 'hbccs_prepa_u15_v7';
 let appState = {};
@@ -40,14 +40,12 @@ function getOrCreateDeviceToken() {
 async function sbPushCompletion(sessionId, difficulty) {
   if (!appState.playerCode) return true;
   try {
-    const body = { player_code: appState.playerCode, session_id: sessionId };
-    if (difficulty !== undefined) body.difficulty = difficulty || null;
-    const res = await fetch(SB_URL + '/rest/v1/completions?on_conflict=player_code,session_id', {
-      method: 'POST',
-      headers: { ...SB_HEADERS, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-      body: JSON.stringify(body),
+    // z29 : passe par la fonction serveur (vérifie le code ET l'appareil) ; la difficulté n'est modifiée que si elle est fournie
+    const ok = await sbRpc('joueur_valider_seance', {
+      p_code: appState.playerCode, p_token: getOrCreateDeviceToken(), p_session: sessionId,
+      p_difficulty: difficulty === undefined ? null : (difficulty || null), p_set_difficulty: difficulty !== undefined,
     });
-    if (!res.ok) { queuePendingSync(sessionId, difficulty); return false; }
+    if (ok !== true) { queuePendingSync(sessionId, difficulty); return false; }
     markSynced(sessionId);
     return true;
   } catch(e) { queuePendingSync(sessionId, difficulty); return false; }
@@ -89,12 +87,11 @@ async function flushPendingSync() {
 }
 async function sbPullCompletions(code) {
   try {
-    const res = await fetch(SB_URL + '/rest/v1/completions?player_code=eq.' + encodeURIComponent(code) + '&select=session_id', { headers: SB_HEADERS });
-    if (!res.ok) return;
-    const rows = await res.json();
+    const rows = await sbRpc('joueur_seances_faites', { p_code: code, p_token: getOrCreateDeviceToken() });   // liste d'identifiants de séances
+    if (!Array.isArray(rows)) return;
     const syncedKey = pk('confirmedSynced');
     const confirmed = appState[syncedKey] || {};
-    rows.forEach(r => { appState[pk('done_' + r.session_id)] = true; confirmed[r.session_id] = true; });
+    rows.forEach(sid => { appState[pk('done_' + sid)] = true; confirmed[sid] = true; });
     appState[syncedKey] = confirmed;
     saveState();
   } catch(e) {}
