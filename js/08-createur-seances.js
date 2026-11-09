@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z26 (05/11/2026)
+// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z44 (09/11/2026)
 // ---------- Créateur de séances (coach) ----------
 const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-17 ans', '-18 ans', 'Seniors', 'Loisirs', 'Détection', 'Gardiens'];
 const CR_PUBLICS = ['Mixte', 'Garçons', 'Filles'];
@@ -28,6 +28,19 @@ const CR_TEMPLATES = [
 ];
 let crPlans = [];
 let crFilter = 'toutes';
+// Code couleur des séances (z44) : rouge = défense, bleu = attaque, vert = motricité / manipulation, violet = technique individuelle
+const CR_COULEURS = [['rouge', 'Défense'], ['bleu', 'Attaque'], ['vert', 'Motricité / manipulation'], ['violet', 'Technique individuelle']];
+let crColF = '';
+const crColLabel = k => { const c = CR_COULEURS.find(x => x[0] === k); return c ? c[1] : ''; };
+function crSetColF(k) { crColF = crColF === k ? '' : k; crRenderLegend(); crRenderList(); }
+function crRenderLegend() {
+  const el = document.getElementById('cr-legend'); if (!el) return;
+  el.innerHTML = '<span class="cr-leg-t">Couleurs</span>' + CR_COULEURS.map(([k, l]) => `<button type="button" class="cr-leg${crColF === k ? ' on' : ''}" data-sc="${k}" onclick="crSetColF('${k}')"><i></i>${l}</button>`).join('');
+}
+function crSetColor(k) {
+  crCur.couleur = (crCur.couleur === k) ? null : k;
+  crTouch(); crRenderEditor(crCur);
+}
 let crCur = null;
 let crSaveTimer = null;
 let crLoaded = false;
@@ -63,7 +76,7 @@ async function crLoadPlans() {
     listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#ff6b6b;">Impossible de charger les séances. Réessaie dans un instant.</div>';
     return;
   }
-  crRenderFilters();
+  crRenderFilters(); crRenderLegend();
   crRenderList(); crSyncStamp();
 }
 function crFilterCount(f) { return crPlans.filter(p => crMatchFilter(p, f)).length; }
@@ -85,7 +98,7 @@ function crSetFilter(k) { crFilter = k; crRenderFilters(); crRenderList(); }
 function crRenderList() {
   const q = crFold((document.getElementById('cr-search').value || '').trim());
   const cat = document.getElementById('cr-cat-filter').value;
-  const rows = crPlans.filter(p => crMatchFilter(p, crFilter)).filter(p => !cat || p.categorie === cat).filter(p => {
+  const rows = crPlans.filter(p => crMatchFilter(p, crFilter)).filter(p => !cat || p.categorie === cat).filter(p => !crColF || p.couleur === crColF).filter(p => {
     if (!q) return true;
     return crPlanText(p).includes(q);
   });
@@ -98,10 +111,11 @@ function crRenderList() {
     const n = crExCount(p);
     const typeLabel = p.seance_type === 'babyhand' ? '🧸 BabyHand 3-5 ans' : ('Handball' + (p.categorie ? ' · ' + crEsc(p.categorie) : ''));
     const stLbl = p.is_template ? '<span class="cr-c2-st tpl">Modèle</span>' : (p.status === 'archivee' ? '<span class="cr-c2-st">Archivée</span>' : (p.status === 'terminee' ? '<span class="cr-c2-st ok">Terminée</span>' : '<span class="cr-c2-st">Brouillon</span>'));
-    return `<div class="cr-c2-card">
+    const colPill = p.couleur ? `<span class="cr-sc-pill">${crEsc(crColLabel(p.couleur))}</span>` : '';
+    return `<div class="cr-c2-card" data-sc="${p.couleur || ''}">
       <div>
         <div class="cr-c2-t" onclick="crOpen('${p.id}')">${crEsc(p.title)}</div>
-        <div class="cr-c2-m">${stLbl}<span>${typeLabel}</span><span>${crFmtDur(crTotal(p))} · ${n} exercice${n > 1 ? 's' : ''}</span>${p.seance_date ? '<span>' + crEsc(p.seance_date.split('-').reverse().join('/')) + '</span>' : ''}</div>
+        <div class="cr-c2-m">${colPill}${stLbl}<span>${typeLabel}</span><span>${crFmtDur(crTotal(p))} · ${n} exercice${n > 1 ? 's' : ''}</span>${p.seance_date ? '<span>' + crEsc(p.seance_date.split('-').reverse().join('/')) + '</span>' : ''}</div>
       </div>
       <div class="cr-c2-foot">
         <button type="button" class="cr-c2-btn" onclick="crOpen('${p.id}')">Ouvrir</button>
@@ -156,7 +170,7 @@ async function crCreate(key) {
     const src = crPlans.find(p => p.id === key.slice(5));
     if (!src) return;
     base = { title: src.title, seance_type: src.seance_type, categorie: src.categorie, public_cible: src.public_cible, niveau: src.niveau || '', theme: src.theme, objectif_principal: src.objectif_principal, objectifs_secondaires: src.objectifs_secondaires, contexte: src.contexte,
-      materiel: JSON.parse(JSON.stringify(src.materiel || [])), blocks: (src.blocks || []).map(crCloneBlock) };
+      materiel: JSON.parse(JSON.stringify(src.materiel || [])), blocks: (src.blocks || []).map(crCloneBlock), ...(src.couleur !== undefined ? { couleur: src.couleur } : {}) };
   } else {
     const t = CR_TEMPLATES.find(x => x.key === key);
     if (!t) return;
@@ -221,7 +235,7 @@ const crRemote = {}; // versions plus récentes d'une séance ouverte, en attent
 function crBody(p) {
   return { title: p.title || 'Sans titre', seance_type: p.seance_type, status: p.status, is_template: !!p.is_template, categorie: p.categorie || null, public_cible: p.public_cible || null, niveau: p.niveau || null,
     seance_date: p.seance_date || null, nb_joueurs: p.nb_joueurs || null, entraineur: p.entraineur || null, theme: p.theme || null, objectif_principal: p.objectif_principal || null,
-    objectifs_secondaires: p.objectifs_secondaires || null, contexte: p.contexte || null, materiel: p.materiel || [], blocks: p.blocks || [], videos: p.videos || [], total_minutes: crTotal(p) };
+    objectifs_secondaires: p.objectifs_secondaires || null, contexte: p.contexte || null, materiel: p.materiel || [], blocks: p.blocks || [], videos: p.videos || [], total_minutes: crTotal(p), ...(p.couleur !== undefined ? { couleur: p.couleur || null } : {}) };
 }
 async function crSaveNow() {
   if (!crCur) return;
@@ -375,7 +389,7 @@ function crRenderEditor(p) {
   ev.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
       <button type="button" class="cr-btn" onclick="crBack()">←</button>
-      <div id="cr-head-title" style="flex:1;font-size:17px;font-weight:800;color:var(--blanc);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${crEsc(p.title || 'Sans titre')}</div>
+      <div id="cr-head-title" data-sc="${p.couleur || ''}" style="flex:1;font-size:17px;font-weight:800;color:var(--blanc);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${crEsc(p.title || 'Sans titre')}</div>
       <span class="cr-save-status" style="font-size:12px;color:#2ecc71;white-space:nowrap;">✓ Enregistré</span>
     </div>
     <div class="cr-edit-grid"><div class="cr-edit-l">
@@ -393,6 +407,8 @@ function crRenderEditor(p) {
           <button type="button" class="cr-chip ${p.seance_type === 'handball' ? 'on' : ''}" style="flex:1;border-radius:0;border:none;padding:11px;" onclick="crSetType('handball')">Handball</button>
           <button type="button" class="cr-chip ${p.seance_type === 'babyhand' ? 'on' : ''}" style="flex:1;border-radius:0;border:none;padding:11px;" onclick="crSetType('babyhand')">🧸 BabyHand 3-5 ans</button>
         </div>
+        <label class="cr-lbl">Couleur de la séance</label>
+        <div class="cr-colrow">${CR_COULEURS.map(([k, l]) => `<button type="button" class="cr-colchip${p.couleur === k ? ' on' : ''}" data-sc="${k}" onclick="crSetColor('${k}')"><i></i>${l}</button>`).join('')}</div>
         <label class="cr-lbl">Catégorie</label>${crSel(CR_CATS, p.categorie, "crSetField('categorie',this.value)")}
         <label class="cr-lbl">Public</label>${crSel(CR_PUBLICS, p.public_cible, "crSetField('public_cible',this.value)")}
         ${crField('Niveau', 'niveau', 'Départemental, régional, détection…')}
@@ -438,7 +454,7 @@ function crUpdateTotals() {
   const m = document.getElementById('cr-mat-agg');
   if (m) { const tx = crEquipText(crEquipAgg(crCur)); m.textContent = tx || 'Aucun matériel renseigné pour l\u2019instant.'; m.style.color = tx ? 'var(--blanc)' : 'var(--gris-texte)'; }
 }
-function crBack() { crSaveNow(); crShowList(); crRenderFilters(); crRenderList(); }
+function crBack() { crSaveNow(); crShowList(); crRenderFilters(); crRenderLegend(); crRenderList(); }
 function crSetType(t) {
   crCur.seance_type = t;
   if (t === 'babyhand') { crCur.categorie = 'Baby (3-5 ans)'; }
@@ -665,7 +681,7 @@ async function crDuplicate(id) {
   const s = crPlans.find(p => p.id === id); if (!s) return;
   const copy = { title: crNextTitle(s.title), seance_type: s.seance_type, status: 'brouillon', is_template: false, categorie: s.categorie, public_cible: s.public_cible, niveau: s.niveau, seance_date: null, nb_joueurs: s.nb_joueurs,
     entraineur: s.entraineur, theme: s.theme, objectif_principal: s.objectif_principal, objectifs_secondaires: s.objectifs_secondaires, contexte: s.contexte, materiel: s.materiel || [],
-    blocks: (s.blocks || []).map(crCloneBlock), videos: s.videos || [], total_minutes: crTotal(s) };
+    blocks: (s.blocks || []).map(crCloneBlock), videos: s.videos || [], total_minutes: crTotal(s), ...(s.couleur !== undefined ? { couleur: s.couleur } : {}) };
   try {
     await ensureCoachSession();
     const res = await fetch(SB_URL + '/rest/v1/seance_plans', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify([copy]) });
@@ -733,7 +749,7 @@ function crOpenFiche(id, exId) {
     <div class="cr-fiche-bar"><button type="button" onclick="crCloseFiche()">← Retour</button><span class="cr-fiche-sp"></span><span id="cr-fiche-msg" class="msg" role="status"></span>
       <span class="cr-fiche-cols">Colonnes <button type="button" data-c="1" onclick="crFicheCols(1)">1</button><button type="button" data-c="2" onclick="crFicheCols(2)">2</button><button type="button" data-c="3" onclick="crFicheCols(3)">3</button></span>
       <button type="button" onclick="crFichePrint(false)">🖨 Aperçu / Imprimer</button><button type="button" class="pdf" onclick="crFichePrint(true)">⬇ PDF</button></div>
-    <div class="cr-fiche-page">
+    <div class="cr-fiche-page" data-sc="${p.couleur || ''}">
       <div class="cr-fiche-head"><div><div class="cr-fiche-kicker">Fiche de séance</div><h1>${crEsc(p.title)}</h1>${crTxt(p.theme) ? `<div class="cr-fiche-sub">${crEsc(p.theme)}</div>` : ''}</div><img class="cr-fiche-logo" src="icon-192.png" alt="" onerror="this.style.display='none'"></div>
       <div class="cr-fiche-rule"></div>
       <div class="cr-fiche-grid">${cell('Catégorie', cat)}${cell('Date', crDateLong(p.seance_date))}${cell('Durée', total ? crFmtDur(total) : '')}${cell('Effectif', pl ? (/^\d+$/.test(pl) ? pl + ' joueur' + (pl === '1' ? '' : 's') : pl) : '')}${cell('Entraîneur', p.entraineur)}${cell('Niveau', p.niveau)}</div>
@@ -765,6 +781,7 @@ function crLectOpen(id, exId) {
   (p.blocks || []).forEach((b, bi) => (b.exercises || []).forEach((raw, ei) => items.push({ x: crNormEx(raw), bname: b.name || 'Bloc', bi, ei })));
   let k = exId ? items.findIndex(i => i.x.id === exId) : 0; if (k < 0) k = 0;
   crLect = { p, items, k, sec: 'main', step: 0, toc: false };
+  { const lectEl = document.getElementById('cr-lect'); if (lectEl) lectEl.setAttribute('data-sc', p.couleur || ''); }
   if (!crLectBound) {
     crLectBound = true;
     document.addEventListener('keydown', ev => { if (!crLect || ev.target.closest && ev.target.closest('input,textarea,select')) return; if (ev.key === 'ArrowRight') crLectGo(1); else if (ev.key === 'ArrowLeft') crLectGo(-1); else if (ev.key === 'Escape' && !document.getElementById('sch-player')) crLectClose(); });

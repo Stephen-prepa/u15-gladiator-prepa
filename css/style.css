@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z42 (08/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z44 (09/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1394,3 +1394,46 @@ u.mj-g{background:#2ecc71;} u.mj-o{background:#f39c12;} u.mj-r{background:#e74c3
 }
 @media (min-width:1300px){ .coachs2-wrap{max-width:1260px;} }
 @media (min-width:1400px){ .coachs2-wrap{max-width:1260px;} .home-wrap,.home-buttons{max-width:1260px;} }
+
+/* ===== z43 : forfait (PE) + barre du bas iPhone ===== */
+.ms-fo{color:#e74c3c;font-weight:800;font-size:11px;}
+.ms-fosel{min-width:0;width:100%;padding:2px 2px;font-size:11px;}
+html{overflow-x:hidden;}
+.coachs2-subtabs-bottom{-webkit-transform:translateZ(0);transform:translateZ(0);}
+
+/* ===== z44 : code couleur des séances (rouge défense · bleu attaque · vert motricité/manipulation · violet technique individuelle) ===== */
+/* tons foncés (thèmes clair / doux et fiche imprimable) ; tons vifs pour le thème sombre */
+[data-sc="rouge"]{--sc:#c0392b;--sc2:#d17a72;} [data-sc="bleu"]{--sc:#1f5fc7;--sc2:#6c97dc;} [data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} [data-sc="violet"]{--sc:#7a3fc0;--sc2:#a587d6;}
+html[data-coach="dark"] [data-sc="rouge"]{--sc:#ff6b6b;--sc2:#ffa3a3;} html[data-coach="dark"] [data-sc="bleu"]{--sc:#5b9bff;--sc2:#9fc3ff;}
+html[data-coach="dark"] [data-sc="vert"]{--sc:#43c985;--sc2:#8fe0b6;} html[data-coach="dark"] [data-sc="violet"]{--sc:#b57bff;--sc2:#d2b2ff;}
+html .cr-fiche-page[data-sc="rouge"]{--sc:#c0392b;--sc2:#d17a72;} html .cr-fiche-page[data-sc="bleu"]{--sc:#1f5fc7;--sc2:#6c97dc;}
+html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-page[data-sc="violet"]{--sc:#7a3fc0;--sc2:#a587d6;}
+.cr-legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px;font-size:11px;}
+.cr-leg-t{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gris-texte,#8a93a8);margin-right:2px;}
+.cr-leg,.cr-colchip{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid rgba(127,140,170,.35);border-radius:99px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--gris-texte,#8a93a8);cursor:pointer;}
+.cr-leg i,.cr-colchip i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--sc);}
+.cr-leg.on,.cr-colchip.on{border-color:var(--sc);color:var(--sc);background:rgba(127,140,170,.12);font-weight:800;}
+.cr-colrow{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 6px;} .cr-colchip{font-size:12px;padding:7px 11px;}
+.cr-c2-card[data-sc="rouge"],.cr-c2-card[data-sc="bleu"],.cr-c2-card[data-sc="vert"],.cr-c2-card[data-sc="violet"]{border-left:5px solid var(--sc);}
+.cr-c2-card[data-sc] .cr-c2-t{color:var(--sc);}
+.cr-sc-pill{display:inline-block;font-size:10px;font-weight:800;border-radius:6px;padding:1px 7px;border:1px solid var(--sc);color:var(--sc);}
+#cr-head-title[data-sc="rouge"],#cr-head-title[data-sc="bleu"],#cr-head-title[data-sc="vert"],#cr-head-title[data-sc="violet"]{color:var(--sc) !important;}
+#cr-lect[data-sc="rouge"] .crl-top,#cr-lect[data-sc="bleu"] .crl-top,#cr-lect[data-sc="vert"] .crl-top,#cr-lect[data-sc="violet"] .crl-top{border-bottom:3px solid var(--sc);}
+#cr-lect[data-sc="rouge"] .crl-head h2,#cr-lect[data-sc="bleu"] .crl-head h2,#cr-lect[data-sc="vert"] .crl-head h2,#cr-lect[data-sc="violet"] .crl-head h2{color:var(--sc);}
+#cr-lect[data-sc="rouge"] .crl-theme,#cr-lect[data-sc="bleu"] .crl-theme,#cr-lect[data-sc="vert"] .crl-theme,#cr-lect[data-sc="violet"] .crl-theme,
+#cr-lect[data-sc="rouge"] .crl-ttl small,#cr-lect[data-sc="bleu"] .crl-ttl small,#cr-lect[data-sc="vert"] .crl-ttl small,#cr-lect[data-sc="violet"] .crl-ttl small{color:var(--sc2);}
+.cr-fiche-page[data-sc="rouge"] h1,.cr-fiche-page[data-sc="bleu"] h1,.cr-fiche-page[data-sc="vert"] h1,.cr-fiche-page[data-sc="violet"] h1,
+.cr-fiche-page[data-sc="rouge"] .cr-fiche-h,.cr-fiche-page[data-sc="bleu"] .cr-fiche-h,.cr-fiche-page[data-sc="vert"] .cr-fiche-h,.cr-fiche-page[data-sc="violet"] .cr-fiche-h{color:var(--sc);}
+.cr-fiche-page[data-sc="rouge"] .cr-fiche-sub,.cr-fiche-page[data-sc="bleu"] .cr-fiche-sub,.cr-fiche-page[data-sc="vert"] .cr-fiche-sub,.cr-fiche-page[data-sc="violet"] .cr-fiche-sub{color:var(--sc2);}
+.cr-fiche-page[data-sc="rouge"] .cr-fiche-rule,.cr-fiche-page[data-sc="bleu"] .cr-fiche-rule,.cr-fiche-page[data-sc="vert"] .cr-fiche-rule,.cr-fiche-page[data-sc="violet"] .cr-fiche-rule{background:linear-gradient(90deg,var(--sc) 82%,var(--sc2) 82%);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+/* z44 : place de la légende des couleurs dans la grille de la liste des séances */
+#cr-legend{grid-column:1 / -1;grid-row:3;margin:0;}
+#cr-search,#cr-cat-filter{grid-row:4;}
+#cr-list{grid-row:5;}
+#cr-list-view > div:last-child{grid-row:6;}
+@media (min-width:700px){
+  #cr-legend{grid-column:1 / -1;grid-row:2;}
+  #cr-search,#cr-cat-filter{grid-row:3;}
+  #cr-list{grid-row:4;}
+  #cr-list-view > div:last-child{grid-row:5;}
+}

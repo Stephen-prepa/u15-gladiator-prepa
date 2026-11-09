@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z42 (08/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z43 (09/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -154,11 +154,14 @@ function msPouleHtml(d) {
   var team = function (n) { return T[n] || (T[n] = { name: n, j: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0, pts: 0 }); };
   pm.forEach(function (p) {
     team(p.team1); team(p.team2);
-    if (!played(p) || p.journee_num > msState.j) return;
-    var a = team(p.team1), b = team(p.team2), s = msPts(p.score1, p.score2, tiersOf(p));
+    var fo = p.forfait === 1 || p.forfait === 2;
+    if ((!played(p) && !fo) || p.journee_num > msState.j) return;
+    var a = team(p.team1), b = team(p.team2), s = fo ? msForfaitPts(p) : msPts(p.score1, p.score2, tiersOf(p));
+    var g1 = played(p) ? p.score1 : 0, g2 = played(p) ? p.score2 : 0;
     if (!s.hasT) anyNoTiers = true;
-    a.j++; b.j++; a.bp += p.score1; a.bc += p.score2; b.bp += p.score2; b.bc += p.score1; a.pts += s.a; b.pts += s.b;
-    if (p.score1 > p.score2) { a.v++; b.d++; } else if (p.score1 < p.score2) { b.v++; a.d++; } else { a.n++; b.n++; }
+    a.j++; b.j++; a.bp += g1; a.bc += g2; b.bp += g2; b.bc += g1; a.pts += s.a; b.pts += s.b;
+    if (fo) { if (p.forfait === 1) { b.v++; a.d++; } else { a.v++; b.d++; } }
+    else if (p.score1 > p.score2) { a.v++; b.d++; } else if (p.score1 < p.score2) { b.v++; a.d++; } else { a.n++; b.n++; }
     (byJ[p.team1] = byJ[p.team1] || {})[p.journee_num] = ((byJ[p.team1] || {})[p.journee_num] || 0) + s.a;
     (byJ[p.team2] = byJ[p.team2] || {})[p.journee_num] = ((byJ[p.team2] || {})[p.journee_num] || 0) + s.b;
   });
@@ -170,10 +173,10 @@ function msPouleHtml(d) {
     return '<tr' + (msIsUs(t.name) ? ' class="ms-us"' : '') + '><td>' + (i + 1) + '</td><td class="ms-l">' + msEsc(t.name) + '</td><td>' + t.j + '</td><td>' + t.v + '</td><td>' + t.n + '</td><td>' + t.d + '</td><td>' + t.bp + '</td><td>' + t.bc + '</td><td>' + (t.bp - t.bc) + '</td><td><b>' + t.pts + '</b></td></tr>';
   }).join('');
   var dayRows = pm.filter(function (p) { return p.journee_num === msState.j; }).map(function (p) {
-    var pl = played(p), t = tiersOf(p), s = pl ? msPts(p.score1, p.score2, t) : null;
+    var pl = played(p), fo = p.forfait === 1 || p.forfait === 2, t = tiersOf(p), s = fo ? msForfaitPts(p) : (pl ? msPts(p.score1, p.score2, t) : null);
     var tc = function (i, k) { return t ? t[i][k] : '–'; };
-    return '<tr><td class="ms-l' + (msIsUs(p.team1) ? ' ms-usn' : '') + '">' + msEsc(p.team1) + '</td><td>' + (pl ? '<b>' + p.score1 + '–' + p.score2 + '</b>' : '<span class="ms-na">à jouer</span>') + '</td><td class="ms-l' + (msIsUs(p.team2) ? ' ms-usn' : '') + '">' + msEsc(p.team2) + '</td>' +
-      '<td>' + (t ? tc(0, 0) + '–' + tc(0, 1) + ' · ' + tc(1, 0) + '–' + tc(1, 1) + ' · ' + tc(2, 0) + '–' + tc(2, 1) : '<span class="ms-na">–</span>') + '</td><td>' + (s ? s.a + ' – ' + s.b : '<span class="ms-na">–</span>') + '</td><td>' + msPdfLink(p.fdm_code, null) + '</td></tr>';
+    return '<tr><td class="ms-l' + (msIsUs(p.team1) ? ' ms-usn' : '') + '">' + msEsc(p.team1) + '</td><td>' + (pl ? '<b>' + p.score1 + '–' + p.score2 + '</b>' + (fo ? ' <span class="ms-fo">PE</span>' : '') : (fo ? '<b class="ms-fo">PE</b>' : '<span class="ms-na">à jouer</span>')) + '</td><td class="ms-l' + (msIsUs(p.team2) ? ' ms-usn' : '') + '">' + msEsc(p.team2) + '</td>' +
+      '<td>' + (t ? tc(0, 0) + '–' + tc(0, 1) + ' · ' + tc(1, 0) + '–' + tc(1, 1) + ' · ' + tc(2, 0) + '–' + tc(2, 1) : '<span class="ms-na">–</span>') + '</td><td>' + (s ? s.a + ' – ' + s.b : '<span class="ms-na">–</span>') + '</td><td>' + msPdfLink(p.fdm_code, null) + '</td><td><select class="ms-sel ms-fosel" title="Forfait (PE) : 0 pt pour l\'équipe forfait, 3 pts pour l\'adversaire" onchange="msForfait(\'' + msEsc(p.id) + '\',this.value)"><option value=""' + (fo ? '' : ' selected') + '>–</option><option value="1"' + (p.forfait === 1 ? ' selected' : '') + '>Éq. 1</option><option value="2"' + (p.forfait === 2 ? ' selected' : '') + '>Éq. 2</option></select></td></tr>';
   }).join('');
   var gl = rank.map(function (t) {
     var tot = 0, cells = js.filter(function (n) { return n <= msState.j; }).map(function (n) { var v = (byJ[t.name] || {})[n]; if (v) tot += v; return '<td>' + (v === undefined ? '<span class="ms-na">–</span>' : v) + '</td>'; }).join('');
@@ -184,11 +187,24 @@ function msPouleHtml(d) {
     '<div class="ms-sub">Classement après la journée J' + msState.j + '</div>' +
     '<div class="ms-scroll"><table class="ms-tbl"><thead><tr><th>#</th><th class="ms-l">Équipe</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th><th>Diff</th><th>Pts</th></tr></thead><tbody>' + rankRows + '</tbody></table></div>' +
     '<div class="ms-sub">Matchs de la journée J' + msState.j + '</div>' +
-    '<div class="ms-scroll"><table class="ms-tbl"><thead><tr><th class="ms-l">Équipe 1</th><th>Score</th><th class="ms-l">Équipe 2</th><th>Tiers-temps</th><th>Pts</th><th>Feuille</th></tr></thead><tbody>' + dayRows + '</tbody></table></div>' +
+    '<div class="ms-scroll"><table class="ms-tbl"><thead><tr><th class="ms-l">Équipe 1</th><th>Score</th><th class="ms-l">Équipe 2</th><th>Tiers-temps</th><th>Pts</th><th>Feuille</th><th>Forfait</th></tr></thead><tbody>' + dayRows + '</tbody></table></div>' +
     '<details class="ms-det" data-ms="glanes"><summary>Points glanés par chaque équipe, journée par journée</summary><div class="ms-scroll"><table class="ms-tbl"><thead><tr><th class="ms-l">Équipe</th>' +
     js.filter(function (n) { return n <= msState.j; }).map(function (n) { return '<th>J' + n + '</th>'; }).join('') + '<th>Total</th></tr></thead><tbody>' + gl + '</tbody></table></div></details>' +
-    '<div class="ms-legend">' + bar.tier + ' point par tiers-temps gagné + ' + bar.win + ' par match gagné, ' + bar.draw + ' par nul, ' + bar.lose + ' par défaite (règlement -15 ans Régional ; forfait non géré). Départage : points, différence de buts, buts marqués.' +
+    '<div class="ms-legend">' + bar.tier + ' point par tiers-temps gagné + ' + bar.win + ' par match gagné, ' + bar.draw + ' par nul, ' + bar.lose + ' par défaite (règlement -15 ans Régional). Forfait (PE) : 0 point pour l\'équipe forfait, 3 pour l\'adversaire, sans bonus de tiers-temps — à indiquer avec la colonne « Forfait ». Départage : points, différence de buts, buts marqués.' +
     (anyNoTiers ? ' Certains tiers-temps sont inconnus : seuls les points de match sont comptés pour ces rencontres.' : '') + '</div>';
+}
+// Forfait (PE) : l'équipe forfait marque 0 point, l'adversaire 3 ; pas de bonus de tiers-temps (z43)
+function msForfaitPts(p) { return p.forfait === 1 ? { a: 0, b: 3, hasT: true } : { a: 3, b: 0, hasT: true }; }
+async function msForfait(id, v) {
+  try {
+    await ensureCoachSession();
+    var res = await fetch(SB_URL + '/rest/v1/poule_matches?id=eq.' + encodeURIComponent(id), {
+      method: 'PATCH', headers: Object.assign({}, coachAuthHeaders(), { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+      body: JSON.stringify({ forfait: v === '' ? null : parseInt(v, 10) }),
+    });
+    if (!res.ok) throw new Error('x');
+    await msLoad();
+  } catch (e) { window.alert('Enregistrement du forfait impossible (la base est-elle à jour ?). Réessaie.'); msRender(); }
 }
 function msSetSrc(id) { msState.src = id; msState.j = null; msRender(); }
 function msSetJ(n) { msState.j = n; msRender(); }
