@@ -482,6 +482,10 @@ function schEdDraw() {
   const S = schEd; if (!S) return;
   const d = schEdD(), els = d.elements, sc = schEdMap(S.vb).s, f = { els: els.filter(e => !schIsAction(e) && e.type !== 'BALL'), acts: els.filter(schIsAction).map(a => ({ a, badge: true })), balls: [], ghosts: [] };
   const bl = els.filter(e => e.type === 'BALL'); bl.forEach((b, i) => { const st = schBallStart(b, els); f.balls.push({ x: st.x, y: st.y, s: b.scale, i, m: bl.length > 1 }); });
+  if (S.drag && S.drag.kind === 'new' && S.drag.trace) { // tracer en déplaçant : une copie semi-transparente du joueur (ou du groupe) suit le geste
+    const tdx = S.drag.p1.x - S.drag.p0.x, tdy = S.drag.p1.y - S.drag.p0.y, tids = (S.gmove && S.gmove.length) ? S.gmove : [S.drag.pid];
+    f.pghosts = tids.map(id => els.find(x => x.id === id)).filter(Boolean).map(e => ({ ...e, x: schR(e.x + tdx, 2), y: schR(e.y + tdy, 2), _o: 0.55 }));
+  }
   if (S.drag && S.drag.kind === 'new') f.acts.push({ a: schNormElement({ type: S.drag.type, points: schEdFit(S.drag.pts, S.drag.p1) }), badge: false });
   let ov = '';
   const plan = schPlan(d); (plan.warnings || []).forEach(w => { const a = plan.byId[w.id]; if (a) ov += `<circle cx="${a.points[0].x}" cy="${a.points[0].y}" r="0.95" fill="none" stroke="#E74C3C" stroke-width="0.13" stroke-dasharray="0.35 0.25"/>`; });
