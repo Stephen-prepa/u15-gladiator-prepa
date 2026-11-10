@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z44 (09/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z45 (09/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1437,3 +1437,5 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
   #cr-list{grid-row:4;}
   #cr-list-view > div:last-child{grid-row:5;}
 }
+
+.cr-sortbtn{margin-left:auto;font-weight:800;color:var(--c-ink2,#334766);}

@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z44 (09/11/2026)
+// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z45 (09/11/2026)
 // ---------- Créateur de séances (coach) ----------
 const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-17 ans', '-18 ans', 'Seniors', 'Loisirs', 'Détection', 'Gardiens'];
 const CR_PUBLICS = ['Mixte', 'Garçons', 'Filles'];
@@ -31,11 +31,25 @@ let crFilter = 'toutes';
 // Code couleur des séances (z44) : rouge = défense, bleu = attaque, vert = motricité / manipulation, violet = technique individuelle
 const CR_COULEURS = [['rouge', 'Défense'], ['bleu', 'Attaque'], ['vert', 'Motricité / manipulation'], ['violet', 'Technique individuelle']];
 let crColF = '';
+// Tri de la liste par date de séance (z45) : récentes d'abord par défaut ; sans date à la fin
+let crSortDesc = true;
+try { crSortDesc = localStorage.getItem('cr_sort_v1') !== 'asc'; } catch (e) {}
+function crToggleSort() { crSortDesc = !crSortDesc; try { localStorage.setItem('cr_sort_v1', crSortDesc ? 'desc' : 'asc'); } catch (e) {} crRenderLegend(); crRenderList(); }
+function crSortPlans(rows) {
+  const dir = crSortDesc ? -1 : 1, upd = p => String(p.updated_at || '');
+  return rows.slice().sort((a, b) => {
+    const da = a.seance_date || '', db = b.seance_date || '';
+    if (da && !db) return -1;
+    if (!da && db) return 1;
+    if (da !== db) return da < db ? -dir : dir;
+    return upd(a) < upd(b) ? 1 : upd(a) > upd(b) ? -1 : 0;
+  });
+}
 const crColLabel = k => { const c = CR_COULEURS.find(x => x[0] === k); return c ? c[1] : ''; };
 function crSetColF(k) { crColF = crColF === k ? '' : k; crRenderLegend(); crRenderList(); }
 function crRenderLegend() {
   const el = document.getElementById('cr-legend'); if (!el) return;
-  el.innerHTML = '<span class="cr-leg-t">Couleurs</span>' + CR_COULEURS.map(([k, l]) => `<button type="button" class="cr-leg${crColF === k ? ' on' : ''}" data-sc="${k}" onclick="crSetColF('${k}')"><i></i>${l}</button>`).join('');
+  el.innerHTML = '<span class="cr-leg-t">Couleurs</span>' + CR_COULEURS.map(([k, l]) => `<button type="button" class="cr-leg${crColF === k ? ' on' : ''}" data-sc="${k}" onclick="crSetColF('${k}')"><i></i>${l}</button>`).join('') + `<button type="button" class="cr-leg cr-sortbtn" onclick="crToggleSort()" title="Trier par date de séance">Date ${crSortDesc ? '▾' : '▴'}</button>`;
 }
 function crSetColor(k) {
   crCur.couleur = (crCur.couleur === k) ? null : k;
@@ -98,7 +112,7 @@ function crSetFilter(k) { crFilter = k; crRenderFilters(); crRenderList(); }
 function crRenderList() {
   const q = crFold((document.getElementById('cr-search').value || '').trim());
   const cat = document.getElementById('cr-cat-filter').value;
-  const rows = crPlans.filter(p => crMatchFilter(p, crFilter)).filter(p => !cat || p.categorie === cat).filter(p => !crColF || p.couleur === crColF).filter(p => {
+  const rows = crSortPlans(crPlans.filter(p => crMatchFilter(p, crFilter))).filter(p => !cat || p.categorie === cat).filter(p => !crColF || p.couleur === crColF).filter(p => {
     if (!q) return true;
     return crPlanText(p).includes(q);
   });
