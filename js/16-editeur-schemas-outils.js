@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z49 (10/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z49 (11/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -77,6 +77,10 @@ function schEdHandles(e) {
   if (schIsAction(e)) {
     const P = e.points, n = P.length, m = n === 3 ? schQuadAt(P[0], P[1], P[2], 0.5) : { x: (P[0].x + P[1].x) / 2, y: (P[0].y + P[1].y) / 2 };
     return [{ k: 'pt', i: 0, x: P[0].x, y: P[0].y }, { k: 'pt', i: n - 1, x: P[n - 1].x, y: P[n - 1].y }, { k: 'mid', x: m.x, y: m.y }];
+  }
+  if (e.type === 'PLAYER' || e.type === 'DEFENDER') { // poignée d'orientation : devant le joueur, dans le sens de ses bras
+    const f = ((e.type === 'DEFENDER' ? 180 : 0) + (e.rotation || 0)) * Math.PI / 180, D = SCH_PR * (e.scale || 1) * 2.3;
+    return [{ k: 'rot', x: schR(e.x + Math.sin(f) * D, 3), y: schR(e.y - Math.cos(f) * D, 3) }];
   }
   if (e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE') return [{ k: 'zone', x: e.x + e.w / 2, y: e.y + e.h / 2 }];
   if (SCH_RECTS[e.type]) { const a = (e.rotation || 0) * Math.PI / 180, hw = e.w / 2, hh = e.h / 2; return [{ k: 'rect', x: schR(e.x + hw * Math.cos(a) - hh * Math.sin(a), 3), y: schR(e.y + hw * Math.sin(a) + hh * Math.cos(a), 3) }]; } // coin : tirer pour changer longueur et largeur
@@ -304,6 +308,10 @@ function schEdMove(e) {
     const el = schEdSel(); if (!el) return; const h = dr.h, q = schEdClampPt(pt), g = { x: schSnap(q.x, 0.1), y: schSnap(q.y, 0.1) };
     if (h.k === 'pt') el.points[h.i] = { x: schR(g.x, 2), y: schR(g.y, 2) };
     else if (h.k === 'mid') { const P0 = el.points[0], P1 = el.points[el.points.length - 1]; el.points = [P0, { x: schR(2 * g.x - (P0.x + P1.x) / 2, 2), y: schR(2 * g.y - (P0.y + P1.y) / 2, 2) }, P1]; }
+    else if (h.k === 'rot') { // orientation libre : le joueur regarde vers le doigt ; léger aimant à 0 / 90 / 180 / 270°
+      let a = Math.atan2(pt.x - el.x, -(pt.y - el.y)) * 180 / Math.PI; if (el.type === 'DEFENDER') a -= 180;
+      a = ((Math.round(a) % 360) + 360) % 360; const m = Math.round(a / 90) * 90; if (Math.abs(a - m) <= 4) a = m % 360; el.rotation = a;
+    }
     else if (h.k === 'zone') { el.w = Math.max(1, schR(schSnap(2 * Math.abs(q.x - el.x), 0.5), 1)); el.h = Math.max(1, schR(schSnap(2 * Math.abs(q.y - el.y), 0.5), 1)); }
     else if (h.k === 'rect') { const a = (el.rotation || 0) * Math.PI / 180, ux = q.x - el.x, uy = q.y - el.y; el.w = Math.max(0.25, Math.min(12, schR(schSnap(2 * Math.abs(ux * Math.cos(a) + uy * Math.sin(a)), 0.25), 2))); el.h = Math.max(0.25, Math.min(12, schR(schSnap(2 * Math.abs(-ux * Math.sin(a) + uy * Math.cos(a)), 0.25), 2))); }
     schEdDraw();
@@ -440,6 +448,7 @@ function schEdPlace(type, pt) {
   const q = schEdClampPt(pt), o = { type, x: schSnap(q.x, 0.25), y: schSnap(q.y, 0.25), label: schNextLabel(els, type), z: Math.max(0, ...els.map(e => e.z)) + 1 };
   if (type === 'ZONE_RECT' || type === 'ZONE_CIRCLE') { o.w = 4; o.h = 3; }
   if (type === 'TEXT') o.label = 'Texte';
+  if (type === 'PLAYER' || type === 'DEFENDER') o.scale = 0.8; // taille par défaut d'un attaquant / défenseur posé (réglable ensuite)
   let el;
   if (type === 'BALL') {
     const nb = els.filter(e => e.type === 'BALL').length; // chaque appui pose un NOUVEAU ballon (4 au plus) ; pour déplacer un ballon, on le fait glisser
@@ -471,7 +480,7 @@ function schEdDraw() {
     else if (sel.type === 'ZONE_CIRCLE') ov += `<ellipse cx="${sel.x}" cy="${sel.y}" rx="${sel.w / 2}" ry="${sel.h / 2}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
     else if (sel.type === 'LADDER' || SCH_RECTS[sel.type] || sel.type === 'PEN') ov += schEdRingSvg(sel, els, HY, sc);
     else { const p = schEdPos(sel, els), r = sel.type === 'TEXT' ? Math.max(1, sel.label.length * 0.95 * (sel.scale || 1) * 0.35) + 0.3 : Math.max(0.9, schEdRad(sel) + 0.3); ov += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.45 0.3"/>`; }
-    schEdHandles(sel).forEach(h => { ov += `<circle cx="${h.x}" cy="${h.y}" r="${hr}" fill="${h.k === 'mid' ? HY : 'rgba(255,255,255,0.6)'}" stroke="#14213D" stroke-width="${hr * 0.2}"/>`; });
+    schEdHandles(sel).forEach(h => { if (h.k === 'rot') { const c = schEdPos(sel, els); ov += `<line x1="${c.x}" y1="${c.y}" x2="${h.x}" y2="${h.y}" stroke="#14213D" stroke-width="${hr * 0.18}" stroke-linecap="round" opacity="0.55"/>`; if (S.drag && S.drag.kind === 'handle' && S.drag.h.k === 'rot') ov += `<text x="${h.x}" y="${h.y - hr * 1.6}" text-anchor="middle" font-size="${hr * 1.8}" font-weight="800" fill="#14213D" stroke="#fff" stroke-width="${hr * 0.35}" paint-order="stroke" style="font-family:Arial">${Math.round(sel.rotation || 0)}°</text>`; } ov += `<circle cx="${h.x}" cy="${h.y}" r="${hr}" fill="${h.k === 'mid' ? HY : 'rgba(255,255,255,0.6)'}" stroke="#14213D" stroke-width="${hr * 0.2}"/>`; });
   }
   if (S.gmove) { S.gmove.forEach(id => { const e = els.find(x => x.id === id); if (e) ov += schEdRingSvg(e, els, '#00B7FF', sc); }); }
   if (S.tool === 'multi' || schEdMultiIds().length) {
@@ -542,8 +551,9 @@ function schEdPanel() {
   }
   if (e.type === 'BALL') h += row('Porteur', sel('holderId', e.holderId, [['', 'Automatique (le plus proche)'], ['-', 'Aucun (au sol)']].concat(plist)));
   if (e.type === 'PEN') h += row('Épaisseur', stp(schR(e.scale, 1) + '×', `schEdAdd('scale',-0.2,0.4,3)`, `schEdAdd('scale',0.2,0.4,3)`));
-  const rs = (e.type === 'PLAYER' || e.type === 'DEFENDER') ? 10 : 15; // joueurs : pas de 10° (orientation des bras)
-  if (!isAct && !isZone && e.type !== 'PEN') { if (e.type !== 'BALL' && e.type !== 'CONE' && e.type !== 'DISC' && e.type !== 'POLE' && e.type !== 'BALLOON' && !schIsPlayer(e) || e.type === 'DEFENDER' || e.type === 'PLAYER') h += row('Rotation', stp(Math.round(e.rotation) + '°', `schEdAdd('rotation',-${rs},0,360)`, `schEdAdd('rotation',${rs},0,360)`)); if (!SCH_RECTS[e.type]) h += row('Taille', stp(schR(e.scale, 1) + '×', `schEdAdd('scale',-0.2,0.4,3)`, `schEdAdd('scale',0.2,0.4,3)`)); }
+  const rs = 15;
+  if (e.type === 'PLAYER' || e.type === 'DEFENDER') h += row('Orientation', `<div class="sche-stp"><span style="min-width:46px;text-align:center;font-weight:800;">${Math.round(e.rotation || 0)}°</span><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(0)">Remettre droit</button></div>`);
+  if (!isAct && !isZone && e.type !== 'PEN') { if (e.type !== 'BALL' && e.type !== 'CONE' && e.type !== 'DISC' && e.type !== 'POLE' && e.type !== 'BALLOON' && !schIsPlayer(e)) h += row('Rotation', stp(Math.round(e.rotation) + '°', `schEdAdd('rotation',-${rs},0,360)`, `schEdAdd('rotation',${rs},0,360)`)); if (!SCH_RECTS[e.type]) h += row('Taille', stp(schR(e.scale, 1) + '×', `schEdAdd('scale',-0.2,0.4,3)`, `schEdAdd('scale',0.2,0.4,3)`)); }
   if (SCH_RECTS[e.type]) { const fm = v => String(schR(v, 2)).replace('.', ',') + ' m'; h += row('Longueur', stp(fm(e.w), `schEdDim('w',-0.25)`, `schEdDim('w',0.25)`)) + row('Largeur', stp(fm(e.h), `schEdDim('h',-0.25)`, `schEdDim('h',0.25)`)) + row('Sens', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(0)">↔</button><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(90)">↕</button></div>`); }
   if (e.type === 'LADDER') h += row('Cases (barreaux)', `<div class="sche-stp"><button type="button" onclick="schEdLadderN(${(e.n || 8) - 1})" aria-label="moins">−</button><input type="number" inputmode="numeric" min="2" max="${SCH_LADDER_MAX}" class="sche-in" style="width:64px;text-align:center;padding:0 4px;" value="${e.n || 8}" onchange="schEdLadderN(this.value)" aria-label="Nombre de cases"><button type="button" onclick="schEdLadderN(${(e.n || 8) + 1})" aria-label="plus">+</button></div>`)
     + row('Sens', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(0)">↔</button><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdSetRot(90)">↕</button></div>`);
@@ -574,7 +584,7 @@ function schEdAdd(prop, delta, lo, hi) {
   e[prop] = prop === 'step' ? Math.round(v) : schR(v, 2); schEdChanged(true); schEdBar();
 }
 function schEdLadderN(v) { const e = schEdSel(); if (!e || e.type !== 'LADDER') return; v = Math.max(2, Math.min(SCH_LADDER_MAX, Math.round(+v) || e.n || 8)); if (v === (e.n || 8)) { schEdPanel(); return; } schEdPush(); e.n = v; schEdChanged(true); }
-function schEdSetRot(a) { const e = schEdSel(); if (!e) return; schEdPush(); e.rotation = a; schEdChanged(true); }
+function schEdSetRot(a) { const e = schEdSel(); if (!e) return; schEdPush(); e.rotation = a; schEdChanged(true); schEdPanel(); }
 function schEdZone(delta) { const e = schEdSel(); if (!e) return; schEdPush(); e.w = Math.max(1, schR(e.w + delta * 2, 1)); e.h = Math.max(1, schR(e.h + delta * 2, 1)); schEdChanged(true); schEdBar(); }
 function schEdCurve() {
   const e = schEdSel(); if (!e || !schIsAction(e)) return; schEdPush(); const P = e.points;
