@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z46 (10/11/2026)
+// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z47 (10/11/2026)
 // ---------- Créateur de séances (coach) ----------
 const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-17 ans', '-18 ans', 'Seniors', 'Loisirs', 'Détection', 'Gardiens'];
 const CR_PUBLICS = ['Mixte', 'Garçons', 'Filles'];
@@ -246,7 +246,7 @@ window.addEventListener('pagehide', () => { if (crCur && crDirty) crBackupPut(cr
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && crCur && crDirty) crBackupPut(crCur); });
 let crRev = 0, crDirty = false, crPulling = false, crLastSync = 0, crSyncErr = false;
 const crRemote = {}; // versions plus récentes d'une séance ouverte, en attente d'être chargées (id → ligne)
-const CR_INT_KEYS = ['constat', 'objectif_individuel', 'comportements_attendus', 'criteres_reussite'];
+const CR_INT_KEYS = ['constat_positif', 'constat', 'objectif_individuel', 'comportements_attendus', 'criteres_reussite'];
 function crIntBody(p) { const o = {}; CR_INT_KEYS.forEach(k => { if (p[k] !== undefined) o[k] = p[k] || null; }); return o; }
 function crIntCopy(s) { const o = {}; CR_INT_KEYS.forEach(k => { if (s[k] !== undefined) o[k] = s[k]; }); return o; }
 function crBody(p) {
@@ -380,9 +380,32 @@ function crSel(opts, val, cb) {
 // ----- Intention de la séance (constat → objectifs contextuels → comportements → critères) -----
 const CR_CTX_CHIPS = ['Face à une défense 6-0', 'Face à une défense 5-1', 'Face à une défense 3-2-1', 'Face à une défense étagée', 'Face à une défense agressive', 'Sur grands espaces', 'En espace réduit', 'En contre-attaque', 'En montée de balle', 'En supériorité numérique', 'En infériorité numérique', 'Contre repli défensif', 'Sous pression', 'Pour…'];
 let crIntLast = 'objectif_principal';
-function crIntField(label, key, ph, rows) {
+const CR_VERBS = ['Améliorer', 'Mettre en place', 'Construire', 'Développer', 'Renforcer', 'Automatiser', 'Stabiliser', 'Optimiser', 'Exploiter', 'Faire évoluer'];
+function crIntField(label, key, ph, rows, extra) {
   const v = crCur[key] || '';
-  return `<label class="cr-lbl">${label}</label><textarea class="cr-in" id="cr-int-${key}" rows="${rows}" placeholder="${crEsc(ph)}" onfocus="crIntLast='${key}'" oninput="crSetField('${key}',this.value)">${crEsc(v)}</textarea>`;
+  return `<label class="cr-lbl">${label}</label><textarea class="cr-in" id="cr-int-${key}" rows="${rows}" placeholder="${crEsc(ph)}" onfocus="crIntLast='${key}'" oninput="crSetField('${key}',this.value);${extra || ''}">${crEsc(v)}</textarea>`;
+}
+// Le verbe choisi se place au début du champ objectif (principal ou individuel) et remplace un verbe de la liste déjà présent
+function crIntVerb(v) {
+  const k = (crIntLast === 'objectif_individuel') ? 'objectif_individuel' : 'objectif_principal';
+  const el = document.getElementById('cr-int-' + k); if (!el) return;
+  let t = el.value.replace(/^\s+/, '');
+  CR_VERBS.slice().sort((a, b) => b.length - a.length).some(x => { if (t.toLowerCase().indexOf(x.toLowerCase()) === 0) { t = t.slice(x.length).replace(/^[\s,:–-]+/, ''); return true; } return false; });
+  el.value = v + ' ' + (t ? t.charAt(0).toLowerCase() + t.slice(1) : '');
+  crSetField(k, el.value); crIntVerbCheck(); el.focus(); el.setSelectionRange(el.value.length, el.value.length);
+}
+// Rappel discret : l'objectif principal commence par un verbe à l'infinitif
+function crIntVerbCheck() {
+  const el = document.getElementById('cr-int-objectif_principal'), m = document.getElementById('cr-int-vchk'); if (!el || !m) return;
+  const w = (el.value.trim().split(/\s+/)[0] || '').toLowerCase().replace(/[^a-zàâçéèêëîïôûùüœ]/g, '');
+  const ok = !w || /(er|ir|re|oir)$/.test(w) || w === 'faire';
+  m.style.display = ok ? 'none' : ''; m.textContent = ok ? '' : 'Astuce : commence par un verbe à l\u2019infinitif (améliorer, construire, mettre en place…).';
+}
+// Rappel discret : formuler la problématique sans négation
+function crIntNeg(v) {
+  const m = document.getElementById('cr-int-neg'); if (!m) return;
+  const bad = /\bn[e']\s*\w*[^.]{0,25}\bpas\b|\bmanqu|\bmauvais|\bproblème|\bdifficult|\bjamais\b|\baucun|\bincapable/i.test(v || '');
+  m.style.display = bad ? '' : 'none'; m.textContent = bad ? 'Astuce : formule ce qu\u2019il reste à construire plutôt que ce qui manque (ex. « comment exploiter… », « comment faire évoluer… »).' : '';
 }
 // Une puce ajoute un début de phrase au champ « objectif » dans lequel on écrivait en dernier
 function crIntChip(btn) {
@@ -432,8 +455,12 @@ function crRenderEditor(p) {
     <div class="cr-card cr-int">
       <div style="font-size:16px;font-weight:800;color:var(--blanc);margin-bottom:2px;">Intention de la séance</div>
       <div style="font-size:12px;color:var(--gris-texte);margin-bottom:4px;">Du constat à l'objectif : pourquoi cette séance, face à quoi, et à quoi on reconnaît qu'elle a fonctionné.</div>
-      ${crIntField('1. Constat', 'constat', 'Ce que j\'ai observé : match du week-end, dernier entraînement, ce que les joueurs savent ou ne savent pas encore faire…', 3)}
-      ${crIntField('2. Objectif principal (collectif)', 'objectif_principal', 'Face à quoi, dans quelle situation, pour faire quoi…', 2)}
+      ${crIntField('1a. Ce que j\'ai vu de positif', 'constat_positif', 'Un point d\'appui observé (match du week-end, dernier entraînement) : ce qui fonctionne déjà', 2)}
+      ${crIntField('1b. La problématique qui en découle', 'constat', 'Ce qu\'il reste à construire, formulé comme un axe ou une question, sans négation', 2, "crIntNeg(this.value)")}
+      <div class="cr-int-neg" id="cr-int-neg" style="display:none;"></div>
+      ${crIntField('2. Objectif principal (collectif)', 'objectif_principal', 'Verbe à l\'infinitif + quoi + face à quoi / dans quelle situation', 2, "crIntVerbCheck()")}
+      <div class="cr-chips cr-verbs" id="cr-int-verbs">${CR_VERBS.map(v => `<button type="button" class="cr-ctxchip cr-verbchip" onclick="crIntVerb('${v}')">${v}</button>`).join('')}</div>
+      <div class="cr-int-neg" id="cr-int-vchk" style="display:none;"></div>
       <div class="cr-chips" id="cr-int-chips">${CR_CTX_CHIPS.map(c => `<button type="button" class="cr-ctxchip" onclick="crIntChip(this)">${crEsc(c)}</button>`).join('')}</div>
       ${crIntField('3. Objectif individuel', 'objectif_individuel', 'Un joueur ou un poste : ce que je lui demande dans ce contexte (un par ligne)', 2)}
       ${crIntField('4. Comportements attendus', 'comportements_attendus', 'Ce que je dois voir : un comportement observable par ligne', 3)}
@@ -661,7 +688,7 @@ function crEquipAgg(p) {
 function crEquipText(list) { return (list || []).map(e => (e.qty > 0 ? e.qty + ' ' : '') + e.name.toLowerCase()).join(' · '); }
 // Recherche plein texte (sans accents ni casse) : séance, blocs, exercices et tous les textes des listes
 function crPlanText(p) {
-  const parts = [p.title, p.categorie, p.public_cible, p.theme, p.objectif_principal, p.objectifs_secondaires, p.contexte, p.constat, p.objectif_individuel, p.comportements_attendus, p.criteres_reussite, p.niveau, p.entraineur, p.nb_joueurs].concat(p.materiel || []);
+  const parts = [p.title, p.categorie, p.public_cible, p.theme, p.objectif_principal, p.objectifs_secondaires, p.contexte, p.constat_positif, p.constat, p.objectif_individuel, p.comportements_attendus, p.criteres_reussite, p.niveau, p.entraineur, p.nb_joueurs].concat(p.materiel || []);
   (p.blocks || []).forEach(b => {
     parts.push(b.name);
     (b.exercises || []).forEach(raw => {
@@ -785,7 +812,7 @@ function crOpenFiche(id, exId) {
   });
   const sec = lines(p.objectifs_secondaires), eqAll = crEquipText(crEquipAgg(p));
   const cmp = lines(p.comportements_attendus), crit = lines(p.criteres_reussite), indiv = lines(p.objectif_individuel);
-  const constatH = crTxt(p.constat) ? `<div class="cr-fiche-cst"><h3>Constat</h3><div>${crEsc(p.constat).replace(/\n/g, '<br>')}</div></div>` : '';
+  const constatH = (crTxt(p.constat_positif) || crTxt(p.constat)) ? `<div class="cr-fiche-cst"><h3>Constat</h3>${crTxt(p.constat_positif) ? `<div><b>Point d\u2019appui :</b> ${crEsc(p.constat_positif).replace(/\n/g, '<br>')}</div>` : ''}${crTxt(p.constat) ? `<div style="margin-top:4px;"><b>Problématique :</b> ${crEsc(p.constat).replace(/\n/g, '<br>')}</div>` : ''}</div>` : '';
   const obj2 = (indiv.length || cmp.length || crit.length) ? `<div class="cr-fiche-cmp">${indiv.length ? `<div><h3>Objectif individuel</h3><ul>${indiv.map(l => `<li>${crEsc(l)}</li>`).join('')}</ul></div>` : ''}${cmp.length ? `<div><h3>Comportements attendus</h3><ul>${cmp.map(l => `<li>${crEsc(l)}</li>`).join('')}</ul></div>` : ''}${crit.length ? `<div><h3>Critères de réussite</h3><ul>${crit.map(l => `<li>${crEsc(l)}</li>`).join('')}</ul></div>` : ''}</div>` : '';
   const obj = constatH + ((crTxt(p.objectif_principal) || sec.length) ? `<div class="cr-fiche-obj">${crTxt(p.objectif_principal) ? `<h3>Objectif de la séance</h3><div class="main">${crEsc(p.objectif_principal).replace(/\n/g, '<br>')}</div>` : ''}${sec.length ? `<h3>Objectifs secondaires</h3><ul>${sec.map(l => `<li>${crEsc(l)}</li>`).join('')}</ul>` : ''}</div>` : '') + obj2;
   const ctx = crTxt(p.contexte) ? `<div><div class="cr-fiche-h">Contexte</div><div>${crEsc(p.contexte).replace(/\n/g, '<br>')}</div></div>` : '', mat = eqAll ? `<div><div class="cr-fiche-h">Matériel global</div><div>${crEsc(eqAll)}</div></div>` : '';
