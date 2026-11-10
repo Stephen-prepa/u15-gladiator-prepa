@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z48 (10/11/2026)
+// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z49 (11/11/2026)
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [
@@ -464,6 +464,7 @@ function schEdBar() {
   bar.innerHTML = b('schEdUndo()', '↶', S.undo.length ? '' : 'dis', 'Annuler') + b('schEdRedo()', '↷', S.redo.length ? '' : 'dis', 'Rétablir')
     + ex.drawings.map((x, i) => b(!roomy && i === S.k ? `schEdRenameStep(${i})` : `schEdGo(${i})`, (schEdIsValid(x) ? '✓ ' : '') + stl(x), (i === S.k ? 'on' : '') + '" data-step="' + i, narrow ? 'Étape ' + stl(x) : (!roomy && i === S.k ? 'Touche encore pour renommer' : ''))).join('')
     + b('schEdNextAsk()', '➜ Suivante', 'acc', 'Étape suivante : continuer l\'action, copier cette étape ou partir d\'une planche vierge') + b(`schPlayerOpen(${schDemo.indexOf(ex)},schEd.k)`, '▶ Animer', 'acc')
+    + b('schEdTraceToggle()', '✍', S.trace ? 'on' : '', S.trace ? 'Tracer en déplaçant : activé (glisser un joueur dessine sa flèche)' : 'Tracer en déplaçant : désactivé (glisser un joueur le déplace)')
     + b('schEdValidate()', narrow ? '✓' : (schEdIsValid(d) ? '✓ Validée' : '✓ Valider'), schEdIsValid(d) ? 'on' : '', 'Valider l\'étape') + (!roomy ? '' : b('schEdRenameStep()', '✎', '', 'Renommer l\'étape (ou une variante)')) + b('schEdDupStep()', '⧉', '', 'Dupliquer l\'étape') + b('schEdDelStep()', '🗑', '', 'Supprimer l\'étape')
     + `<select class="sche-sel" onchange="schEdView(this.value)" aria-label="Terrain">${SCH_VIEW_KEYS.map(k => `<option value="${k}" ${schViewParse(d.view).base === k ? 'selected' : ''}>${SCH_VIEWS[k].name}${!narrow && schViewParse(d.view).base === k && schViewParse(d.view).rot ? ' ↻' + schViewParse(d.view).rot + '°' : ''}</option>`).join('')}${narrow ? '<option value="@rotR">↻ 90° droite</option><option value="@rotL">↺ 90° gauche</option>' : ''}</select>`
     + (narrow ? '' : b('schEdRotate(-1)', '↺', '', 'Pivoter le terrain de 90° vers la gauche (toutes les étapes)') + b('schEdRotate(1)', '↻', '', 'Pivoter le terrain de 90° vers la droite (toutes les étapes)'))

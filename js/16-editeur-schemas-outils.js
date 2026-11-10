@@ -130,6 +130,7 @@ function schEdMultiIds() { const S = schEd; if (!S || !S.multi || S.multiK !== S
 function schEdMultiSet(ids) { schEd.multi = ids.slice(); schEd.multiK = schEd.k; }
 function schEdMultiPts(e, els) { return schIsAction(e) ? e.points : (e.type === 'PEN' ? schPenAbs(e) : [schEdPos(e, els)]); }
 // Déplacement de groupe : la sélection de joueurs reçoit la même flèche (même vecteur, même courbure, même étape) à partir de chacun
+function schEdTraceToggle() { const S = schEd; if (!S) return; S.trace = !S.trace; schEdBar(); schEdToast(S.trace ? 'Tracer en déplaçant : glisse un joueur pour dessiner sa flèche' : 'Glisser un joueur le déplace'); }
 function schEdGroupMove() {
   const S = schEd, els = schEdD().elements, ids = schEdMultiIds().filter(id => { const e = els.find(x => x.id === id); return e && schIsPlayer(e); });
   if (!ids.length) return;
@@ -223,6 +224,15 @@ function schEdDown(e) {
   if (!rightBtn && tool !== 'multi' && schEdMultiIds().length) {
     if (tool === 'select') { const h0 = schEdHit(pt, { handles: false }); if (h0 && h0.kind === 'el' && schEdMultiIds().includes(h0.e.id)) mtool = 'multimove'; }
     if (mtool !== 'multimove') { schEdMultiSet([]); schEdPanel(); schEdDraw(); }
+  }
+  // Tracer en déplaçant (interrupteur ✍, ou Option / Alt maintenu) : glisser un attaquant / défenseur dessine sa flèche de déplacement au lieu de le déplacer
+  if (!rightBtn && tool === 'select' && (S.trace || e.altKey)) {
+    const h1 = schEdHit(pt, { zones: false, actions: false });
+    if (h1 && h1.kind === 'el' && (h1.e.type === 'PLAYER' || h1.e.type === 'DEFENDER')) {
+      if (mtool === 'multimove') { const els1 = d.elements; S.gmove = schEdMultiIds().filter(id => { const x = els1.find(q => q.id === id); return x && schIsPlayer(x); }); schEdMultiSet([]); schEdPanel(); }
+      S.plan = schPlan(d); const q0 = schEdClampPt(pt);
+      S.drag = { kind: 'new', type: 'MOVE', p0: q0, p1: q0, pts: [q0], trace: true, pid: h1.e.id }; S.down.hit = null; return;
+    }
   }
   if (tool === 'pan' && mtool !== 'multi') { S.drag = { kind: 'pan', vb0: { ...S.vb } }; return; }
   if (tool === 'PEN' && !rightBtn) { S.sel = null; schEdPanel(); const q0 = { x: Math.round(pt.x * 100) / 100, y: Math.round(pt.y * 100) / 100 }; S.drag = { kind: 'pen', pts: [q0] }; schEdDraw(); return; }
@@ -338,7 +348,11 @@ function schEdUp(e) {
   const d = schEdD(), els = d.elements;
   if (dr.kind === 'pen') { schEdPenDone(dr); return; }
   if (dr.kind === 'erase') { if (dr.n) schEdChanged(true); else schEdDraw(); return; }
-  if (dr.kind === 'new') { if (S.gmove && dr.type === 'MOVE') schEdFinishGroup(dr); else schEdFinishAction(dr); return; }
+  if (dr.kind === 'new') {
+    if (dr.trace && Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { S.gmove = null; S.sel = dr.pid; schEdTools(); schEdPanel(); schEdDraw(); return; } // simple toucher : sélectionne le joueur
+    if (S.gmove && dr.type === 'MOVE') schEdFinishGroup(dr); else schEdFinishAction(dr);
+    if (dr.trace) S.gmove = null; return;
+  }
   if (dr.kind === 'lasso') {
     if (dn.moved) {
       const a = dr.p0, b = dr.p1, x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y), cur = schEdMultiIds();
