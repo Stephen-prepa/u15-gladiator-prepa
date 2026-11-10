@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z48 (10/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z49 (10/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -39,6 +39,11 @@ function schBallSvg(x, y, k, opacity, i, multi) {
   }
   const r = 0.34 * k;
   return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${SCH_COL.ball}" stroke="${SCH_COL.stroke}" stroke-width="0.07"/><path d="M${x - r} ${y} Q${x} ${y - r * 0.55} ${x + r} ${y}" fill="none" stroke="${SCH_COL.stroke}" stroke-width="0.05"/></g>`;
+}
+// Bras levés : toujours dessinés sur les attaquants et les défenseurs (petits traits devant le joueur, ils suivent son orientation)
+function schArmsSvg(e, x, y, r, f) {
+  const rot = (e.type === 'DEFENDER' ? 180 : 0) + (e.rotation || 0), s = e.scale || 1, ln = (w, col) => [-1, 1].map(sd => `<line x1="${x + sd * 0.85 * r}" y1="${y - 0.4 * r}" x2="${x + sd * 1.25 * r}" y2="${y - 1.0 * r}" stroke="${col}" stroke-width="${w * s}" stroke-linecap="round"/>`).join('');
+  return `<g transform="rotate(${rot} ${x} ${y})">${ln(0.24, SCH_COL.attLine)}${ln(0.12, f)}</g>`;
 }
 const SCH_PR = 0.62; // rayon d'un joueur (m)
 // Texte lisible (sombre ou clair) sur une couleur de fond choisie
@@ -165,8 +170,8 @@ function schElementSvg(e, k) {
   const txt = (t, col, fs, dy) => t ? `<text x="${x}" y="${y + (dy || 0) + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${col}" style="font-family:Arial,sans-serif;pointer-events:none;">${schEsc(t)}</text>` : '';
   switch (e.type) {
     case 'PEN': return schPenSvg(schPenAbs(e), e.color || SCH_COL.stroke, 0.16 * (e.scale || 1));
-    case 'PLAYER': { const f = e.color || C.att; return `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label, schInk(f, C.attLine, '#fff'), r * 1.15)}`; }
-    case 'DEFENDER': return `<polygon${tr} points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${e.color || C.def}" stroke="${C.attLine}" stroke-width="0.12" stroke-linejoin="round"/>${txt(e.label, schInk(e.color || C.def, C.attLine, '#fff'), r * 0.95, -r * 0.3)}`;
+    case 'PLAYER': { const f = e.color || C.att; return schArmsSvg(e, x, y, r, f) + `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label, schInk(f, C.attLine, '#fff'), r * 1.15)}`; }
+    case 'DEFENDER': return schArmsSvg(e, x, y, r, e.color || C.def) + `<polygon${tr} points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${e.color || C.def}" stroke="${C.attLine}" stroke-width="0.12" stroke-linejoin="round"/>${txt(e.label, schInk(e.color || C.def, C.attLine, '#fff'), r * 0.95, -r * 0.3)}`;
     case 'GOALKEEPER': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${e.color || C.gk}" stroke="${C.att}" stroke-width="0.16"/>${txt(e.label || 'GB', schInk(e.color || C.gk, C.attLine, '#fff'), r * (e.label && e.label.length > 1 ? 0.95 : 0.9))}`;
     case 'PARENT': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${e.color || C.parent}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'P', e.color ? schInk(e.color, C.attLine, '#fff') : '#fff', r)}`;
     case 'COACH': return `<rect x="${x - r}" y="${y - r}" width="${r * 2}" height="${r * 2}" rx="${r * 0.3}" fill="${e.color || C.coach}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'C', e.color ? schInk(e.color, C.attLine, '#fff') : C.attLine, r)}`;
