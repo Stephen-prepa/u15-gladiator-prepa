@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/11-schema-modele.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/11-schema-modele.js — dernière modification : version z48 (10/11/2026)
 // ----- Schéma (terrain) : modèle, rendu, éditeur image par image -----
 const CR_COURT = { half: { w: 200, h: 200, vb: [-10, -10, 220, 220], k: 1 }, full: { w: 400, h: 200, vb: [-10, -10, 420, 220], k: 1.35 }, free: { w: 300, h: 200, vb: [-10, -10, 320, 220], k: 1.1 } };
 const CR_MAX_FRAMES = 40;
@@ -99,13 +99,14 @@ function crSchemaCard(h, t) {
     const n = L.drawings.length, rec = crSchLibRec(L), newer = rec && rec.updatedAt && (!L.at || rec.updatedAt > L.at);
     const prev = n === 1 ? `<div class="cr-ex-schema" style="max-width:520px;">${schDrawingSvg(L.drawings[0], { showBallStart: false })}</div>`
       : `<div class="cr-ex-schema" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:640px;">${L.drawings.map(d => `<div><div style="font-size:11px;color:var(--gris-texte);margin-bottom:2px;">${crEsc(d.title)}</div>${schDrawingSvg(d, { showBallStart: false })}</div>`).join('')}</div>`;
-    return prev + `<div style="margin-top:8px;font-size:12px;color:var(--gris-texte);">🎬 ${crEsc(L.name)} · ${n} étape${n > 1 ? 's' : ''}${rec || L.fromOld || L.pend ? '' : ' · ⚠ plus dans la bibliothèque (la copie est conservée)'}${!rec && L.fromOld ? ' · converti depuis l\'ancien éditeur' : ''}${L.pend || (rec && !L.own) ? ' · modifier crée une copie : l\'original de la bibliothèque reste intact' : ''}${newer ? ' · <b style="color:var(--jaune);">version plus récente dans la bibliothèque</b>' : ''}</div>`
+    const descH = L.desc ? `<div class="cr-schdesc"><b>Descriptif du schéma</b><div>${crEsc(L.desc).replace(/\n/g, '<br>')}</div>${t === 'main' ? `<button type="button" class="cr-btn sm" onclick="crSchCopyDesc()">Copier dans « Disposition initiale »</button>` : ''}</div>` : '';
+    return prev + descH + `<div style="margin-top:8px;font-size:12px;color:var(--gris-texte);">🎬 ${crEsc(L.name)} · ${n} étape${n > 1 ? 's' : ''}${rec || L.fromOld || L.pend ? '' : ' · ⚠ plus dans la bibliothèque (la copie est conservée)'}${!rec && L.fromOld ? ' · converti depuis l\'ancien éditeur' : ''}${L.pend || (rec && !L.own) ? ' · modifier crée une copie : l\'original de la bibliothèque reste intact' : ''}${newer ? ' · <b style="color:var(--jaune);">version plus récente dans la bibliothèque</b>' : ''}</div>`
       + `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="cr-btn sm primary" onclick="crSchPlay(${q})">▶ Animer</button><button type="button" class="cr-btn sm" onclick="crSchShare(${q},this)">📤 Partager</button>${rec || L.fromOld || L.pend ? `<button type="button" class="cr-btn sm" onclick="crSchEdit(${q})">✏️ Modifier</button>` : ''}${newer ? `<button type="button" class="cr-btn sm" onclick="crSchUpdate(${q})">↻ Mettre à jour</button>` : ''}<button type="button" class="cr-btn sm" onclick="crSchPick(${q})">Changer</button><button type="button" class="cr-btn sm danger" onclick="crSchDetach(${q})">Retirer</button></div>`;
   }
   if (t === 'main' && crSchemaHas(h)) return crSchemaCardLegacy(h) + `<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:var(--gris-texte);">Ancien schéma (ancien éditeur). Tu peux le remplacer par un schéma de la bibliothèque ; l'ancien est conservé si tu le retires ensuite.</div><div style="margin-top:6px;"><button type="button" class="cr-btn sm" onclick="crSchPick('main')">🎬 Remplacer par un schéma de la bibliothèque</button></div>`;
   return `<div style="border:2px dashed rgba(245,196,0,0.5);border-radius:12px;padding:22px 10px;text-align:center;"><div style="font-size:30px;color:var(--jaune);">＋</div><div style="font-weight:800;color:var(--blanc);">${t === 'gb' ? 'Schéma du travail GB' : 'Dessiner la situation'}</div><div style="font-size:12px;color:var(--gris-texte);margin:4px 0 12px;">Joueurs, ballon, passes, déplacements, tirs… avec animation</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"><button type="button" class="cr-btn primary" onclick="crSchPick(${q})">Choisir dans la bibliothèque</button><button type="button" class="cr-btn" onclick="crSchNew(${q})">✏️ Créer un nouveau schéma</button></div></div>`;
 }
-function crSchSnap(rec, own) { const o = { id: rec.id, name: rec.name, at: rec.updatedAt || null, drawings: JSON.parse(JSON.stringify(rec.drawings)) }; if (own) o.own = true; return o; }
+function crSchSnap(rec, own) { const o = { id: rec.id, name: rec.name, desc: rec.desc || '', at: rec.updatedAt || null, drawings: JSON.parse(JSON.stringify(rec.drawings)) }; if (own) o.own = true; return o; }
 // Le titre du schéma devient le nom de l'exercice tant que celui-ci s'appelle encore « Nouvel exercice » (ou est vide) ; un nom saisi par le coach n'est jamais écrasé
 function crSchAdoptName(t, name) {
   if (t === 'gb') return;
@@ -168,16 +169,33 @@ function crSchPick(t) {
 function crSchPickClose() { if (crSchPickEl) { crSchPickEl.remove(); crSchPickEl = null; } }
 function crSchPickRefresh() { if (crSchPickEl) crSchPickRender(); }
 function crSchPickRender() {
-  const el = crSchPickEl; if (!el) return; const list = schUserEx.filter(x => !x.deleted && x.drawings.length), cur = (((crSchHolder(crSchTgt) || {}).schemaLib || {}).srcId) || ((crSchHolder(crSchTgt) || {}).schemaLib || {}).id;
+  const el = crSchPickEl; if (!el) return; el.style.background = 'rgba(5,10,20,0.92)'; const list = schUserEx.filter(x => !x.deleted && x.drawings.length), cur = (((crSchHolder(crSchTgt) || {}).schemaLib || {}).srcId) || ((crSchHolder(crSchTgt) || {}).schemaLib || {}).id;
   el.innerHTML = `<div class="crsp-top"><b style="font-size:17px;">Schémas de la bibliothèque</b><button type="button" onclick="crSchPickClose()" aria-label="Fermer">✕</button></div><div style="font-size:11px;color:#8FA3BF;margin:2px 0 8px;">${schEsc(schSyncLabel(false))}</div>`
-    + `<div class="crsp-list">${list.length ? list.map(x => { const n = x.drawings.length; return `<button type="button" class="crsp-card ${x.id === cur ? 'on' : ''}" onclick="crSchAttach('${x.id}')"><div class="crsp-thumb">${schDrawingSvg(x.drawings[0], { showBallStart: false })}</div><div class="crsp-name">${schEsc(x.name)}</div><div class="crsp-meta">${n} étape${n > 1 ? 's' : ''}${x.id === cur ? ' · choisi' : ''}</div></button>`; }).join('') : '<div style="color:#8FA3BF;font-size:13px;padding:20px 4px;">La bibliothèque est vide pour l\'instant. Crée ton premier schéma ci-dessous.</div>'}</div>`
+    + `<div class="crsp-list">${list.length ? list.map(x => { const n = x.drawings.length; return `<button type="button" class="crsp-card ${x.id === cur ? 'on' : ''}" onclick="crSchPrev('${x.id}')"><div class="crsp-thumb">${schDrawingSvg(x.drawings[0], { showBallStart: false })}</div><div class="crsp-name">${schEsc(x.name)}</div><div class="crsp-meta">${n} étape${n > 1 ? 's' : ''}${schTagText(x) ? ' · ' + schEsc(schTagText(x)) : ''}${x.id === cur ? ' · choisi' : ''}</div>${x.desc ? `<div class="crsp-desc">${schEsc(x.desc)}</div>` : ''}</button>`; }).join('') : '<div style="color:#8FA3BF;font-size:13px;padding:20px 4px;">La bibliothèque est vide pour l\'instant. Crée ton premier schéma ci-dessous.</div>'}</div>`
     + `<div style="padding-top:10px;"><button type="button" class="cr-btn primary" style="width:100%;padding:14px;" onclick="crSchNew(crSchTgt)">＋ Créer un nouveau schéma</button></div>`;
+}
+// Aperçu avant réutilisation : tous les temps du schéma + son descriptif, puis « Utiliser ce schéma »
+function crSchPrev(id) {
+  schEnsure(); const el = crSchPickEl, x = schUserEx.find(r => r.id === id && !r.deleted); if (!el || !x) return;
+  const n = x.drawings.length, tag = schTagText(x); el.style.background = '#0b1424';
+  el.innerHTML = `<div class="crsp-top"><b style="font-size:17px;min-width:0;overflow:hidden;text-overflow:ellipsis;">${schEsc(x.name)}</b><button type="button" onclick="crSchPickClose()" aria-label="Fermer">✕</button></div>`
+    + `<div class="crsp-prev"><div class="crsp-pgrid" style="grid-template-columns:${n > 1 ? 'repeat(auto-fit,minmax(240px,1fr))' : '1fr'};">${x.drawings.map(d => `<div><div class="crsp-ptt">${schEsc(d.title || '')}</div>${schDrawingSvg(d, { showBallStart: true })}</div>`).join('')}</div>`
+    + `<div class="crsp-meta" style="margin:8px 0 4px;">${n} étape${n > 1 ? 's' : ''}${tag ? ' · ' + schEsc(tag) : ''}</div>`
+    + (x.desc ? `<div class="crsp-pdesc">${schEsc(x.desc).replace(/\n/g, '<br>')}</div>` : `<div class="crsp-pdesc none">Aucun descriptif pour ce schéma. Tu peux en ajouter un dans la bibliothèque : bouton 🏷 « Classer » de l'éditeur de schémas.</div>`) + `</div>`
+    + `<div class="crsp-pbtn"><button type="button" class="cr-btn" onclick="crSchPickRender()">← Retour</button>${crSchAnimOk(x) ? `<button type="button" class="cr-btn" onclick="schPlayerOpenData(schUserEx.find(r=>r.id==='${x.id}').name,schUserEx.find(r=>r.id==='${x.id}').drawings)">▶ Animer</button>` : ''}<button type="button" class="cr-btn primary" style="flex:1;" onclick="crSchAttach('${x.id}')">Utiliser ce schéma</button></div>`;
+}
+// Ajoute le descriptif du schéma à la « Disposition initiale » de l'exercice (sans rien écraser)
+function crSchCopyDesc() {
+  const x = crCurEx(), L = x && x.schemaLib; if (!L || !L.desc) return;
+  x.org = x.org || {}; const cur = String(x.org.setup || '');
+  if (cur.indexOf(L.desc) >= 0) return;
+  x.org.setup = cur ? cur.replace(/\s+$/, '') + '\n' + L.desc : L.desc; crTouch(); crRenderExView();
 }
 function crSchAnimOk(L) { return !!(L && L.drawings && L.drawings.length && (L.drawings.length > 1 || L.drawings.some(d => (d.elements || []).some(schIsAction)))); }
 function crFicheSchemaLib(L) {
   if (!L || !L.drawings || !L.drawings.length) return '';
   const n = L.drawings.length, one = d => schDrawingSvg(d, { showBallStart: false });
-  const leg = `<div class="cr-fig-leg">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe.</div>`;
+  const leg = `<div class="cr-fig-leg">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe (deux pointes : passe aller-retour).</div>`;
   if (n === 1) return `<div class="cr-fig1">${one(L.drawings[0])}</div>${leg}`;
   return `<div class="cr-figs">${L.drawings.map((d, i) => `<figure class="cr-fig"><figcaption>${crCirc(i + 1)} ${crEsc(d.title)}</figcaption>${one(d)}</figure>`).join('')}</div>${leg}`;
 }

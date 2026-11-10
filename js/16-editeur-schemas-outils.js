@@ -1,7 +1,7 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z31 (06/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z48 (10/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
-const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
+const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
 // Ordre effectif des outils : celui choisi dans Réglages (cet appareil), complété par les outils manquants dans l'ordre par défaut
 function schToolOrder() {
   const out = [], saved = (typeof dispCfg !== 'undefined' && dispCfg && Array.isArray(dispCfg.toolOrder)) ? dispCfg.toolOrder : [];
@@ -124,6 +124,7 @@ function schEdSelect(id) { schEd.sel = id; if (id) schEdMultiSet([]); schEdTools
 function schEdMultiIds() { const S = schEd; if (!S || !S.multi || S.multiK !== S.k) return []; const els = schEdD().elements; return S.multi.filter(id => els.some(e => e.id === id)); }
 function schEdMultiSet(ids) { schEd.multi = ids.slice(); schEd.multiK = schEd.k; }
 function schEdMultiPts(e, els) { return schIsAction(e) ? e.points : (e.type === 'PEN' ? schPenAbs(e) : [schEdPos(e, els)]); }
+function schEdSymToggle() { const S = schEd; if (!S) return; S.sym = !S.sym; schEdPanel(); schEdToast(S.sym ? 'Symétrique : les éléments de l\u2019autre côté du terrain font le miroir' : 'Déplacement identique pour tous'); }
 function schEdMultiAll() { schEdMultiSet(schEdD().elements.map(e => e.id)); schEdPanel(); schEdDraw(); }
 function schEdMultiClear() { schEdMultiSet([]); schEdPanel(); schEdDraw(); }
 function schEdMultiDel() {
@@ -153,9 +154,9 @@ function schEdMultiDup() {
 function schEdMultiPanel() {
   const ids = schEdMultiIds(), n = ids.length;
   const b = (fn, lab, cls, dis) => `<button type="button" ${cls ? `class="${cls}"` : ''} ${dis ? 'disabled style="opacity:.35"' : ''} onclick="${fn}">${lab}</button>`;
-  return `<div class="sche-ph"><b>${n ? n + ' élément' + (n > 1 ? 's sélectionnés' : ' sélectionné') : 'Sélection multiple'}</b><span class="sche-sp"></span>${b('schEdMultiDup()', 'Dupliquer', '', !n)}${b('schEdMultiDel()', 'Supprimer', 'red', !n)}</div>`
+  return `<div class="sche-ph"><b>${n ? n + ' élément' + (n > 1 ? 's sélectionnés' : ' sélectionné') : 'Sélection multiple'}</b><span class="sche-sp"></span>${b('schEdSymToggle()', 'Symétrique : ' + (schEd.sym ? 'oui' : 'non'), schEd.sym ? 'sche-all on' : 'sche-all', false)}${b('schEdMultiDup()', 'Dupliquer', '', !n)}${b('schEdMultiDel()', 'Supprimer', 'red', !n)}</div>`
     + `<div class="sche-row sche-wide" style="flex-direction:row;gap:8px;flex-wrap:wrap;">${b('schEdMultiAll()', 'Tout sélectionner', 'sche-all')}${b('schEdMultiClear()', 'Tout désélectionner', 'sche-all', !n)}</div>`
-    + `<div class="sche-hint">Touche des éléments pour les ajouter ou les retirer, ou trace un rectangle sur le terrain pour en prendre plusieurs. Glisse un élément sélectionné pour déplacer tout le groupe. Touche le terrain vide pour tout désélectionner. Avec la souris, le clic droit fait la même chose depuis n\'importe quel outil, puis le clic gauche retrouve son rôle habituel (glisser un élément du groupe le déplace en entier).</div>`;
+    + `<div class="sche-hint">Touche des éléments pour les ajouter ou les retirer, ou trace un rectangle sur le terrain pour en prendre plusieurs. Glisse un élément sélectionné pour déplacer tout le groupe (avec « Symétrique : oui », ceux de l\'autre côté du terrain font le miroir). Touche le terrain vide pour tout désélectionner. Avec la souris, le clic droit fait la même chose depuis n\'importe quel outil, puis le clic gauche retrouve son rôle habituel (glisser un élément du groupe le déplace en entier).</div>`;
 }
 function schEdRingSvg(e, els, col, sc) {
   if (e.type === 'PEN') { const b = schPenBox(e), pd = 0.35; return `<rect x="${b.x0 - pd}" y="${b.y0 - pd}" width="${b.x1 - b.x0 + pd * 2}" height="${b.y1 - b.y0 + pd * 2}" rx="0.15" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`; }
@@ -198,7 +199,9 @@ function schEdDown(e) {
       let ids = schEdMultiIds(); const was = ids.includes(hit.e.id); if (!was) { ids = ids.concat(hit.e.id); schEdMultiSet(ids); schEdPanel(); }
       const orig = {}, bb = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
       ids.forEach(id => { const e = els0.find(x => x.id === id); if (!e) return; orig[id] = schIsAction(e) ? { pts: e.points.map(p => ({ ...p })) } : { p: schEdPos(e, els0), holder: e.holderId }; schEdMultiPts(e, els0).forEach(p => { bb.x0 = Math.min(bb.x0, p.x); bb.y0 = Math.min(bb.y0, p.y); bb.x1 = Math.max(bb.x1, p.x); bb.y1 = Math.max(bb.y1, p.y); }); });
-      S.drag = { kind: 'mmove', ids, orig, bb, pt0: pt, snap0: schEdSnapStr(), tapId: mtool === 'multimove' ? null : (was ? hit.e.id : null), single: mtool === 'multimove' ? hit.e.id : null }; schEdDraw(); return;
+      const Vs = SCH_VIEWS[d.view] || SCH_VIEWS.half, bbs = {}, side = {}; // symétrie : côté de l'axe (milieu du terrain) et limites de chaque élément
+      ids.forEach(id => { const e = els0.find(x => x.id === id); if (!e) return; const q = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 }; schEdMultiPts(e, els0).forEach(p => { q.x0 = Math.min(q.x0, p.x); q.y0 = Math.min(q.y0, p.y); q.x1 = Math.max(q.x1, p.x); q.y1 = Math.max(q.y1, p.y); }); bbs[id] = q; const cx = (q.x0 + q.x1) / 2 - Vs.w / 2; side[id] = Math.abs(cx) < 0.05 ? 0 : (cx < 0 ? -1 : 1); });
+      S.drag = { kind: 'mmove', sym: !!S.sym && ids.length > 1, bbs, side, grab: hit.e.id, ids, orig, bb, pt0: pt, snap0: schEdSnapStr(), tapId: mtool === 'multimove' ? null : (was ? hit.e.id : null), single: mtool === 'multimove' ? hit.e.id : null }; schEdDraw(); return;
     }
     S.drag = { kind: 'lasso', p0: pt, p1: pt }; return;
   }
@@ -248,12 +251,18 @@ function schEdMove(e) {
   if (dr.kind === 'lasso') { dr.p1 = pt; schEdDraw(); return; }
   if (dr.kind === 'mmove') {
     const V = SCH_VIEWS[d.view] || SCH_VIEWS.half, bb = dr.bb;
-    const dx = Math.max(-bb.x0, Math.min(V.w - bb.x1, schSnap(pt.x - dr.pt0.x, 0.25))), dy = Math.max(-bb.y0, Math.min(V.h - bb.y1, schSnap(pt.y - dr.pt0.y, 0.25)));
+    let dx = Math.max(-bb.x0, Math.min(V.w - bb.x1, schSnap(pt.x - dr.pt0.x, 0.25))), dy = Math.max(-bb.y0, Math.min(V.h - bb.y1, schSnap(pt.y - dr.pt0.y, 0.25)));
+    const g0 = dr.sym ? (dr.side[dr.grab] || 1) : 1; // côté de l'élément attrapé : les éléments de l'autre côté de l'axe font le miroir en x
+    if (dr.sym) { // limites : aucun élément ne doit sortir du terrain, côté miroir compris
+      let lo = -1e9, hi = 1e9; dr.ids.forEach(id => { const q = dr.bbs[id]; if (!q) return; const f = (dr.side[id] === 0 ? 0 : dr.side[id] * g0); if (f === 1) { lo = Math.max(lo, -q.x0); hi = Math.min(hi, V.w - q.x1); } else if (f === -1) { lo = Math.max(lo, q.x1 - V.w); hi = Math.min(hi, q.x0); } });
+      dx = Math.max(lo, Math.min(hi, schSnap(pt.x - dr.pt0.x, 0.25)));
+    }
     dr.ids.forEach(id => {
       const el = els.find(x => x.id === id), o = dr.orig[id]; if (!el || !o) return;
-      if (schIsAction(el)) el.points = o.pts.map(p => ({ x: schR(p.x + dx, 2), y: schR(p.y + dy, 2) }));
-      else if (el.type === 'BALL') { if (o.holder && o.holder !== '-' && dr.ids.includes(o.holder)) return; el.holderId = '-'; el.x = schR(o.p.x + dx, 2); el.y = schR(o.p.y + dy, 2); }
-      else { el.x = schR(o.p.x + dx, 2); el.y = schR(o.p.y + dy, 2); }
+      const f = dr.sym ? (dr.side[id] === 0 ? 0 : dr.side[id] * g0) : 1, ex = dx * f;
+      if (schIsAction(el)) el.points = o.pts.map(p => ({ x: schR(p.x + ex, 2), y: schR(p.y + dy, 2) }));
+      else if (el.type === 'BALL') { if (o.holder && o.holder !== '-' && dr.ids.includes(o.holder)) return; el.holderId = '-'; el.x = schR(o.p.x + ex, 2); el.y = schR(o.p.y + dy, 2); }
+      else { el.x = schR(o.p.x + ex, 2); el.y = schR(o.p.y + dy, 2); }
     });
     schEdDraw(); return;
   }
@@ -347,7 +356,7 @@ function schEdAttach(a, plan, which) {
   const tol = (schEd.touch ? 26 : 14) / schEdMap(schEd.vb).s, near = (pt, exceptId) => { let best = null, bd = Math.max(1.3, tol); plan.els.forEach(e => { if (!schIsPlayer(e) || e.id === exceptId) return; schPlayerRefs(e, plan).forEach(r => { const dd = Math.hypot(r.x - pt.x, r.y - pt.y); if (dd < bd) { bd = dd; best = { e, r }; } }); }); return best; };
   const P = a.points;
   if (which === 0 || which === 'all') { const h = near(P[0]); if (h) { a.fromElementId = h.e.id; P[0] = { x: schR(h.r.x, 2), y: schR(h.r.y, 2) }; } }
-  if ((which === P.length - 1 || which === 'all') && a.type === 'PASS') { const h = near(P[P.length - 1], a.fromElementId); if (h) { a.toElementId = h.e.id; P[P.length - 1] = { x: schR(h.r.x, 2), y: schR(h.r.y, 2) }; } }
+  if ((which === P.length - 1 || which === 'all') && (a.type === 'PASS' || a.type === 'PASS2')) { const h = near(P[P.length - 1], a.fromElementId); if (h) { a.toElementId = h.e.id; P[P.length - 1] = { x: schR(h.r.x, 2), y: schR(h.r.y, 2) }; } }
 }
 // Trait dessiné au doigt → droite (2 points) ou courbe de Bézier quadratique (3 points) qui épouse le tracé (moindres carrés, paramétrage par longueur)
 function schEdFit(pts, last) {
@@ -445,6 +454,7 @@ function schEdDraw() {
   if (S.tool === 'multi' || schEdMultiIds().length) {
     const MC = '#00B7FF'; schEdMultiIds().forEach(id => { const e = els.find(x => x.id === id); if (e) ov += schEdRingSvg(e, els, MC, sc); });
     const dl = S.drag; if (dl && dl.kind === 'lasso' && S.down && S.down.moved) ov += `<rect x="${Math.min(dl.p0.x, dl.p1.x)}" y="${Math.min(dl.p0.y, dl.p1.y)}" width="${Math.abs(dl.p1.x - dl.p0.x)}" height="${Math.abs(dl.p1.y - dl.p0.y)}" fill="rgba(0,183,255,0.14)" stroke="${MC}" stroke-width="${2 / sc}" stroke-dasharray="${6 / sc} ${4 / sc}"/>`;
+    if (dl && dl.kind === 'mmove' && dl.sym && S.down && S.down.moved) { const Vv = SCH_VIEWS[d.view] || SCH_VIEWS.half; ov += `<line x1="${Vv.w / 2}" y1="0" x2="${Vv.w / 2}" y2="${Vv.h}" stroke="${MC}" stroke-width="${1.5 / sc}" stroke-dasharray="${8 / sc} ${6 / sc}" opacity="0.8"/>`; }
   }
   const vb = S.vb;
   S.stage.innerHTML = `<svg viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;display:block;background:transparent;touch-action:none;">${schCourtSvg(d.view)}${schBodySvg(f)}${ov}</svg>`;
@@ -452,7 +462,7 @@ function schEdDraw() {
 function schEdWarn() {
   const S = schEd; if (!S) return; const d = schEdD(), plan = schPlan(d), box = S.el.querySelector('#sche-warn'), seen = {}, lines = [];
   plan.warnings.forEach(w => { const o = plan.byId[w.owner], k = w.owner + '|' + w.step; if (seen[k]) return; seen[k] = 1; const wa = plan.byId[w.id], bi = wa && wa.ballId ? plan.balls.findIndex(z => z.id === wa.ballId) + 1 : 0; lines.push(`${schEsc(schPlayerName(o))} n'a pas encore le ballon${bi ? ' ' + bi : ''} à l'action ${w.step}`); });
-  const hasBallAct = d.elements.some(e => e.type === 'PASS' || e.type === 'SHOT'), hasBall = d.elements.some(e => e.type === 'BALL');
+  const hasBallAct = d.elements.some(e => e.type === 'PASS' || e.type === 'PASS2' || e.type === 'SHOT'), hasBall = d.elements.some(e => e.type === 'BALL');
   let h = '';
   if (lines.length) h = `<span>⚠ ${lines.slice(0, 2).join(' · ')}${lines.length > 2 ? ' · +' + (lines.length - 2) : ''}</span><button type="button" onclick="schEdReorder()">Remettre dans l'ordre logique</button>`;
   else if (hasBallAct && !hasBall) h = `<span>Ajoute un ballon (onglet Objets) pour que les passes et tirs s'animent.</span>`;
@@ -498,14 +508,14 @@ function schEdPanel() {
     h += row('Étape (n°)', `<div class="sche-stp"><button type="button" onclick="schEdAdd('step',-1,1,30)" aria-label="moins">−</button><input type="number" inputmode="numeric" min="1" max="30" class="sche-in" style="width:64px;text-align:center;padding:0 4px;" value="${e.step}" onchange="schEdStepSet(this.value)" aria-label="Numéro d'étape"><button type="button" onclick="schEdAdd('step',1,1,30)" aria-label="plus">+</button></div>`);
     // passe / tir d'un joueur qui court dans la même étape : le décalage se lit en « moment de sa course » (Début, ¼, ½, ⅔, ⅚, Fin) plutôt qu'en secondes
     let dLab = 'Décalage', dVal = e.delay ? '+' + String(e.delay).replace('.', ',') + ' s' : '0 s';
-    if (e.type === 'PASS' || e.type === 'SHOT') {
+    if (e.type === 'PASS' || e.type === 'PASS2' || e.type === 'SHOT') {
       const pl = schPlan(d), w = pl.windows[e.id], o = pl.own[e.id], sg = o && w ? (pl.segs[o.id] || []).find(g => g.a.id !== e.id && g.a.step === e.step) : null;
-      if (sg) { const pc = Math.max(0, Math.min(100, Math.round((w[0] - sg.t0) / (sg.t1 - sg.t0) * 100))), pt = [[0, 'Début'], [25, '¼'], [50, '½'], [67, '⅔'], [83, '⅚'], [100, 'Fin']].reduce((m, q) => Math.abs(q[0] - pc) < Math.abs(m[0] - pc) ? q : m); dLab = (e.type === 'PASS' ? 'Passe' : 'Tir') + ' part à'; dVal = pt[0] === 0 || pt[0] === 100 ? pt[1] : pt[1] + ' · ' + pc + ' %'; }
+      if (sg) { const pc = Math.max(0, Math.min(100, Math.round((w[0] - sg.t0) / (sg.t1 - sg.t0) * 100))), pt = [[0, 'Début'], [25, '¼'], [50, '½'], [67, '⅔'], [83, '⅚'], [100, 'Fin']].reduce((m, q) => Math.abs(q[0] - pc) < Math.abs(m[0] - pc) ? q : m); dLab = (e.type === 'SHOT' ? 'Tir' : 'Passe') + ' part à'; dVal = pt[0] === 0 || pt[0] === 100 ? pt[1] : pt[1] + ' · ' + pc + ' %'; }
     }
     h += row(dLab, stp(dVal, `schEdAdd('delay',-0.25,0,2)`, `schEdAdd('delay',0.25,0,2)`));
     h += row('Part de', sel('fromElementId', e.fromElementId, [['', 'Automatique']].concat(plist)));
-    if (ballsAll.length > 1 && (e.type === 'PASS' || e.type === 'SHOT' || e.type === 'RUN')) h += row('Ballon', sel('ballId', e.ballId, [['', 'Automatique (celui du joueur)']].concat(ballsAll.map((b, i) => [b.id, 'Ballon ' + (i + 1)]))));
-    if (e.type === 'PASS') h += row('Receveur', sel('toElementId', e.toElementId, [['', 'Automatique']].concat(plist.filter(p => p[0] !== e.fromElementId))));
+    if (ballsAll.length > 1 && (e.type === 'PASS' || e.type === 'PASS2' || e.type === 'SHOT' || e.type === 'RUN')) h += row('Ballon', sel('ballId', e.ballId, [['', 'Automatique (celui du joueur)']].concat(ballsAll.map((b, i) => [b.id, 'Ballon ' + (i + 1)]))));
+    if (e.type === 'PASS' || e.type === 'PASS2') h += row('Receveur', sel('toElementId', e.toElementId, [['', 'Automatique']].concat(plist.filter(p => p[0] !== e.fromElementId))));
     h += row('Tracé', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdCurve()">${e.points.length === 3 ? 'Redresser' : 'Courber'}</button></div>`);
   }
   if (e.type === 'BALL') h += row('Porteur', sel('holderId', e.holderId, [['', 'Automatique (le plus proche)'], ['-', 'Aucun (au sol)']].concat(plist)));
@@ -562,16 +572,16 @@ function schEdDup() {
 }
 
 // ----- Liste d'exercices (démonstration) : nouvel exercice / copie / suppression -----
-function schNewEx(kind, theme) {
+function schNewEx(kind, theme, desc) {
   schEnsure();
-  const r = schRec({ id: schUuid(), name: 'Nouvel exercice', kind, theme, drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], dirty: true }); schUserEx.push(r); schRebuild();
+  const r = schRec({ id: schUuid(), name: 'Nouvel exercice', kind, theme, desc: desc || '', drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], dirty: true }); schUserEx.push(r); schRebuild();
   schUserSave(); schUi.ex = schDemo.indexOf(r); schUi.step = 0; schEditorOpen(schUi.ex);
 }
 // Fenêtre « Nouveau schéma » / « Classer le schéma » : type et thème obligatoires
 let schClsCtx = null;
 function schNewExAsk() { schClassUi('new', null); }
 function schClassUi(mode, ex) {
-  schClassClose(); schClsCtx = { mode, ex: ex || null, kind: ex ? ex.kind || '' : '', theme: ex ? ex.theme || '' : '' };
+  schClassClose(); schClsCtx = { mode, ex: ex || null, kind: ex ? ex.kind || '' : '', theme: ex ? ex.theme || '' : '', desc: ex ? ex.desc || '' : '' };
   const o = document.createElement('div'); o.id = 'sch-cls'; o.className = 'sch-cls'; o.addEventListener('pointerdown', ev => { if (ev.target === o) schClassClose(); });
   document.documentElement.appendChild(o); schClassRender();
 }
@@ -582,6 +592,7 @@ function schClassRender() {
     + `<div class="sch-cls-l">Type de schéma</div><div class="sch-cls-r">${Object.keys(SCH_KINDS).map(k => chip(st.kind === k, `schClassSet('kind','${k}')`, SCH_KINDS[k])).join('')}</div>`
     + `<div class="sch-cls-l">Thème (par poste)</div><div class="sch-cls-r">${Object.keys(SCH_THEMES).map(k => SCH_CUSTOM[k] ? `<span class="sch-cls-cx">${chip(st.theme === k, `schClassSet('theme','${k}')`, schEsc(SCH_THEMES[k]))}${schThemeUsed(k) ? '' : `<button type="button" class="sch-cls-x" aria-label="Supprimer ce thème" onclick="schThemeDel('${k}')">✕</button>`}</span>` : chip(st.theme === k, `schClassSet('theme','${k}')`, SCH_THEMES[k])).join('')}${st.adding ? '' : chip(false, 'schThemeAdd()', '＋ Nouveau thème')}</div>`
     + (st.adding ? `<div class="sch-cls-add"><input id="sch-cls-new" class="sch-cls-in" type="text" maxlength="40" placeholder="Nom du thème (ex. Sortie de balle)" onkeydown="if(event.key==='Enter'){event.preventDefault();schThemeAddGo();}"><button type="button" class="sch-cls-ok" onclick="schThemeAddGo()">Ajouter</button></div>` : '')
+    + `<div class="sch-cls-l">Descriptif (facultatif)</div><textarea class="sch-cls-in sch-cls-ta" rows="4" maxlength="2000" placeholder="Dispositif, consignes, rôle de chacun… Ce texte s'affiche quand tu choisis ce schéma pour un exercice." oninput="if(schClsCtx)schClsCtx.desc=this.value">${schEsc(st.desc || '')}</textarea>`
     + `<button type="button" class="sch-cls-go" ${ready ? '' : 'disabled'} onclick="schClassGo()">${st.mode === 'new' ? 'Créer le schéma' : 'Enregistrer'}</button>${ready ? '' : '<div class="sch-cls-h">Choisis le type et le thème pour continuer.</div>'}<button type="button" class="sch-cls-c" onclick="schClassClose()">Annuler</button></div>`;
 }
 function schThemeUsed(k) { return schUserEx.some(x => !x.deleted && x.theme === k) || schDemo.some(x => x.theme === k) || (schEd && schEd.ex && schEd.ex.theme === k); }
@@ -605,8 +616,8 @@ function schClassSet(k, v) { if (schClsCtx) { schClsCtx[k] = v; schClassRender()
 function schClassClose() { const o = document.getElementById('sch-cls'); if (o) o.remove(); schClsCtx = null; }
 function schClassGo() {
   const st = schClsCtx; if (!st || !st.kind || !st.theme) return; schClassClose();
-  if (st.mode === 'new') { schNewEx(st.kind, st.theme); return; }
-  const ex = st.ex; if (!ex) return; ex.kind = st.kind; ex.theme = st.theme;
+  if (st.mode === 'new') { schNewEx(st.kind, st.theme, st.desc); return; }
+  const ex = st.ex; if (!ex) return; ex.kind = st.kind; ex.theme = st.theme; ex.desc = String(st.desc || '').slice(0, 2000);
   if (schEd && schEd.ex === ex) { schEdTouch(); schEdTagUi(); } else { schMarkDirty(ex); schUserSave(); schSyncSoon(); schRenderDemo(); }
 }
 function schTagText(ex) { return ex && ex.kind && ex.theme ? SCH_KINDS_S[ex.kind] + ' · ' + SCH_THEMES_S[ex.theme] : ''; }

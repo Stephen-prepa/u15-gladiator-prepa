@@ -948,7 +948,7 @@ function crLectFigSchema() {
   if (L && L.drawings && L.drawings.length) {
     const nd = L.drawings.length; if (S.step >= nd) S.step = 0;
     const can = crSchAnimOk(L), a = S.anim, loop = crLectLoopOn();
-    const leg = `<span class="crl-leg">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe.</span>`;
+    const leg = `<span class="crl-leg">Les numéros indiquent l'ordre des actions (même numéro : en même temps). Trait pointillé : passe (deux pointes : passe aller-retour).</span>`;
     const loopBtn = `<button type="button" class="crl-fbtn${loop ? ' on' : ''}" onclick="crLectLoopToggle()" aria-pressed="${loop}">🔁 En boucle</button>`;
     if (a) {
       return `<div class="crl-svg" id="crl-stage"></div><div class="crl-aprog"><i id="crl-prog-a"></i></div>`

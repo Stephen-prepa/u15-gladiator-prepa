@@ -1,14 +1,14 @@
-// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z48 (10/11/2026)
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [
   { id: 'tools', name: 'Outils', tools: [['select', 'Sélection'], ['multi', 'Sélection multiple'], ['pan', 'Déplacer la vue']] },
   { id: 'players', name: 'Joueurs', tools: [['PLAYER', 'Attaquant'], ['DEFENDER', 'Défenseur'], ['GOALKEEPER', 'Gardien']] },
-  { id: 'actions', name: 'Actions', tools: [['MOVE', 'Déplacement'], ['PASS', 'Passe'], ['RUN', 'Dribble'], ['SHOT', 'Tir'], ['SCREEN', 'Écran']] },
+  { id: 'actions', name: 'Actions', tools: [['MOVE', 'Déplacement'], ['PASS', 'Passe'], ['PASS2', 'Passe aller-retour'], ['RUN', 'Dribble'], ['SHOT', 'Tir'], ['SCREEN', 'Écran']] },
   { id: 'objects', name: 'Objets', tools: [['BALL', 'Ballon'], ['CONE', 'Plot'], ['DISC', 'Disque'], ['POLE', 'Jalon'], ['HOOP', 'Cerceau'], ['HURDLE', 'Haie'], ['LADDER', 'Échelle de rythme'], ['POPUP_GOAL', 'Mini-but'], ['BALLOON', 'Baudruche'], ['BALL_BOX', 'Bac ballons'], ['DUMMY', 'Mannequin'], ['MAT', 'Tapis'], ['BENCH', 'Banc'], ['BOX', 'Caisson'], ['RECT', 'Rectangle']] },
   { id: 'zones', name: 'Zones, texte, crayon', tools: [['ZONE_RECT', 'Zone'], ['ZONE_CIRCLE', 'Zone ronde'], ['TEXT', 'Texte'], ['PEN', 'Crayon'], ['ERASER', 'Gomme']] },
 ];
-const SCH_NAMES = { PEN: 'Trait libre', PLAYER: 'Attaquant', DEFENDER: 'Défenseur', GOALKEEPER: 'Gardien', PARENT: 'Parent', COACH: 'Coach', BALL: 'Ballon', CONE: 'Plot', DISC: 'Disque', POLE: 'Jalon', HOOP: 'Cerceau', HURDLE: 'Haie', LADDER: 'Échelle de rythme', POPUP_GOAL: 'Mini-but', BALLOON: 'Baudruche', BALL_BOX: 'Bac ballons', DUMMY: 'Mannequin', MAT: 'Tapis', BENCH: 'Banc', BOX: 'Caisson', RECT: 'Rectangle', MOVE: 'Déplacement', RUN: 'Dribble', PASS: 'Passe', SHOT: 'Tir', SCREEN: 'Écran', ZONE_RECT: 'Zone', ZONE_CIRCLE: 'Zone ronde', TEXT: 'Texte' };
+const SCH_NAMES = { PASS2: 'Passe aller-retour', PEN: 'Trait libre', PLAYER: 'Attaquant', DEFENDER: 'Défenseur', GOALKEEPER: 'Gardien', PARENT: 'Parent', COACH: 'Coach', BALL: 'Ballon', CONE: 'Plot', DISC: 'Disque', POLE: 'Jalon', HOOP: 'Cerceau', HURDLE: 'Haie', LADDER: 'Échelle de rythme', POPUP_GOAL: 'Mini-but', BALLOON: 'Baudruche', BALL_BOX: 'Bac ballons', DUMMY: 'Mannequin', MAT: 'Tapis', BENCH: 'Banc', BOX: 'Caisson', RECT: 'Rectangle', MOVE: 'Déplacement', RUN: 'Dribble', PASS: 'Passe', SHOT: 'Tir', SCREEN: 'Écran', ZONE_RECT: 'Zone', ZONE_CIRCLE: 'Zone ronde', TEXT: 'Texte' };
 const SCH_PRESETS = {
   d06: { type: 'DEFENDER', name: 'Défense 0-6', pts: [[1.6, 2.4], [4.4, 5.6], [8.2, 6.9], [11.8, 6.9], [15.6, 5.6], [18.4, 2.4]] },
   d15: { type: 'DEFENDER', name: 'Défense 1-5', pts: [[1.6, 2.4], [5, 6.2], [10, 6.9], [15, 6.2], [18.4, 2.4], [10, 9.8]] },
@@ -31,11 +31,11 @@ function schThemeReg(key, label, save) {
 }
 try { const o = JSON.parse(localStorage.getItem(SCH_THEMES_LS) || '{}'); Object.keys(o || {}).forEach(k => schThemeReg(k, o[k], false)); } catch (e) {}
 function schMetaOf(arr) { const d = (Array.isArray(arr) ? arr : []).find(z => z && z.meta && typeof z.meta === 'object'); return d ? d.meta : {}; }
-function schDrawingsOut(x) { const out = JSON.parse(JSON.stringify(x.drawings)); if (out[0] && (x.kind || x.theme)) { out[0].meta = { kind: x.kind || '', theme: x.theme || '' }; if (SCH_CUSTOM[x.theme]) out[0].meta.themeLabel = SCH_CUSTOM[x.theme]; } return out; }
-function schMetaFrom(rec, arr) { const m = schMetaOf(arr); schThemeReg(m.theme, m.themeLabel, true); rec.kind = SCH_KINDS[m.kind] ? m.kind : ''; rec.theme = SCH_THEMES[m.theme] ? m.theme : ''; }
+function schDrawingsOut(x) { const out = JSON.parse(JSON.stringify(x.drawings)); if (out[0] && (x.kind || x.theme || x.desc)) { out[0].meta = { kind: x.kind || '', theme: x.theme || '' }; if (x.desc) out[0].meta.desc = String(x.desc).slice(0, 2000); if (SCH_CUSTOM[x.theme]) out[0].meta.themeLabel = SCH_CUSTOM[x.theme]; } return out; }
+function schMetaFrom(rec, arr) { const m = schMetaOf(arr); schThemeReg(m.theme, m.themeLabel, true); rec.kind = SCH_KINDS[m.kind] ? m.kind : ''; rec.theme = SCH_THEMES[m.theme] ? m.theme : ''; rec.desc = typeof m.desc === 'string' ? m.desc.slice(0, 2000) : ''; }
 function schUuid() { try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }); }
 // Exercices de la bibliothèque : { id (uuid), name, user:true, drawings, updatedAt, serverUpdatedAt, dirty (à envoyer), deleted (suppression à envoyer), rev }
-function schRec(x) { const m = schMetaOf(x.drawings), k = x.kind || m.kind, t = x.theme || m.theme; schThemeReg(t, x.themeLabel || m.themeLabel, true); return { kind: SCH_KINDS[k] ? k : '', theme: SCH_THEMES[t] ? t : '', id: x.id, name: String(x.name || 'Sans nom').slice(0, 120), user: true, drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null, serverUpdatedAt: x.serverUpdatedAt || null, dirty: !!x.dirty, deleted: !!x.deleted, rev: x.rev || 0 }; }
+function schRec(x) { const m = schMetaOf(x.drawings), k = x.kind || m.kind, t = x.theme || m.theme; schThemeReg(t, x.themeLabel || m.themeLabel, true); return { kind: SCH_KINDS[k] ? k : '', theme: SCH_THEMES[t] ? t : '', id: x.id, name: String(x.name || 'Sans nom').slice(0, 120), user: true, desc: String(x.desc != null ? x.desc : (m.desc || '')).slice(0, 2000), drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null, serverUpdatedAt: x.serverUpdatedAt || null, dirty: !!x.dirty, deleted: !!x.deleted, rev: x.rev || 0 }; }
 function schUserLoad() {
   try {
     const raw = localStorage.getItem(SCH_LS);
@@ -142,7 +142,7 @@ function schNextLabel(els, type) {
 }
 // Numéro d'étape proposé pour une nouvelle action : une action de ballon prend le numéro suivant de la chaîne, un déplacement reprend celui de la dernière action créée
 function schAutoStep(els, type, p0, plan) {
-  const acts = els.filter(schIsAction), isBall = t => t === 'PASS' || t === 'SHOT' || t === 'RUN', moveLike = t => t === 'MOVE' || t === 'RUN' || t === 'SCREEN';
+  const acts = els.filter(schIsAction), isBall = t => t === 'PASS' || t === 'PASS2' || t === 'SHOT' || t === 'RUN', moveLike = t => t === 'MOVE' || t === 'RUN' || t === 'SCREEN';
   // chaînes de ballon : la nouvelle action prolonge celle du ballon que tient le joueur au départ du tracé (plusieurs ballons) ; sinon dernier numéro de ballon + 1
   const ballStep = () => {
     if (plan && p0 && plan.balls && plan.balls.length > 1) {
@@ -172,7 +172,7 @@ function schReceiverOf(a, plan) {
 // Remet les numéros d'étape dans l'ordre logique de la chaîne de possession. Renvoie true si quelque chose a changé.
 function schReorder(d) {
   const els = d.elements, balls = els.filter(e => e.type === 'BALL').slice(0, SCH_MAX_BALLS); if (!balls.length) return false;
-  const plan = schPlan(d), isBall = a => a.type === 'PASS' || a.type === 'SHOT' || a.type === 'RUN', acts = els.filter(schIsAction);
+  const plan = schPlan(d), isBall = a => a.type === 'PASS' || a.type === 'PASS2' || a.type === 'SHOT' || a.type === 'RUN', acts = els.filter(schIsAction);
   const ownerOf = a => { if (a.fromElementId && plan.byId[a.fromElementId]) return plan.byId[a.fromElementId]; let best = null, bd = 1.8; plan.els.forEach(e => { if (!schIsPlayer(e)) return; schPlayerRefs(e, plan).forEach(p => { const dd = Math.hypot(p.x - a.points[0].x, p.y - a.points[0].y); if (dd < bd) { bd = dd; best = e; } }); }); return best; };
   // chaque ballon a sa propre chaîne de possession (deux ballons échangés en même temps partent chacun du numéro 1)
   const poss = {}, cnt = {}; balls.forEach(b => { const h = schBallHolder(b, els); poss[b.id] = h ? h.id : null; cnt[b.id] = 0; });

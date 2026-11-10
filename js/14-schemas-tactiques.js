@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z33 (06/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z48 (10/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -6,7 +6,7 @@
 //   - joueurs/objets : x,y = centre ; zones : x,y = centre, w,h = dimensions (m) ; actions : points (2 = droite, 3 = Bézier quadratique, le 2e = point de contrôle)
 //   - label : 3 caractères max (30 pour TEXT)
 const SCH_PLAYERS = ['PLAYER', 'DEFENDER', 'GOALKEEPER', 'PARENT', 'COACH'];
-const SCH_ACTIONS = ['MOVE', 'RUN', 'PASS', 'SHOT', 'SCREEN'];
+const SCH_ACTIONS = ['MOVE', 'RUN', 'PASS', 'PASS2', 'SHOT', 'SCREEN']; // PASS2 : passe aller-retour (pointillé, pointe aux deux bouts ; le ballon va chez le receveur puis revient)
 const SCH_OBJECTS = ['BALL', 'CONE', 'DISC', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT'];
 // Structures rectangulaires (vue de dessus) : w × h en mètres (réglables), couleur d'origine c. MAT et RECT sont posés au sol (dessinés sous les joueurs).
 const SCH_RECTS = { DUMMY: { w: 0.9, h: 0.5, c: '#E8543A' }, MAT: { w: 2, h: 1, c: '#2F7DE1' }, BENCH: { w: 2.4, h: 0.4, c: '#B9783E' }, BOX: { w: 1.2, h: 0.8, c: '#F28C28' }, RECT: { w: 2, h: 1, c: '#8FA3BF' } };
@@ -60,8 +60,8 @@ function schNormElement(e) {
     o.points = (Array.isArray(e.points) ? e.points : []).map(p => ({ x: schNum(p && p.x, 0), y: schNum(p && p.y, 0) })).slice(0, 3);
     if (o.points.length < 2) o.points = [{ x: o.x, y: o.y }, { x: o.x + 3, y: o.y }];
     o.delay = Math.max(0, Math.min(2, Math.round(schNum(e.delay, 0) / 0.25) * 0.25));
-    if (o.type === 'PASS' && e.toElementId) o.toElementId = e.toElementId;
-    if ((o.type === 'PASS' || o.type === 'SHOT' || o.type === 'RUN') && e.ballId) o.ballId = e.ballId;
+    if ((o.type === 'PASS' || o.type === 'PASS2') && e.toElementId) o.toElementId = e.toElementId;
+    if ((o.type === 'PASS' || o.type === 'PASS2' || o.type === 'SHOT' || o.type === 'RUN') && e.ballId) o.ballId = e.ballId;
   }
   if (o.type === 'ZONE_RECT' || o.type === 'ZONE_CIRCLE') { o.w = Math.max(0.5, schNum(e.w, 4)); o.h = Math.max(0.5, schNum(e.h, 3)); }
   if (o.type === 'LADDER') o.n = Math.max(2, Math.min(SCH_LADDER_MAX, Math.round(schNum(e.n, 8))));
@@ -214,8 +214,17 @@ function schActionSvg(a, badge) {
       const Q = P.slice(0, P.length - 1).concat([end]), L = schPathLen(schSample(Q, 30)), n = Math.max(6, Math.round(L / 0.24)); let d = `M${P[0].x} ${P[0].y}`;
       for (let i = 1; i <= n; i++) { const q = schPointAt(Q, i / n), q2 = schPointAt(Q, Math.min(1, i / n + 0.01)), dx = q2.x - q.x, dy = q2.y - q.y, l = Math.hypot(dx, dy) || 1, off = Math.sin(i * 1.2) * 0.11 * s * (i === n ? 0 : 1); d += ` L${schR(q.x - dy / l * off)} ${schR(q.y + dx / l * off)}`; }
       g = `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
-    } else if (P.length === 3) g = `<path d="M${P[0].x} ${P[0].y} Q${P[1].x} ${P[1].y} ${bx} ${by}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${a.type === 'PASS' ? 'stroke-dasharray="0.4 0.28"' : ''}/>`;
-    else g = `<line x1="${P[0].x}" y1="${P[0].y}" x2="${bx}" y2="${by}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${a.type === 'PASS' ? 'stroke-dasharray="0.4 0.28"' : ''}/>`;
+    } else {
+      const two = a.type === 'PASS2', dash = (a.type === 'PASS' || two) ? 'stroke-dasharray="0.4 0.28"' : '';
+      let q0 = P[0], tail = '';
+      if (two) { // pointe aussi au départ : le tracé commence un peu plus loin
+        const dx = P[1].x - P[0].x, dy = P[1].y - P[0].y, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l, cx = P[0].x + ux * hl, cy = P[0].y + uy * hl;
+        q0 = { x: cx, y: cy }; tail = `<polygon points="${P[0].x},${P[0].y} ${cx - uy * hw},${cy + ux * hw} ${cx + uy * hw},${cy - ux * hw}" fill="${col}"/>`;
+      }
+      if (P.length === 3) g = `<path d="M${q0.x} ${q0.y} Q${P[1].x} ${P[1].y} ${bx} ${by}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${dash}/>`;
+      else g = `<line x1="${q0.x}" y1="${q0.y}" x2="${bx}" y2="${by}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${dash}/>`;
+      g += tail;
+    }
     g += `<polygon points="${e.x},${e.y} ${bx + px * hw},${by + py * hw} ${bx - px * hw},${by - py * hw}" fill="${col}"/>`;
   }
   if (badge !== false) { // numéro d'action au milieu du tracé, dans un cercle aussi fin que le trait (+ décalage s'il est non nul)
@@ -283,7 +292,7 @@ function schPlan(d0) {
   const gr = schGroups(d), sched = [];
   gr.groups.forEach(g => g.actions.forEach(a => sched.push({ a, ts: g.start + (a.delay || 0), step: a.step, idx: els.indexOf(a) })));
   sched.sort((p, q) => p.ts - q.ts || p.step - q.step || p.idx - q.idx);
-  const isMove = a => a.type === 'MOVE' || a.type === 'RUN' || a.type === 'SCREEN', isBall = a => a.type === 'PASS' || a.type === 'SHOT' || a.type === 'RUN';
+  const isMove = a => a.type === 'MOVE' || a.type === 'RUN' || a.type === 'SCREEN', isBall = a => a.type === 'PASS' || a.type === 'PASS2' || a.type === 'SHOT' || a.type === 'RUN';
   const players = els.filter(schIsPlayer), pre = {}, own = {};
   // pré-passe : à qui appartient chaque action ? (fromElementId, sinon joueur le plus proche du départ du tracé, à sa position du moment ou de départ)
   const nearestAt = (pt, t) => { let best = null, bd = 1.8; players.forEach(e => { const q = schPosOn(e, pre[e.id] || [], t), dd = Math.min(Math.hypot(q.x - pt.x, q.y - pt.y), Math.hypot(e.x - pt.x, e.y - pt.y)); if (dd < bd) { bd = dd; best = e; } }); return best; };
@@ -306,6 +315,7 @@ function schPlan(d0) {
   sched.forEach(s => {
     const a = s.a; let o = own[a.id], t0 = s.ts;
     const win = (w0) => { windows[a.id] = [w0, w0 + SCH_DUR]; maxEnd = Math.max(maxEnd, w0 + SCH_DUR); };
+    const win2 = (aa, w0, w1) => { windows[aa.id] = [w0, w1]; maxEnd = Math.max(maxEnd, w1); };
     // une action de ballon sans joueur imposé revient au porteur s'il est près de son départ (même s'il s'est déplacé entre-temps)
     if (bs.length && isBall(a) && !a.fromElementId) {
       const cands = (a.ballId || bp) ? bs.filter(q => q.id === (a.ballId || bp)) : bs;
@@ -324,13 +334,18 @@ function schPlan(d0) {
     if (!z || z.poss !== o.id) { warnings.push({ id: a.id, owner: o.id, step: a.step }); win(t0); return; }
     ballOf[a.id] = z.id;
     t0 = Math.max(t0, z.tAvail); win(t0);
-    const t1 = t0 + SCH_DUR, endPt = a.points[a.points.length - 1];
+    const dd = a.type === 'PASS2' ? SCH_DUR * 1.8 : SCH_DUR, t1 = t0 + dd, endPt = a.points[a.points.length - 1];
+    if (a.type === 'PASS2') win2(a, t0, t1);
     if (a.type === 'SHOT') { events.push({ type: 'SHOT', t0, t1, a, from: o.id, end: { x: endPt.x, y: endPt.y }, ball: z.id }); z.poss = null; z.ground = { x: endPt.x, y: endPt.y }; z.tAvail = t1; return; }
     let to = a.toElementId && byId[a.toElementId] && schIsPlayer(byId[a.toElementId]) ? a.toElementId : null;
     if (!to) { // receveur : joueur le plus proche de la fin de la passe, à sa position au moment de l'arrivée
       let best = null, bd = 2.0;
       players.forEach(e => { if (e.id === o.id) return; const q = schPosOn(e, pre[e.id] || [], t1), dd = Math.hypot(q.x - endPt.x, q.y - endPt.y); if (dd < bd) { bd = dd; best = e.id; } });
       to = best;
+    }
+    if (a.type === 'PASS2') { // aller-retour : le ballon revient à son point de départ (le joueur qui l'avait)
+      events.push({ type: 'PASS2', t0, t1, a, from: o.id, to, end: { x: endPt.x, y: endPt.y }, ball: z.id });
+      z.poss = o.id; z.ground = null; z.tAvail = t1; return;
     }
     events.push({ type: 'PASS', t0, t1, a, from: o.id, to, end: { x: endPt.x, y: endPt.y }, ball: z.id });
     z.poss = to; z.ground = to ? null : { x: endPt.x, y: endPt.y }; z.tAvail = t1;
@@ -351,6 +366,17 @@ function schPlanState(p, tau) {
     for (const ev of p.events) {
       if (ev.ball !== b.id) continue;
       if (tau < ev.t0) break;
+      if (ev.type === 'PASS2') {
+        const mid = (ev.t0 + ev.t1) / 2, P0 = ev.a.points[0], PE = ev.a.points[ev.a.points.length - 1];
+        if (tau < ev.t1) {
+          const out = tau < mid, u = out ? schEase((tau - ev.t0) / (mid - ev.t0)) : schEase((tau - mid) / (ev.t1 - mid)), q = schPointAt(ev.a.points, out ? u : 1 - u);
+          const Ta = ev.to ? heldAt(ev.to, mid, b.i) : { x: PE.x, y: PE.y }, Sf = heldAt(ev.from, ev.t0, b.i), Tf = heldAt(ev.from, ev.t1, b.i);
+          bpos[b.id] = out ? { x: q.x + (Sf.x - P0.x) * (1 - u) + (Ta.x - PE.x) * u, y: q.y + (Sf.y - P0.y) * (1 - u) + (Ta.y - PE.y) * u }
+                           : { x: q.x + (Ta.x - PE.x) * (1 - u) + (Tf.x - P0.x) * u, y: q.y + (Ta.y - PE.y) * (1 - u) + (Tf.y - P0.y) * u };
+          done = true; break;
+        }
+        cur = { poss: ev.from, ground: null }; continue;
+      }
       if (tau < ev.t1) {
         const u = schEase((tau - ev.t0) / (ev.t1 - ev.t0)), q = schPointAt(ev.a.points, u), P0 = ev.a.points[0], PE = ev.a.points[ev.a.points.length - 1];
         const S = cur.poss ? heldAt(cur.poss, ev.t0, b.i) : { x: P0.x, y: P0.y };
