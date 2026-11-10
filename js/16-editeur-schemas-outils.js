@@ -45,6 +45,7 @@ function schEdTools() {
 function schEdMore(on) { schEd.more = !!on; schEdTools(); }
 function schEdGroup(id) { const g = SCH_GROUPS.find(x => x.id === id); if (!g) return; schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!g.tools.some(t => t[0] === schEd.tool)) schEd.tool = g.tools[0][0]; schEdTools(); schEdPanel(); }
 function schEdTool(t) {
+  if (t !== 'MOVE') schEd.gmove = null;
   if (t === 'multi' && schEd.tool !== 'multi') { schEdMultiSet(schEd.sel ? [schEd.sel] : schEdMultiIds()); schEd.sel = null; } else if (t !== 'multi') schEdMultiSet([]);
   schEd.tool = t; const g = SCH_GROUPS.find(x => x.tools.some(y => y[0] === t)); if (g) schEd.group = g.id; if (t !== 'select') schEd.drag = null;
   schEdTools(); schEdPanel(); schEdDraw();
@@ -124,7 +125,36 @@ function schEdSelect(id) { schEd.sel = id; if (id) schEdMultiSet([]); schEdTools
 function schEdMultiIds() { const S = schEd; if (!S || !S.multi || S.multiK !== S.k) return []; const els = schEdD().elements; return S.multi.filter(id => els.some(e => e.id === id)); }
 function schEdMultiSet(ids) { schEd.multi = ids.slice(); schEd.multiK = schEd.k; }
 function schEdMultiPts(e, els) { return schIsAction(e) ? e.points : (e.type === 'PEN' ? schPenAbs(e) : [schEdPos(e, els)]); }
-function schEdSymToggle() { const S = schEd; if (!S) return; S.sym = !S.sym; schEdPanel(); schEdToast(S.sym ? 'Symétrique : les éléments de l\u2019autre côté du terrain font le miroir' : 'Déplacement identique pour tous'); }
+// Déplacement de groupe : la sélection de joueurs reçoit la même flèche (même vecteur, même courbure, même étape) à partir de chacun
+function schEdGroupMove() {
+  const S = schEd, els = schEdD().elements, ids = schEdMultiIds().filter(id => { const e = els.find(x => x.id === id); return e && schIsPlayer(e); });
+  if (!ids.length) return;
+  S.gmove = ids; schEdMultiSet([]); S.sel = null; S.tool = 'MOVE'; S.group = 'actions';
+  schEdTools(); schEdPanel(); schEdDraw();
+  schEdToast('Trace le déplacement de l\u2019un des ' + ids.length + ' joueurs : il s\u2019applique à tous');
+}
+function schEdFinishGroup(dr) {
+  const S = schEd, d = schEdD(), els = d.elements, plan = S.plan || schPlan(d), ids = S.gmove || [], V = SCH_VIEWS[d.view] || SCH_VIEWS.half;
+  const pl = ids.map(id => els.find(x => x.id === id)).filter(Boolean);
+  if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { schEdDraw(); schEdToast('Glisse le doigt pour tracer le déplacement'); return; }
+  let own = null, ob = 1.8, ok = 0;
+  pl.forEach(e => schPlayerRefs(e, plan).forEach((r, i) => { const dd = Math.hypot(r.x - dr.p0.x, r.y - dr.p0.y); if (dd < ob) { ob = dd; own = e; ok = i; } }));
+  if (!own) { schEdDraw(); schEdToast('Commence le tracé sur l\u2019un des joueurs sélectionnés'); return; }
+  const fit = schEdFit(dr.pts, dr.p1).map(q => ({ x: schR(schSnap(q.x, 0.1), 2), y: schR(schSnap(q.y, 0.1), 2) }));
+  const oRef = schPlayerRefs(own, plan)[ok], sets = pl.map(e => { const rs = schPlayerRefs(e, plan), r = e === own ? oRef : rs[Math.min(ok, rs.length - 1)]; return { e, dx: r.x - oRef.x, dy: r.y - oRef.y }; });
+  // tout le groupe garde la même forme : si un joueur sortait du terrain, le trait est raccourci pour tous (même proportion)
+  let k = 1;
+  sets.forEach(q => fit.forEach(p => { const sx = oRef.x + q.dx, sy = oRef.y + q.dy, vx = p.x - fit[0].x, vy = p.y - fit[0].y; if (vx > 0) k = Math.min(k, (V.w - sx) / vx); else if (vx < 0) k = Math.min(k, sx / -vx); if (vy > 0) k = Math.min(k, (V.h - sy) / vy); else if (vy < 0) k = Math.min(k, sy / -vy); }));
+  k = Math.max(0, k); if (k < 0.15) { schEdDraw(); schEdToast('Pas la place de déplacer le groupe dans cette direction'); return; }
+  schEdPush();
+  const step = schAutoStep(els, 'MOVE', dr.p0, plan); let z = Math.max(0, ...els.map(e => e.z || 0)), last = null;
+  sets.forEach(q => {
+    const pts = fit.map(p => ({ x: schR(oRef.x + q.dx + (p.x - fit[0].x) * k, 2), y: schR(oRef.y + q.dy + (p.y - fit[0].y) * k, 2) }));
+    const a = schNormElement({ type: 'MOVE', x: pts[0].x, y: pts[0].y, points: pts, step, z: ++z }); a.fromElementId = q.e.id; els.push(a); last = a;
+  });
+  S.gmove = null; S.sel = last ? last.id : null; S.plan = null; schEdTools(); schEdChanged(true);
+  schEdToast(sets.length + ' déplacements créés (même étape) : chacun reste modifiable');
+}
 function schEdMultiAll() { schEdMultiSet(schEdD().elements.map(e => e.id)); schEdPanel(); schEdDraw(); }
 function schEdMultiClear() { schEdMultiSet([]); schEdPanel(); schEdDraw(); }
 function schEdMultiDel() {
@@ -154,9 +184,9 @@ function schEdMultiDup() {
 function schEdMultiPanel() {
   const ids = schEdMultiIds(), n = ids.length;
   const b = (fn, lab, cls, dis) => `<button type="button" ${cls ? `class="${cls}"` : ''} ${dis ? 'disabled style="opacity:.35"' : ''} onclick="${fn}">${lab}</button>`;
-  return `<div class="sche-ph"><b>${n ? n + ' élément' + (n > 1 ? 's sélectionnés' : ' sélectionné') : 'Sélection multiple'}</b><span class="sche-sp"></span>${b('schEdSymToggle()', 'Symétrique : ' + (schEd.sym ? 'oui' : 'non'), schEd.sym ? 'sche-all on' : 'sche-all', false)}${b('schEdMultiDup()', 'Dupliquer', '', !n)}${b('schEdMultiDel()', 'Supprimer', 'red', !n)}</div>`
+  return `<div class="sche-ph"><b>${n ? n + ' élément' + (n > 1 ? 's sélectionnés' : ' sélectionné') : 'Sélection multiple'}</b><span class="sche-sp"></span>${b('schEdGroupMove()', '➜ Déplacement de groupe', '', !schEdMultiIds().some(id => { const e = schEdD().elements.find(x => x.id === id); return e && schIsPlayer(e); }))}${b('schEdMultiDup()', 'Dupliquer', '', !n)}${b('schEdMultiDel()', 'Supprimer', 'red', !n)}</div>`
     + `<div class="sche-row sche-wide" style="flex-direction:row;gap:8px;flex-wrap:wrap;">${b('schEdMultiAll()', 'Tout sélectionner', 'sche-all')}${b('schEdMultiClear()', 'Tout désélectionner', 'sche-all', !n)}</div>`
-    + `<div class="sche-hint">Touche des éléments pour les ajouter ou les retirer, ou trace un rectangle sur le terrain pour en prendre plusieurs. Glisse un élément sélectionné pour déplacer tout le groupe (avec « Symétrique : oui », ceux de l\'autre côté du terrain font le miroir). Touche le terrain vide pour tout désélectionner. Avec la souris, le clic droit fait la même chose depuis n\'importe quel outil, puis le clic gauche retrouve son rôle habituel (glisser un élément du groupe le déplace en entier).</div>`;
+    + `<div class="sche-hint">Touche des éléments pour les ajouter ou les retirer, ou trace un rectangle sur le terrain pour en prendre plusieurs. Glisse un élément sélectionné pour déplacer tout le groupe. Touche le terrain vide pour tout désélectionner. « ➜ Déplacement de groupe » : trace ensuite le déplacement d\'un des joueurs sélectionnés, il s\'applique à tous. Avec la souris, le clic droit fait la même chose depuis n\'importe quel outil, puis le clic gauche retrouve son rôle habituel (glisser un élément du groupe le déplace en entier).</div>`;
 }
 function schEdRingSvg(e, els, col, sc) {
   if (e.type === 'PEN') { const b = schPenBox(e), pd = 0.35; return `<rect x="${b.x0 - pd}" y="${b.y0 - pd}" width="${b.x1 - b.x0 + pd * 2}" height="${b.y1 - b.y0 + pd * 2}" rx="0.15" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`; }
@@ -199,9 +229,7 @@ function schEdDown(e) {
       let ids = schEdMultiIds(); const was = ids.includes(hit.e.id); if (!was) { ids = ids.concat(hit.e.id); schEdMultiSet(ids); schEdPanel(); }
       const orig = {}, bb = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
       ids.forEach(id => { const e = els0.find(x => x.id === id); if (!e) return; orig[id] = schIsAction(e) ? { pts: e.points.map(p => ({ ...p })) } : { p: schEdPos(e, els0), holder: e.holderId }; schEdMultiPts(e, els0).forEach(p => { bb.x0 = Math.min(bb.x0, p.x); bb.y0 = Math.min(bb.y0, p.y); bb.x1 = Math.max(bb.x1, p.x); bb.y1 = Math.max(bb.y1, p.y); }); });
-      const Vs = SCH_VIEWS[d.view] || SCH_VIEWS.half, bbs = {}, side = {}; // symétrie : côté de l'axe (milieu du terrain) et limites de chaque élément
-      ids.forEach(id => { const e = els0.find(x => x.id === id); if (!e) return; const q = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 }; schEdMultiPts(e, els0).forEach(p => { q.x0 = Math.min(q.x0, p.x); q.y0 = Math.min(q.y0, p.y); q.x1 = Math.max(q.x1, p.x); q.y1 = Math.max(q.y1, p.y); }); bbs[id] = q; const cx = (q.x0 + q.x1) / 2 - Vs.w / 2; side[id] = Math.abs(cx) < 0.05 ? 0 : (cx < 0 ? -1 : 1); });
-      S.drag = { kind: 'mmove', sym: !!S.sym && ids.length > 1, bbs, side, grab: hit.e.id, ids, orig, bb, pt0: pt, snap0: schEdSnapStr(), tapId: mtool === 'multimove' ? null : (was ? hit.e.id : null), single: mtool === 'multimove' ? hit.e.id : null }; schEdDraw(); return;
+      S.drag = { kind: 'mmove', ids, orig, bb, pt0: pt, snap0: schEdSnapStr(), tapId: mtool === 'multimove' ? null : (was ? hit.e.id : null), single: mtool === 'multimove' ? hit.e.id : null }; schEdDraw(); return;
     }
     S.drag = { kind: 'lasso', p0: pt, p1: pt }; return;
   }
@@ -251,18 +279,12 @@ function schEdMove(e) {
   if (dr.kind === 'lasso') { dr.p1 = pt; schEdDraw(); return; }
   if (dr.kind === 'mmove') {
     const V = SCH_VIEWS[d.view] || SCH_VIEWS.half, bb = dr.bb;
-    let dx = Math.max(-bb.x0, Math.min(V.w - bb.x1, schSnap(pt.x - dr.pt0.x, 0.25))), dy = Math.max(-bb.y0, Math.min(V.h - bb.y1, schSnap(pt.y - dr.pt0.y, 0.25)));
-    const g0 = dr.sym ? (dr.side[dr.grab] || 1) : 1; // côté de l'élément attrapé : les éléments de l'autre côté de l'axe font le miroir en x
-    if (dr.sym) { // limites : aucun élément ne doit sortir du terrain, côté miroir compris
-      let lo = -1e9, hi = 1e9; dr.ids.forEach(id => { const q = dr.bbs[id]; if (!q) return; const f = (dr.side[id] === 0 ? 0 : dr.side[id] * g0); if (f === 1) { lo = Math.max(lo, -q.x0); hi = Math.min(hi, V.w - q.x1); } else if (f === -1) { lo = Math.max(lo, q.x1 - V.w); hi = Math.min(hi, q.x0); } });
-      dx = Math.max(lo, Math.min(hi, schSnap(pt.x - dr.pt0.x, 0.25)));
-    }
+    const dx = Math.max(-bb.x0, Math.min(V.w - bb.x1, schSnap(pt.x - dr.pt0.x, 0.25))), dy = Math.max(-bb.y0, Math.min(V.h - bb.y1, schSnap(pt.y - dr.pt0.y, 0.25)));
     dr.ids.forEach(id => {
       const el = els.find(x => x.id === id), o = dr.orig[id]; if (!el || !o) return;
-      const f = dr.sym ? (dr.side[id] === 0 ? 0 : dr.side[id] * g0) : 1, ex = dx * f;
-      if (schIsAction(el)) el.points = o.pts.map(p => ({ x: schR(p.x + ex, 2), y: schR(p.y + dy, 2) }));
-      else if (el.type === 'BALL') { if (o.holder && o.holder !== '-' && dr.ids.includes(o.holder)) return; el.holderId = '-'; el.x = schR(o.p.x + ex, 2); el.y = schR(o.p.y + dy, 2); }
-      else { el.x = schR(o.p.x + ex, 2); el.y = schR(o.p.y + dy, 2); }
+      if (schIsAction(el)) el.points = o.pts.map(p => ({ x: schR(p.x + dx, 2), y: schR(p.y + dy, 2) }));
+      else if (el.type === 'BALL') { if (o.holder && o.holder !== '-' && dr.ids.includes(o.holder)) return; el.holderId = '-'; el.x = schR(o.p.x + dx, 2); el.y = schR(o.p.y + dy, 2); }
+      else { el.x = schR(o.p.x + dx, 2); el.y = schR(o.p.y + dy, 2); }
     });
     schEdDraw(); return;
   }
@@ -308,7 +330,7 @@ function schEdUp(e) {
   const d = schEdD(), els = d.elements;
   if (dr.kind === 'pen') { schEdPenDone(dr); return; }
   if (dr.kind === 'erase') { if (dr.n) schEdChanged(true); else schEdDraw(); return; }
-  if (dr.kind === 'new') { schEdFinishAction(dr); return; }
+  if (dr.kind === 'new') { if (S.gmove && dr.type === 'MOVE') schEdFinishGroup(dr); else schEdFinishAction(dr); return; }
   if (dr.kind === 'lasso') {
     if (dn.moved) {
       const a = dr.p0, b = dr.p1, x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y), cur = schEdMultiIds();
@@ -451,10 +473,10 @@ function schEdDraw() {
     else { const p = schEdPos(sel, els), r = sel.type === 'TEXT' ? Math.max(1, sel.label.length * 0.95 * (sel.scale || 1) * 0.35) + 0.3 : Math.max(0.9, schEdRad(sel) + 0.3); ov += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.45 0.3"/>`; }
     schEdHandles(sel).forEach(h => { ov += `<circle cx="${h.x}" cy="${h.y}" r="${hr}" fill="${h.k === 'mid' ? HY : 'rgba(255,255,255,0.6)'}" stroke="#14213D" stroke-width="${hr * 0.2}"/>`; });
   }
+  if (S.gmove) { S.gmove.forEach(id => { const e = els.find(x => x.id === id); if (e) ov += schEdRingSvg(e, els, '#00B7FF', sc); }); }
   if (S.tool === 'multi' || schEdMultiIds().length) {
     const MC = '#00B7FF'; schEdMultiIds().forEach(id => { const e = els.find(x => x.id === id); if (e) ov += schEdRingSvg(e, els, MC, sc); });
     const dl = S.drag; if (dl && dl.kind === 'lasso' && S.down && S.down.moved) ov += `<rect x="${Math.min(dl.p0.x, dl.p1.x)}" y="${Math.min(dl.p0.y, dl.p1.y)}" width="${Math.abs(dl.p1.x - dl.p0.x)}" height="${Math.abs(dl.p1.y - dl.p0.y)}" fill="rgba(0,183,255,0.14)" stroke="${MC}" stroke-width="${2 / sc}" stroke-dasharray="${6 / sc} ${4 / sc}"/>`;
-    if (dl && dl.kind === 'mmove' && dl.sym && S.down && S.down.moved) { const Vv = SCH_VIEWS[d.view] || SCH_VIEWS.half; ov += `<line x1="${Vv.w / 2}" y1="0" x2="${Vv.w / 2}" y2="${Vv.h}" stroke="${MC}" stroke-width="${1.5 / sc}" stroke-dasharray="${8 / sc} ${6 / sc}" opacity="0.8"/>`; }
   }
   const vb = S.vb;
   S.stage.innerHTML = `<svg viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;display:block;background:transparent;touch-action:none;">${schCourtSvg(d.view)}${schBodySvg(f)}${ov}</svg>`;
