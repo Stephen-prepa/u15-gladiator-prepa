@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z51 (14/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z51b (14/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -296,14 +296,25 @@ async function msSync(pref) {
   if (rep) rep.innerHTML = '';
   var html = '';
   try {
-    // z51 : le serveur lit 16 feuilles à la fois ; on relance tout seul tant qu'il en reste (20 passages maximum, arrêt si plus rien n'avance)
-    var r = await msCall({ mode: 'sync' }), totJ = r.joueurs_lus || 0, totT = r.tiers_lus || 0, pass = 1;
-    while (r.feuilles_restantes > 0 && pass < 20 && ((r.joueurs_lus || 0) + (r.tiers_lus || 0)) > 0) {
-      if (btn) btn.textContent = '⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)';
-      r = await msCall({ mode: 'sync' }); pass++;
-      totJ += r.joueurs_lus || 0; totT += r.tiers_lus || 0;
+    // z51b : la plateforme coupe un appel trop gourmand (erreur 546) : on lit UNE poule par appel, puis les feuilles par petits lots, tout seul
+    var srcs = ((msState.data && msState.data.sources) || []).filter(function (x) { return x.active; });
+    var r = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, conflits: [], non_rapproches: [], erreurs: [] };
+    var addRep = function (x) {
+      ['sources', 'rencontres', 'joues', 'mis_a_jour', 'tiers_lus', 'joueurs_lus'].forEach(function (k) { r[k] += x[k] || 0; });
+      ['conflits', 'non_rapproches', 'erreurs'].forEach(function (k) { (x[k] || []).forEach(function (v) { if (r[k].indexOf(v) < 0) r[k].push(v); }); });
+    };
+    for (var i = 0; i < srcs.length; i++) {
+      if (btn) btn.textContent = '⏳ Lecture des poules… ' + (i + 1) + '/' + srcs.length + ' (ne ferme pas la page)';
+      addRep(await msCall({ mode: 'sync', source_id: srcs[i].id, feuilles: false }));
     }
-    r.joueurs_lus = totJ; r.tiers_lus = totT;
+    var pass = 0, still = 0, x;
+    do {
+      x = await msCall({ mode: 'sync', feuilles_only: true });
+      addRep(x); pass++;
+      still = (x.joueurs_lus || 0) + (x.tiers_lus || 0) > 0 ? 0 : still + 1;
+      r.feuilles_restantes = x.feuilles_restantes || 0;
+      if (btn && r.feuilles_restantes > 0) btn.textContent = '⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)';
+    } while (r.feuilles_restantes > 0 && pass < 150 && still < 2);
     var line = r.sources + ' lien(s) lu(s) · ' + r.rencontres + ' rencontre(s) · ' + r.joues + ' de nos matchs joués · ' + r.mis_a_jour + ' mis à jour · ' + r.tiers_lus + ' feuille(s) lue(s) pour les tiers-temps · ' + (r.joueurs_lus || 0) + ' feuille(s) lue(s) pour les stats joueurs';
     html = '<div class="ms-ok">✓ ' + msEsc(line) + '</div>';
     if (r.feuilles_restantes) html += '<div class="ms-note">Il reste ' + r.feuilles_restantes + ' feuille(s) de match à lire : relance « Mettre à jour » pour continuer.</div>';
