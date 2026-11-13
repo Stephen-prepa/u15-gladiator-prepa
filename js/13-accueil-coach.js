@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z36 (08/11/2026)
+// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z50 (13/11/2026)
 // ===== Partage en GIF d'un schéma de la bibliothèque (module Schémas) =====
 // Même principe que l'ancien export : une image par instant de l'animation (celle que montre le lecteur), puis GIF 256 couleurs ; image fixe (PNG) s'il n'y a rien à animer.
 function schGifPalette(svgs) {
@@ -142,17 +142,70 @@ async function dashboardNextMatchLoad() {
   if (!wrap) return;
   wrap.innerHTML = '';
   try {
-    const res = await fetch(SB_URL + '/rest/v1/matches?select=*&debut=gte.' + new Date().toISOString() + '&order=debut.asc&limit=10', { headers: SB_HEADERS });
+    // 1) Calendrier de l'appli (matchs datés)
+    const res = await fetch(SB_URL + '/rest/v1/matches?select=*&debut=gte.' + new Date().toISOString() + '&order=debut.asc&limit=60', { headers: SB_HEADERS });
     const rows = res.ok ? await res.json() : [];
-    const next = {};
-    rows.forEach(m => { if (!next[m.equipe]) next[m.equipe] = m; });
-    const chips = [1, 2].filter(eq => next[eq]).map(eq => {
-      const m = next[eq];
+    const cand = { 1: [], 2: [] };
+    const known = {};
+    rows.forEach(m => {
+      if (m.ext_rencontre_id) known[String(m.ext_rencontre_id)] = true;
+      if (!cand[m.equipe]) return;
       const info = homeParseOpponent(m.titre);
-      return `<div style="flex:1;background:var(--noir);border-radius:8px;padding:8px 10px;">
-        <div style="font-size:10px;color:var(--gris-texte);text-transform:uppercase;font-weight:800;">Équipe ${eq} · ${homeCountdown(m.debut)}</div>
-        <div style="font-size:12.5px;color:var(--blanc);font-weight:700;margin-top:2px;">${info.home ? 'vs' : 'à'} ${escapeSvgText(info.opp)}</div>
-        <div style="font-size:11px;color:var(--gris-clair);">${homeFmtDateShort(m.debut)}</div>
+      cand[m.equipe].push({ t: new Date(m.debut).getTime(), jr: null, dated: true, iso: m.debut, withHour: true, home: info.home, opp: info.opp });
+    });
+    // 2) Matchs de poule (sources FFHB actives) : ceux sans date ou pas encore au calendrier de l'appli
+    const hasSrc = { 1: false, 2: false };
+    try {
+      await ensureCoachSession();
+      if (coachSession) {
+        const H = coachAuthHeaders();
+        const sr = await fetch(SB_URL + '/rest/v1/ffhb_sources?select=id,equipe&active=eq.true', { headers: H });
+        const srcs = sr.ok ? await sr.json() : [];
+        const eqOf = {};
+        srcs.forEach(x => { eqOf[x.id] = x.equipe; hasSrc[x.equipe] = true; });
+        if (srcs.length) {
+          const pr = await fetch(SB_URL + '/rest/v1/poule_matches?select=source_id,ext_rencontre_id,journee_num,match_date,team1,team2,score1&score1=is.null&source_id=in.(' + srcs.map(x => x.id).join(',') + ')', { headers: H });
+          const pms = pr.ok ? await pr.json() : [];
+          const now = Date.now();
+          pms.forEach(p => {
+            const eq = eqOf[p.source_id];
+            if (!cand[eq] || known[String(p.ext_rencontre_id)]) return;
+            const us1 = /CLERMONT\s+SALAGOU/i.test(p.team1 || ''), us2 = /CLERMONT\s+SALAGOU/i.test(p.team2 || '');
+            if (!us1 && !us2) return;
+            const opp = (us1 ? p.team2 : p.team1) || 'Adversaire';
+            if (p.match_date) {
+              const t = new Date(p.match_date).getTime();
+              if (isNaN(t) || t < now - 86400000 * 0.5) return; // passé sans score : relève des « scores à saisir »
+              const d = new Date(t);
+              cand[eq].push({ t: t, jr: p.journee_num, dated: true, iso: p.match_date, withHour: !(d.getHours() === 0 && d.getMinutes() === 0), home: us1, opp: opp });
+            } else {
+              cand[eq].push({ t: 9e15, jr: p.journee_num, dated: false, home: us1, opp: opp });
+            }
+          });
+        }
+      }
+    } catch (e) { /* les matchs de poule ne sont qu'un complément */ }
+    const chips = [1, 2].filter(eq => cand[eq].length || hasSrc[eq]).map(eq => {
+      const list = cand[eq].sort((x, y) => (x.t - y.t) || ((x.jr || 0) - (y.jr || 0)));
+      const box = 'flex:1;background:var(--noir);border-radius:8px;padding:8px 10px;';
+      if (!list.length) {
+        return `<div style="${box}"><div style="font-size:10px;color:var(--gris-texte);text-transform:uppercase;font-weight:800;">Équipe ${eq}</div>
+          <div style="font-size:12px;color:var(--gris-clair);margin-top:2px;">Calendrier pas encore publié</div></div>`;
+      }
+      const m = list[0];
+      const more = list.length - 1;
+      let head, sub;
+      if (m.dated) {
+        head = homeCountdown(m.iso);
+        sub = m.withHour ? homeFmtDateShort(m.iso) : homeFmtDateShort(m.iso).split(' · ')[0];
+      } else {
+        head = 'Date à confirmer';
+        sub = m.jr ? 'Journée ' + m.jr : '';
+      }
+      return `<div style="${box}">
+        <div style="font-size:10px;color:var(--gris-texte);text-transform:uppercase;font-weight:800;">Équipe ${eq} · ${head}</div>
+        <div style="font-size:12.5px;color:var(--blanc);font-weight:700;margin-top:2px;">${m.home ? 'vs' : 'à'} ${escapeSvgText(m.opp)}</div>
+        <div style="font-size:11px;color:var(--gris-clair);">${sub}${more > 0 ? (sub ? ' · ' : '') + '+' + more + ' autre' + (more > 1 ? 's' : '') + ' à venir' : ''}</div>
       </div>`;
     }).join('');
     if (chips) {
