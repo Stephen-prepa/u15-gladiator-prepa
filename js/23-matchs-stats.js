@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z43 (09/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z51 (14/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -167,7 +167,7 @@ function msPouleHtml(d) {
   });
   var rank = Object.keys(T).map(function (k) { return T[k]; }).sort(function (x, y) { return y.pts - x.pts || (y.bp - y.bc) - (x.bp - x.bc) || y.bp - x.bp; });
   var srcSel = srcs.length > 1 ? '<select class="ms-sel" onchange="msSetSrc(this.value)">' + srcs.map(function (s) {
-    return '<option value="' + msEsc(s.id) + '"' + (s.id === msState.src ? ' selected' : '') + '>É' + s.equipe + ' — ' + msEsc(s.label || 'poule') + '</option>'; }).join('') + '</select>' : '';
+    return '<option value="' + msEsc(s.id) + '"' + (s.id === msState.src ? ' selected' : '') + '>' + (s.equipe ? 'É' + s.equipe : 'Suivi') + ' — ' + msEsc(s.label || 'poule') + '</option>'; }).join('') + '</select>' : '';
   var pills = js.map(function (n) { return '<button class="ms-pill' + (n === msState.j ? ' on' : '') + '" onclick="msSetJ(' + n + ')">J' + n + '</button>'; }).join('');
   var rankRows = rank.map(function (t, i) {
     return '<tr' + (msIsUs(t.name) ? ' class="ms-us"' : '') + '><td>' + (i + 1) + '</td><td class="ms-l">' + msEsc(t.name) + '</td><td>' + t.j + '</td><td>' + t.v + '</td><td>' + t.n + '</td><td>' + t.d + '</td><td>' + t.bp + '</td><td>' + t.bc + '</td><td>' + (t.bp - t.bc) + '</td><td><b>' + t.pts + '</b></td></tr>';
@@ -213,7 +213,7 @@ function msSetJ(n) { msState.j = n; msRender(); }
 function msSourcesHtml(d) {
   var bar = msBareme();
   var rows = d.sources.map(function (s) {
-    return '<div class="ms-src"><div class="ms-src-t"><b>Équipe ' + s.equipe + '</b> — ' + msEsc(s.label || '') + '<br><span class="ms-na">' + msEsc(s.url.replace('https://www.ffhandball.fr/competitions/', '…/')) + '</span>' +
+    return '<div class="ms-src"><div class="ms-src-t"><b>' + (s.equipe ? 'Équipe ' + s.equipe : 'Suivi (adversaires)') + '</b> — ' + msEsc(s.label || '') + '<br><span class="ms-na">' + msEsc(s.url.replace('https://www.ffhandball.fr/competitions/', '…/')) + '</span>' +
       (s.last_sync_at ? '<br><span class="ms-na">Dernière mise à jour : ' + msEsc(homeFmtDateShort(s.last_sync_at)) + ' — ' + msEsc(s.last_sync_status || '') + '</span>' : '') + '</div>' +
       '<button class="ms-btn" onclick="msSrcDel(\'' + msEsc(s.id) + '\')">Supprimer</button></div>';
   }).join('');
@@ -296,7 +296,14 @@ async function msSync(pref) {
   if (rep) rep.innerHTML = '';
   var html = '';
   try {
-    var r = await msCall({ mode: 'sync' });
+    // z51 : le serveur lit 16 feuilles à la fois ; on relance tout seul tant qu'il en reste (20 passages maximum, arrêt si plus rien n'avance)
+    var r = await msCall({ mode: 'sync' }), totJ = r.joueurs_lus || 0, totT = r.tiers_lus || 0, pass = 1;
+    while (r.feuilles_restantes > 0 && pass < 20 && ((r.joueurs_lus || 0) + (r.tiers_lus || 0)) > 0) {
+      if (btn) btn.textContent = '⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)';
+      r = await msCall({ mode: 'sync' }); pass++;
+      totJ += r.joueurs_lus || 0; totT += r.tiers_lus || 0;
+    }
+    r.joueurs_lus = totJ; r.tiers_lus = totT;
     var line = r.sources + ' lien(s) lu(s) · ' + r.rencontres + ' rencontre(s) · ' + r.joues + ' de nos matchs joués · ' + r.mis_a_jour + ' mis à jour · ' + r.tiers_lus + ' feuille(s) lue(s) pour les tiers-temps · ' + (r.joueurs_lus || 0) + ' feuille(s) lue(s) pour les stats joueurs';
     html = '<div class="ms-ok">✓ ' + msEsc(line) + '</div>';
     if (r.feuilles_restantes) html += '<div class="ms-note">Il reste ' + r.feuilles_restantes + ' feuille(s) de match à lire : relance « Mettre à jour » pour continuer.</div>';
