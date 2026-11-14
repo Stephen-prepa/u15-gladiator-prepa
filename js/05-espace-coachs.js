@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z41 (08/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z52 (14/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -27,6 +27,7 @@ function loadCoachSession() {
 }
 function saveCoachSession() {
   try { localStorage.setItem(CSK, JSON.stringify(coachSession)); } catch(e) {}
+  if (typeof anUpdateCard === 'function') anUpdateCard();
 }
 
 function isCoachSpacePreview() {
@@ -84,6 +85,48 @@ function homeParseOpponent(titre) {
   return { opp: opp || 'Adversaire', home: isUsFirst };
 }
 
+// ---------- z52 : prochains matchs de nos équipes lus dans les poules FFHB (coach connecté) ----------
+// Renvoie { cand: {1:[…],2:[…]}, hasSrc: {1:bool,2:bool} }. Seuls les matchs de CLERMONT SALAGOU (équipe 1 / équipe 2) sont gardés.
+// known = identifiants de rencontre déjà présents dans le calendrier de l'appli (pas de doublon). Matchs sans date = « Date à confirmer ».
+async function homePouleUpcoming(known) {
+  const out = { cand: { 1: [], 2: [] }, hasSrc: { 1: false, 2: false } };
+  if (!coachSession || !coachSession.access_token) return out;
+  await ensureCoachSession();
+  if (!coachSession) return out;
+  const H = coachAuthHeaders();
+  const sr = await fetch(SB_URL + '/rest/v1/ffhb_sources?select=id,equipe&active=eq.true&equipe=not.is.null', { headers: H });
+  const srcs = sr.ok ? await sr.json() : [];
+  if (!srcs.length) return out;
+  const eqOf = {};
+  srcs.forEach(x => { eqOf[x.id] = x.equipe; out.hasSrc[x.equipe] = true; });
+  const pr = await fetch(SB_URL + '/rest/v1/poule_matches?select=source_id,ext_rencontre_id,journee_num,match_date,team1,team2&score1=is.null&source_id=in.(' + srcs.map(x => x.id).join(',') + ')', { headers: H });
+  const pms = pr.ok ? await pr.json() : [];
+  const now = Date.now();
+  const mine = (name, eq) => {
+    if (!/CLERMONT\s+SALAGOU/i.test(name || '')) return false;
+    const d = (name || '').match(/(\d)\s*$/);
+    return !d || parseInt(d[1], 10) === eq;
+  };
+  pms.forEach(p => {
+    const eq = eqOf[p.source_id];
+    if (!out.cand[eq] || (known && known[String(p.ext_rencontre_id)])) return;
+    const us1 = mine(p.team1, eq), us2 = mine(p.team2, eq);
+    if (!us1 && !us2) return;
+    const opp = (us1 ? p.team2 : p.team1) || 'Adversaire';
+    const base = { rid: String(p.ext_rencontre_id), jr: p.journee_num, home: us1, opp: opp, team1: p.team1, team2: p.team2 };
+    if (p.match_date) {
+      const t = new Date(p.match_date).getTime();
+      if (isNaN(t) || t < now - 43200000) return; // passé sans score : relève des « scores à saisir »
+      const d = new Date(t);
+      out.cand[eq].push(Object.assign(base, { t: t, dated: true, iso: p.match_date, withHour: !(d.getHours() === 0 && d.getMinutes() === 0) }));
+    } else {
+      out.cand[eq].push(Object.assign(base, { t: 9e15, dated: false }));
+    }
+  });
+  [1, 2].forEach(eq => out.cand[eq].sort((x, y) => (x.t - y.t) || ((x.jr || 0) - (y.jr || 0))));
+  return out;
+}
+
 async function homeSyncAndLoad() {
   try {
     fetch(FUNCTIONS_URL, { headers: { Authorization: 'Bearer ' + SB_KEY, apikey: SB_KEY } }).catch(() => {});
@@ -113,7 +156,20 @@ async function homeLoadMatches() {
     }
     homeMatchesCache = rows;
     const now = new Date();
-    const upcoming = rows.filter(r => new Date(r.debut) >= now);
+    let upcoming = rows.filter(r => new Date(r.debut) >= now);
+    // z52 : coach connecté -> on complète avec les matchs de phase 2 lus dans les poules FFHB (seulement CLERMONT SALAGOU)
+    const undatedHero = {};
+    if (!isFictional && coachSession) {
+      try {
+        const known = {}; rows.forEach(r => { if (r.ext_rencontre_id) known[String(r.ext_rencontre_id)] = true; });
+        const pu = await homePouleUpcoming(known);
+        [1, 2].forEach(eq => pu.cand[eq].forEach(c => {
+          const pseudo = { id: 'p' + c.rid, equipe: eq, titre: c.team1 + ' vs ' + c.team2, debut: c.dated ? c.iso : null, __jr: c.jr, __undated: !c.dated };
+          if (c.dated) upcoming.push(pseudo); else if (!undatedHero[eq]) undatedHero[eq] = pseudo;
+        }));
+        upcoming.sort((a, b) => new Date(a.debut) - new Date(b.debut));
+      } catch (e) { /* le complément n'est qu'indicatif */ }
+    }
     const past = rows.filter(r => new Date(r.debut) < now && (r.score_nous !== null && r.score_nous !== undefined));
 
     document.getElementById('home-fictional-notice').style.display = isFictional ? 'block' : 'none';
@@ -123,14 +179,14 @@ async function homeLoadMatches() {
     const heroWrap = document.getElementById('home-hero-scroll');
     const heroList = [];
     ['1', '2'].forEach(eq => {
-      const m = upcoming.find(u => String(u.equipe) === eq);
+      const m = upcoming.find(u => String(u.equipe) === eq) || undatedHero[eq];
       if (m) heroList.push(m);
     });
     for (const m of upcoming) {
       if (heroList.length >= 2) break;
       if (!heroList.some(h => h.id === m.id)) heroList.push(m);
     }
-    heroList.sort((a, b) => new Date(a.debut) - new Date(b.debut));
+    heroList.sort((a, b) => (a.__undated ? 9e15 : new Date(a.debut).getTime()) - (b.__undated ? 9e15 : new Date(b.debut).getTime()));
     if (!heroList.length) {
       heroWrap.innerHTML = '<div class="home-hero-empty">Aucun match programmé pour le moment.</div>';
     } else {
@@ -144,9 +200,9 @@ async function homeLoadMatches() {
           </div>
           <div class="home-hero-mid">
             <div class="name">${info.home ? 'vs' : 'à'} ${escapeSvgText(info.opp)}</div>
-            <div class="meta">${homeFmtDateShort(m.debut)}</div>
+            <div class="meta">${m.__undated ? 'Date à confirmer' + (m.__jr ? ' · J' + m.__jr : '') : homeFmtDateShort(m.debut)}</div>
           </div>
-          <span class="countdown">${homeCountdown(m.debut)}</span>
+          <span class="countdown">${m.__undated ? 'À venir' : homeCountdown(m.debut)}</span>
         </div>`;
       }).join('');
     }
@@ -231,6 +287,7 @@ function closeMatchDetail(e) {
 
 function goHome() {
   if (typeof qjAlertTick === 'function') setTimeout(qjAlertTick, 300);
+  if (coachSession && typeof homeLoadMatches === 'function') setTimeout(homeLoadMatches, 200);
   document.getElementById('screen-app').style.display = 'none';
   document.getElementById('screen-home').style.display = 'flex';
   document.getElementById('login-overlay').style.display = 'none';
@@ -261,6 +318,7 @@ async function loadAppSettings() {
 function applyAppSettingsToHome() {
   const btn = document.getElementById('home-btn-ej');
   if (btn) btn.style.display = (appSettings.espace_joueurs_visible === 'false') ? 'none' : 'flex';
+  if (typeof anUpdateCard === 'function') anUpdateCard();
 }
 async function enterClubSpaceGated() {
   let requis = !!appSettings.espace_joueurs_code;   // valeur de secours si le serveur ne répond pas

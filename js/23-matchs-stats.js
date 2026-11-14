@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z51b (14/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z52 (14/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -75,7 +75,11 @@ async function msLoad() {
     ]);
     if (!r[0].ok || !r[1].ok || !r[2].ok) throw new Error('lecture impossible');
     var bar = r[3].ok ? await r[3].json() : [];
-    msState.data = { matches: await r[0].json(), sources: await r[1].json(), poule: await r[2].json(), bareme: bar.length ? bar[0].value : null };
+    // z52 : cet écran ne montre que l'équipe 1 et l'équipe 2 ; les poules de suivi sont dans la carte « Analyse » de l'accueil
+    var allSrc = await r[1].json(), nous = allSrc.filter(function (s) { return s.role !== 'analyse'; }), okIds = {};
+    nous.forEach(function (s) { okIds[s.id] = true; });
+    var allPoule = await r[2].json();
+    msState.data = { matches: await r[0].json(), sources: nous, poule: allPoule.filter(function (p) { return okIds[p.source_id]; }), bareme: bar.length ? bar[0].value : null };
     msRender();
   } catch (e) {
     box.innerHTML = '<div class="ms-info" style="color:#e74c3c;">Erreur de chargement. Vérifie ta connexion puis réessaie. <button class="ms-btn" onclick="msLoad()">↻ Réessayer</button></div>';
@@ -213,7 +217,7 @@ function msSetJ(n) { msState.j = n; msRender(); }
 function msSourcesHtml(d) {
   var bar = msBareme();
   var rows = d.sources.map(function (s) {
-    return '<div class="ms-src"><div class="ms-src-t"><b>' + (s.equipe ? 'Équipe ' + s.equipe : 'Suivi (adversaires)') + '</b> — ' + msEsc(s.label || '') + '<br><span class="ms-na">' + msEsc(s.url.replace('https://www.ffhandball.fr/competitions/', '…/')) + '</span>' +
+    return '<div class="ms-src"><div class="ms-src-t"><b>Équipe ' + s.equipe + '</b> — ' + msEsc(s.label || '') + '<br><span class="ms-na">' + msEsc(s.url.replace('https://www.ffhandball.fr/competitions/', '…/')) + '</span>' +
       (s.last_sync_at ? '<br><span class="ms-na">Dernière mise à jour : ' + msEsc(homeFmtDateShort(s.last_sync_at)) + ' — ' + msEsc(s.last_sync_status || '') + '</span>' : '') + '</div>' +
       '<button class="ms-btn" onclick="msSrcDel(\'' + msEsc(s.id) + '\')">Supprimer</button></div>';
   }).join('');
@@ -307,14 +311,18 @@ async function msSync(pref) {
       if (btn) btn.textContent = '⏳ Lecture des poules… ' + (i + 1) + '/' + srcs.length + ' (ne ferme pas la page)';
       addRep(await msCall({ mode: 'sync', source_id: srcs[i].id, feuilles: false }));
     }
-    var pass = 0, still = 0, x;
-    do {
-      x = await msCall({ mode: 'sync', feuilles_only: true });
-      addRep(x); pass++;
-      still = (x.joueurs_lus || 0) + (x.tiers_lus || 0) > 0 ? 0 : still + 1;
-      r.feuilles_restantes = x.feuilles_restantes || 0;
-      if (btn && r.feuilles_restantes > 0) btn.textContent = '⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)';
-    } while (r.feuilles_restantes > 0 && pass < 150 && still < 2);
+    // z52 : feuilles de NOS deux équipes seulement (les poules de suivi se mettent à jour dans la carte « Analyse »)
+    var pass = 0, still = 0, x, eqs = [1, 2];
+    for (var q = 0; q < eqs.length; q++) {
+      still = 0;
+      do {
+        x = await msCall({ mode: 'sync', feuilles_only: true, equipe: eqs[q] });
+        addRep(x); pass++;
+        still = (x.joueurs_lus || 0) + (x.tiers_lus || 0) > 0 ? 0 : still + 1;
+        r.feuilles_restantes = x.feuilles_restantes || 0;
+        if (btn && r.feuilles_restantes > 0) btn.textContent = '⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)';
+      } while (r.feuilles_restantes > 0 && pass < 150 && still < 2);
+    }
     var line = r.sources + ' lien(s) lu(s) · ' + r.rencontres + ' rencontre(s) · ' + r.joues + ' de nos matchs joués · ' + r.mis_a_jour + ' mis à jour · ' + r.tiers_lus + ' feuille(s) lue(s) pour les tiers-temps · ' + (r.joueurs_lus || 0) + ' feuille(s) lue(s) pour les stats joueurs';
     html = '<div class="ms-ok">✓ ' + msEsc(line) + '</div>';
     if (r.feuilles_restantes) html += '<div class="ms-note">Il reste ' + r.feuilles_restantes + ' feuille(s) de match à lire : relance « Mettre à jour » pour continuer.</div>';
