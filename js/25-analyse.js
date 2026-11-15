@@ -1,9 +1,9 @@
-// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z53 (14/11/2026)
+// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z54 (15/11/2026)
 // ===================== ANALYSE (carte « 🔬 Analyse » de l'accueil, visible seulement pour le coach qui l'a activée) =====================
 // Écran réservé aux coachs : poules de SUIVI (équipes qu'on rencontrera en phase 2 mais qu'on ne connaît que par leur phase 1),
 // leurs classements, et — dans les versions suivantes — probabilités de victoire et fiches des joueurs adverses.
 // Données : tables ffhb_sources (role = 'analyse'), poule_matches, adv_player_match_stats. Écrit pour les navigateurs anciens (pas de ?. ni ??).
-const anState = { data: null, src: null, j: null, busy: false, M: null, view: 'list', ti: 0, tab: 'vue', ctx: [], ctxs: [] };
+const anState = { data: null, src: null, j: null, busy: false, M: null, view: 'list', ti: 0, tab: 'vue', ctx: [], ctxs: [], notes: [], nf: null };
 
 function anSetKey() { return coachSession && coachSession.login ? 'analyse_card_' + coachSession.login : null; }
 // ---- Carte sur l'accueil : visible si un coach est connecté ET qu'il l'a activée dans Réglages (réglage propre à chaque coach) ----
@@ -41,7 +41,7 @@ function anEnter() {
   anLoad();
 }
 function anBack() {
-  if (anState.view === 'team') { anClose(); return; }
+  if (anState.view !== 'list') { anClose(); return; }
   document.getElementById('screen-analyse').style.display = 'none';
   document.getElementById('screen-home').style.display = 'flex';
 }
@@ -65,6 +65,7 @@ async function anLoad() {
       var part = await ra.json(); adv = adv.concat(part);
       if (part.length < 1000) break; off += 1000;
     }
+    try { var rn = await fetch(SB_URL + '/rest/v1/match_notes?select=*&order=created_at.asc&limit=1000', { headers: H }); anState.notes = rn.ok ? await rn.json() : []; } catch (e0) { anState.notes = []; }
     anState.data = { sources: await r[0].json(), poule: await r[1].json(), adv: adv };
     anState.M = anBuild(anState.data);
     anRender();
@@ -83,7 +84,8 @@ function anRender() {
   var rep = document.getElementById('an-report'), repHtml = rep ? rep.innerHTML : '';
   var suivi = anSuivi();
   var nb = suivi.length, html;
-  if (anState.view === 'team' && anState.M) html = anTeamHtml(d);
+  if (anState.view === 'our' && anState.M) html = anOurHtml();
+  else if (anState.view === 'team' && anState.M) html = anTeamHtml(d);
   else html = '<div class="ms-bar"><button class="ms-btn ms-main" id="an-sync-btn" onclick="anSync()">🔄 Mettre à jour les poules de suivi</button></div><div id="an-report"></div>' +
     anListHtml(d) +
     '<details class="ms-det" data-an="src"><summary>⚙️ Poules de suivi (' + nb + ')</summary>' + anSourcesHtml(suivi) + '</details>';
@@ -267,7 +269,7 @@ function anListHtml(d) {
   var M = anState.M, h = '', ctxs = [];
   anState.ctxs = ctxs;
   var next = [1, 2].map(function (eq) { return anNextOf(eq); });
-  h += '<div class="ms-h">Mes prochains adversaires</div><div class="an-next">';
+  h += '<div class="ms-h">Mes prochains adversaires <button class="ms-btn" onclick="anOpenOur()">📝 Notre équipe</button></div><div class="an-next">';
   [1, 2].forEach(function (eq, i) {
     var m = next[i];
     if (!m) { h += '<div class="an-ncard"><small>ÉQUIPE ' + eq + '</small><div class="an-nm2">Aucun match à venir connu</div></div>'; return; }
@@ -313,9 +315,9 @@ function anTeamHtml(d) {
     (polesPlayed.length ? '<div class="an-sub">Matchs lus dans : ' + msEsc(polesPlayed.join(' · ')) + '</div>' : '') + '</div>' +
     '<div class="an-kf"><div><small>Buts / match</small><b>' + (st.n ? anF1(st.gf) : '–') + '</b></div><div><small>Encaissés</small><b>' + (st.n ? anF1(st.ga) : '–') + '</b></div><div><small>Écart / match</small><b>' + (st.n ? anSgn(st.diff) : '–') + '</b></div></div>' +
     '<div class="an-nav"><button onclick="anStep(-1)">◀</button><span>' + (pos >= 0 ? (pos + 1) + '/' + ctx.length : '') + '</span><button onclick="anStep(1)">▶</button><button onclick="anClose()">✕</button></div></div>';
-  var tabs = [['vue', 'Vue d\'ensemble'], ['joueurs', 'Joueurs'], ['cal', 'Calendrier'], ['nous', 'Face à nous']];
+  var tabs = [['vue', 'Vue d\'ensemble'], ['joueurs', 'Joueurs'], ['cal', 'Calendrier'], ['nous', 'Face à nous'], ['notes', 'Notes']];
   var tb = '<div class="an-tabs">' + tabs.map(function (x) { return '<button class="' + (tab === x[0] ? 'on' : '') + '" onclick="anTab(\'' + x[0] + '\')">' + x[1] + '</button>'; }).join('') + '</div>';
-  var body = tab === 'joueurs' ? anTabPlayers(t) : (tab === 'cal' ? anTabCal(t) : (tab === 'nous' ? anTabUs(t) : anTabVue(t)));
+  var body = tab === 'notes' ? anTabNotes(t) : tab === 'joueurs' ? anTabPlayers(t) : (tab === 'cal' ? anTabCal(t) : (tab === 'nous' ? anTabUs(t) : anTabVue(t)));
   return '<div class="an-fiche">' + head + tb + body + '</div>';
 }
 function anGauges(t) {
@@ -397,8 +399,9 @@ function anKeys(t) {
   if (st.arrets !== null && anPct(M, 'arrets', st.arrets) !== null && anPct(M, 'arrets', st.arrets) >= 0.75) k.push('Gardien solide : varier les tirs');
   if (st.homeD !== null && st.awayD !== null && Math.abs(st.homeD - st.awayD) >= 4) k.push(st.homeD > st.awayD ? 'Beaucoup plus forts à domicile' : 'Plus à l\'aise à l\'extérieur');
   if (st.n >= 4 && st.close / st.n >= 0.5) k.push('Matchs souvent serrés : rester concentré jusqu\'à la fin');
+  anNotesOf(t.key, 'eux').slice(-4).forEach(function (n) { k.push((n.type === 'fort' ? '💪 ' : '⚠️ ') + (n.tag ? n.tag + (n.texte ? ' — ' : '') : '') + (n.texte ? msEsc(n.texte) : '') + (n.manche ? ' (' + n.manche + ')' : '')); });
   if (!k.length) return '<div class="an-na">Pas de tendance marquée dans les données lues.</div>';
-  return k.slice(0, 5).map(function (x) { return '<span class="an-pill">' + x + '</span>'; }).join('');
+  return k.slice(0, 9).map(function (x) { return '<span class="an-pill">' + x + '</span>'; }).join('');
 }
 function anTabPlayers(t) {
   var st = t.st; if (!st.players.length) return '<div class="an-body" style="grid-template-columns:1fr"><div class="an-col an-na">Feuilles de match pas encore lues pour cette équipe.</div></div>';
@@ -426,6 +429,84 @@ function anTabUs(t) {
   h += '<div class="an-note">🔮 Prochaine étape (z54) : probabilité de victoire de chaque match à venir, avec un indice de confiance, et comparaison directe nous / eux.</div></div></div>';
   return h;
 }
+
+// ---------------------------------------------------------------------------------------------
+// z54 — NOTES : points forts / points faibles saisis par les coachs (eux et nous), table match_notes
+// ---------------------------------------------------------------------------------------------
+var AN_TAGS = ['Défense 6-0', 'Défense 5-1', 'Défense 3-2-1', 'Défense agressive', 'Jeu rapide', 'Contre-attaque', 'Montée de balle', 'Jeu placé', 'Pivot', 'Ailiers', 'Tirs de loin', '7 m', 'Gardien', 'Supériorité numérique', 'Mental', 'Fin de match', 'Début de match', 'Discipline', 'Rotation / banc', 'Replis'];
+function anNotesOf(key, cote) { return (anState.notes || []).filter(function (n) { return n.team_key === key && (!cote || n.cote === cote); }); }
+function anNF() { // état du formulaire
+  if (!anState.nf) anState.nf = { cote: 'eux', type: 'fort', manche: 'aller', rencontre: '', tags: [], texte: '' };
+  return anState.nf;
+}
+function anNfSet(k, v) { anNF()[k] = v; anRender(); }
+function anNfText(v) { anNF().texte = v; }
+function anNfTag(i) { var f = anNF(), t = AN_TAGS[i], p = f.tags.indexOf(t); if (p < 0) f.tags.push(t); else f.tags.splice(p, 1); anRender(); }
+function anNoteLine(n) {
+  var who = n.auteur ? msEsc(n.auteur) : '';
+  var dt = n.created_at ? new Date(n.created_at) : null;
+  var d = dt ? (('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2)) : '';
+  return '<div class="an-note-l ' + n.type + '">' + (n.tag ? '<span class="an-tag">' + msEsc(n.tag) + '</span> ' : '') + (n.texte ? msEsc(n.texte) : '') +
+    '<small>' + (n.manche ? n.manche + ' · ' : '') + who + (d ? ' · ' + d : '') + ' <a href="#" onclick="anNoteDel(\'' + msEsc(n.id) + '\');return false;">supprimer</a></small></div>';
+}
+function anNotesCol(key, cote, title) {
+  var ns = anNotesOf(key, cote), f = ns.filter(function (n) { return n.type === 'fort'; }), w = ns.filter(function (n) { return n.type === 'faible'; });
+  var col = function (arr, lab, cls) { return '<div class="an-nc ' + cls + '"><h5>' + lab + '</h5>' + (arr.length ? arr.map(anNoteLine).join('') : '<div class="an-na">Rien de noté.</div>') + '</div>'; };
+  return '<div class="an-col"><h4>' + title + '</h4><div class="an-ncols">' + col(f, '💪 Points forts', 'fort') + col(w, '⚠️ Points faibles', 'faible') + '</div></div>';
+}
+function anNoteForm(t) {
+  var f = anNF(), vs = t.ms.filter(function (m) { return m.scored && anIsUs(m.opp); });
+  var opts = '<option value="">— match (facultatif) —</option>' + vs.map(function (m) { return '<option value="' + msEsc(m.rid) + '"' + (f.rencontre === String(m.rid) ? ' selected' : '') + '>' + (m.j ? 'J' + m.j + ' · ' : '') + msEsc(m.opp) + ' ' + m.gf + '–' + m.ga + '</option>'; }).join('');
+  var B = function (k, v, lab) { return '<button class="' + (f[k] === v ? 'on' : '') + '" onclick="anNfSet(\'' + k + '\',\'' + v + '\')">' + lab + '</button>'; };
+  return '<div class="an-col an-form-n"><h4>Ajouter une note</h4>' +
+    '<div class="an-seg">' + B('cote', 'eux', 'Eux') + B('cote', 'nous', 'Nous') + '</div>' +
+    '<div class="an-seg">' + B('type', 'fort', '💪 Point fort') + B('type', 'faible', '⚠️ Point faible') + '</div>' +
+    '<div class="an-seg">' + B('manche', 'aller', 'Aller') + B('manche', 'retour', 'Retour') + '</div>' +
+    '<select class="an-sel" onchange="anNfSet(\'rencontre\',this.value)">' + opts + '</select>' +
+    '<div class="an-tagpick">' + AN_TAGS.map(function (x, i) { return '<button class="' + (f.tags.indexOf(x) >= 0 ? 'on' : '') + '" onclick="anNfTag(' + i + ')">' + msEsc(x) + '</button>'; }).join('') + '</div>' +
+    '<textarea class="an-ta" rows="3" placeholder="Texte libre (facultatif)" oninput="anNfText(this.value)">' + msEsc(f.texte) + '</textarea>' +
+    '<button class="ms-btn ms-main" onclick="anNoteSave()">Enregistrer</button> <span id="an-nmsg" class="an-na"></span></div>';
+}
+function anTabNotes(t) {
+  return '<div class="an-body" style="grid-template-columns:1fr 1fr 1fr">' + anNotesCol(t.key, 'eux', 'Eux — ' + msEsc(t.name)) + anNotesCol(t.key, 'nous', 'Nous — contre cette équipe') + anNoteForm(t) + '</div>';
+}
+async function anNoteSave() {
+  var f = anNF(), M = anState.M, key = M.keys[anState.ti], msg = document.getElementById('an-nmsg');
+  var txt = (f.texte || '').replace(/^\s+|\s+$/g, '');
+  if (!f.tags.length && !txt) { if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'Choisis une étiquette ou écris un texte.'; } return; }
+  if (msg) { msg.style.color = ''; msg.textContent = 'Enregistrement…'; }
+  try {
+    await ensureCoachSession();
+    var login = coachSession && coachSession.login ? coachSession.login : null, rows = [];
+    var base = { team_key: key, cote: f.cote, rencontre: f.rencontre || null, manche: f.manche, type: f.type, auteur: login };
+    f.tags.forEach(function (tg, i) { rows.push(Object.assign({}, base, { tag: tg, texte: i === 0 && txt ? txt : null })); });
+    if (!f.tags.length) rows.push(Object.assign({}, base, { tag: null, texte: txt }));
+    var res = await fetch(SB_URL + '/rest/v1/match_notes', { method: 'POST', headers: Object.assign({}, coachAuthHeaders(), { 'Content-Type': 'application/json', Prefer: 'return=representation' }), body: JSON.stringify(rows) });
+    if (!res.ok) throw new Error('x');
+    var added = await res.json(); anState.notes = (anState.notes || []).concat(added);
+    f.tags = []; f.texte = ''; anRender();
+    var m2 = document.getElementById('an-nmsg'); if (m2) { m2.style.color = 'var(--vert)'; m2.textContent = '✓ Enregistré'; }
+  } catch (e) { var m3 = document.getElementById('an-nmsg'); if (m3) { m3.style.color = '#e74c3c'; m3.textContent = 'Erreur — réessaie.'; } }
+}
+async function anNoteDel(id) {
+  if (!window.confirm('Supprimer cette note ?')) return;
+  try {
+    await ensureCoachSession();
+    var res = await fetch(SB_URL + '/rest/v1/match_notes?id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: coachAuthHeaders() });
+    if (!res.ok) throw new Error('x');
+    anState.notes = (anState.notes || []).filter(function (n) { return n.id !== id; }); anRender();
+  } catch (e) { window.alert('Suppression impossible — réessaie.'); }
+}
+// ---- Page « Notre équipe » : toutes les notes « nous », avec les étiquettes qui reviennent le plus ----
+function anOurHtml() {
+  var M = anState.M, ns = (anState.notes || []).filter(function (n) { return n.cote === 'nous'; });
+  var h = '<div class="an-fiche"><div class="an-hd"><div class="an-id"><div class="an-tags">Notre équipe</div><div class="an-nm">Points forts / points faibles</div><div class="an-sub">' + ns.length + ' note(s) saisie(s) par les coachs, tous adversaires confondus</div></div><div class="an-nav"><button onclick="anClose()">✕</button></div></div>';
+  if (!ns.length) return h + '<div class="an-body" style="grid-template-columns:1fr"><div class="an-col an-na">Aucune note pour l\'instant : ouvre la fiche d\'un adversaire, onglet « Notes ».</div></div></div>';
+  var cnt = function (type) { var c = {}; ns.filter(function (n) { return n.type === type && n.tag; }).forEach(function (n) { c[n.tag] = (c[n.tag] || 0) + 1; }); return Object.keys(c).sort(function (a, b) { return c[b] - c[a]; }).map(function (k) { return '<span class="an-tag">' + msEsc(k) + ' × ' + c[k] + '</span>'; }).join(' ') || '<span class="an-na">–</span>'; };
+  var list = function (type) { return ns.filter(function (n) { return n.type === type; }).sort(function (a, b) { return String(b.created_at).localeCompare(String(a.created_at)); }).map(function (n) { var t = M.teams[n.team_key]; return '<div class="an-note-l ' + type + '"><b>' + msEsc(t ? t.name : n.team_key) + '</b> — ' + (n.tag ? '<span class="an-tag">' + msEsc(n.tag) + '</span> ' : '') + msEsc(n.texte || '') + '<small>' + (n.manche || '') + (n.auteur ? ' · ' + msEsc(n.auteur) : '') + '</small></div>'; }).join(''); };
+  return h + '<div class="an-body" style="grid-template-columns:1fr 1fr"><div class="an-col"><h4>💪 Points forts qui reviennent</h4><div class="an-tagrow">' + cnt('fort') + '</div>' + list('fort') + '</div><div class="an-col"><h4>⚠️ Points faibles qui reviennent</h4><div class="an-tagrow">' + cnt('faible') + '</div>' + list('faible') + '</div></div></div>';
+}
+function anOpenOur() { anState.view = 'our'; window.scrollTo(0, 0); anRender(); }
 
 // ---- Classement d'une poule (poules de suivi, puis nos poules pour comparer) ----
 function anPouleHtml(d) {
