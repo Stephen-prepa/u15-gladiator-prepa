@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z49 (11/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z55 (16/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -28,20 +28,73 @@ function schEdTools() {
   const all = schToolOrder(), vis = all.filter(id => !P.hidden.includes(id)).map(mk), hid = all.filter(id => P.hidden.includes(id)).map(mk);
   const pitch = { s: 54, m: 62, l: 78 }[P.size];
   const side = !!(window.matchMedia && window.matchMedia('(min-width:1100px) and (min-height:560px)').matches); // palette à gauche : tout est visible, on fait défiler
-  const cols = side ? Math.max(2, Math.floor(((box.clientWidth || 200) - 20 + 6) / (pitch + 22))) : Math.max(3, Math.floor(((box.clientWidth || window.innerWidth) - 16 + 5) / pitch)), slots = side ? 1e9 : cols * P.rows - (S.sel && S.tool !== 'select' ? 1 : 0);
+  const cols = side ? Math.max(2, Math.floor(((box.clientWidth || 200) - 20 + 6) / (pitch + 22))) : Math.max(3, Math.floor(((box.clientWidth || window.innerWidth) - 16 + 5) / pitch)), slots = side ? 1e9 : cols * P.rows - (S.sel && S.tool !== 'select' && !schToolPlaceable(S.tool) ? 1 : 0);
   let items = vis, more = '';
   if (S.more && (vis.length > slots || hid.length)) { items = vis.concat(hid); more = `<button type="button" class="sche-tool" onclick="schEdMore(false)"><span class="sche-ic">▴</span><span class="sche-lb">Moins</span></button>`; }
   else if (vis.length > slots || hid.length) { items = vis.slice(0, Math.max(1, slots - 1)); more = `<button type="button" class="sche-tool" onclick="schEdMore(true)"><span class="sche-ic">⋯</span><span class="sche-lb">Plus</span></button>`; }
   box.setAttribute('data-size', P.size); box.setAttribute('data-mode', P.mode);
   let h = `<div class="sche-tl" style="grid-template-columns:repeat(${cols},minmax(0,1fr));">`;
-  if (S.sel && S.tool !== 'select') h += `<button type="button" class="sche-tool acc" onclick="schEdTool('select')"><span class="sche-ic">✎</span><span class="sche-lb">Options</span></button>`;
+  if (S.sel && S.tool !== 'select' && !schToolPlaceable(S.tool)) h += `<button type="button" class="sche-tool acc" onclick="schEdTool('select')"><span class="sche-ic">✎</span><span class="sche-lb">Options</span></button>`;
   items.forEach(t => {
     if (t.pre) { h += `<button type="button" class="sche-tool pre" onclick="schEdPreset('${t.pre}')"><span class="sche-ic">⊞</span><span class="sche-lb">${t.label}</span></button>`; return; }
     const icon = t.id === 'select' ? '<span class="sche-ic">☝</span>' : t.id === 'multi' ? '<span class="sche-ic">⬚</span>' : t.id === 'pan' ? '<span class="sche-ic">✥</span>' : schToolIcon(t.id);
-    h += `<button type="button" class="sche-tool ${S.tool === t.id ? 'on' : ''}" onclick="schEdTool('${t.id}')" aria-label="${schEsc(t.label)}" title="${schEsc(t.label)}${schKeyOf('tool:' + t.id) ? ' (' + schKeyLabel(schKeyOf('tool:' + t.id)) + ')' : ''}">${icon}<span class="sche-lb">${t.label}</span></button>`;
+    const pal = schToolPlaceable(t.id);
+    h += `<button type="button" class="sche-tool ${S.tool === t.id ? 'on' : ''}${pal ? ' pal' : ''}" ${pal ? `onpointerdown="schPalDown(event,'${t.id}')" onclick="schPalClick('${t.id}')"` : `onclick="schEdTool('${t.id}')"`} aria-label="${schEsc(t.label)}" title="${schEsc(t.label)}${schKeyOf('tool:' + t.id) ? ' (' + schKeyLabel(schKeyOf('tool:' + t.id)) + ')' : ''}">${icon}<span class="sche-lb">${t.label}</span></button>`;
   });
   box.innerHTML = h + more + '</div>';
 }
+
+// ----- z55 : taille par défaut, outils « à poser », glisser-déposer depuis la palette -----
+const SCH_DEFAULT_SCALE = 0.6;
+function schToolPlaceable(t) { return SCH_PLAYERS.indexOf(t) >= 0 || SCH_OBJECTS.indexOf(t) >= 0 || SCH_ZONES.indexOf(t) >= 0; }
+let schPal = null; // geste en cours : { id, x0, y0, t0, on, ghost, btn, timer, long }
+function schPalClick(id) { if (performance.now() - (window.schPalNoClick || 0) < 500) return; schEdTool(id); }
+function schPalDown(e, id) {
+  if (!schEd || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  schPalStop(true);
+  const btn = e.currentTarget || e.target;
+  schPal = { id, x0: e.clientX, y0: e.clientY, on: false, ghost: null, btn, pid: e.pointerId, ty: e.pointerType, long: false, timer: null };
+  schPal.timer = setTimeout(() => { if (schPal && !schPal.on) schPal.long = true; }, 250);
+  window.addEventListener('pointermove', schPalMove); window.addEventListener('pointerup', schPalUp); window.addEventListener('pointercancel', schPalCancel);
+  window.addEventListener('touchmove', schPalTouch, { passive: false });
+}
+function schPalTouch(ev) { if (schPal && schPal.on && ev.cancelable) ev.preventDefault(); }
+function schPalMove(e) {
+  const P = schPal; if (!P || e.pointerId !== P.pid) return;
+  const dx = e.clientX - P.x0, dy = e.clientY - P.y0, dist = Math.hypot(dx, dy);
+  if (!P.on) {
+    if (dist < (P.ty === 'mouse' ? 6 : 12)) return;
+    const side = !!(window.matchMedia && window.matchMedia('(min-width:1100px) and (min-height:560px)').matches); // palette à gauche (défile en hauteur) ou en bas
+    const across = P.ty === 'mouse' || P.long || (side ? Math.abs(dx) > Math.abs(dy) : Math.abs(dy) > Math.abs(dx)); // geste perpendiculaire au défilement = glisser
+    if (!across) { schPalStop(true); return; } // c'est un défilement de la palette : on laisse faire
+    P.on = true; clearTimeout(P.timer);
+    const g = document.createElement('div'); g.className = 'sche-ghost';
+    const ic = P.btn && P.btn.querySelector('svg, .sche-ic'); g.innerHTML = ic ? ic.outerHTML : '●';
+    document.body.appendChild(g); P.ghost = g;
+    try { if (P.btn && P.btn.setPointerCapture) P.btn.setPointerCapture(P.pid); } catch (x) {}
+  }
+  P.ghost.style.left = e.clientX + 'px'; P.ghost.style.top = e.clientY + 'px';
+  const r = schEd && schEd.stage ? schEd.stage.getBoundingClientRect() : null;
+  P.ghost.classList.toggle('out', !(r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom));
+}
+function schPalUp(e) {
+  const P = schPal; if (!P || e.pointerId !== P.pid) return;
+  const was = P.on, id = P.id; schPalStop(true);
+  if (!was || !schEd) return; // simple toucher : le onclick de la palette s'en occupe
+  window.schPalNoClick = performance.now();
+  const r = schEd.stage.getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return; // lâché hors du terrain : rien n'est posé
+  schEdTool(id);
+  schEdPlace(id, schEdPt(e));
+}
+function schPalCancel(e) { if (schPal && e.pointerId === schPal.pid) schPalStop(true); }
+function schPalStop(clean) {
+  if (!schPal) return;
+  clearTimeout(schPal.timer); if (schPal.ghost && schPal.ghost.parentNode) schPal.ghost.parentNode.removeChild(schPal.ghost);
+  window.removeEventListener('pointermove', schPalMove); window.removeEventListener('pointerup', schPalUp); window.removeEventListener('pointercancel', schPalCancel); window.removeEventListener('touchmove', schPalTouch);
+  schPal = null;
+}
+
 function schEdMore(on) { schEd.more = !!on; schEdTools(); }
 function schEdGroup(id) { const g = SCH_GROUPS.find(x => x.id === id); if (!g) return; schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!g.tools.some(t => t[0] === schEd.tool)) schEd.tool = g.tools[0][0]; schEdTools(); schEdPanel(); }
 function schEdTool(t) {
@@ -55,7 +108,7 @@ function schEdPreset(k) {
   const pv = schViewParse(d.view);
   if (pv.base !== 'half' && pv.base !== 'full') { schEdToast('Placements disponibles sur « ½ terrain » ou « Terrain entier »'); return; }
   schEdPush();
-  P.pts.forEach(pt => { const o = { type: P.type, x: pv.base === 'full' ? pt[1] : pt[0], y: pv.base === 'full' ? pt[0] : pt[1], label: schNextLabel(d.elements, P.type), z: Math.max(0, ...d.elements.map(e => e.z)) + 1 };
+  P.pts.forEach(pt => { const o = { type: P.type, scale: (P.type === 'PLAYER' || P.type === 'DEFENDER') ? SCH_DEFAULT_SCALE : 1, x: pv.base === 'full' ? pt[1] : pt[0], y: pv.base === 'full' ? pt[0] : pt[1], label: schNextLabel(d.elements, P.type), z: Math.max(0, ...d.elements.map(e => e.z)) + 1 };
     if (pv.rot) { const bv = SCH_VIEWS[pv.base]; let w = bv.w, h = bv.h; for (let i = 0; i < pv.rot / 90; i++) { const nx = h - o.y, ny = o.x; o.x = schR(nx, 2); o.y = schR(ny, 2); const t = w; w = h; h = t; } if (P.type === 'DEFENDER') o.rotation = pv.rot; }
     d.elements.push(schNormElement(o)); });
   schEdChanged(true);
@@ -462,7 +515,7 @@ function schEdPlace(type, pt) {
   const q = schEdClampPt(pt), o = { type, x: schSnap(q.x, 0.25), y: schSnap(q.y, 0.25), label: schNextLabel(els, type), z: Math.max(0, ...els.map(e => e.z)) + 1 };
   if (type === 'ZONE_RECT' || type === 'ZONE_CIRCLE') { o.w = 4; o.h = 3; }
   if (type === 'TEXT') o.label = 'Texte';
-  if (type === 'PLAYER' || type === 'DEFENDER') o.scale = 0.8; // taille par défaut d'un attaquant / défenseur posé (réglable ensuite)
+  if (type === 'PLAYER' || type === 'DEFENDER') o.scale = SCH_DEFAULT_SCALE; // taille par défaut d'un attaquant / défenseur posé (réglable ensuite)
   let el;
   if (type === 'BALL') {
     const nb = els.filter(e => e.type === 'BALL').length; // chaque appui pose un NOUVEAU ballon (4 au plus) ; pour déplacer un ballon, on le fait glisser
@@ -535,7 +588,7 @@ function schEdPanel() {
       + `<div class="sche-row"><span class="sche-lab">Épaisseur</span><div class="sche-stp"><button type="button" onclick="schEdPenW(-0.2)" aria-label="moins">−</button><b>${schR(S.penW || 1, 1)}×</b><button type="button" onclick="schEdPenW(0.2)" aria-label="plus">+</button></div></div><div class="sche-hint">Dessine à main levée sur le terrain. Pour déplacer ou modifier un trait, choisis « Sélection » puis touche-le.</div>`; return;
   }
   const ballRow = (() => { const dd = schEdD(), bl = dd.elements.filter(x => x.type === 'BALL'); if (e || bl.length < 2) return ''; return `<div class="sche-row"><span class="sche-lab">Ballon joué dans cette étape</span><select class="sche-sel2" onchange="schEdBallPlay(this.value)" aria-label="Ballon joué"><option value="">Tous (automatique)</option>${bl.map((b, i) => `<option value="${b.id}" ${dd.ballPlay === b.id ? 'selected' : ''}>Ballon ${i + 1}</option>`).join('')}</select></div>`; })();
-  if (!e || S.tool !== 'select') { box.style.display = ''; box.innerHTML = ballRow + `<div class="sche-hint">${e ? 'Outil actif : touche le terrain pour placer. Touche « Options » (en bas) pour régler l\'élément sélectionné.' : 'Touche un élément du terrain pour régler ses options (couleur, taille, numéro, étape…).'}</div>`; return; }
+  if (!e || !(S.tool === 'select' || schToolPlaceable(S.tool))) { box.style.display = ''; box.innerHTML = ballRow + `<div class="sche-hint">${e ? 'Outil actif : touche le terrain pour placer. Touche « Options » (en bas) pour régler l\'élément sélectionné.' : 'Touche un élément du terrain pour régler ses options (couleur, taille, numéro, étape…).'}</div>`; return; }
   const d = schEdD(), players = d.elements.filter(schIsPlayer), isAct = schIsAction(e), isZone = e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE';
   const row = (lab, body) => `<div class="sche-row"><span class="sche-lab">${lab}</span>${body}</div>`;
   const stp = (val, a, b) => `<div class="sche-stp"><button type="button" onclick="${a}" aria-label="moins">−</button><b>${val}</b><button type="button" onclick="${b}" aria-label="plus">+</button></div>`;

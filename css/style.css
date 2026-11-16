@@ -1538,3 +1538,10 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
 .an-sel,.an-ta{width:100%;box-sizing:border-box;background:var(--noir);color:var(--blanc);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:7px;font-size:12px;font-family:inherit;margin-bottom:6px;}
 .an-tagpick{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;} .an-tagpick button{background:var(--noir);border:1px solid rgba(255,255,255,.15);color:var(--gris-clair);border-radius:12px;padding:4px 9px;font-size:11px;cursor:pointer;font-family:inherit;}
 @media(max-width:900px){.an-body[style*="1fr 1fr 1fr"]{grid-template-columns:1fr !important;}.an-ncols{grid-template-columns:1fr;}}
+
+/* ---- z55 : glisser-déposer depuis la palette de schémas ---- */
+.sche .sche-tool.pal{touch-action:pan-x;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+@media (min-width:1100px) and (min-height:560px){.sche .sche-tool.pal{touch-action:pan-y;}}
+.sche-ghost{position:fixed;z-index:100000;width:46px;height:46px;margin:-23px 0 0 -23px;pointer-events:none;opacity:.85;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid var(--jaune);}
+.sche-ghost svg{width:34px;height:34px;}
+.sche-ghost.out{opacity:.45;border-color:#999;}
