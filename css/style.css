@@ -1545,3 +1545,9 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
 .sche-ghost{position:fixed;z-index:100000;width:46px;height:46px;margin:-23px 0 0 -23px;pointer-events:none;opacity:.85;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid var(--jaune);}
 .sche-ghost svg{width:34px;height:34px;}
 .sche-ghost.out{opacity:.45;border-color:#999;}
+
+/* z58 — comparaison nous / eux et barre d'Analyse */
+.an-cmp-p{background:rgba(255,255,255,.05);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;}
+.an-cmp th{text-align:center;color:var(--gris-texte);font-weight:600;}
+.an-cmp td{text-align:center;font-weight:700;}
+.ms-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}

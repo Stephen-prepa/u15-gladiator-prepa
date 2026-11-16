@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z52 (14/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z58 (16/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -95,7 +95,7 @@ function msTiersOf(m) {
 function msRender() {
   var box = document.getElementById('ms-matchs'), d = msState.data;
   if (!box || !d) return;
-  var html = '<div class="ms-bar"><button class="ms-btn ms-main" id="ms-sync-btn" onclick="msSync()">🔄 Mettre à jour depuis la FFHandball</button></div>' +
+  var html = '<div class="ms-bar"><button class="ms-btn ms-main" id="ms-sync-btn" onclick="msSync()">🔄 Mettre à jour</button><span class="ms-na" id="ms-stamp">' + msStamp(d) + '</span></div>' +
     '<div id="ms-report"></div>' + '<div class="ms-cols"><div class="ms-c1">' + msMineHtml(d) + '</div><div class="ms-c2">' + msPouleHtml(d) + msSourcesHtml(d) + '</div></div>';
   // on garde ouverts les volets <details> déjà ouverts
   var open = {};
@@ -106,8 +106,35 @@ function msRender() {
   var rep2 = document.getElementById('ms-report'); if (rep2) rep2.innerHTML = repHtml;
 }
 
+function msStamp(d) {
+  var best = null;
+  (d.sources || []).forEach(function (s) { if (s.last_sync_at && (!best || s.last_sync_at > best)) best = s.last_sync_at; });
+  return best ? 'Données lues le ' + homeFmtDateShort(best).replace(/^[^ ]+ /, '').replace(' · ', ' à ') : '';
+}
+// z58 : matchs à venir de nos équipes lus dans les poules (pas encore au calendrier), datés d'abord puis « Date à confirmer · Jn »
+function msUpcoming(d) {
+  var known = {}, eqOf = {}, out = [];
+  d.matches.forEach(function (m) { if (m.ext_rencontre_id) known[String(m.ext_rencontre_id)] = true; });
+  d.sources.forEach(function (s) { if (s.active && s.equipe) eqOf[s.id] = s.equipe; });
+  var mine = function (name, eq) { if (!msIsUs(name)) return false; var x = String(name || '').match(/(\d)\s*$/); return !x || parseInt(x[1], 10) === eq; };
+  d.poule.forEach(function (p) {
+    var eq = eqOf[p.source_id]; if (!eq || known[String(p.ext_rencontre_id)]) return;
+    if (p.score1 !== null && p.score1 !== undefined) return;
+    if (p.forfait === 1 || p.forfait === 2) return;
+    var us1 = mine(p.team1, eq), us2 = mine(p.team2, eq); if (!us1 && !us2) return;
+    out.push({ equipe: eq, journee: p.journee_num, date: p.match_date, home: us1, opp: us1 ? p.team2 : p.team1 });
+  });
+  out.sort(function (a, b) { return (a.date ? new Date(a.date).getTime() : 9e15) - (b.date ? new Date(b.date).getTime() : 9e15) || (a.journee || 0) - (b.journee || 0); });
+  return out;
+}
 function msMineHtml(d) {
   var list = d.matches.filter(function (m) { return msState.eq === 'all' || String(m.equipe) === msState.eq; });
+  var up = msUpcoming(d).filter(function (u) { return msState.eq === 'all' || String(u.equipe) === msState.eq; });
+  var upRows = up.map(function (u) {
+    return '<tr class="ms-future"><td>' + (u.journee ? 'J' + u.journee : '') + '</td><td>' + (u.date ? msEsc(homeFmtDateShort(u.date)) : '<span class="ms-na">Date à confirmer</span>') + '</td>' +
+      '<td class="ms-l">' + (msState.eq === 'all' ? '<span class="ms-eq">É' + u.equipe + '</span> ' : '') + (u.home ? 'vs ' : 'à ') + msEsc(u.opp) + '</td><td><span class="ms-na">à venir</span></td>' +
+      '<td colspan="6" class="ms-na">lu dans la poule FFHandball</td></tr>';
+  }).join('');
   var chips = [['1', 'Équipe 1'], ['2', 'Équipe 2'], ['all', 'Toutes']].map(function (c) {
     return '<button class="ms-chip' + (msState.eq === c[0] ? ' on' : '') + '" onclick="msSetEq(\'' + c[0] + '\')">' + c[1] + '</button>';
   }).join('');
@@ -127,6 +154,7 @@ function msMineHtml(d) {
       '<td>' + res + '</td><td>' + (mt ? mt.nous + '–' + mt.eux : '<span class="ms-na">–</span>') + '</td>' +
       '<td>' + cell(t && t[0]) + '</td><td>' + cell(t && t[1]) + '</td><td>' + cell(t && t[2]) + '</td><td>' + pts + '</td><td>' + msPdfLink(m.fdm_code, m.url_ffhb) + '</td></tr>';
   }).join('');
+  rows = rows + upRows;
   return '<div class="ms-h">Mes matchs <span class="ms-chips">' + chips + '</span></div>' +
     (rows ? '<div class="ms-scroll"><table class="ms-tbl"><thead><tr><th>J</th><th>Date</th><th class="ms-l">Match</th><th>Score</th><th>MT</th><th>T1</th><th>T2</th><th>T3</th><th>Pts</th><th>Feuille</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
       '<div class="ms-legend">Scores « nous–eux ». MT = mi-temps. T1/T2/T3 = tiers-temps. Pts = points gagnés par nous – par l\'adversaire (règlement : victoire 3, nul 2, défaite 1, + 1 par tiers-temps gagné). * = tiers-temps inconnus.</div>'
@@ -295,13 +323,16 @@ async function msSync(pref) {
   if (msState.busy) return;
   msState.busy = true;
   pref = pref || '';
-  var btn = document.getElementById(pref ? 'ms-jsync-btn' : 'ms-sync-btn'), rep = document.getElementById(pref ? 'ms-jreport' : 'ms-report');
+  var ids = pref === 'an' ? ['an-sync-btn', 'an-report'] : (pref ? ['ms-jsync-btn', 'ms-jreport'] : ['ms-sync-btn', 'ms-report']);
+  var btn = document.getElementById(ids[0]), rep = document.getElementById(ids[1]);
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Mise à jour en cours (jusqu\'à 1–2 min)…'; }
   if (rep) rep.innerHTML = '';
   var html = '';
   try {
     // z51b : la plateforme coupe un appel trop gourmand (erreur 546) : on lit UNE poule par appel, puis les feuilles par petits lots, tout seul
-    var srcs = ((msState.data && msState.data.sources) || []).filter(function (x) { return x.active; });
+    // z58 : UN seul bouton qui fait tout — nos deux poules de phase 2 ET les poules de suivi (on relit la liste complète)
+    var allRes = await fetch(SB_URL + '/rest/v1/ffhb_sources?select=*&order=created_at.asc', { headers: coachAuthHeaders() });
+    var srcs = (allRes.ok ? await allRes.json() : ((msState.data && msState.data.sources) || [])).filter(function (x) { return x.active; });
     var r = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, conflits: [], non_rapproches: [], erreurs: [] };
     var addRep = function (x) {
       ['sources', 'rencontres', 'joues', 'mis_a_jour', 'tiers_lus', 'joueurs_lus'].forEach(function (k) { r[k] += x[k] || 0; });
@@ -311,12 +342,12 @@ async function msSync(pref) {
       if (btn) btn.textContent = '⏳ Lecture des poules… ' + (i + 1) + '/' + srcs.length + ' (ne ferme pas la page)';
       addRep(await msCall({ mode: 'sync', source_id: srcs[i].id, feuilles: false }));
     }
-    // z52 : feuilles de NOS deux équipes seulement (les poules de suivi se mettent à jour dans la carte « Analyse »)
-    var pass = 0, still = 0, x, eqs = [1, 2];
+    // feuilles : nos deux équipes d'abord, puis les poules de suivi (equipe = null)
+    var pass = 0, still = 0, x, eqs = [1, 2, null];
     for (var q = 0; q < eqs.length; q++) {
       still = 0;
       do {
-        x = await msCall({ mode: 'sync', feuilles_only: true, equipe: eqs[q] });
+        x = await msCall(eqs[q] ? { mode: 'sync', feuilles_only: true, equipe: eqs[q] } : { mode: 'sync', feuilles_only: true });
         addRep(x); pass++;
         still = (x.joueurs_lus || 0) + (x.tiers_lus || 0) > 0 ? 0 : still + 1;
         r.feuilles_restantes = x.feuilles_restantes || 0;
@@ -333,10 +364,11 @@ async function msSync(pref) {
     html = '<div class="ms-err">Mise à jour impossible : ' + msEsc(e.message || 'erreur') + '</div>';
   }
   msState.busy = false;
-  if (btn) { btn.disabled = false; btn.textContent = pref ? '🔄 Mettre à jour les stats des joueurs' : '🔄 Mettre à jour depuis la FFHandball'; }
+  if (btn) { btn.disabled = false; btn.textContent = pref === 'an' ? '🔄 Mettre à jour' : (pref ? '🔄 Mettre à jour les stats des joueurs' : '🔄 Mettre à jour'); }
   await msLoad();
   await msJLoad();
-  var rep2 = document.getElementById(pref ? 'ms-jreport' : 'ms-report'); if (rep2) rep2.innerHTML = html;
+  if (typeof anLoad === 'function' && typeof anState !== 'undefined' && anState.data) await anLoad();
+  var rep2 = document.getElementById(ids[1]); if (rep2) rep2.innerHTML = html;
   if (typeof homeLoadMatches === 'function') homeLoadMatches();
 }
 

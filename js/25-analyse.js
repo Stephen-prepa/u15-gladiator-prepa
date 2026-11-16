@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z54 (15/11/2026)
+// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z58 (16/11/2026)
 // ===================== ANALYSE (carte « 🔬 Analyse » de l'accueil, visible seulement pour le coach qui l'a activée) =====================
 // Écran réservé aux coachs : poules de SUIVI (équipes qu'on rencontrera en phase 2 mais qu'on ne connaît que par leur phase 1),
 // leurs classements, et — dans les versions suivantes — probabilités de victoire et fiches des joueurs adverses.
@@ -74,6 +74,11 @@ async function anLoad() {
     box.innerHTML = '<div class="ms-info" style="color:#e74c3c;">Erreur de chargement. <button class="ms-btn" onclick="anLoad()">↻ Réessayer</button></div>';
   }
 }
+function anStamp(d) {
+  var best = null;
+  d.sources.forEach(function (s) { if (s.active && s.last_sync_at && (!best || s.last_sync_at > best)) best = s.last_sync_at; });
+  return best ? 'Données lues le ' + homeFmtDateShort(best).replace(/^[^ ]+ /, '').replace(' · ', ' à ') : 'Données jamais lues : appuie sur « Mettre à jour »';
+}
 function anSuivi() { return anState.data.sources.filter(function (s) { return s.role === 'analyse'; }); }
 
 function anRender() {
@@ -86,9 +91,10 @@ function anRender() {
   var nb = suivi.length, html;
   if (anState.view === 'our' && anState.M) html = anOurHtml();
   else if (anState.view === 'team' && anState.M) html = anTeamHtml(d);
-  else html = '<div class="ms-bar"><button class="ms-btn ms-main" id="an-sync-btn" onclick="anSync()">🔄 Mettre à jour les poules de suivi</button></div><div id="an-report"></div>' +
+  else html = '<div class="ms-bar"><button class="ms-btn ms-main" id="an-sync-btn" onclick="anSync()">🔄 Mettre à jour</button><button class="ms-btn" onclick="anOpenOur()">📝 Notre équipe</button>' +
+    '<span class="ms-na">' + msEsc(anStamp(d)) + '</span></div><div id="an-report"></div>' +
     anListHtml(d) +
-    '<details class="ms-det" data-an="src"><summary>⚙️ Poules de suivi (' + nb + ')</summary>' + anSourcesHtml(suivi) + '</details>';
+    '<details class="ms-det" data-an="src"><summary>⚙️ Données et poules de suivi (réglages) · ' + nb + ' lien(s)</summary>' + anSourcesHtml(suivi) + '</details>';
   box.innerHTML = html;
   Array.prototype.forEach.call(box.querySelectorAll('details[data-an]'), function (el) { if (open[el.getAttribute('data-an')]) el.open = true; });
   var rep2 = document.getElementById('an-report'); if (rep2) rep2.innerHTML = repHtml;
@@ -221,6 +227,69 @@ function anLabelCls(p) { return p === null ? ' an-na' : (p >= 0.6 ? '' : (p >= 0
 function anInit(name) { var w = name.replace(/\([^)]*\)/g, '').split(/[\s-]+/).filter(function (x) { return x && !/^(HB|HBC|HBO|AC|CC|GH|SC|FC|PHB|CHB|GHB|RC|ASC|AS|DE|DU|LA|LE|LES|D|L)$/i.test(x); }); return ((w[0] || name)[0] + ((w[1] || w[0] || ' ')[1] || '')).toUpperCase(); }
 function anRec(st) { return st.n ? st.v + ' V · ' + st.nu + ' N · ' + st.d + ' D' : 'aucun match lu'; }
 
+// ---------------------------------------------------------------------------------------------
+// z58 — PROBABILITÉS DE VICTOIRE (tendance, pas prédiction)
+// Méthode : chaque équipe reçoit une « cote » (en buts d'écart) calculée sur TOUS les matchs joués, toutes poules confondues :
+// écart du match ≈ cote(A) − cote(B) + avantage du domicile. Les cotes sont ajustées ensemble (itérations) : une équipe qui a joué
+// dans deux poules relie ces poules, ce qui corrige automatiquement le niveau D1/D2/D3. Les cotes sont tirées vers 0 quand l'équipe a peu de matchs.
+// La probabilité vient d'une loi normale sur l'écart (écart-type mesuré sur les matchs lus). Confiance : peu fiable < 4 matchs
+// ou poules non reliées ; moyenne 4–7 matchs ; correcte dès 8 matchs pour les deux équipes.
+// ---------------------------------------------------------------------------------------------
+var AN_LAMBDA = 3;
+function anNormCdf(z) { // approximation d'Abramowitz-Stegun
+  var t = 1 / (1 + 0.2316419 * Math.abs(z)), dd = 0.3989423 * Math.exp(-z * z / 2);
+  var p = dd * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return z > 0 ? 1 - p : p;
+}
+function anRatings(M) {
+  if (M.rate) return M.rate;
+  var rows = [], teams = M.teams, keys = Object.keys(teams);
+  keys.forEach(function (k) { teams[k].ms.forEach(function (m) { if (m.played && m.home) rows.push({ a: k, b: m.oppK, d: m.gf - m.ga }); }); });
+  var R = { r: {}, n: {}, comp: {}, h: 0, sd: 7, rows: rows.length };
+  keys.forEach(function (k) { R.r[k] = 0; R.n[k] = 0; });
+  if (!rows.length) { M.rate = R; return R; }
+  var sum = 0; rows.forEach(function (x) { sum += x.d; }); R.h = Math.max(0, Math.min(4, sum / rows.length));
+  rows.forEach(function (x) { R.n[x.a] = (R.n[x.a] || 0) + 1; R.n[x.b] = (R.n[x.b] || 0) + 1; if (R.r[x.b] === undefined) R.r[x.b] = 0; });
+  for (var it = 0; it < 80; it++) {
+    var acc = {}, cnt = {};
+    rows.forEach(function (x) {
+      acc[x.a] = (acc[x.a] || 0) + (x.d - R.h + R.r[x.b]); cnt[x.a] = (cnt[x.a] || 0) + 1;
+      acc[x.b] = (acc[x.b] || 0) + (-(x.d - R.h) + R.r[x.a]); cnt[x.b] = (cnt[x.b] || 0) + 1;
+    });
+    Object.keys(cnt).forEach(function (k) { R.r[k] = acc[k] / (cnt[k] + AN_LAMBDA); });
+  }
+  var se = 0; rows.forEach(function (x) { var e = x.d - (R.r[x.a] - R.r[x.b] + R.h); se += e * e; });
+  R.sd = Math.max(5, Math.sqrt(se / rows.length) * 1.05);
+  // composantes reliées (union-find)
+  var par = {}, find = function (k) { while (par[k] !== k) { par[k] = par[par[k]]; k = par[k]; } return k; };
+  Object.keys(R.n).forEach(function (k) { par[k] = k; });
+  rows.forEach(function (x) { var u = find(x.a), v = find(x.b); if (u !== v) par[u] = v; });
+  Object.keys(R.n).forEach(function (k) { R.comp[k] = find(k); });
+  M.rate = R; return R;
+}
+// Probabilité que kA batte kB (aDom = A joue à domicile). null = équipe inconnue (aucun match lu).
+function anProb(kA, kB, aDom) {
+  var M = anState.M; if (!M || !kA || !kB) return null;
+  var R = anRatings(M), nA = R.n[kA] || 0, nB = R.n[kB] || 0;
+  if (!nA || !nB) return null;
+  var mu = R.r[kA] - R.r[kB] + (aDom ? R.h : -R.h);
+  var p = 1 - anNormCdf((0.5 - mu) / R.sd); // P(écart ≥ 1 but) ; les nuls sont rares en jeunes
+  var nmin = Math.min(nA, nB), lie = R.comp[kA] === R.comp[kB];
+  var lvl = !lie ? 0 : (nmin >= 8 ? 2 : (nmin >= 4 ? 1 : 0)), w = [0.5, 0.75, 1][lvl];
+  p = 0.5 + (p - 0.5) * w;
+  var pct = Math.max(5, Math.min(95, Math.round(p * 20) * 5));
+  return { p: pct, mu: mu, lvl: lvl, conf: ['peu fiable', 'moyenne', 'correcte'][lvl], note: !lie ? 'poules non reliées : niveau incertain' : (nmin < 4 ? 'moins de 4 matchs lus' : '') };
+}
+function anProbCell(pr, who) {
+  if (!pr) return '<span class="an-na">inconnu</span>';
+  var c = pr.p >= 60 ? 'gr' : (pr.p >= 40 ? 'y' : 'rd');
+  return (who ? '<span class="an-na">' + who + ' </span>' : '') + anVal(c, pr.p + ' %') + '<br><span class="an-na" style="font-size:9.5px;">' + pr.conf + '</span>';
+}
+function anProbLine(pr, who) {
+  if (!pr) return who + ' : chances inconnues (pas de données sur cette équipe)';
+  return who + ' : <b>' + pr.p + ' %</b> de gagner <span class="an-na">· confiance ' + pr.conf + '</span>';
+}
+
 // ----- Poule « courante » d'une équipe : la source de nos équipes (role nous) où elle a des matchs à venir ; sinon sa dernière poule
 function anCurrentSrc(t) {
   var best = null;
@@ -232,7 +301,7 @@ function anNextOf(eq) { // prochain match de notre équipe eq (1 ou 2) : daté d
   Object.keys(M.teams).forEach(function (k) {
     if (k.indexOf(AN_US) === -1) return;
     var us = M.teams[k], d = k.match(/(\d)\s*$/); if (d && parseInt(d[1], 10) !== eq) return;
-    us.ms.forEach(function (m) { if (!m.scored && m.src.role !== 'analyse' && m.src.equipe === eq) cands.push(m); });
+    us.ms.forEach(function (m) { if (!m.scored && m.src.role !== 'analyse' && m.src.equipe === eq) cands.push(Object.assign({}, m, { usK: k })); });
   });
   cands.sort(function (a, b) { return (a.date ? new Date(a.date).getTime() : 9e15) - (b.date ? new Date(b.date).getTime() : 9e15) || (a.j || 0) - (b.j || 0); });
   return cands[0] || null;
@@ -269,33 +338,32 @@ function anListHtml(d) {
   var M = anState.M, h = '', ctxs = [];
   anState.ctxs = ctxs;
   var next = [1, 2].map(function (eq) { return anNextOf(eq); });
-  h += '<div class="ms-h">Mes prochains adversaires <button class="ms-btn" onclick="anOpenOur()">📝 Notre équipe</button></div><div class="an-next">';
+  h += '<div class="ms-h">Mes prochains adversaires</div><div class="an-next">';
   [1, 2].forEach(function (eq, i) {
     var m = next[i];
     if (!m) { h += '<div class="an-ncard"><small>ÉQUIPE ' + eq + '</small><div class="an-nm2">Aucun match à venir connu</div></div>'; return; }
     var k = m.oppK, t = M.teams[k], src = m.src, pt = anPouleTeams(src); ctxs.push(pt.map(anIdx));
     var when = m.date ? homeFmtDateShort(m.date) : 'Date à confirmer';
+    var pr = anProb(m.usK, k, m.home);
     h += '<button class="an-ncard" onclick="anOpen(' + anIdx(k) + ',anState.ctxs[' + (ctxs.length - 1) + '])"><small>ÉQUIPE ' + eq + ' · ' + (m.j ? 'J' + m.j + ' · ' : '') + (m.home ? 'à domicile' : 'à l\'extérieur') + '</small>' +
       '<div class="an-nm2">' + msEsc(t ? t.name : m.opp) + '</div><div class="an-nsub">' + msEsc(when) + '</div>' +
-      '<div class="an-nsub">' + (t && t.st.n ? msEsc(anRec(t.st)) + ' · ' + anF1(t.st.gf) + ' buts / match' : 'pas encore de matchs lus pour cette équipe') + '</div></button>';
+      '<div class="an-nsub">' + (t && t.st.n ? msEsc(anRec(t.st)) + ' · ' + anF1(t.st.gf) + ' buts / match' : 'pas encore de matchs lus pour cette équipe') + '</div>' +
+      '<div class="an-nsub">' + anProbLine(pr, 'Nous') + '</div></button>';
   });
-  h += '</div>';
-  // poules de nos équipes (phase en cours)
+  h += '</div><div class="an-na" style="font-size:10.5px;margin:4px 0 0;">Les pourcentages sont une tendance calculée sur les buts marqués et encaissés, pas une prédiction.</div>';
   [1, 2].forEach(function (eq, i) {
     var m = next[i]; if (!m) return;
     var pt = anPouleTeams(m.src); ctxs.push(pt.map(anIdx));
     h += '<div class="ms-h">Poule de l\'équipe ' + eq + ' <span class="ms-na">' + msEsc(m.src.label || '') + '</span></div>' + anChips(pt, ctxs.length - 1);
   });
-  // poules de suivi
-  var suivi = anSuivi();
-  if (suivi.length) {
-    h += '<div class="ms-h">Autres équipes suivies</div>';
-    suivi.forEach(function (s) {
-      var pt = anPouleTeams(s); if (!pt.length) return; ctxs.push(pt.map(anIdx));
-      h += '<details class="ms-det" data-an="s' + msEsc(s.id) + '"><summary>' + msEsc(s.label || 'Poule') + ' · ' + pt.length + ' équipes</summary>' + anChips(pt, ctxs.length - 1) + '</details>';
-    });
-  }
-  h += '<details class="ms-det" data-an="class"><summary>📊 Classements des poules</summary>' + anPouleHtml(d) + '</details>';
+  var suivi = anSuivi(), nbP = 0, nbT = {};
+  var inner = '';
+  suivi.forEach(function (s) {
+    var pt = anPouleTeams(s); if (!pt.length) return; ctxs.push(pt.map(anIdx)); nbP++; pt.forEach(function (k) { nbT[k] = true; });
+    inner += '<details class="ms-det" data-an="s' + msEsc(s.id) + '"><summary>' + msEsc(s.label || 'Poule') + ' · ' + pt.length + ' équipes</summary>' + anChips(pt, ctxs.length - 1) + '</details>';
+  });
+  if (nbP) h += '<details class="ms-det" data-an="autres"><summary>Autres équipes suivies (' + nbP + ' poule' + (nbP > 1 ? 's' : '') + ' · ' + Object.keys(nbT).length + ' équipes)</summary>' + inner + '</details>';
+  h += '<details class="ms-det" data-an="class"><summary>📊 Classements des poules de suivi</summary>' + anPouleHtml(d) + '</details>';
   return h;
 }
 
@@ -365,9 +433,10 @@ function anRemaining(t) {
   var rest = t.ms.filter(function (m) { return !m.scored; });
   rest.sort(function (a, b) { return (a.date ? new Date(a.date).getTime() : 9e15) - (b.date ? new Date(b.date).getTime() : 9e15) || (a.j || 0) - (b.j || 0); });
   if (!rest.length) return '<div class="an-na">Aucun match à venir connu.</div>';
-  return '<table class="an-mini"><tr><th>J</th><th class="l">Match</th><th>Date</th></tr>' + rest.map(function (m) {
-    return '<tr><td>' + (m.j ? 'J' + m.j : '') + '</td><td class="l' + (anIsUs(m.opp) ? ' us' : '') + '">' + (m.home ? 'vs ' : 'à ') + msEsc(m.opp) + '</td><td>' + (m.date ? msEsc(homeFmtDateShort(m.date)) : '<span class="an-na">à confirmer</span>') + '</td></tr>';
-  }).join('') + '</table>';
+  return '<table class="an-mini"><tr><th>J</th><th class="l">Match</th><th>Date</th><th>Chance de gagner</th></tr>' + rest.map(function (m) {
+    var us = anIsUs(m.opp), pr = us ? anProb(m.oppK, t.key, !m.home) : anProb(t.key, m.oppK, m.home);
+    return '<tr><td>' + (m.j ? 'J' + m.j : '') + '</td><td class="l' + (us ? ' us' : '') + '">' + (m.home ? 'vs ' : 'à ') + msEsc(m.opp) + '</td><td>' + (m.date ? msEsc(homeFmtDateShort(m.date)) : '<span class="an-na">à confirmer</span>') + '</td><td>' + anProbCell(pr, us ? 'nous' : '') + '</td></tr>';
+  }).join('') + '</table><div class="an-na" style="font-size:10px;margin-top:4px;">Tendance, pas prédiction. Pour ' + msEsc(t.name) + (rest.some(function (m) { return anIsUs(m.opp); }) ? ' (« nous » = notre équipe)' : '') + '.</div>';
 }
 function anBarsCmp(t) {
   var M = anState.M, st = t.st, B = function (lab, m, v, inv) { var p = anPct(M, m, v); if (p === null) return ''; if (inv) p = 1 - p; var c = p >= 0.6 ? 'gr' : (p >= 0.35 ? 'y' : 'rd'); var n = Math.round(p * 100);
@@ -423,10 +492,23 @@ function anTabUs(t) {
   var vs = t.ms.filter(function (m) { return anIsUs(m.opp); });
   var h = '<div class="an-body" style="grid-template-columns:1fr"><div class="an-col"><h4>Face à nous</h4>';
   if (vs.length) {
-    h += '<table class="an-mini"><tr><th>J</th><th>Date</th><th class="l">Match</th><th>Score</th></tr>' + vs.map(function (m) {
-      return '<tr><td>' + (m.j ? 'J' + m.j : '') + '</td><td>' + (m.date ? msEsc(homeFmtDateShort(m.date)) : '<span class="an-na">à confirmer</span>') + '</td><td class="l us">' + (m.home ? 'vs ' : 'à ') + msEsc(m.opp) + '</td><td>' + (m.scored ? '<b>' + m.gf + '–' + m.ga + '</b>' : '<span class="an-na">à venir</span>') + '</td></tr>'; }).join('') + '</table>';
+    h += '<table class="an-mini"><tr><th>J</th><th>Date</th><th class="l">Match</th><th>Score</th><th>Nos chances</th></tr>' + vs.map(function (m) {
+      var pr = m.scored ? null : anProb(m.oppK, t.key, !m.home);
+      return '<tr><td>' + (m.j ? 'J' + m.j : '') + '</td><td>' + (m.date ? msEsc(homeFmtDateShort(m.date)) : '<span class="an-na">à confirmer</span>') + '</td><td class="l us">' + (m.home ? 'vs ' : 'à ') + msEsc(m.opp) + '</td><td>' + (m.scored ? '<b>' + m.gf + '–' + m.ga + '</b>' : '<span class="an-na">à venir</span>') + '</td><td>' + (m.scored ? '<span class="an-na">–</span>' : anProbCell(pr, '')) + '</td></tr>'; }).join('') + '</table>';
+    var nx = vs.filter(function (m) { return !m.scored; })[0];
+    if (nx) h += anCompare(t, nx);
   } else h += '<div class="an-na">Aucun match contre nous dans les données lues.</div>';
-  h += '<div class="an-note">🔮 Prochaine étape (z54) : probabilité de victoire de chaque match à venir, avec un indice de confiance, et comparaison directe nous / eux.</div></div></div>';
+  h += '<div class="an-note">🔮 Les pourcentages sont une tendance : ils viennent des buts marqués et encaissés (corrigés du niveau des poules quand elles sont reliées par des matchs). Ils deviennent plus fiables au fil de la phase 2.</div></div></div>';
+  return h;
+}
+function anCompare(t, m) {
+  var M = anState.M, u = M.teams[m.oppK]; if (!u) return '';
+  var pr = anProb(m.oppK, t.key, !m.home), su = u.st, st = t.st;
+  var row = function (lab, a, b, f) { return '<tr><td>' + (a === null || a === undefined ? '–' : f(a)) + '</td><th>' + lab + '</th><td>' + (b === null || b === undefined ? '–' : f(b)) + '</td></tr>'; };
+  var h = '<h4 class="an-h2">Nous contre eux</h4><div class="an-cmp-p">' + anProbLine(pr, 'Nous') + (pr ? '<br><span class="an-na">Écart attendu : ' + (pr.mu >= 0 ? 'nous +' : 'eux +') + anF1(Math.abs(pr.mu)) + ' but(s)' + (pr.note ? ' · ' + msEsc(pr.note) : '') + '</span>' : '') + '</div>';
+  h += '<table class="an-mini an-cmp"><tr><th>' + msEsc(u.name) + ' (nous)</th><th></th><th>' + msEsc(t.name) + ' (eux)</th></tr>' +
+    row('Matchs lus', su.n, st.n, String) + row('Buts marqués / match', su.n ? su.gf : null, st.n ? st.gf : null, anF1) + row('Buts encaissés / match', su.n ? su.ga : null, st.n ? st.ga : null, anF1) +
+    row('Écart / match', su.n ? su.diff : null, st.n ? st.diff : null, anSgn) + row('Forme (5 derniers)', su.form, st.form, function (x) { return Math.round(x * 100) + ' %'; }) + '</table>';
   return h;
 }
 
@@ -512,9 +594,8 @@ function anOpenOur() { anState.view = 'our'; window.scrollTo(0, 0); anRender(); 
 function anPouleHtml(d) {
   var ids = {};
   d.poule.forEach(function (p) { ids[p.source_id] = true; });
-  var srcs = d.sources.filter(function (s) { return ids[s.id] && s.active; });
-  srcs.sort(function (a, b) { return (a.role === 'analyse' ? 0 : 1) - (b.role === 'analyse' ? 0 : 1); });
-  if (!srcs.length) return '<div class="ms-h">Poules</div><div class="ms-info">Pas encore de données : appuie sur « Mettre à jour les poules de suivi ».</div>';
+  var srcs = d.sources.filter(function (s) { return ids[s.id] && s.active && s.role === 'analyse'; });
+  if (!srcs.length) return '<div class="ms-h">Poules</div><div class="ms-info">Pas encore de données : appuie sur « Mettre à jour ».</div>';
   if (!anState.src || !srcs.some(function (s) { return s.id === anState.src; })) { anState.src = srcs[0].id; anState.j = null; }
   var pm = d.poule.filter(function (p) { return p.source_id === anState.src; });
   var js = []; pm.forEach(function (p) { if (p.journee_num !== null && js.indexOf(p.journee_num) === -1) js.push(p.journee_num); });
@@ -567,11 +648,11 @@ function anSourcesHtml(suivi) {
       (s.last_sync_at ? '<br><span class="ms-na">Dernière mise à jour : ' + msEsc(homeFmtDateShort(s.last_sync_at)) + ' — ' + msEsc(s.last_sync_status || '') + '</span>' : '') + '</div>' +
       '<button class="ms-btn" onclick="anSrcDel(\'' + msEsc(s.id) + '\')">Supprimer</button></div>';
   }).join('');
-  return '<details class="ms-det" data-an="liens"><summary>⚙️ Poules de suivi (liens FFHandball)</summary>' +
+  return '<div>' +
     '<div class="ms-sub">Poules lues pour connaître les équipes adverses (leurs matchs et les stats de leurs joueurs)</div>' + (rows || '<div class="ms-info">Aucune poule de suivi.</div>') +
     '<div class="ms-sub">Ajouter une poule</div><div class="ms-add">' +
     '<input id="an-add-url" class="ms-in" type="url" inputmode="url" placeholder="https://www.ffhandball.fr/competitions/…/poule-…/"><input id="an-add-label" class="ms-in" placeholder="Nom (ex. D2 phase 1 — poule E)">' +
-    '<button class="ms-btn ms-main" onclick="anSrcAdd()">Vérifier et ajouter</button><div id="an-add-msg" class="ms-info"></div></div></details>';
+    '<button class="ms-btn ms-main" onclick="anSrcAdd()">Vérifier et ajouter</button><div id="an-add-msg" class="ms-info"></div></div></div>';
 }
 async function anSrcAdd() {
   var msg = document.getElementById('an-add-msg'), url = (document.getElementById('an-add-url').value || '').trim();
@@ -603,39 +684,4 @@ async function anSrcDel(id) {
 }
 
 // ---- Mise à jour : une poule par appel, puis les feuilles de match par petits lots ----
-async function anSync() {
-  if (anState.busy) return;
-  anState.busy = true;
-  var btn = document.getElementById('an-sync-btn'), rep = document.getElementById('an-report');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Mise à jour en cours…'; }
-  if (rep) rep.innerHTML = '';
-  var html = '';
-  try {
-    var srcs = anSuivi().filter(function (x) { return x.active; });
-    var r = { sources: 0, rencontres: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, erreurs: [] };
-    var addRep = function (x) {
-      ['sources', 'rencontres', 'tiers_lus', 'joueurs_lus'].forEach(function (k) { r[k] += x[k] || 0; });
-      (x.erreurs || []).forEach(function (v) { if (r.erreurs.indexOf(v) < 0) r.erreurs.push(v); });
-    };
-    for (var i = 0; i < srcs.length; i++) {
-      if (btn) btn.textContent = '⏳ Lecture des poules… ' + (i + 1) + '/' + srcs.length + ' (ne ferme pas la page)';
-      addRep(await msCall({ mode: 'sync', source_id: srcs[i].id, feuilles: false }));
-    }
-    var pass = 0, still = 0, x;
-    do {
-      x = await msCall({ mode: 'sync', feuilles_only: true });
-      addRep(x); pass++;
-      still = (x.joueurs_lus || 0) + (x.tiers_lus || 0) > 0 ? 0 : still + 1;
-      r.feuilles_restantes = x.feuilles_restantes || 0;
-      if (btn && r.feuilles_restantes > 0) btn.textContent = '⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)';
-    } while (r.feuilles_restantes > 0 && pass < 150 && still < 2);
-    html = '<div class="ms-ok">✓ ' + msEsc(r.sources + ' poule(s) lue(s) · ' + r.rencontres + ' rencontre(s) · ' + r.joueurs_lus + ' feuille(s) lue(s) pour les joueurs') + '</div>';
-    if (r.feuilles_restantes) html += '<div class="ms-note">Il reste ' + r.feuilles_restantes + ' feuille(s) à lire : relance « Mettre à jour ».</div>';
-    if (r.erreurs.length) html += '<div class="ms-err"><b>À vérifier :</b><br>' + r.erreurs.map(msEsc).join('<br>') + '</div>';
-  } catch (e) {
-    html = '<div class="ms-err">Mise à jour impossible : ' + msEsc(e.message || 'erreur') + '</div>';
-  }
-  anState.busy = false;
-  await anLoad();
-  var rep2 = document.getElementById('an-report'); if (rep2) rep2.innerHTML = html;
-}
+function anSync() { return msSync('an'); } // z58 : un seul bouton « Mettre à jour » (nos poules + poules de suivi + feuilles), défini dans 23-matchs-stats.js

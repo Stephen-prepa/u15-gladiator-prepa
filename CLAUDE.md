@@ -44,7 +44,7 @@ Ce fichier est lu automatiquement au début de chaque session. Il donne le cadre
 - Ni le shell ni WebFetch n'atteignent ffhandball.fr : seule la fonction serveur lit la FFHB. Pour tester un lien de poule, passer par l'écran (Analyse › poules de suivi : contrôle « preview »).
 - Les identifiants d'équipe FFHB **changent d'une phase à l'autre** : rapprocher les équipes par nom normalisé (majuscules, sans accents ni parenthèses).
 
-## 5. État du produit (au 16/11/2026 — version z54 déployée)
+## 5. État du produit (au 16/11/2026 — version z58 déployée)
 - Phase 2 : équipe 1 = « 2e phase — D2 — poule A » (poule-201265) ; équipe 2 = « 2e phase — D4 — poule F » (poule-201278). Poules de **suivi** (role analyse) = phase 1 des adversaires, pour connaître leur niveau (D1 poule C, D2 poules D et F, D3 poule C, D3 poule de Saleilles poule-193508…).
 - **Matchs & Stats** : seulement nos équipes 1 et 2. **Analyse** (carte 🔬 sur l'accueil, visible par le coach qui l'a cochée dans Réglages › Analyse ; clé `analyse_card_<login>` dans `app_settings`) : liste « Mes prochains adversaires », poules, **fiche équipe** (onglets Vue d'ensemble / Joueurs / Calendrier / Face à nous / Notes), page « Notre équipe ». Code : `js/25-analyse.js` (modèle `anBuild`/`anStats`, vues, notes).
 - Accueil coach : cartes « prochain match » lisent aussi les poules de phase 2 (matchs datés puis « Date à confirmer · Jn »), seulement CLERMONT SALAGOU de l'équipe 1/2.
@@ -59,7 +59,7 @@ Ce fichier est lu automatiquement au début de chaque session. Il donne le cadre
 
 ## 7. Feuille de route et chantiers en attente
 **Analyse (prochains)**
-- **z55 — probabilités de victoire** des matchs à venir (nous contre eux, et eux entre eux) avec indice de confiance : force estimée par buts marqués/encaissés avec correction du niveau de la poule d'origine, prudence (proche de 50 %) sous 4 matchs ; affichage dans « Calendrier restant », « Face à nous », cartes « Mes prochains adversaires » + comparaison nous/eux. Honnêteté : tendance, pas prédiction ; s'améliore avec la phase 2 (les matchs relient les poules).
+- **Fait en z58** : probabilités de victoire (cotes en buts reliées entre poules, confiance peu fiable/moyenne/correcte), Analyse réorganisée, un seul bouton « Mettre à jour » par écran. À surveiller : réglage de `AN_LAMBDA` / écart-type si les pourcentages paraissent trop tranchés une fois la phase 2 avancée.
 - Onglets Joueurs / Comparatif / Historique (nous vs eux côte à côte), clés du match plus fines, liens de poules de phase 1 manquants (poule F), synchro automatique quotidienne (recommandée).
 **Dette / backlog**
 - Refonte de la carte « Mes matchs » ; plantage non diagnostiqué sur la Galaxy Tab ; politiques publiques de `completions` à retirer ; vues SECURITY DEFINER à auditer ; fichiers parasites à la racine ; `.gitignore` ; taille de la poignée de rotation sur vrai téléphone ; barre flottante iPhone non vérifiée ; copie de `serveur/ffhb-sync/` à remettre à jour dans le dépôt ; deux migrations Supabase préparées jamais appliquées (voir LISEZ-MOI § 7).
