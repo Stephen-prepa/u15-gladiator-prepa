@@ -1551,3 +1551,6 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
 .an-cmp th{text-align:center;color:var(--gris-texte);font-weight:600;}
 .an-cmp td{text-align:center;font-weight:700;}
 .ms-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+
+/* z59 — compteur de présents */
+.presence-count{position:sticky;top:8px;z-index:5;margin:0 0 8px auto;width:max-content;background:var(--jaune);color:var(--noir);font-weight:800;font-size:13px;padding:5px 12px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.4);}

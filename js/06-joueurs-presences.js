@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z59 (16/11/2026)
 // ===================== GESTION DES CODES JOUEURS =====================
 function codesOpenEditor() {
   const box = document.getElementById('codes-editor');
@@ -497,12 +497,20 @@ async function presenceLoadExisting() {
   presenceRenderList();
 }
 
+// z59 : compteur de joueurs « Présent » (badge en haut à droite, collé pendant le défilement)
+function presenceUpdateCount() {
+  const el = document.getElementById('presence-count'); if (!el) return;
+  const n = presenceRoster.filter(p => presenceMarks[p.code] === 'present').length;
+  el.textContent = '✅ ' + n + (n > 1 ? ' présents' : ' présent') + ' / ' + presenceRoster.length;
+}
 function presenceRenderList() {
   const wrap = document.getElementById('presence-list');
   if (!presenceRoster.length) {
     wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);">Aucun joueur avec un code réclamé.</div>';
+    presenceUpdateCount();
     return;
   }
+  presenceUpdateCount();
   wrap.innerHTML = presenceRoster.map(p => {
     const current = presenceMarks[p.code] || null;
     const btns = PRESENCE_STATUSES.map(s => {
