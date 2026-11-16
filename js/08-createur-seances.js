@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z47 (10/11/2026)
+// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z57 (16/11/2026)
 // ---------- Créateur de séances (coach) ----------
 const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-17 ans', '-18 ans', 'Seniors', 'Loisirs', 'Détection', 'Gardiens'];
 const CR_PUBLICS = ['Mixte', 'Garçons', 'Filles'];
@@ -212,12 +212,29 @@ async function crCreate(key) {
 }
 
 // ----- Édition -----
-function crOpen(id) {
-  const p = crPlans.find(x => x.id === id);
-  if (!p) return;
-  const back = crBackupRestore(p); // modifications d'une session précédente qui n'avaient pas pu être envoyées
+// z57 : à l'ouverture, on demande d'abord au serveur la dernière version de cette séance (2,5 s maximum ; hors connexion on garde celle de l'appareil)
+async function crFetchLatest(p) {
+  if (!navigator.onLine || !coachSession || !p || !p.id) return;
+  try {
+    const job = (async () => {
+      await ensureCoachSession();
+      const r = await fetch(SB_URL + '/rest/v1/seance_plans?select=*&id=eq.' + p.id, { headers: coachAuthHeaders() });
+      if (!r.ok) return;
+      const rows = await r.json(), row = rows && rows[0]; if (!row) return;
+      const t = v => { const x = Date.parse(v); return isFinite(x) ? x : 0; };
+      if (t(row.updated_at) > t(p.updated_at)) { Object.keys(p).forEach(k => delete p[k]); Object.assign(p, row); delete crRemote[p.id]; }
+    })();
+    await Promise.race([job, new Promise(res => setTimeout(res, 2500))]);
+  } catch (e) { /* hors connexion ou erreur : on ouvre la version de l'appareil */ }
+}
+async function crOpen(id) {
+  const p0 = crPlans.find(x => x.id === id);
+  if (!p0) return;
+  await crFetchLatest(p0);
+  const p = crPlans.find(x => x.id === id) || p0;
+  const back = await crBackupRestore(p); // modifications d'une session précédente qui n'avaient pas pu être envoyées
   crRenderEditor(p);
-  if (back) { crTouch(); crSetStatus('↻ Modifications non enregistrées reprises', false); }
+  if (back === true) { crTouch(); crSetStatus('↻ Modifications non enregistrées reprises', false); }
 }
 function crSetStatus(txt, err) {
   document.querySelectorAll('.cr-save-status').forEach(el => { el.textContent = txt; el.style.color = err ? '#ff6b6b' : '#2ecc71'; });
@@ -236,11 +253,34 @@ function crTouch() {
 let crBkTimer = null;
 function crBackupPut(p) { try { if (p && p.id) localStorage.setItem('crUnsaved_' + p.id, JSON.stringify({ at: Date.now(), base: p.updated_at || null, body: crBody(p) })); } catch (e) {} }
 function crBackupDrop(id) { try { localStorage.removeItem('crUnsaved_' + id); } catch (e) {} }
-function crBackupRestore(p) {
+function crDeviceLabel() {
+  const ua = navigator.userAgent || '';
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'iPad';
+  if (/iPhone/.test(ua)) return 'iPhone';
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'téléphone Android' : 'tablette Android';
+  if (/Macintosh/.test(ua)) return 'Mac';
+  return 'appareil';
+}
+function crStampLabel(t) { const d = new Date(t || Date.now()); const z = n => ('0' + n).slice(-2); return z(d.getDate()) + '/' + z(d.getMonth() + 1) + ' ' + z(d.getHours()) + 'h' + z(d.getMinutes()); }
+// Renvoie true si la sauvegarde de cet appareil a été reprise. Si le serveur a une version plus récente que celle sur laquelle la sauvegarde était basée, on ne l'écrase PAS :
+// la sauvegarde est enregistrée dans une copie (rien n'est perdu) et la version la plus récente s'ouvre.
+async function crBackupRestore(p) {
   let b = null; try { b = JSON.parse(localStorage.getItem('crUnsaved_' + p.id) || 'null'); } catch (e) {}
   if (!b || !b.body || !Array.isArray(b.body.blocks)) return false;
   if (JSON.stringify(crBody(p)) === JSON.stringify(b.body)) { crBackupDrop(p.id); return false; }
-  Object.assign(p, b.body); return true;
+  const t = v => { const x = Date.parse(v); return isFinite(x) ? x : 0; };
+  const serverNewer = !!(b.base && p.updated_at && t(p.updated_at) > t(b.base));
+  if (!serverNewer) { Object.assign(p, b.body); return true; }
+  try {
+    await ensureCoachSession();
+    const copy = { ...b.body, title: String(b.body.title || p.title || 'Sans titre').slice(0, 70) + ' (copie ' + crDeviceLabel() + ' du ' + crStampLabel(b.at) + ')', status: 'brouillon', is_template: false, blocks: (b.body.blocks || []).map(crCloneBlock), updated_at: new Date().toISOString() };
+    const pr = await fetch(SB_URL + '/rest/v1/seance_plans', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify([copy]) });
+    if (!pr.ok) throw new Error('copie');
+    const row = (await pr.json())[0]; if (!row || !row.id) throw new Error('copie vide');
+    crPlans.unshift(row); crBackupDrop(p.id);
+    crNotice('⚠ Cette séance a été modifiée ailleurs depuis ta dernière sauvegarde sur cet appareil. Tu vois la version la plus récente ; les modifications de cet appareil sont gardées dans la séance « ' + crEsc(row.title) + ' ».', ['Ouvrir cette copie', "crNoticeHide();crOpen('" + row.id + "')"]);
+  } catch (e) { /* copie impossible : la sauvegarde reste sur l'appareil, rien n'est écrasé */ crNotice('⚠ Cette séance a été modifiée ailleurs. Tes modifications non envoyées restent gardées sur cet appareil.'); }
+  return false;
 }
 window.addEventListener('pagehide', () => { if (crCur && crDirty) crBackupPut(crCur); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && crCur && crDirty) crBackupPut(crCur); });
@@ -281,7 +321,7 @@ async function crConflict(p) {
     const base = SB_URL + '/rest/v1/seance_plans', H = coachAuthHeaders();
     const rr = await fetch(base + '?select=*&id=eq.' + p.id, { headers: H }), rem = rr.ok ? await rr.json() : null;
     if (!Array.isArray(rem)) throw new Error('lecture');
-    const mine = { ...crBody(p), title: String(p.title || 'Sans titre').slice(0, 80) + (rem[0] ? ' (ma version)' : ''), status: 'brouillon', blocks: (p.blocks || []).map(crCloneBlock), updated_at: new Date().toISOString() };
+    const mine = { ...crBody(p), title: String(p.title || 'Sans titre').slice(0, 70) + (rem[0] ? ' (copie ' + crDeviceLabel() + ' du ' + crStampLabel() + ')' : ''), status: 'brouillon', blocks: (p.blocks || []).map(crCloneBlock), updated_at: new Date().toISOString() };
     const pr = await fetch(base, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify([mine]) });
     if (!pr.ok) throw new Error('copie');
     const copy = (await pr.json())[0];
