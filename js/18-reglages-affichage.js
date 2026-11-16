@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/18-reglages-affichage.js — dernière modification : version z42 (08/11/2026)
+// Prépa U15 HBCCS — js/18-reglages-affichage.js — dernière modification : version z56 (16/11/2026)
 // ===================== ROLE (JOUEUR / GARDIEN) =====================
 function setRole(role) {
   appState.role = role;
@@ -104,7 +104,7 @@ const DISP_SCALES = [['0.9', 'Petit'], ['1', 'Normal'], ['1.15', 'Grand'], ['1.3
 let dispCfg = null;
 
 function dispDefaults() {
-  return { theme: 'dark', scale: 1, density: 'normal', barSize: 'compact', barMode: 'auto', coach: 'light', toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, keys: {}, tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
+  return { theme: 'dark', scale: 1, density: 'normal', barSize: 'compact', barMode: 'auto', coach: 'light', toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, toolTapSelect: true, keys: {}, tabs: DISP_DEFAULT_TABS.map(t => ({ id: t[0], bar: t[1], vis: true })) };
 }
 function dispNormalize(c) {
   const d = dispDefaults();
@@ -121,6 +121,7 @@ function dispNormalize(c) {
     toolSize: ['s', 'm', 'l'].includes(c.toolSize) ? c.toolSize : 'm',
     toolMode: ['both', 'icon', 'text'].includes(c.toolMode) ? c.toolMode : 'both',
     toolRows: [1, 2, 3].includes(Number(c.toolRows)) ? Number(c.toolRows) : 2,
+    toolTapSelect: c.toolTapSelect !== false,
     keys: (c.keys && typeof c.keys === 'object' && !Array.isArray(c.keys)) ? Object.keys(c.keys).reduce((o, k) => { if (typeof c.keys[k] === 'string') o[k] = c.keys[k]; return o; }, {}) : {},
     tabs: [],
   };
@@ -256,7 +257,7 @@ function dispKeySet(id, c) {
 }
 function dispKeyClear(id) { dispCfg.keys = Object.assign({}, dispCfg.keys, { [id]: '' }); dispSave(); dispKeyMsg = ''; dispRenderUi(); dispToolRefresh(); }
 function dispKeyReset() { dispKeyStop(); dispCfg.keys = {}; dispSave(); dispKeyMsg = 'Raccourcis remis par défaut'; dispRenderUi(); dispToolRefresh(); }
-function dispToolReset() { Object.assign(dispCfg, { toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2 }); dispSave(); dispRenderUi(); dispToolRefresh(); }
+function dispToolReset() { Object.assign(dispCfg, { toolOrder: [], toolHidden: [], toolSize: 'm', toolMode: 'both', toolRows: 2, toolTapSelect: true }); dispSave(); dispRenderUi(); dispToolRefresh(); }
 function dispToolSet(key, val) { dispCfg[key] = val; dispSave(); dispRenderUi(); dispToolRefresh(); }
 function dispToolHide(id, hide) { const h = (dispCfg.toolHidden || []).filter(x => x !== id); if (hide) h.push(id); dispCfg.toolHidden = h; dispSave(); dispRenderUi(); dispToolRefresh(); }
 function dispReset() {
@@ -342,6 +343,8 @@ function dispRenderUi() {
     chip(tp.size === 's', 'Compacts', "dispToolSet('toolSize','s')") + chip(tp.size === 'm', 'Normaux', "dispToolSet('toolSize','m')") + chip(tp.size === 'l', 'Grands', "dispToolSet('toolSize','l')") + `</div>`;
   h += `<div style="font-size:11px;color:var(--gris-clair);margin:8px 0 4px;">Lignes d'outils sous la planche</div><div style="display:flex;gap:6px;flex-wrap:wrap;">` +
     [1, 2, 3].map(n => chip(tp.rows === n, String(n), `dispToolSet('toolRows',${n})`)).join('') + `</div>`;
+  h += `<div style="font-size:11px;color:var(--gris-clair);margin:8px 0 4px;">Un clic dans un espace vide de la planche</div><div style="display:flex;gap:6px;flex-wrap:wrap;">` +
+    chip(tp.tapSelect, 'Revient à « Sélection »', "dispToolSet('toolTapSelect',true)") + chip(!tp.tapSelect, 'Pose l\'outil actif', "dispToolSet('toolTapSelect',false)") + `</div>`;
   h += `<div style="font-size:11px;color:var(--gris-clair);margin:10px 0 4px;">Ordre et choix des outils</div>`;
   h += `<div style="font-size:10px;color:var(--gris-texte);margin-bottom:6px;">Coche pour afficher dans la barre · ⤒ ↑ ↓ pour l'ordre (le premier est en haut à gauche). Décoché ou ne tenant pas dans les lignes : rangé sous « Plus ».</div>`;
   try {

@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z55 (16/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z56 (16/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -19,7 +19,7 @@ function schToolLabel(id) {
 // Préférences d'affichage des outils (Réglages, cet appareil) : taille, texte/icône, nombre de lignes, outils masqués (rangés sous « Plus »)
 function schToolPrefs() {
   const c = (typeof dispCfg !== 'undefined' && dispCfg) || {};
-  return { size: ['s', 'm', 'l'].includes(c.toolSize) ? c.toolSize : 'm', mode: ['both', 'icon', 'text'].includes(c.toolMode) ? c.toolMode : 'both', rows: [1, 2, 3].includes(Number(c.toolRows)) ? Number(c.toolRows) : 2, hidden: Array.isArray(c.toolHidden) ? c.toolHidden : [] };
+  return { size: ['s', 'm', 'l'].includes(c.toolSize) ? c.toolSize : 'm', mode: ['both', 'icon', 'text'].includes(c.toolMode) ? c.toolMode : 'both', rows: [1, 2, 3].includes(Number(c.toolRows)) ? Number(c.toolRows) : 2, hidden: Array.isArray(c.toolHidden) ? c.toolHidden : [], tapSelect: c.toolTapSelect !== false };
 }
 function schEdTools() {
   const S = schEd, box = S.el.querySelector('#sche-tools'), names = {}, P = schToolPrefs();
@@ -95,6 +95,12 @@ function schPalStop(clean) {
   schPal = null;
 }
 
+
+// ----- z56 : un simple clic dans le vide (ou sur un élément) avec un outil actif revient à « Sélection » (interrupteur dans Réglages) -----
+function schEdTapSelect(pt) {
+  const S = schEd, h = schEdHit(pt, { handles: false }), id = (h && h.kind === 'el') ? h.e.id : null;
+  schEdTool('select'); S.sel = id; schEdTools(); schEdPanel(); schEdDraw();
+}
 function schEdMore(on) { schEd.more = !!on; schEdTools(); }
 function schEdGroup(id) { const g = SCH_GROUPS.find(x => x.id === id); if (!g) return; schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!g.tools.some(t => t[0] === schEd.tool)) schEd.tool = g.tools[0][0]; schEdTools(); schEdPanel(); }
 function schEdTool(t) {
@@ -194,7 +200,7 @@ function schEdGroupMove() {
 function schEdFinishGroup(dr) {
   const S = schEd, d = schEdD(), els = d.elements, plan = S.plan || schPlan(d), ids = S.gmove || [], V = SCH_VIEWS[d.view] || SCH_VIEWS.half;
   const pl = ids.map(id => els.find(x => x.id === id)).filter(Boolean);
-  if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { schEdDraw(); schEdToast('Glisse le doigt pour tracer le déplacement'); return; }
+  if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { if (schToolPrefs().tapSelect) { schEdTapSelect(dr.p0); return; } schEdDraw(); schEdToast('Glisse le doigt pour tracer le déplacement'); return; }
   let own = null, ob = 1.8, ok = 0;
   pl.forEach(e => schPlayerRefs(e, plan).forEach((r, i) => { const dd = Math.hypot(r.x - dr.p0.x, r.y - dr.p0.y); if (dd < ob) { ob = dd; own = e; ok = i; } }));
   if (!own) { schEdDraw(); schEdToast('Commence le tracé sur l\u2019un des joueurs sélectionnés'); return; }
@@ -424,7 +430,12 @@ function schEdUp(e) {
     if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); } else schEdPanel();
     return;
   }
-  if (dr.kind === 'place') { if (!dn.moved) schEdPlace(S.tool, schEdPt(e)); return; }
+  if (dr.kind === 'place') {
+    if (dn.moved) return;
+    const pt1 = schEdPt(e);
+    if (schToolPrefs().tapSelect && !(S.tool === 'BALL' && schNearestPlayer(els, pt1, 1.8))) { schEdTapSelect(pt1); return; } // le ballon posé sur un joueur reste un placement
+    schEdPlace(S.tool, pt1); return;
+  }
   if (dr.kind === 'move') {
     const el = els.find(x => x.id === dr.id);
     if (el && el.type === 'BALL' && dn.moved) { const h = schNearestPlayer(els, el, 1.8); if (h) { const bo = schBallOff(schBallIdx(el, els)); el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } }
@@ -472,7 +483,7 @@ function schEdFit(pts, last) {
 }
 function schEdFinishAction(dr) {
   const S = schEd, d = schEdD(), els = d.elements;
-  if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { schEdDraw(); schEdToast('Glisse le doigt pour tracer ' + (dr.type === 'MOVE' ? 'un déplacement' : 'l\'action')); return; }
+  if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { if (schToolPrefs().tapSelect) { schEdTapSelect(dr.p0); return; } schEdDraw(); schEdToast('Glisse le doigt pour tracer ' + (dr.type === 'MOVE' ? 'un déplacement' : 'l\'action')); return; }
   schEdPush();
   const fit = schEdFit(dr.pts, dr.p1).map(q => ({ x: schR(schSnap(q.x, 0.1), 2), y: schR(schSnap(q.y, 0.1), 2) }));
   const a = schNormElement({ type: dr.type, x: dr.p0.x, y: dr.p0.y, points: fit, step: schAutoStep(els, dr.type, dr.p0, S.plan || schPlan(d)), z: Math.max(0, ...els.map(e => e.z)) + 1 });
@@ -588,7 +599,7 @@ function schEdPanel() {
       + `<div class="sche-row"><span class="sche-lab">Épaisseur</span><div class="sche-stp"><button type="button" onclick="schEdPenW(-0.2)" aria-label="moins">−</button><b>${schR(S.penW || 1, 1)}×</b><button type="button" onclick="schEdPenW(0.2)" aria-label="plus">+</button></div></div><div class="sche-hint">Dessine à main levée sur le terrain. Pour déplacer ou modifier un trait, choisis « Sélection » puis touche-le.</div>`; return;
   }
   const ballRow = (() => { const dd = schEdD(), bl = dd.elements.filter(x => x.type === 'BALL'); if (e || bl.length < 2) return ''; return `<div class="sche-row"><span class="sche-lab">Ballon joué dans cette étape</span><select class="sche-sel2" onchange="schEdBallPlay(this.value)" aria-label="Ballon joué"><option value="">Tous (automatique)</option>${bl.map((b, i) => `<option value="${b.id}" ${dd.ballPlay === b.id ? 'selected' : ''}>Ballon ${i + 1}</option>`).join('')}</select></div>`; })();
-  if (!e || !(S.tool === 'select' || schToolPlaceable(S.tool))) { box.style.display = ''; box.innerHTML = ballRow + `<div class="sche-hint">${e ? 'Outil actif : touche le terrain pour placer. Touche « Options » (en bas) pour régler l\'élément sélectionné.' : 'Touche un élément du terrain pour régler ses options (couleur, taille, numéro, étape…).'}</div>`; return; }
+  if (!e || !(S.tool === 'select' || schToolPlaceable(S.tool))) { box.style.display = ''; box.innerHTML = ballRow + `<div class="sche-hint">${e ? (schToolPrefs().tapSelect ? 'Outil actif : glisse un outil de la palette sur le terrain pour le poser. Touche un espace vide pour revenir à Sélection.' : 'Outil actif : touche le terrain pour poser (ou glisse un outil de la palette). Touche « Options » pour régler l\'élément sélectionné.') : 'Touche un élément du terrain pour régler ses options (couleur, taille, numéro, étape…).'}</div>`; return; }
   const d = schEdD(), players = d.elements.filter(schIsPlayer), isAct = schIsAction(e), isZone = e.type === 'ZONE_RECT' || e.type === 'ZONE_CIRCLE';
   const row = (lab, body) => `<div class="sche-row"><span class="sche-lab">${lab}</span>${body}</div>`;
   const stp = (val, a, b) => `<div class="sche-stp"><button type="button" onclick="${a}" aria-label="moins">−</button><b>${val}</b><button type="button" onclick="${b}" aria-label="plus">+</button></div>`;
