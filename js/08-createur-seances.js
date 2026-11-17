@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z57 (16/11/2026)
+// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z61 (17/11/2026)
 // ---------- Créateur de séances (coach) ----------
 const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-17 ans', '-18 ans', 'Seniors', 'Loisirs', 'Détection', 'Gardiens'];
 const CR_PUBLICS = ['Mixte', 'Garçons', 'Filles'];
@@ -423,7 +423,7 @@ let crIntLast = 'objectif_principal';
 const CR_VERBS = ['Améliorer', 'Mettre en place', 'Construire', 'Développer', 'Renforcer', 'Automatiser', 'Stabiliser', 'Optimiser', 'Exploiter', 'Faire évoluer'];
 function crIntField(label, key, ph, rows, extra) {
   const v = crCur[key] || '';
-  return `<label class="cr-lbl">${label}</label><textarea class="cr-in" id="cr-int-${key}" rows="${rows}" placeholder="${crEsc(ph)}" onfocus="crIntLast='${key}'" oninput="crSetField('${key}',this.value);${extra || ''}">${crEsc(v)}</textarea>`;
+  return `<label class="cr-lbl">${label}</label><textarea class="cr-in cr-grow" id="cr-int-${key}" rows="1" placeholder="${crEsc(ph)}" onfocus="crIntLast='${key}'" oninput="crSetField('${key}',this.value);crGrow(this);${extra || ''}">${crEsc(v)}</textarea>`;
 }
 // Le verbe choisi se place au début du champ objectif (principal ou individuel) et remplace un verbe de la liste déjà présent
 function crIntVerb(v) {
@@ -467,6 +467,10 @@ function crSetField(k, v) {
   crTouch();
 }
 let crInfoOpen = true;
+// z61 : volets de la carte « Intention » (fermés par défaut, état gardé pendant la session)
+const crIntOpen = { aide: false, det: false };
+function crIntCount(p) { const n = ['objectif_individuel', 'comportements_attendus', 'criteres_reussite'].filter(k => String((p || crCur || {})[k] || '').trim()).length; return n + '/3 remplis'; }
+function crIntCountRefresh() { const e = document.getElementById('cr-int-n'); if (e) e.textContent = crIntCount(crCur); }
 function crRenderEditor(p) {
   if (!p || typeof p !== 'object') return; // jamais de séance « vide » : celle qui est ouverte reste intacte
   crCur = p;
@@ -494,17 +498,21 @@ function crRenderEditor(p) {
     </div>
     <div class="cr-card cr-int">
       <div style="font-size:16px;font-weight:800;color:var(--blanc);margin-bottom:2px;">Intention de la séance</div>
-      <div style="font-size:12px;color:var(--gris-texte);margin-bottom:4px;">Du constat à l'objectif : pourquoi cette séance, face à quoi, et à quoi on reconnaît qu'elle a fonctionné.</div>
-      ${crIntField('1a. Ce que j\'ai vu de positif', 'constat_positif', 'Un point d\'appui observé (match du week-end, dernier entraînement) : ce qui fonctionne déjà', 2)}
-      ${crIntField('1b. La problématique qui en découle', 'constat', 'Ce qu\'il reste à construire, formulé comme un axe ou une question, sans négation', 2, "crIntNeg(this.value)")}
+      <div style="font-size:12px;color:var(--gris-texte);margin-bottom:2px;">Du constat à l'objectif : pourquoi cette séance et face à quoi.</div>
+      ${crIntField('1a. Ce que j\'ai vu de positif', 'constat_positif', 'Un point d\'appui observé (match, entraînement)', 2)}
+      ${crIntField('1b. La problématique qui en découle', 'constat', 'Ce qu\'il reste à construire (sans négation)', 2, "crIntNeg(this.value)")}
       <div class="cr-int-neg" id="cr-int-neg" style="display:none;"></div>
-      ${crIntField('2. Objectif principal (collectif)', 'objectif_principal', 'Verbe à l\'infinitif + quoi + face à quoi / dans quelle situation', 2, "crIntVerbCheck()")}
-      <div class="cr-chips cr-verbs" id="cr-int-verbs">${CR_VERBS.map(v => `<button type="button" class="cr-ctxchip cr-verbchip" onclick="crIntVerb('${v}')">${v}</button>`).join('')}</div>
+      ${crIntField('2. Objectif principal (collectif)', 'objectif_principal', 'Verbe + quoi + face à quoi', 2, "crIntVerbCheck()")}
       <div class="cr-int-neg" id="cr-int-vchk" style="display:none;"></div>
-      <div class="cr-chips" id="cr-int-chips">${CR_CTX_CHIPS.map(c => `<button type="button" class="cr-ctxchip" onclick="crIntChip(this)">${crEsc(c)}</button>`).join('')}</div>
-      ${crIntField('3. Objectif individuel', 'objectif_individuel', 'Un joueur ou un poste : ce que je lui demande dans ce contexte (un par ligne)', 2)}
-      ${crIntField('4. Comportements attendus', 'comportements_attendus', 'Ce que je dois voir : un comportement observable par ligne', 3)}
-      ${crIntField('5. Critères de réussite', 'criteres_reussite', 'À quoi je vois que c\'est réussi : un critère par ligne (chiffré si possible)', 2)}
+      <details class="cr-fold" id="cr-int-aide"${crIntOpen.aide ? ' open' : ''} ontoggle="crIntOpen.aide=this.open"><summary>💡 Aides à la rédaction (verbes, débuts de phrase)</summary>
+        <div class="cr-chips cr-verbs" id="cr-int-verbs">${CR_VERBS.map(v => `<button type="button" class="cr-ctxchip cr-verbchip" onclick="crIntVerb('${v}')">${v}</button>`).join('')}</div>
+        <div class="cr-chips" id="cr-int-chips">${CR_CTX_CHIPS.map(c => `<button type="button" class="cr-ctxchip" onclick="crIntChip(this)">${crEsc(c)}</button>`).join('')}</div>
+      </details>
+      <details class="cr-fold" id="cr-int-det"${crIntOpen.det ? ' open' : ''} ontoggle="crIntOpen.det=this.open"><summary>Détails : objectif individuel, comportements, critères <span class="cr-fold-n" id="cr-int-n">${crIntCount(p)}</span></summary>
+        ${crIntField('3. Objectif individuel', 'objectif_individuel', 'Un joueur ou un poste : ce que je lui demande dans ce contexte (un par ligne)', 2, 'crIntCountRefresh()')}
+        ${crIntField('4. Comportements attendus', 'comportements_attendus', 'Ce que je dois voir : un comportement observable par ligne', 3, 'crIntCountRefresh()')}
+        ${crIntField('5. Critères de réussite', 'criteres_reussite', 'À quoi je vois que c\'est réussi : un critère par ligne (chiffré si possible)', 2, 'crIntCountRefresh()')}
+      </details>
     </div>
     <div class="cr-card">
       <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="crInfoOpen=!crInfoOpen;document.getElementById('cr-info').style.display=crInfoOpen?'':'none';this.querySelector('span').textContent=crInfoOpen?'▲':'▼';">
@@ -553,6 +561,7 @@ function crRenderEditor(p) {
       <button type="button" class="cr-btn primary" style="padding:13px 16px;font-size:14px;" onclick="crOpenFiche(crCur.id)">Aperçu fiche &amp; PDF →</button></div></div>`;
   crRenderBlocks();
   crRenderVideos();
+  ev.querySelectorAll('.cr-int textarea.cr-grow').forEach(crGrow);
   window.scrollTo(0, 0);
 }
 function crUpdateTotals() {

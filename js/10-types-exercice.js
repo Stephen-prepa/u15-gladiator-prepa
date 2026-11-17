@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/10-types-exercice.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/10-types-exercice.js — dernière modification : version z61 (17/11/2026)
 // ===== Types d'exercice : situation avec schéma (par défaut), jeu ludique, renforcement musculaire =====
 // x.kind absent = « schéma » (tous les exercices existants). Les données propres à un type (x.jeu, x.renfo) sont conservées quand on change de type : seules les rubriques affichées changent.
 const CR_KINDS = {
@@ -214,7 +214,7 @@ function crListHtml(path, def) {
   const sug = (def.sug || []).filter(s => !arr.some(it => crFold(it.text).trim() === crFold(s).trim()));
   return `<div class="cr-list ${def.cls || ''}"><div class="cr-list-t">${def.title}</div>${rows}
     <button type="button" class="cr-btn" onclick="crLiAdd('${path}')">＋ Ajouter</button>
-    ${sug.length ? `<div class="cr-sug">${sug.map((s, si) => `<button type="button" class="cr-chip${(def.sugA || []).includes(s) ? ' auto' : ''}" data-s="${crEsc(s)}" onclick="crLiSug('${path}',this.dataset.s)">＋ ${crEsc(s)}</button>`).join('')}</div>` : ''}</div>`;
+    ${crSugBox(sug.map((s, si) => `<button type="button" class="cr-chip${(def.sugA || []).includes(s) ? ' auto' : ''}" data-s="${crEsc(s)}" onclick="crLiSug('${path}',this.dataset.s)">＋ ${crEsc(s)}</button>`), 6)}</div>`;
 }
 function crLiAdd(path) { const a = crListRef(path); a.push({ id: crUid(), text: '' }); crTouch(); crRenderExView(); const el = document.getElementById('cr-li-' + path.replace(':', '-') + '-' + (a.length - 1)); if (el) el.focus(); }
 function crLiSug(path, text) { const a = crListRef(path); a.push({ id: crUid(), text }); crTouch(); crRenderExView(); }
@@ -260,11 +260,15 @@ function crRenderExView() {
   const x = crCurEx(), p = crCur, b = p.blocks[crEx.bi];
   const flat = crExFlat(), idx = flat.findIndex(a => a[0] === crEx.bi && a[1] === crEx.ei), tot = flat.length;
   const ev = document.getElementById('cr-ex-view');
-  const TABS = crTabs(), tabDef = TABS.find(t => t.k === crEx.tab) || TABS[0];
+  let TABS = crTabs();
+  // z61 : un exercice qui contient encore du texte « Organisation » garde l'onglet (avec un bouton pour le ranger dans Fonctionnement)
+  const orgDef = crSecDefs().find(t => t.k === 'organisation');
+  if (orgDef && !TABS.some(t => t.k === 'organisation') && CR_ORG_FIELDS.some(([k]) => crTxt(x.org[k]))) TABS = TABS.concat([orgDef]);
+  const tabDef = TABS.find(t => t.k === crEx.tab) || TABS[0];
   tabDef.lists && tabDef.lists.forEach(l => { if (!Array.isArray(x.items[l.k])) x.items[l.k] = []; });
   const tabs = TABS.map(t => { const n = crTabCount(x, t); return `<button type="button" class="cr-chip ${tabDef.k === t.k ? 'on' : ''}" style="flex-shrink:0;" onclick="crExTab('${t.k}')">${t.label}${n ? `<span class="n">${n}</span>` : ''}</button>`; }).join('');
   let body = '';
-  if (tabDef.org) body = CR_ORG_FIELDS.map(([k, l, ph]) => `<label class="cr-lbl">${l}</label><textarea class="cr-in cr-grow" rows="2" placeholder="${crEsc(ph)}" oninput="crExHeadSet('org.${k}',this.value);crGrow(this)">${crEsc(x.org[k])}</textarea>`).join('');
+  if (tabDef.org) body = (crSecOn('organisation') ? '' : `<div class="cr-subd">L'onglet Organisation est maintenant regroupé dans Fonctionnement. <button type="button" class="cr-btn sm" onclick="crOrgMerge()">↪ Ranger ce texte dans Fonctionnement</button></div>`) + CR_ORG_FIELDS.map(([k, l, ph]) => `<label class="cr-lbl">${l}</label><textarea class="cr-in cr-grow" rows="2" placeholder="${crEsc(ph)}" oninput="crExHeadSet('org.${k}',this.value);crGrow(this)">${crEsc(x.org[k])}</textarea>`).join('');
   else if (tabDef.equip) body = `<div class="cr-list-t">Matériel de l’exercice</div>${crEquipHtml('x')}`;
   else if (tabDef.evo) body = (tabDef.desc ? `<div class="cr-subd">${crEsc(tabDef.desc)}</div>` : '') + crEvoHtml(x);
   else if (tabDef.subOk && crSubs(tabDef.lists[0].k).length) body = crGroupHtml(tabDef);

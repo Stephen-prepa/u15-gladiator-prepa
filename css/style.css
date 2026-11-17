@@ -1602,3 +1602,14 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
 .an-fm span{font-size:9.5px;font-weight:800;border-radius:5px;padding:2px 5px;color:var(--noir);}
 .an-fm .w{background:var(--vert);}.an-fm .l{background:var(--rouge-light);color:var(--blanc);}.an-fm .n{background:var(--jaune);}
 @media(max-width:700px){.an-tiles{grid-template-columns:repeat(2,1fr);}.an-eq b{font-size:12px;}}
+
+/* z61 — volets repliables de l'intention, suggestions repliées */
+.cr-fold{margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:6px;}
+.cr-fold > summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--gris-clair);padding:6px 0;list-style:none;}
+.cr-fold > summary::-webkit-details-marker{display:none;}
+.cr-fold > summary:before{content:'▸ ';color:var(--jaune);}
+.cr-fold[open] > summary:before{content:'▾ ';}
+.cr-fold-n{margin-left:6px;font-size:11px;font-weight:700;color:var(--jaune);}
+.cr-sug-fold .cr-chip.rest{display:none;}
+.cr-sug-fold.open .cr-chip.rest{display:inline-block;}
+.cr-chip.more{border-style:dashed;color:var(--jaune);}

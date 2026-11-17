@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/09-lecture-terrain.js — dernière modification : version z23 (05/11/2026)
+// Prépa U15 HBCCS — js/09-lecture-terrain.js — dernière modification : version z61 (17/11/2026)
 // ===== Lecture / Terrain : jeu ludique et renforcement musculaire (v26-10-z22) =====
 function crLectHasSchema(x) { return !!((x.schemaLib && x.schemaLib.drawings && x.schemaLib.drawings.length) || crSchemaHas(x)); }
 // jeu : but, équipes, règles (numérotées, en gros), points
@@ -229,7 +229,7 @@ function crCfgNorm(c) {
   c = (c && typeof c === 'object') ? c : {};
   const o = k => (c[k] && typeof c[k] === 'object' && !Array.isArray(c[k])) ? c[k] : {};
   return { u: +c.u || 0, off: o('off'), order: Array.isArray(c.order) ? c.order.filter(k => typeof k === 'string') : [], names: o('names'), descs: o('descs'), subs: o('subs'), sug: o('sug'),
-    custom: (Array.isArray(c.custom) ? c.custom : []).filter(x => x && /^c_[a-z0-9]+$/.test(x.k)).map(x => ({ k: x.k, name: String(x.name || 'Section'), desc: String(x.desc || '') })) };
+    on: o('on'), custom: (Array.isArray(c.custom) ? c.custom : []).filter(x => x && /^c_[a-z0-9]+$/.test(x.k)).map(x => ({ k: x.k, name: String(x.name || 'Section'), desc: String(x.desc || '') })) };
 }
 function crCfgGet() {
   if (!crCfg) { let r = null; try { r = JSON.parse(localStorage.getItem('crCfg') || 'null'); } catch (e) {} crCfg = crCfgNorm(r); }
@@ -278,11 +278,13 @@ function crSecDefs() {
   const pos = k => { const i = c.order.indexOf(k); return i < 0 ? 1e6 + all.findIndex(t => t.k === k) : i; };
   return all.slice().sort((a, b) => pos(a.k) - pos(b.k)).map(t => {
     const label = crTxt(c.names[t.k]) || t.label, desc = c.descs[t.k] != null ? c.descs[t.k] : (t.desc || '');
-    return { ...t, label, desc, on: !c.off[t.k], lists: t.lists ? t.lists.map((l, i) => (i === 0 && t.custom ? { ...l, title: label } : (i === 0 && (t.k === 'besoins' || t.k === 'fonctionnement' || t.k === 'comportements' || t.k === 'reussite') ? { ...l, title: label } : l))) : t.lists };
+    return { ...t, label, desc, on: crSecIsOn(c, t.k), lists: t.lists ? t.lists.map((l, i) => (i === 0 && t.custom ? { ...l, title: label } : (i === 0 && (t.k === 'besoins' || t.k === 'fonctionnement' || t.k === 'comportements' || t.k === 'reussite') ? { ...l, title: label } : l))) : t.lists };
   });
 }
 function crTabs() { const a = crSecDefs().filter(t => t.on); return a.length ? a : [crSecDefs()[0]]; }
-function crSecOn(k) { return !crCfgGet().off[k]; }
+// z61 : l'onglet « Organisation » est masqué par défaut (fusionné dans « Fonctionnement ») ; on peut le réactiver dans Réglages
+function crSecIsOn(c, k) { return c.on[k] ? true : (k === 'organisation' ? false : !c.off[k]); }
+function crSecOn(k) { return crSecIsOn(crCfgGet(), k); }
 function crSubs(key) { const c = crCfgGet(); return Array.isArray(c.subs[key]) ? c.subs[key] : (CR_DEF_SUBS[key] || []); }
 function crSubOf(key, it) { const subs = crSubs(key); const s = subs.find(z => z.id === it.sub) || (it.tag ? subs.find(z => z.name === it.tag) : null); return s ? s.id : ''; }
 function crSubName(key, it) { const s = crSubs(key).find(z => z.id === crSubOf(key, it)); return s ? s.name : (it.tag || ''); }
@@ -301,12 +303,26 @@ function crLearned(key) {
   })));
   return [...cnt.values()].filter(e => e.n >= 2).sort((a, b) => b.n - a.n).map(e => ({ t: e.t, n: e.n, s: Object.keys(e.subs).sort((a, b) => e.subs[b] - e.subs[a])[0] || '' }));
 }
+// z61 : nombre d'exercices (toutes séances) où chaque élément a déjà été utilisé — sert à classer les suggestions
+function crUseCounts(key) {
+  const cnt = new Map();
+  (crPlans || []).forEach(p => (p.blocks || []).forEach(b => (b.exercises || []).forEach(x => {
+    const arr = x && x.items && x.items[key]; if (!Array.isArray(arr)) return;
+    const seen = new Set();
+    arr.forEach(it => { const f = crFold(crTxt(it && it.text)).replace(/\s+/g, ' ').trim(); if (!f || seen.has(f)) return; seen.add(f); cnt.set(f, (cnt.get(f) || 0) + 1); });
+  })));
+  return cnt;
+}
 function crSugs(key) {
   const c = crCfgGet(), sg = c.sug[key] || {}, del = (sg.del || []).map(t => crFold(t).trim()), out = [], seen = new Set();
   const push = (t, s, auto, n) => { const f = crFold(t).trim(); if (!f || seen.has(f) || del.includes(f)) return; seen.add(f); out.push({ t, s: s || '', auto: !!auto, n }); };
   (CR_DEF_SUG[key] || []).forEach(a => push(a[0], a[1], false)); (sg.add || []).forEach(a => push(a.t, a.s, false));
   if (key === 'besoins' || key === 'fonctionnement' || key === 'comportements' || key === 'reussite' || /^c_/.test(key)) crLearned(key).forEach(e => push(e.t, e.s, true, e.n));
   const subs = crSubs(key).map(z => z.id); out.forEach(o => { if (o.s && !subs.includes(o.s)) o.s = ''; });
+  // classement par usage réel (les plus utilisées d'abord ; à égalité, l'ordre d'origine) — tri stable écrit à la main (vieux navigateurs)
+  const use = crUseCounts(key);
+  out.forEach((o, i) => { o.i = i; o.u = use.get(crFold(o.t).replace(/\s+/g, ' ').trim()) || 0; if (o.u > (o.n || 0)) o.n = o.u; });
+  out.sort((a, b) => (b.u - a.u) || (a.i - b.i));
   return out;
 }
 // ----- Réglages › Modèle de séance -----
@@ -338,7 +354,7 @@ function crcSet(fn) { fn(crCfgGet()); crCfgSave(); }
 function crcToggle(k, on) {
   const c = crCfgGet();
   if (!on && crSecDefs().filter(t => t.on).length <= 1) { alert('Garde au moins une section active.'); crCfgRenderUi(); return; }
-  if (on) delete c.off[k]; else c.off[k] = true;
+  if (on) { delete c.off[k]; c.on[k] = true; } else { c.off[k] = true; delete c.on[k]; }
   crCfgSave(); crCfgRenderUi();
 }
 function crcMove(k, d) {
@@ -369,7 +385,7 @@ function crcCustomAdd() {
 }
 function crcCustomDel(k) {
   if (!confirm('Supprimer cette section ? Ce qui a été écrit dedans dans les exercices n’apparaîtra plus.')) return;
-  const c = crCfgGet(); c.custom = c.custom.filter(x => x.k !== k); c.order = c.order.filter(x => x !== k); [c.off, c.names, c.descs, c.subs, c.sug].forEach(o => delete o[k]); crCfgSave(); crCfgRenderUi();
+  const c = crCfgGet(); c.custom = c.custom.filter(x => x.k !== k); c.order = c.order.filter(x => x !== k); [c.off, c.on, c.names, c.descs, c.subs, c.sug].forEach(o => delete o[k]); crCfgSave(); crCfgRenderUi();
 }
 function crcReset() { if (!confirm('Rétablir le modèle par défaut ? (sections, sous-items et listes reviennent à l’état d’origine ; tes exercices ne changent pas)')) return; crCfg = crCfgNorm({}); crCfgSave(); crCfgRenderUi(); }
 // ----- Évolutions -----
@@ -398,11 +414,30 @@ function crGroupHtml(tab) {
   const sugs = crSugs(key).filter(z => !arr.some(it => crFold(it.text).trim() === crFold(z.t).trim()));
   const all = groups.concat(other.idx.length || !subs.length ? [other] : []);
   return (tab.desc ? `<div class="cr-subd">${crEsc(tab.desc)}</div>` : '') + all.map(g => {
-    const sg = sugs.filter(z => z.s === g.s.id).slice(0, 30);
+    const sg = sugs.filter(z => z.s === g.s.id).slice(0, 60);
     return `<div class="cr-list"><div class="cr-sub-h">${crEsc(g.s.name)}</div>${g.s.desc ? `<div class="cr-sub-d">${crEsc(g.s.desc)}</div>` : ''}${g.idx.map(i => crGrpRow(path, i, arr[i])).join('')}
       <button type="button" class="cr-btn" onclick="crLiAddG('${path}','${g.s.id}')">＋ Ajouter</button>
-      ${sg.length ? `<div class="cr-sug">${sg.map(z => `<button type="button" class="cr-chip${z.auto ? ' auto' : ''}" ${z.auto ? `title="Revient dans ${z.n} exercices"` : ''} data-s="${crEsc(z.t)}" onclick="crLiSugG('${path}',this.dataset.s,'${g.s.id}')">＋ ${crEsc(z.t)}</button>`).join('')}</div>` : ''}</div>`;
+      ${crSugBox(sg.map(z => `<button type="button" class="cr-chip${z.auto ? ' auto' : ''}" title="${z.u ? 'Utilisé dans ' + z.u + ' exercice' + (z.u > 1 ? 's' : '') : 'Suggestion'}" data-s="${crEsc(z.t)}" onclick="crLiSugG('${path}',this.dataset.s,'${g.s.id}')">＋ ${crEsc(z.t)}</button>`), 4)}</div>`;
   }).join('');
+}
+// z61 : suggestions repliées — les `cap` premières (les plus utilisées) restent visibles, le reste se déroule d'un clic
+function crSugBox(chips, cap) {
+  if (!chips.length) return '';
+  if (chips.length <= cap + 1) return '<div class="cr-sug">' + chips.join('') + '</div>';
+  return '<div class="cr-sug cr-sug-fold">' + chips.slice(0, cap).join('') + chips.slice(cap).map(c => c.replace('class="cr-chip', 'class="cr-chip rest')).join('') +
+    '<button type="button" class="cr-chip more" onclick="crSugMore(this)">Voir tout (' + chips.length + ')</button></div>';
+}
+function crSugMore(btn) { const b = btn.parentNode, open = b.classList.toggle('open'); btn.textContent = open ? 'Réduire' : 'Voir tout (' + b.querySelectorAll('.cr-chip:not(.more)').length + ')'; }
+// Range les anciens champs « Organisation » d'un exercice dans « Fonctionnement » (sous-items Dispositif / Rôles & rotations), puis les vide
+function crOrgMerge() {
+  const x = crCurEx(); if (!x) return;
+  if (!Array.isArray(x.items.fonctionnement)) x.items.fonctionnement = [];
+  const map = { setup: 'f-disp', groups: 'f-disp', rotations: 'f-roles', roles: 'f-roles' }, lab = { setup: '', groups: 'Groupes : ', rotations: '', roles: 'Rôles : ' };
+  CR_ORG_FIELDS.forEach(([k]) => {
+    String(x.org[k] || '').split(/\n+/).map(l => l.trim()).filter(Boolean).forEach(l => { const it = { id: crUid(), text: lab[k] + l }; crSubStamp('i:fonctionnement', it, map[k]); x.items.fonctionnement.push(it); });
+    x.org[k] = '';
+  });
+  crEx.tab = 'fonctionnement'; crTouch(); crRenderExView();
 }
 function crSubStamp(path, it, sid) { if (!sid) return; const s = crSubs(path.slice(2)).find(z => z.id === sid); if (s) { it.sub = s.id; it.tag = s.name; } }
 function crLiAddG(path, sid) { const a = crListRef(path), it = { id: crUid(), text: '' }; crSubStamp(path, it, sid); a.push(it); crTouch(); crRenderExView(); const el = document.getElementById('cr-li-' + path.replace(':', '-') + '-' + (a.length - 1)); if (el) el.focus(); }
