@@ -325,7 +325,9 @@ async function msSync(pref) {
   pref = pref || '';
   var ids = pref === 'an' ? ['an-sync-btn', 'an-report'] : (pref ? ['ms-jsync-btn', 'ms-jreport'] : ['ms-sync-btn', 'ms-report']);
   var btn = document.getElementById(ids[0]), rep = document.getElementById(ids[1]);
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Mise à jour en cours (jusqu\'à 1–2 min)…'; }
+  var setProg = function (txt) { if (pref === 'an') { if (btn) btn.textContent = '⏳'; if (rep) rep.innerHTML = '<div class="ms-info">' + msEsc(txt) + '</div>'; } else if (btn) btn.textContent = txt; };
+  if (btn) btn.disabled = true;
+  setProg('⏳ Mise à jour en cours (jusqu\'à 1–2 min)…');
   if (rep) rep.innerHTML = '';
   var html = '';
   try {
@@ -339,7 +341,7 @@ async function msSync(pref) {
       ['conflits', 'non_rapproches', 'erreurs'].forEach(function (k) { (x[k] || []).forEach(function (v) { if (r[k].indexOf(v) < 0) r[k].push(v); }); });
     };
     for (var i = 0; i < srcs.length; i++) {
-      if (btn) btn.textContent = '⏳ Lecture des poules… ' + (i + 1) + '/' + srcs.length + ' (ne ferme pas la page)';
+      setProg('⏳ Lecture des poules… ' + (i + 1) + '/' + srcs.length + ' (ne ferme pas la page)');
       addRep(await msCall({ mode: 'sync', source_id: srcs[i].id, feuilles: false }));
     }
     // feuilles : nos deux équipes d'abord, puis les poules de suivi (equipe = null)
@@ -351,7 +353,7 @@ async function msSync(pref) {
         addRep(x); pass++;
         still = (x.joueurs_lus || 0) + (x.tiers_lus || 0) > 0 ? 0 : still + 1;
         r.feuilles_restantes = x.feuilles_restantes || 0;
-        if (btn && r.feuilles_restantes > 0) btn.textContent = '⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)';
+        if (r.feuilles_restantes > 0) setProg('⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)');
       } while (r.feuilles_restantes > 0 && pass < 150 && still < 2);
     }
     var line = r.sources + ' lien(s) lu(s) · ' + r.rencontres + ' rencontre(s) · ' + r.joues + ' de nos matchs joués · ' + r.mis_a_jour + ' mis à jour · ' + r.tiers_lus + ' feuille(s) lue(s) pour les tiers-temps · ' + (r.joueurs_lus || 0) + ' feuille(s) lue(s) pour les stats joueurs';
@@ -364,7 +366,7 @@ async function msSync(pref) {
     html = '<div class="ms-err">Mise à jour impossible : ' + msEsc(e.message || 'erreur') + '</div>';
   }
   msState.busy = false;
-  if (btn) { btn.disabled = false; btn.textContent = pref === 'an' ? '🔄 Mettre à jour' : (pref ? '🔄 Mettre à jour les stats des joueurs' : '🔄 Mettre à jour'); }
+  if (btn) { btn.disabled = false; btn.textContent = pref === 'an' ? '🔄' : (pref ? '🔄 Mettre à jour les stats des joueurs' : '🔄 Mettre à jour'); }
   await msLoad();
   await msJLoad();
   if (typeof anLoad === 'function' && typeof anState !== 'undefined' && anState.data) await anLoad();

@@ -1,9 +1,9 @@
-// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z58 (16/11/2026)
+// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z60 (17/11/2026)
 // ===================== ANALYSE (carte « 🔬 Analyse » de l'accueil, visible seulement pour le coach qui l'a activée) =====================
 // Écran réservé aux coachs : poules de SUIVI (équipes qu'on rencontrera en phase 2 mais qu'on ne connaît que par leur phase 1),
 // leurs classements, et — dans les versions suivantes — probabilités de victoire et fiches des joueurs adverses.
 // Données : tables ffhb_sources (role = 'analyse'), poule_matches, adv_player_match_stats. Écrit pour les navigateurs anciens (pas de ?. ni ??).
-const anState = { data: null, src: null, j: null, busy: false, M: null, view: 'list', ti: 0, tab: 'vue', ctx: [], ctxs: [], notes: [], nf: null };
+const anState = { data: null, src: null, j: null, busy: false, M: null, view: 'team', eq: 1, menu: false, ti: 0, tab: 'vue', ctx: [], ctxs: [], notes: [], nf: null };
 
 function anSetKey() { return coachSession && coachSession.login ? 'analyse_card_' + coachSession.login : null; }
 // ---- Carte sur l'accueil : visible si un coach est connecté ET qu'il l'a activée dans Réglages (réglage propre à chaque coach) ----
@@ -38,10 +38,11 @@ function anEnter() {
   document.getElementById('screen-home').style.display = 'none';
   document.getElementById('screen-analyse').style.display = 'block';
   window.scrollTo(0, 0);
+  anState.view = 'team'; anState.menu = false; anState.first = true;
   anLoad();
 }
 function anBack() {
-  if (anState.view !== 'list') { anClose(); return; }
+  if (anState.view === 'our' || anState.menu) { anState.view = 'team'; anState.menu = false; anRender(); return; }
   document.getElementById('screen-analyse').style.display = 'none';
   document.getElementById('screen-home').style.display = 'flex';
 }
@@ -68,6 +69,7 @@ async function anLoad() {
     try { var rn = await fetch(SB_URL + '/rest/v1/match_notes?select=*&order=created_at.asc&limit=1000', { headers: H }); anState.notes = rn.ok ? await rn.json() : []; } catch (e0) { anState.notes = []; }
     anState.data = { sources: await r[0].json(), poule: await r[1].json(), adv: adv };
     anState.M = anBuild(anState.data);
+    if (anState.first || !anState.M.keys[anState.ti]) { anState.first = false; anPickDefault(); }
     anRender();
   } catch (e) {
     if (window.console) console.error("anLoad", e && e.stack ? e.stack : e);
@@ -87,14 +89,9 @@ function anRender() {
   var open = {};
   Array.prototype.forEach.call(box.querySelectorAll('details[data-an]'), function (el) { open[el.getAttribute('data-an')] = el.open; });
   var rep = document.getElementById('an-report'), repHtml = rep ? rep.innerHTML : '';
-  var suivi = anSuivi();
-  var nb = suivi.length, html;
+  var html;
   if (anState.view === 'our' && anState.M) html = anOurHtml();
-  else if (anState.view === 'team' && anState.M) html = anTeamHtml(d);
-  else html = '<div class="ms-bar"><button class="ms-btn ms-main" id="an-sync-btn" onclick="anSync()">🔄 Mettre à jour</button><button class="ms-btn" onclick="anOpenOur()">📝 Notre équipe</button>' +
-    '<span class="ms-na">' + msEsc(anStamp(d)) + '</span></div><div id="an-report"></div>' +
-    anListHtml(d) +
-    '<details class="ms-det" data-an="src"><summary>⚙️ Données et poules de suivi (réglages) · ' + nb + ' lien(s)</summary>' + anSourcesHtml(suivi) + '</details>';
+  else html = anTopHtml(d) + (anState.menu ? anMenuHtml(d) : '') + (anState.M ? anTeamView(d) : '');
   box.innerHTML = html;
   Array.prototype.forEach.call(box.querySelectorAll('details[data-an]'), function (el) { if (open[el.getAttribute('data-an')]) el.open = true; });
   var rep2 = document.getElementById('an-report'); if (rep2) rep2.innerHTML = repHtml;
@@ -313,15 +310,24 @@ function anPouleTeams(src) { // équipes (hors nous) d'une source
 }
 
 function anOpen(i, ctxName) {
-  anState.view = 'team'; anState.ti = i; anState.tab = anState.tab || 'vue';
+  anState.view = 'team'; anState.menu = false; anState.ti = i; anState.tab = anState.tab || 'vue';
   if (ctxName !== undefined) anState.ctx = ctxName;
   window.scrollTo(0, 0); anRender();
 }
-function anClose() { anState.view = 'list'; anRender(); }
+function anClose() { anState.view = 'team'; anRender(); }
 function anTab(t) { anState.tab = t; anRender(); }
-function anStep(dir) {
-  var c = anState.ctx || [], p = c.indexOf(anState.ti); if (p < 0 || !c.length) return;
-  anState.ti = c[(p + dir + c.length) % c.length]; anRender();
+function anPick(i) { anState.ti = i; window.scrollTo(0, 0); anRender(); }
+function anMenu() { anState.menu = !anState.menu; anRender(); }
+function anSelectEq(eq) {
+  var n = anNextOf(eq); if (!n || !anState.M) return;
+  var i = anIdx(n.oppK); if (i < 0) return;
+  anState.eq = eq; anState.ti = i; anState.ctx = anPouleTeams(n.src).map(anIdx); anState.view = 'team'; anState.menu = false;
+  window.scrollTo(0, 0); anRender();
+}
+function anPickDefault() {
+  var eqs = [1, 2], i;
+  for (i = 0; i < eqs.length; i++) { if (anNextOf(eqs[i]) && anIdx(anNextOf(eqs[i]).oppK) >= 0) { anSelectEq(eqs[i]); return; } }
+  anState.ti = 0; anState.ctx = anState.M.keys.map(function (k, j) { return j; });
 }
 function anIdx(k) { return anState.M.keys.indexOf(k); }
 
@@ -334,59 +340,74 @@ function anChips(keys, ctx) {
     return '<button class="an-chip" onclick="anOpen(' + anIdx(k) + ',anState.ctxs[' + ctx + '])"><b>' + msEsc(t.name) + '</b><span>' + (st.n ? anRec(st) : 'pas de données') + '</span></button>';
   }).join('') + '</div>';
 }
-function anListHtml(d) {
-  var M = anState.M, h = '', ctxs = [];
+// ----- Panneau ⚙️ : autres équipes suivies, classements, liens -----
+function anMenuHtml(d) {
+  var M = anState.M, ctxs = [], h = '<div class="an-menu">';
   anState.ctxs = ctxs;
-  var next = [1, 2].map(function (eq) { return anNextOf(eq); });
-  h += '<div class="ms-h">Mes prochains adversaires</div><div class="an-next">';
-  [1, 2].forEach(function (eq, i) {
-    var m = next[i];
-    if (!m) { h += '<div class="an-ncard"><small>ÉQUIPE ' + eq + '</small><div class="an-nm2">Aucun match à venir connu</div></div>'; return; }
-    var k = m.oppK, t = M.teams[k], src = m.src, pt = anPouleTeams(src); ctxs.push(pt.map(anIdx));
-    var when = m.date ? homeFmtDateShort(m.date) : 'Date à confirmer';
-    var pr = anProb(m.usK, k, m.home);
-    h += '<button class="an-ncard" onclick="anOpen(' + anIdx(k) + ',anState.ctxs[' + (ctxs.length - 1) + '])"><small>ÉQUIPE ' + eq + ' · ' + (m.j ? 'J' + m.j + ' · ' : '') + (m.home ? 'à domicile' : 'à l\'extérieur') + '</small>' +
-      '<div class="an-nm2">' + msEsc(t ? t.name : m.opp) + '</div><div class="an-nsub">' + msEsc(when) + '</div>' +
-      '<div class="an-nsub">' + (t && t.st.n ? msEsc(anRec(t.st)) + ' · ' + anF1(t.st.gf) + ' buts / match' : 'pas encore de matchs lus pour cette équipe') + '</div>' +
-      '<div class="an-nsub">' + anProbLine(pr, 'Nous') + '</div></button>';
-  });
-  h += '</div><div class="an-na" style="font-size:10.5px;margin:4px 0 0;">Les pourcentages sont une tendance calculée sur les buts marqués et encaissés, pas une prédiction.</div>';
-  [1, 2].forEach(function (eq, i) {
-    var m = next[i]; if (!m) return;
-    var pt = anPouleTeams(m.src); ctxs.push(pt.map(anIdx));
-    h += '<div class="ms-h">Poule de l\'équipe ' + eq + ' <span class="ms-na">' + msEsc(m.src.label || '') + '</span></div>' + anChips(pt, ctxs.length - 1);
-  });
-  var suivi = anSuivi(), nbP = 0, nbT = {};
-  var inner = '';
-  suivi.forEach(function (s) {
+  var suivi = anSuivi(), nbP = 0, nbT = {}, inner = '';
+  if (M) suivi.forEach(function (s) {
     var pt = anPouleTeams(s); if (!pt.length) return; ctxs.push(pt.map(anIdx)); nbP++; pt.forEach(function (k) { nbT[k] = true; });
     inner += '<details class="ms-det" data-an="s' + msEsc(s.id) + '"><summary>' + msEsc(s.label || 'Poule') + ' · ' + pt.length + ' équipes</summary>' + anChips(pt, ctxs.length - 1) + '</details>';
   });
   if (nbP) h += '<details class="ms-det" data-an="autres"><summary>Autres équipes suivies (' + nbP + ' poule' + (nbP > 1 ? 's' : '') + ' · ' + Object.keys(nbT).length + ' équipes)</summary>' + inner + '</details>';
   h += '<details class="ms-det" data-an="class"><summary>📊 Classements des poules de suivi</summary>' + anPouleHtml(d) + '</details>';
-  return h;
+  h += '<details class="ms-det" data-an="src"><summary>🔗 Données et poules de suivi · ' + suivi.length + ' lien(s)</summary>' + anSourcesHtml(suivi) + '</details>';
+  return h + '</div>';
+}
+
+// ----- z60 : barre d'outils, cartes équipe 1 / 2, bande d'écussons, duel nous / eux -----
+function anColorCls(name) { var h = 0, i; for (i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 8; return 'an-c' + h; }
+function anTopHtml(d) {
+  return '<div class="an-tools"><span class="an-stamp">' + msEsc(anStamp(d)) + '</span>' +
+    '<button class="an-ic" title="Notre équipe : points forts et faibles" onclick="anOpenOur()">📝</button>' +
+    '<button class="an-ic" id="an-sync-btn" title="Mettre à jour les données" onclick="anSync()">🔄</button>' +
+    '<button class="an-ic' + (anState.menu ? ' on' : '') + '" title="Autres poules, classements, liens" onclick="anMenu()">⚙️</button></div><div id="an-report"></div>';
+}
+function anEqCards() {
+  var M = anState.M;
+  return '<div class="an-eqs">' + [1, 2].map(function (eq) {
+    var n = anNextOf(eq), on = anState.eq === eq;
+    if (!n) return '<div class="an-eq"><div class="an-crest an-sm">É' + eq + '</div><div><small>ÉQUIPE ' + eq + '</small><b>Aucun match à venir connu</b></div></div>';
+    var t = M.teams[n.oppK];
+    return '<button class="an-eq' + (on ? ' on' : '') + '" onclick="anSelectEq(' + eq + ')"><div class="an-crest an-sm">É' + eq + '</div><div><small>ÉQUIPE ' + eq + (n.j ? ' · J' + n.j : '') + '</small><b>' + msEsc(t ? t.name : n.opp) + '</b><i>' +
+      (n.date ? msEsc(homeFmtDateShort(n.date)) : 'Date à confirmer') + ' · ' + (n.home ? 'domicile' : 'extérieur') + '</i></div></button>';
+  }).join('') + '</div>';
+}
+function anStrip() {
+  var M = anState.M, ctx = anState.ctx && anState.ctx.length ? anState.ctx : M.keys.map(function (k, j) { return j; });
+  return '<div class="an-strip">' + ctx.map(function (i) {
+    var t = M.teams[M.keys[i]]; if (!t) return '';
+    return '<button class="an-sc' + (i === anState.ti ? ' on' : '') + '" onclick="anPick(' + i + ')"><span class="an-crest an-rd ' + anColorCls(t.key) + '">' + msEsc(anInit(t.name)) + '</span>' + msEsc(t.name.replace(/\([^)]*\)/g, '').replace(/^(HBC|HB|AC|CC|GHB|GH)\s+/i, '').slice(0, 16)) + '</button>';
+  }).join('') + '</div>';
+}
+function anDuel(t) {
+  var M = anState.M, st = t.st, nx = null;
+  t.ms.forEach(function (m) { if (!m.scored && anIsUs(m.opp) && (!nx || (m.date ? new Date(m.date).getTime() : 9e15) < (nx.date ? new Date(nx.date).getTime() : 9e15))) nx = m; });
+  var themBox = '<div class="an-side them"><div class="an-crest an-lg ' + anColorCls(t.key) + '">' + msEsc(anInit(t.name)) + '</div><b>' + msEsc(t.name) + '</b><span>' + (st.n ? anRec(st) : 'aucun match lu') + '</span></div>';
+  if (!nx) return '<div class="an-vs"><div class="an-when">AUCUN MATCH CONTRE NOUS PRÉVU DANS LES DONNÉES LUES</div><div class="an-duel one">' + themBox + '</div></div>';
+  var us = M.teams[nx.oppK], pr = anProb(nx.oppK, t.key, !nx.home);
+  var when = (nx.j ? 'J' + nx.j + ' · ' : '') + (nx.date ? homeFmtDateShort(nx.date) : 'Date à confirmer') + ' · ' + (nx.home ? 'chez eux' : 'chez nous');
+  var g = pr ? '<div class="an-gauge"><u class="n" style="width:' + pr.p + '%">' + pr.p + ' %</u><u class="e" style="width:' + (100 - pr.p) + '%">' + (100 - pr.p) + ' %</u></div><div class="an-gl"><span>Nous</span><span>Eux</span></div>' +
+    '<div class="an-conf">Confiance : ' + pr.conf + (pr.note ? ' (' + msEsc(pr.note) + ')' : '') + ' · tendance, pas prédiction</div>' : '<div class="an-conf">Chances inconnues : pas assez de données sur une des deux équipes.</div>';
+  return '<div class="an-vs"><div class="an-when">PROCHAIN MATCH · ' + msEsc(when.toUpperCase()) + '</div><div class="an-duel"><div class="an-side"><div class="an-crest an-lg">CS</div><b>' + msEsc(us ? us.name : 'Nous') + '</b><span>' + (us && us.st.n ? anRec(us.st) : 'aucun match lu') + '</span></div><div class="an-mid">VS</div>' + themBox + '</div>' + g + '</div>';
+}
+function anTiles(t) {
+  var M = anState.M, st = t.st, rg = anRankOf(M, 'diff', st.diff);
+  var f5 = st.last5.map(function (x) { return '<span class="' + x.r + '">' + x.gf + '-' + x.ga + '</span>'; }).join('');
+  return '<div class="an-tiles"><div class="an-tile t1"><small>Buts / match</small><b>' + (st.n ? anF1(st.gf) : '–') + '</b></div><div class="an-tile t2"><small>Encaissés</small><b>' + (st.n ? anF1(st.ga) : '–') + '</b></div>' +
+    '<div class="an-tile t3"><small>Écart / match</small><b>' + (st.n ? anSgn(st.diff) : '–') + '</b>' + (f5 ? '<div class="an-fm">' + f5 + '</div>' : '') + '</div>' +
+    '<div class="an-tile t4"><small>Classement</small><b>' + (rg ? rg.r + 'e / ' + rg.n : '–') + '</b></div></div>';
 }
 
 // ----- Fiche équipe -----
-function anTeamHtml(d) {
-  var M = anState.M, k = M.keys[anState.ti]; if (!k) { anState.view = 'list'; return anListHtml(d); }
-  var t = M.teams[k], st = t.st, tab = anState.tab;
-  var cs = anCurrentSrc(t), tags = [];
-  if (cs) tags.push(cs.label || 'Poule');
-  [1, 2].forEach(function (eq) { var n = anNextOf(eq); if (n && n.oppK === k) tags.push('Prochain adversaire · équipe ' + eq + (n.j ? ' · J' + n.j : '')); });
-  var rg = anRankOf(M, 'diff', st.diff);
-  var ctx = anState.ctx || [], pos = ctx.indexOf(anState.ti);
-  var polesPlayed = []; t.ms.forEach(function (m) { if (m.scored && polesPlayed.indexOf(m.src.label) < 0) polesPlayed.push(m.src.label); });
-  var head = '<div class="an-hd"><div class="an-crest">' + msEsc(anInit(t.name)) + (rg ? '<i>' + rg.r + 'e</i>' : '') + '</div>' +
-    '<div class="an-id"><div class="an-tags">' + msEsc(tags.join(' · ') || 'Équipe suivie') + '</div><div class="an-nm">' + msEsc(t.name) + '</div>' +
-    '<div class="an-sub">' + (st.n ? anRec(st) + (rg ? ' · ' + rg.r + 'e sur ' + rg.n + ' équipes suivies (écart de buts)' : '') : 'Pas encore de match lu pour cette équipe') + '</div>' +
-    (polesPlayed.length ? '<div class="an-sub">Matchs lus dans : ' + msEsc(polesPlayed.join(' · ')) + '</div>' : '') + '</div>' +
-    '<div class="an-kf"><div><small>Buts / match</small><b>' + (st.n ? anF1(st.gf) : '–') + '</b></div><div><small>Encaissés</small><b>' + (st.n ? anF1(st.ga) : '–') + '</b></div><div><small>Écart / match</small><b>' + (st.n ? anSgn(st.diff) : '–') + '</b></div></div>' +
-    '<div class="an-nav"><button onclick="anStep(-1)">◀</button><span>' + (pos >= 0 ? (pos + 1) + '/' + ctx.length : '') + '</span><button onclick="anStep(1)">▶</button><button onclick="anClose()">✕</button></div></div>';
+function anTeamView(d) {
+  var M = anState.M, k = M.keys[anState.ti];
+  if (!k) return '<div class="ms-info">Aucune équipe lue pour l\'instant : ouvre ⚙️ puis « Données » ou appuie sur 🔄.</div>';
+  var t = M.teams[k], tab = anState.tab || 'vue';
   var tabs = [['vue', 'Vue d\'ensemble'], ['joueurs', 'Joueurs'], ['cal', 'Calendrier'], ['nous', 'Face à nous'], ['notes', 'Notes']];
   var tb = '<div class="an-tabs">' + tabs.map(function (x) { return '<button class="' + (tab === x[0] ? 'on' : '') + '" onclick="anTab(\'' + x[0] + '\')">' + x[1] + '</button>'; }).join('') + '</div>';
   var body = tab === 'notes' ? anTabNotes(t) : tab === 'joueurs' ? anTabPlayers(t) : (tab === 'cal' ? anTabCal(t) : (tab === 'nous' ? anTabUs(t) : anTabVue(t)));
-  return '<div class="an-fiche">' + head + tb + body + '</div>';
+  return anEqCards() + anStrip() + '<div class="an-fiche">' + anDuel(t) + anTiles(t) + tb + body + '</div>';
 }
 function anGauges(t) {
   var M = anState.M, st = t.st; if (!st.n) return '';
