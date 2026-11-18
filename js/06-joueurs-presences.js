@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z59 (16/11/2026)
+// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z64 (18/11/2026)
 // ===================== GESTION DES CODES JOUEURS =====================
 function codesOpenEditor() {
   const box = document.getElementById('codes-editor');
@@ -68,6 +68,13 @@ async function convocGenerate() {
   const blocks = [];
   try {
     await ensureCoachSession();
+    // z64 : matchs de phase 2 lus dans les poules FFHB (absents du calendrier importé) ajoutés comme candidats
+    let pouleCand = { cand: { 1: [], 2: [] } }, knownIds = {};
+    try {
+      const allRes = await fetch(SB_URL + '/rest/v1/matches?select=ext_rencontre_id', { headers: coachAuthHeaders() });
+      (allRes.ok ? await allRes.json() : []).forEach(r => { if (r.ext_rencontre_id) knownIds[String(r.ext_rencontre_id)] = true; });
+      pouleCand = await homePouleUpcoming(knownIds);
+    } catch (e) {}
     for (const eq of [1, 2]) {
       const players = compositionRoster.filter(p => compositionAssign[p.code] === eq).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
       const names = players.map(p => p.name + (p.numero ? ' (#' + p.numero + ')' : ''));
@@ -76,6 +83,7 @@ async function convocGenerate() {
       // car les 2 équipes ne jouent presque jamais le même jour.
       const mRes = await fetch(SB_URL + '/rest/v1/matches?select=*&equipe=eq.' + eq + '&order=debut', { headers: coachAuthHeaders() });
       const mRows = mRes.ok ? await mRes.json() : [];
+      (pouleCand.cand[eq] || []).forEach(c => { if (c.dated) mRows.push({ titre: c.team1 + ' vs ' + c.team2, debut: c.iso, lieu: '' }); });
       let m = null, bestDiff = Infinity;
       for (const row of mRows) {
         const diff = Math.abs(new Date(row.debut) - refDate);
