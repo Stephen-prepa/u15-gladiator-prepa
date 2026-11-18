@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z64 (18/11/2026)
+// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z65 (18/11/2026)
 // ===================== GESTION DES CODES JOUEURS =====================
 function codesOpenEditor() {
   const box = document.getElementById('codes-editor');
@@ -83,7 +83,7 @@ async function convocGenerate() {
       // car les 2 équipes ne jouent presque jamais le même jour.
       const mRes = await fetch(SB_URL + '/rest/v1/matches?select=*&equipe=eq.' + eq + '&order=debut', { headers: coachAuthHeaders() });
       const mRows = mRes.ok ? await mRes.json() : [];
-      (pouleCand.cand[eq] || []).forEach(c => { if (c.dated) mRows.push({ titre: c.team1 + ' vs ' + c.team2, debut: c.iso, lieu: '' }); });
+      (pouleCand.cand[eq] || []).forEach(c => { if (c.dated) mRows.push({ titre: c.team1 + ' vs ' + c.team2, debut: c.iso, lieu: c.lieu || '' }); });
       let m = null, bestDiff = Infinity;
       for (const row of mRows) {
         const diff = Math.abs(new Date(row.debut) - refDate);

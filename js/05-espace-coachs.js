@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z63 (18/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z65 (18/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -100,7 +100,7 @@ async function homePouleUpcoming(known) {
   if (!srcs.length) return out;
   const eqOf = {};
   srcs.forEach(x => { eqOf[x.id] = x.equipe; out.hasSrc[x.equipe] = true; });
-  const pr = await fetch(SB_URL + '/rest/v1/poule_matches?select=source_id,ext_rencontre_id,journee_num,match_date,team1,team2&score1=is.null&source_id=in.(' + srcs.map(x => x.id).join(',') + ')', { headers: H });
+  const pr = await fetch(SB_URL + '/rest/v1/poule_matches?select=source_id,ext_rencontre_id,journee_num,match_date,team1,team2,lieu&score1=is.null&source_id=in.(' + srcs.map(x => x.id).join(',') + ')', { headers: H });
   const pms = pr.ok ? await pr.json() : [];
   const now = Date.now();
   const mine = (name, eq) => {
@@ -114,7 +114,7 @@ async function homePouleUpcoming(known) {
     const us1 = mine(p.team1, eq), us2 = mine(p.team2, eq);
     if (!us1 && !us2) return;
     const opp = (us1 ? p.team2 : p.team1) || 'Adversaire';
-    const base = { rid: String(p.ext_rencontre_id), jr: p.journee_num, home: us1, opp: opp, team1: p.team1, team2: p.team2 };
+    const base = { rid: String(p.ext_rencontre_id), jr: p.journee_num, home: us1, opp: opp, team1: p.team1, team2: p.team2, lieu: p.lieu || '' };
     if (p.match_date) {
       const t = new Date(p.match_date).getTime();
       if (isNaN(t) || t < now - 43200000) return; // passé sans score : relève des « scores à saisir »

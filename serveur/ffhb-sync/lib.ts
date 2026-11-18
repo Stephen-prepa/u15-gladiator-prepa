@@ -209,3 +209,25 @@ export function parseFeuilleJoueurs(pages: Item[][]): Feuille | null {
   });
   return { rec: fin(rec), vis: fin(vis) };
 }
+
+// z65 : lieu du match (salle / adresse) lu dans une rencontre de la page FFHB. Les noms de champs exacts ne sont pas connus :
+// on cherche toute clé qui ressemble à salle / gymnase / lieu / adresse (texte, ou objet dont on assemble les textes).
+const VENUE_KEY = /salle|gymn|lieu|adresse|address|venue|equipement|installation/i;
+export function venueOf(r: any): string | null {
+  if (!r || typeof r !== "object") return null;
+  const parts: string[] = [];
+  const add = (v: any, depth = 0) => {
+    if (v === null || v === undefined || depth > 2) return;
+    if (typeof v === "string") { const t = v.trim(); if (t && !parts.includes(t)) parts.push(t); }
+    else if (typeof v === "object") for (const k of Object.keys(v)) if (typeof v[k] === "string" || typeof v[k] === "object") add(v[k], depth + 1);
+  };
+  for (const k of Object.keys(r)) if (VENUE_KEY.test(k) && !/id$/i.test(k)) add(r[k]);
+  const s = parts.join(", ").slice(0, 300);
+  return s || null;
+}
+// Noms des champs d'une rencontre (pour comprendre ce que la FFHB envoie) : clé -> type / début de valeur
+export function fieldsOf(r: any): Record<string, string> {
+  const o: Record<string, string> = {};
+  if (r && typeof r === "object") for (const k of Object.keys(r)) { const v = r[k]; o[k] = v === null ? "null" : typeof v === "object" ? "{" + Object.keys(v).slice(0, 8).join(",") + "}" : String(v).slice(0, 40); }
+  return o;
+}
