@@ -44,7 +44,7 @@ Ce fichier est lu automatiquement au début de chaque session. Il donne le cadre
 - Ni le shell ni WebFetch n'atteignent ffhandball.fr : seule la fonction serveur lit la FFHB. Pour tester un lien de poule, passer par l'écran (Analyse › poules de suivi : contrôle « preview »).
 - Les identifiants d'équipe FFHB **changent d'une phase à l'autre** : rapprocher les équipes par nom normalisé (majuscules, sans accents ni parenthèses).
 
-## 5. État du produit (au 16/11/2026 — version z62 déployée)
+## 5. État du produit (au 16/11/2026 — version z63 déployée)
 - Phase 2 : équipe 1 = « 2e phase — D2 — poule A » (poule-201265) ; équipe 2 = « 2e phase — D4 — poule F » (poule-201278). Poules de **suivi** (role analyse) = phase 1 des adversaires, pour connaître leur niveau (D1 poule C, D2 poules D et F, D3 poule C, D3 poule de Saleilles poule-193508…).
 - **Matchs & Stats** : seulement nos équipes 1 et 2. **Analyse** (carte 🔬 sur l'accueil, visible par le coach qui l'a cochée dans Réglages › Analyse ; clé `analyse_card_<login>` dans `app_settings`) : **une seule page** (cartes équipe 1/2 → prochain adversaire, bande d'écussons de la poule, duel nous/eux avec probabilités, tuiles) puis **fiche équipe** (onglets Vue d'ensemble / Joueurs / Calendrier / Face à nous / Notes), page « Notre équipe ». Code : `js/25-analyse.js` (modèle `anBuild`/`anStats`, vues, notes).
 - Accueil coach : cartes « prochain match » lisent aussi les poules de phase 2 (matchs datés puis « Date à confirmer · Jn »), seulement CLERMONT SALAGOU de l'équipe 1/2.

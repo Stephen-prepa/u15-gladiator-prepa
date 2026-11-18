@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z62 (18/11/2026)
+// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z63 (18/11/2026)
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
 // ---------- Présences : bascule Saisie | Statistiques (z41) ----------
 function presViewSet(v) {
@@ -497,9 +497,9 @@ function evaluationsRenderPicker() {
   if (!wrap) return;
   if (!evalRoster.length) { wrap.innerHTML = '<div style="font-size:12px;color:var(--gris-texte);">Aucun joueur avec un code réclamé.</div>'; return; }
   wrap.innerHTML = evalRoster.map(p => {
-    const active = p.code === evalCurrentPlayer;
+    const active = p.code === evalCurrentPlayer, pend = evalDraftCount(p.code);
     return `<button type="button" onclick="evaluationsSelectPlayer('${p.code}')"
-      style="flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid ${active ? 'var(--jaune)' : 'rgba(255,255,255,0.15)'};background:${active ? 'rgba(255,215,0,0.12)' : 'transparent'};color:${active ? 'var(--jaune)' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:12.5px;white-space:nowrap;cursor:pointer;">${escapeSvgText(p.name)}${p.numero ? ' <span style="font-size:0.9em;">#' + p.numero + '</span>' : ''}</button>`;
+      style="flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid ${active ? 'var(--jaune)' : 'rgba(255,255,255,0.15)'};background:${active ? 'rgba(255,215,0,0.12)' : 'transparent'};color:${active ? 'var(--jaune)' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:12.5px;white-space:nowrap;cursor:pointer;">${pend ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--jaune);margin-right:6px;"></span>' : ''}${escapeSvgText(p.name)}${p.numero ? ' <span style="font-size:0.9em;">#' + p.numero + '</span>' : ''}</button>`;
   }).join('');
 }
 
@@ -511,6 +511,7 @@ async function evaluationsSelectPlayer(code) {
   await evaluationsLoadScores(code);
   evaluationsRenderItems();
   evaluationsRenderAverages();
+  evaluationsRenderDraft();
 }
 
 async function evaluationsLoadScores(code) {
@@ -532,7 +533,8 @@ async function evaluationsLoadScores(code) {
 
 function evaluationsItemCard(it) {
   const rec = evalScores[it.code];
-  const current = rec ? rec.mine : null;
+  const dr = evalDraftOf(evalCurrentPlayer)[it.code], pending = !!dr;
+  const current = pending ? dr.s : (rec ? rec.mine : null);
   const others = rec ? rec.others : [];
   const isHah = it.kind === 'hah';
   const btns = EVAL_SCORE_COLOR.map((color, v) => {
@@ -541,10 +543,10 @@ function evaluationsItemCard(it) {
       style="flex:1;min-width:0;padding:8px 0;border-radius:6px;border:1px solid ${active ? color : 'rgba(255,255,255,0.15)'};background:${active ? color : 'transparent'};color:${active ? '#0A1628' : 'var(--gris-clair)'};font-weight:${active ? '800' : '400'};font-size:13px;cursor:pointer;">${v}</button>`;
   }).join('');
   const scaleText = it.scale && current !== null && current !== undefined ? it.scale[current] : (it.indicateur || (it.scale ? it.scale[3] : ''));
-  return `<div style="background:${isHah ? 'rgba(245,196,0,0.08)' : 'var(--noir)'};border:1px solid ${isHah ? 'var(--jaune)' : 'rgba(255,255,255,0.08)'};border-radius:10px;padding:10px 12px;">
+  return `<div style="background:${isHah ? 'rgba(245,196,0,0.08)' : 'var(--noir)'};border:1px ${pending ? 'dashed' : 'solid'} ${pending || isHah ? 'var(--jaune)' : 'rgba(255,255,255,0.08)'};border-radius:10px;padding:10px 12px;">
     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px;">
       <div style="font-size:12.5px;font-weight:700;color:var(--blanc);">${escapeSvgText(it.comp)}</div>
-      <div style="font-size:9.5px;font-weight:800;color:var(--gris-texte);flex:0 0 auto;">${it.code}</div>
+      <div style="font-size:9.5px;font-weight:800;color:${pending ? 'var(--jaune)' : 'var(--gris-texte)'};flex:0 0 auto;">${pending ? 'EN ATTENTE · ' : ''}${it.code}</div>
     </div>
     <div style="font-size:10.5px;color:var(--gris-texte);margin-bottom:8px;line-height:1.35;">${escapeSvgText(scaleText)}</div>
     <div style="display:flex;gap:5px;">${btns}</div>
@@ -689,7 +691,7 @@ function evaluationsRenderAverages() {
   if (!wrap) return;
   if (!evalCurrentPlayer) { wrap.innerHTML = ''; return; }
   const avgFor = (codes) => {
-    const vals = codes.map(c => evalScores[c] && evalScores[c].mine).filter(v => v !== null && v !== undefined);
+    const vals = codes.map(c => evalEff(c)).filter(v => v !== null && v !== undefined);
     if (!vals.length) return null;
     return vals.reduce((a, b) => a + b, 0) / vals.length;
   };
@@ -714,48 +716,94 @@ function evaluationsRenderAverages() {
   wrap.innerHTML = cells.join('');
 }
 
-async function evaluationsSetScore(compCode, score) {
+// ---------- z63 — Notes en attente : rien n'est enregistré au tap, tout passe par « Valider » ----------
+// Les modifications non validées sont gardées sur CET appareil (localStorage, une clé par coach) et survivent au changement d'onglet / de joueur / à la fermeture.
+let evalDrafts = null;   // { codeJoueur: { codeCritère: { s: note|null, at: horodatage } } }
+function evalDraftKey() { return coachSession && coachSession.id ? 'evalDrafts_' + coachSession.id : null; }
+function evalDraftLoad() {
+  if (evalDrafts) return evalDrafts;
+  evalDrafts = {};
+  try { const k = evalDraftKey(); const raw = k ? localStorage.getItem(k) : null; if (raw) evalDrafts = JSON.parse(raw) || {}; } catch (e) { evalDrafts = {}; }
+  return evalDrafts;
+}
+function evalDraftSave() { try { const k = evalDraftKey(); if (k) localStorage.setItem(k, JSON.stringify(evalDrafts || {})); } catch (e) {} }
+function evalDraftOf(code) { return (code && evalDraftLoad()[code]) || {}; }
+function evalDraftCount(code) { return Object.keys(evalDraftOf(code)).length; }
+function evalDraftPlayers() { const d = evalDraftLoad(); return Object.keys(d).filter(c => Object.keys(d[c] || {}).length); }
+function evalEff(comp) { const d = evalDraftOf(evalCurrentPlayer)[comp]; if (d) return d.s; const r = evalScores[comp]; return r ? r.mine : null; }
+function evalPlayerName(code) { const p = evalRoster.filter(x => x.code === code)[0]; return p ? p.name : code; }
+function evaluationsDraftBadge() {
+  const n = evalDraftPlayers().reduce((t, c) => t + evalDraftCount(c), 0), dot = document.getElementById('eval-tab-dot');
+  if (dot) { dot.style.display = n ? 'block' : 'none'; dot.textContent = n ? String(n) : ''; }
+}
+function evaluationsRenderDraft() {
+  evaluationsDraftBadge();
+  const top = document.getElementById('eval-draftbanner'), bar = document.getElementById('eval-draftbar');
+  const pl = evalDraftPlayers();
+  if (top) top.innerHTML = pl.length ? '<div style="background:rgba(245,196,0,.12);border:1px solid var(--jaune);border-radius:10px;padding:8px 10px;margin-bottom:10px;font-size:12px;color:var(--blanc);">' +
+    '<div style="font-weight:800;color:var(--jaune);margin-bottom:4px;">⚠️ Modifications pas encore validées</div>' +
+    pl.map(c => '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;"><span style="flex:1;">' + escapeSvgText(evalPlayerName(c)) + ' — ' + evalDraftCount(c) + ' note' + (evalDraftCount(c) > 1 ? 's' : '') + '</span>' +
+      '<button type="button" onclick="evaluationsSelectPlayer(\'' + c + '\')" style="padding:4px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:var(--gris-clair);font-size:11px;cursor:pointer;">Voir</button>' +
+      '<button type="button" onclick="evaluationsDraftValidate(\'' + c + '\')" style="padding:4px 9px;border-radius:8px;border:none;background:var(--jaune);color:var(--c-onacc,#1a1a1a);font-weight:800;font-size:11px;cursor:pointer;">✓ Valider</button></div>').join('') + '</div>' : '';
+  const n = evalDraftCount(evalCurrentPlayer);
+  if (bar) bar.innerHTML = n ? '<div style="display:flex;align-items:center;gap:8px;background:var(--gris-fonce);border:1px solid var(--jaune);border-radius:12px;padding:8px 10px;box-shadow:0 4px 14px rgba(0,0,0,.5);">' +
+    '<span style="flex:1;font-size:12px;color:var(--blanc);"><b>' + n + '</b> modification' + (n > 1 ? 's' : '') + ' non validée' + (n > 1 ? 's' : '') + ' pour <b>' + escapeSvgText(evalPlayerName(evalCurrentPlayer)) + '</b></span>' +
+    '<button type="button" onclick="evaluationsDraftCancel(\'' + evalCurrentPlayer + '\')" style="padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:var(--gris-clair);font-size:12px;cursor:pointer;">Annuler</button>' +
+    '<button type="button" onclick="evaluationsDraftValidate(\'' + evalCurrentPlayer + '\')" style="padding:8px 12px;border-radius:8px;border:none;background:var(--jaune);color:var(--c-onacc,#1a1a1a);font-weight:800;font-size:13px;cursor:pointer;">✓ Valider</button></div>' : '';
+  evaluationsRenderPicker();
+}
+function evaluationsSetScore(compCode, score) {
   if (!evalCurrentPlayer) return;
   const item = EVAL_ITEMS.find(i => i.code === compCode);
   if (!item) return;
-  const rec = evalScores[compCode] || (evalScores[compCode] = { mine: null, others: [] });
-  const prev = rec.mine;
-  const next = prev === score ? null : score; // retaper la même note l'efface (même logique que les présences)
-  rec.mine = next;
+  const rec = evalScores[compCode], saved = rec && rec.mine !== undefined ? rec.mine : null;
+  const cur = evalEff(compCode);
+  const next = cur === score ? null : score;     // retaper la même note l'efface (comme avant)
+  const dr = evalDraftLoad();
+  if (next === saved) { if (dr[evalCurrentPlayer]) { delete dr[evalCurrentPlayer][compCode]; if (!Object.keys(dr[evalCurrentPlayer]).length) delete dr[evalCurrentPlayer]; } }   // retour à la valeur enregistrée : plus rien en attente
+  else { (dr[evalCurrentPlayer] = dr[evalCurrentPlayer] || {})[compCode] = { s: next, at: Date.now() }; }
+  evalDraftSave();
   evaluationsRenderItems();
   evaluationsRenderAverages();
-
+  evaluationsRenderDraft();
   const msgEl = document.getElementById('eval-save-msg');
-  if (msgEl) { msgEl.style.color = 'var(--gris-texte)'; msgEl.textContent = 'Enregistrement...'; }
+  if (msgEl) { msgEl.style.color = 'var(--jaune)'; msgEl.textContent = 'Modification en attente — pense à valider.'; }
+}
+function evaluationsDraftCancel(code) {
+  const n = evalDraftCount(code); if (!n) return;
+  if (!confirm('Annuler les ' + n + ' modification' + (n > 1 ? 's' : '') + ' non validée' + (n > 1 ? 's' : '') + ' de ' + evalPlayerName(code) + ' ?')) return;
+  delete evalDraftLoad()[code]; evalDraftSave();
+  if (code === evalCurrentPlayer) { evaluationsRenderItems(); evaluationsRenderAverages(); }
+  evaluationsRenderDraft();
+}
+async function evaluationsDraftValidate(code) {
+  const mine = evalDraftOf(code), comps = Object.keys(mine); if (!comps.length) return;
+  const msgEl = document.getElementById('eval-save-msg');
+  if (msgEl) { msgEl.style.color = 'var(--gris-texte)'; msgEl.textContent = 'Validation…'; }
   try {
     await ensureCoachSession();
-    const myId = coachSession ? coachSession.id : null;
-    if (next === null) {
-      await fetch(SB_URL + '/rest/v1/evaluations?player_code=eq.' + encodeURIComponent(evalCurrentPlayer) + '&comp_code=eq.' + encodeURIComponent(compCode) + '&coach_id=eq.' + encodeURIComponent(myId || ''), {
-        method: 'DELETE', headers: coachAuthHeaders(),
-      });
-    } else {
-      const res = await fetch(SB_URL + '/rest/v1/evaluations?on_conflict=player_code,comp_code,coach_id', {
-        method: 'POST',
-        headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-        body: JSON.stringify([{
-          player_code: evalCurrentPlayer, category: EVAL_CATEGORY, domain: item.domain, comp_code: compCode,
-          axe: item.comp, score: next, coach_id: myId, updated_at: new Date().toISOString(),
-        }]),
-      });
+    const myId = coachSession ? coachSession.id : null, now = new Date().toISOString();
+    const up = comps.filter(c => mine[c].s !== null).map(c => { const it = EVAL_ITEMS.find(i => i.code === c); return { player_code: code, category: EVAL_CATEGORY, domain: it ? it.domain : null, comp_code: c, axe: it ? it.comp : c, score: mine[c].s, coach_id: myId, updated_at: now }; });
+    const del = comps.filter(c => mine[c].s === null);
+    if (up.length) {
+      const res = await fetch(SB_URL + '/rest/v1/evaluations?on_conflict=player_code,comp_code,coach_id', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(up) });
       if (!res.ok) throw new Error('save failed');
     }
-    delete evalHist[evalCurrentPlayer];
-    if (msgEl) {
-      msgEl.style.color = '#2ecc71';
-      msgEl.textContent = 'Enregistré ✓';
-      setTimeout(() => { if (msgEl.textContent === 'Enregistré ✓') msgEl.textContent = ''; }, 1500);
+    if (del.length) {
+      const res2 = await fetch(SB_URL + '/rest/v1/evaluations?player_code=eq.' + encodeURIComponent(code) + '&coach_id=eq.' + encodeURIComponent(myId || '') + '&comp_code=in.(' + del.map(encodeURIComponent).join(',') + ')', { method: 'DELETE', headers: coachAuthHeaders() });
+      if (!res2.ok) throw new Error('delete failed');
     }
+    comps.forEach(c => { if (code === evalCurrentPlayer) { const r = evalScores[c] || (evalScores[c] = { mine: null, others: [] }); r.mine = mine[c].s; } });
+    delete evalDraftLoad()[code]; evalDraftSave(); delete evalHist[code];
+    if (code === evalCurrentPlayer) { evaluationsRenderItems(); evaluationsRenderAverages(); if (evalOpenSection === 'evolution') evaluationsEvoLoad(); }
+    evaluationsRenderDraft();
+    if (msgEl) { msgEl.style.color = '#2ecc71'; msgEl.textContent = comps.length + ' note' + (comps.length > 1 ? 's' : '') + ' validée' + (comps.length > 1 ? 's' : '') + ' ✓'; setTimeout(() => { if (/validée/.test(msgEl.textContent)) msgEl.textContent = ''; }, 2500); }
   } catch (e) {
-    if (msgEl) { msgEl.style.color = '#e74c3c'; msgEl.textContent = "Erreur d'enregistrement — vérifie ta connexion et réessaie."; }
+    if (msgEl) { msgEl.style.color = '#e74c3c'; msgEl.textContent = "Validation impossible — tes modifications sont gardées, vérifie ta connexion et réessaie."; }
   }
 }
-
+// au démarrage : pastille sur l'onglet Évals s'il reste des notes en attente (la session coach peut arriver un peu plus tard)
+setTimeout(evaluationsDraftBadge, 1200);
 
 const COACH_TOTAL_SESSIONS = 12;
 let coachPlayers = [];

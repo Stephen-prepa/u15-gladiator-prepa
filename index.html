@@ -893,7 +893,7 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
           <span class="cs-tab-icon">🗓️</span><span class="cs-tab-label">Programme</span>
         </button>
         <button type="button" class="cs-tab" id="cs-subtab-evaluations" onclick="coachSubtabSwitch('evaluations')">
-          <span class="cs-tab-icon">🎯</span><span class="cs-tab-label">Évals</span>
+          <span class="cs-tab-icon">🎯</span><span class="cs-tab-label">Évals</span><span class="cs-tab-dot" id="eval-tab-dot" style="display:none;"></span>
         </button>
         <button type="button" class="cs-tab" id="cs-subtab-reglages" onclick="coachSubtabSwitch('reglages')">
           <span class="cs-tab-icon">⚙️</span><span class="cs-tab-label">Réglages</span>
@@ -1159,8 +1159,9 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
 
       <div class="cs-box" id="cs-box-evaluations" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🎯 Évaluations — référentiel filière U15</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:14px;">Prérequis, accélérateurs et fil rouge défense Homme à Homme — note en un tap, enregistré aussitôt.</div>
+        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:14px;">Prérequis, accélérateurs et fil rouge défense Homme à Homme — note en un tap, puis « Valider ».</div>
 
+        <div id="eval-draftbanner"></div>
         <div id="eval-player-picker" style="display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;"></div>
 
         <div id="eval-averages" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:14px;"></div>
@@ -1170,7 +1171,8 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         </div>
 
         <div id="eval-save-msg" style="font-size:12px;text-align:center;margin-top:10px;min-height:16px;font-weight:700;"></div>
-        <div style="font-size:10px;color:var(--gris-texte);margin-top:6px;text-align:center;">Un tap = enregistrement immédiat · retaper la même note l'efface. Détail complet des exercices : document de synthèse filière.</div>
+        <div id="eval-draftbar" style="position:sticky;bottom:76px;z-index:20;margin-top:10px;"></div>
+        <div style="font-size:10px;color:var(--gris-texte);margin-top:6px;text-align:center;">Un tap = note en attente, rien n'est enregistré avant « Valider » · retaper la même note l'efface. Détail complet des exercices : document de synthèse filière.</div>
       </div>
 
       <div class="cs-box" id="cs-box-reglages" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">

@@ -1613,3 +1613,7 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
 .cr-sug-fold .cr-chip.rest{display:none;}
 .cr-sug-fold.open .cr-chip.rest{display:inline-block;}
 .cr-chip.more{border-style:dashed;color:var(--jaune);}
+
+/* z63 — pastille « notes en attente » sur l'onglet Évals */
+.cs-tab{position:relative;}
+.cs-tab-dot{position:absolute;top:2px;right:8px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--jaune);color:var(--noir);font-size:10px;font-weight:800;line-height:16px;text-align:center;}
