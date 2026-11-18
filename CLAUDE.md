@@ -11,7 +11,7 @@ Ce fichier est lu automatiquement au début de chaque session. Il donne le cadre
 
 ## 2. Règles de travail (non négociables)
 1. **Plan d'abord, code après son « go ».** Pour toute modification de code : propose un plan court (ce qui change, ce qui ne change pas, risques) et attends son accord. Les aperçus visuels (maquette) se valident avant de coder l'interface.
-2. **SQL jamais appliqué sans « ok sql »** : montre le SQL (en entier, lisible), attends « ok sql », puis applique. Vérifie toujours l'identifiant du projet Supabase avant d'écrire : `cponudkorfxtwptwtulq`. Les lectures (SELECT) pour diagnostiquer sont libres.
+2. **SQL : « ok sql » plus exigé (décision de Stephen, 18/11/2026)** : il valide ce que je code et corrigera en cas d'erreur. Je peux donc appliquer les migrations, mais : vérifier l'identifiant du projet Supabase avant d'écrire (`cponudkorfxtwptwtulq`), tester dans une transaction annulée (`rollback`) quand c'est possible, **demander quand même avant tout ce qui est destructif ou irréversible** (suppression de données, `drop table`, écrasement), et résumer en une phrase simple ce qui a été fait. Lectures (SELECT) libres.
 3. **Branche `dev` uniquement. Ne jamais toucher `main`.** Netlify déploie `dev` (`dev--u15-gladiator-prepa.netlify.app`).
 4. **Aucun secret** (mots de passe, clés de service) dans le code, dans ce fichier ou dans le LISEZ-MOI. La clé « publishable » Supabase du code est publique par conception ; la sécurité repose sur les règles RLS (données de mineurs : prudence).
 5. **Une livraison = une version** : changer `js/00-version.js` (`APP_VERSION` zNN + date), ajouter l'entrée dans `LISEZ-MOI.md` (journal + ligne du tableau des fichiers), ajouter le fichier en tête de modification (« dernière modification : version zNN (jj/mm/aaaa) »).
@@ -44,7 +44,7 @@ Ce fichier est lu automatiquement au début de chaque session. Il donne le cadre
 - Ni le shell ni WebFetch n'atteignent ffhandball.fr : seule la fonction serveur lit la FFHB. Pour tester un lien de poule, passer par l'écran (Analyse › poules de suivi : contrôle « preview »).
 - Les identifiants d'équipe FFHB **changent d'une phase à l'autre** : rapprocher les équipes par nom normalisé (majuscules, sans accents ni parenthèses).
 
-## 5. État du produit (au 16/11/2026 — version z60 déployée)
+## 5. État du produit (au 16/11/2026 — version z62 déployée)
 - Phase 2 : équipe 1 = « 2e phase — D2 — poule A » (poule-201265) ; équipe 2 = « 2e phase — D4 — poule F » (poule-201278). Poules de **suivi** (role analyse) = phase 1 des adversaires, pour connaître leur niveau (D1 poule C, D2 poules D et F, D3 poule C, D3 poule de Saleilles poule-193508…).
 - **Matchs & Stats** : seulement nos équipes 1 et 2. **Analyse** (carte 🔬 sur l'accueil, visible par le coach qui l'a cochée dans Réglages › Analyse ; clé `analyse_card_<login>` dans `app_settings`) : **une seule page** (cartes équipe 1/2 → prochain adversaire, bande d'écussons de la poule, duel nous/eux avec probabilités, tuiles) puis **fiche équipe** (onglets Vue d'ensemble / Joueurs / Calendrier / Face à nous / Notes), page « Notre équipe ». Code : `js/25-analyse.js` (modèle `anBuild`/`anStats`, vues, notes).
 - Accueil coach : cartes « prochain match » lisent aussi les poules de phase 2 (matchs datés puis « Date à confirmer · Jn »), seulement CLERMONT SALAGOU de l'équipe 1/2.

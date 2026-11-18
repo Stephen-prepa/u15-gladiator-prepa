@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z42 (08/11/2026)
+// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z62 (18/11/2026)
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
 // ---------- Présences : bascule Saisie | Statistiques (z41) ----------
 function presViewSet(v) {
@@ -556,6 +556,7 @@ let evalOpenSection = 'filiere'; // 'filiere' | 'intrinseque' | null
 function evaluationsToggleSection(section) {
   evalOpenSection = evalOpenSection === section ? null : section;
   evaluationsRenderItems();
+  if (evalOpenSection === 'evolution') evaluationsEvoLoad();
 }
 function evaluationsRenderItems() {
   const wrap = document.getElementById('eval-items-list');
@@ -576,7 +577,7 @@ function evaluationsRenderItems() {
     const open = evalOpenSection === key;
     return `<button type="button" onclick="evaluationsToggleSection('${key}')" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:${open ? accent + '18' : 'var(--noir)'};border:1px solid ${open ? accent : 'rgba(255,255,255,0.1)'};border-radius:10px;padding:12px 14px;cursor:pointer;margin-top:10px;">
       <span style="font-size:13px;font-weight:800;color:${open ? accent : 'var(--blanc)'};">${label}</span>
-      <span style="font-size:10.5px;color:var(--gris-texte);">${count} item${count > 1 ? 's' : ''} ${open ? '▲' : '▼'}</span>
+      <span style="font-size:10.5px;color:var(--gris-texte);">${typeof count === 'number' ? count + ' item' + (count > 1 ? 's' : '') : count} ${open ? '▲' : '▼'}</span>
     </button>`;
   };
 
@@ -591,7 +592,96 @@ function evaluationsRenderItems() {
   if (evalOpenSection === 'intrinseque') {
     html += `<div style="padding-top:8px;">${intrinsicItems.map(it => evaluationsItemCard(it)).join('')}</div>`;
   }
+  html += sectionHeader('evolution', '📈 Évolution', 'var(--bleu-light)', 'graphique');
+  if (evalOpenSection === 'evolution') html += '<div id="eval-evo" style="padding-top:8px;">' + evaluationsEvoHtml() + '</div>';
   wrap.innerHTML = html;
+}
+
+// ---------- z62 — Évolution d'un joueur : graphique + tableau, à partir du journal `evaluation_history` ----------
+// Chaque changement de note (quel que soit le critère) est enregistré côté base par un déclencheur. Ici on rejoue ce journal.
+let evalHist = {};                       // code joueur -> lignes du journal (ordre chronologique)
+let evalEvo = { who: 'moi', crit: '', hide: {} };   // moi | tous ; critère unique ('' = domaines) ; séries masquées
+const EVAL_EVO_SERIES = [
+  { k: 'Technique', lab: 'Tech.', col: 'var(--bleu-light)' }, { k: 'Tactique', lab: 'Tact.', col: 'var(--rouge-light)' },
+  { k: 'Physique / Motricité', lab: 'Phys.', col: 'var(--vert)' }, { k: 'Mental / Comportemental', lab: 'Ment.', col: '#9b59b6' },
+  { k: 'Qualités intrinsèques', lab: 'Intr.', col: '#16a085' }, { k: 'GEN', lab: 'Général', col: 'var(--jaune)' },
+];
+async function evaluationsEvoLoad() {
+  const code = evalCurrentPlayer; if (!code) return;
+  const box = document.getElementById('eval-evo');
+  if (!evalHist[code]) {
+    if (box) box.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement de l\'historique…</div>';
+    try {
+      await ensureCoachSession();
+      const res = await fetch(SB_URL + '/rest/v1/evaluation_history?player_code=eq.' + encodeURIComponent(code) + '&select=comp_code,score,coach_id,changed_at&order=changed_at.asc&limit=1000', { headers: coachAuthHeaders() });
+      evalHist[code] = res.ok ? await res.json() : null;
+    } catch (e) { evalHist[code] = null; }
+  }
+  const b2 = document.getElementById('eval-evo'); if (b2) b2.innerHTML = evaluationsEvoHtml();
+}
+function evaluationsEvoSet(k, v) { if (k === 'hide') evalEvo.hide[v] = !evalEvo.hide[v]; else evalEvo[k] = v; const b = document.getElementById('eval-evo'); if (b) b.innerHTML = evaluationsEvoHtml(); }
+// Rejoue le journal : une « photo » par jour (dernière note de chaque critère à la fin de la journée), puis les moyennes.
+function evaluationsEvoModel(rows) {
+  const myId = coachSession ? coachSession.id : null, who = evalEvo.who;
+  const evs = rows.filter(r => who === 'tous' || r.coach_id === myId);
+  const byDay = {};
+  evs.forEach(r => { const d = dateStr(new Date(r.changed_at)); (byDay[d] = byDay[d] || []).push(r); });
+  const days = Object.keys(byDay).sort();
+  const state = {};   // comp_code -> { coach_id -> score|null }
+  const val = (c) => { const m = state[c]; if (!m) return null; const v = Object.keys(m).map(k => m[k]).filter(x => x !== null && x !== undefined); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const avg = (codes) => { const v = codes.map(val).filter(x => x !== null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const out = [];
+  days.forEach(d => {
+    const changes = [];
+    byDay[d].forEach(r => {
+      const prev = val(r.comp_code);
+      (state[r.comp_code] = state[r.comp_code] || {})[r.coach_id] = r.score;
+      const nv = val(r.comp_code);
+      const same = changes.filter(x => x.c === r.comp_code)[0];   // plusieurs retouches du même critère le même jour : on garde « avant → après »
+      if (same) same.to = nv; else changes.push({ c: r.comp_code, from: prev, to: nv });
+    });
+    const pt = { d, t: new Date(d + 'T12:00:00').getTime(), changes: changes.filter(x => x.from !== x.to), v: {} };
+    EVAL_EVO_SERIES.forEach(se => { pt.v[se.k] = se.k === 'GEN' ? avg(EVAL_ITEMS.filter(i => i.kind === 'prereq').map(i => i.code)) : avg(EVAL_ITEMS.filter(i => i.domain === se.k).map(i => i.code)); });
+    EVAL_ITEMS.forEach(i => { pt.v['c:' + i.code] = val(i.code); });
+    out.push(pt);
+  });
+  return out;
+}
+function evaluationsEvoHtml() {
+  const code = evalCurrentPlayer, rows = evalHist[code];
+  if (rows === null) return '<div style="font-size:12px;color:#e74c3c;padding:10px;">Impossible de lire l\'historique (connexion ?).</div>';
+  if (!rows) return '';
+  const pts = evaluationsEvoModel(rows), crit = evalEvo.crit;
+  const chip = (on, label, fn, col) => '<button type="button" onclick="' + fn + '" style="padding:5px 10px;border-radius:14px;border:1px solid ' + (on ? (col || 'var(--jaune)') : 'rgba(255,255,255,.15)') + ';background:' + (on ? 'rgba(255,255,255,.08)' : 'transparent') + ';color:' + (on ? 'var(--blanc)' : 'var(--gris-texte)') + ';font-size:11px;font-weight:700;cursor:pointer;">' + label + '</button>';
+  let h = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;">' +
+    chip(evalEvo.who === 'moi', 'Mes notes', "evaluationsEvoSet('who','moi')") + chip(evalEvo.who === 'tous', 'Tous les coachs', "evaluationsEvoSet('who','tous')") +
+    '<select onchange="evaluationsEvoSet(\'crit\',this.value)" style="background:var(--noir);color:var(--blanc);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 6px;font-size:11px;max-width:55%;"><option value="">Par domaine</option>' +
+    EVAL_ITEMS.map(i => '<option value="' + i.code + '"' + (crit === i.code ? ' selected' : '') + '>' + escapeSvgText(i.code + ' — ' + i.comp).slice(0, 60) + '</option>').join('') + '</select></div>';
+  if (!pts.length) return h + '<div style="font-size:12px;color:var(--gris-texte);padding:12px 4px;line-height:1.5;">Aucune note enregistrée pour ce joueur' + (evalEvo.who === 'moi' ? ' par toi (essaie « Tous les coachs »)' : '') + '. Chaque nouvelle note ou modification sera ajoutée au graphique.</div>';
+  const series = crit ? [{ k: 'c:' + crit, lab: crit, col: 'var(--jaune)' }] : EVAL_EVO_SERIES;
+  if (!crit) h += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">' + series.map(se => chip(!evalEvo.hide[se.k], '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + se.col + ';margin-right:4px;"></span>' + se.lab, "evaluationsEvoSet('hide','" + se.k + "')", se.col)).join('') + '</div>';
+  const W = 620, H = 250, L = 26, R = 12, T = 12, B = 26, t0 = pts[0].t, t1 = pts[pts.length - 1].t, span = Math.max(t1 - t0, 86400000 * 7);
+  const X = t => L + (pts.length === 1 ? (W - L - R) / 2 : (t - t0) / span * (W - L - R)), Y = v => T + (5 - v) / 5 * (H - T - B);
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;display:block;background:var(--noir);border-radius:10px;">';
+  for (let g = 0; g <= 5; g++) svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(g) + '" y2="' + Y(g) + '" style="stroke:rgba(255,255,255,.08)"/><text x="' + (L - 6) + '" y="' + (Y(g) + 3) + '" text-anchor="end" font-size="10" style="fill:var(--gris-texte)">' + g + '</text>';
+  const nl = Math.min(5, pts.length), fmt = t => { const d = new Date(t); return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2); };
+  for (let i = 0; i < nl; i++) { const t = nl === 1 ? t0 : t0 + span * i / (nl - 1); svg += '<text x="' + (pts.length === 1 ? X(t0) : (i === 0 ? L : (i === nl - 1 ? W - R : X(t)))) + '" y="' + (H - 8) + '" text-anchor="' + (nl > 1 && i === nl - 1 ? 'end' : (nl > 1 && i === 0 ? 'start' : 'middle')) + '" font-size="10" style="fill:var(--gris-texte)">' + fmt(t) + '</text>'; }
+  series.filter(se => !evalEvo.hide[se.k]).forEach(se => {
+    const wide = se.k === 'GEN' || crit; let seg = [];
+    const flush = () => { if (seg.length > 1) svg += '<polyline points="' + seg.join(' ') + '" fill="none" style="stroke:' + se.col + '" stroke-width="' + (wide ? 3 : 2) + '" stroke-linejoin="round"/>'; seg = []; };
+    pts.forEach(pt => { const v = pt.v[se.k]; if (v === null || v === undefined) { flush(); return; } seg.push(X(pt.t).toFixed(1) + ',' + Y(v).toFixed(1)); });
+    flush();
+    pts.forEach(pt => { const v = pt.v[se.k]; if (v === null || v === undefined) return; svg += '<circle cx="' + X(pt.t).toFixed(1) + '" cy="' + Y(v).toFixed(1) + '" r="' + (wide ? 4 : 3) + '" style="fill:' + se.col + '"><title>' + se.lab + ' · ' + fmt(pt.t) + ' : ' + v.toFixed(1) + '</title></circle>'; });
+  });
+  h += svg + '</svg>';
+  // tableau : une ligne par jour de saisie (le plus récent en haut)
+  const cols = crit ? [{ k: 'c:' + crit, lab: crit }] : EVAL_EVO_SERIES;
+  const cell = v => v === null || v === undefined ? '<span style="color:var(--gris-texte)">—</span>' : v.toFixed(1);
+  h += '<div style="overflow-x:auto;margin-top:10px;"><table style="width:100%;border-collapse:collapse;font-size:11px;"><tr style="color:var(--gris-texte);text-align:center;"><th style="text-align:left;padding:4px;">Date</th>' + cols.map(c => '<th style="padding:4px;">' + c.lab + '</th>').join('') + '<th style="text-align:left;padding:4px;">Changements</th></tr>' +
+    pts.slice().reverse().map(pt => '<tr style="border-top:1px solid rgba(255,255,255,.08);text-align:center;"><td style="text-align:left;padding:5px 4px;white-space:nowrap;">' + fmt(pt.t) + '</td>' + cols.map(c => '<td style="padding:5px 4px;">' + cell(pt.v[c.k]) + '</td>').join('') +
+      '<td style="text-align:left;padding:5px 4px;color:var(--gris-clair);">' + pt.changes.filter(c => !crit || c.c === crit).map(c => c.c + ' ' + (c.from === null ? '·' : c.from.toFixed(c.from % 1 ? 1 : 0)) + '→' + (c.to === null ? 'effacée' : c.to.toFixed(c.to % 1 ? 1 : 0))).join(' · ') + '</td></tr>').join('') + '</table></div>' +
+    '<div style="font-size:10px;color:var(--gris-texte);margin-top:6px;line-height:1.4;">Chaque point = la dernière note de chaque critère à la fin de la journée, moyennée par domaine. « Général » = moyenne des 5 prérequis. Les notes d\'avant le 18/11 n\'ont qu\'une date (la dernière modification) : l\'historique détaillé se construit à partir de maintenant.</div>';
+  return h;
 }
 
 function evaluationsRenderAverages() {
@@ -655,6 +745,7 @@ async function evaluationsSetScore(compCode, score) {
       });
       if (!res.ok) throw new Error('save failed');
     }
+    delete evalHist[evalCurrentPlayer];
     if (msgEl) {
       msgEl.style.color = '#2ecc71';
       msgEl.textContent = 'Enregistré ✓';
