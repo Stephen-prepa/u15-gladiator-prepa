@@ -231,3 +231,27 @@ export function fieldsOf(r: any): Record<string, string> {
   if (r && typeof r === "object") for (const k of Object.keys(r)) { const v = r[k]; o[k] = v === null ? "null" : typeof v === "object" ? "{" + Object.keys(v).slice(0, 8).join(",") + "}" : String(v).slice(0, 40); }
   return o;
 }
+
+// z65b : la salle n'est pas dans la liste de la poule mais sur la page « détail du match » (onglet Salle) : on cherche dans tous les composants de cette page.
+export function deepVenue(root: any): string | null {
+  let found: string | null = null;
+  const walk = (v: any, d: number) => {
+    if (found || v === null || typeof v !== "object" || d > 7) return;
+    const s = venueOf(v);
+    if (s) { found = s; return; }
+    for (const k of Object.keys(v)) walk(v[k], d + 1);
+  };
+  walk(root, 0);
+  return found;
+}
+// Chemins des champs « salle / adresse… » trouvés dans une page (pour comprendre le format dans le journal)
+export function venuePaths(root: any): string[] {
+  const out: string[] = [];
+  const walk = (v: any, p: string, d: number) => {
+    if (v === null || v === undefined || d > 8 || out.length >= 14) return;
+    if (typeof v === "string") { if (VENUE_KEY.test(p) && v.trim()) out.push(p + "=" + v.trim().slice(0, 80)); return; }
+    if (typeof v === "object") for (const k of Object.keys(v)) walk(v[k], p + "." + k, d + 1);
+  };
+  walk(root, "", 0);
+  return out;
+}

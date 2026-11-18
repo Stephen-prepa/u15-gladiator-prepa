@@ -5,10 +5,10 @@
 //       Sources « role = analyse » (poules où le club ne joue pas) : lues sans chercher notre équipe.
 // z51b : la plateforme coupe une requête qui dépasse ~2 s de TEMPS PROCESSEUR (erreur 546). On découpe donc le travail :
 //        une poule par appel (source_id, feuilles:false), puis les feuilles par petits lots (feuilles_only:true) bornés par le temps de lecture des PDF.
-// z65 : lieu du match (salle / adresse) lu dans la liste des rencontres -> poule_matches.lieu ; les noms de champs reçus sont notés dans le journal (sync_log).
+// z65 : lieu du match (salle / adresse) lu sur la page « détail du match » des prochains matchs de nos équipes -> poule_matches.lieu ; les noms de champs reçus sont notés dans le journal (sync_log).
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { getDocumentProxy } from "npm:unpdf@0.12.1";
-import { UA, KEYWORD, norm, parseComponents, competitionBase, num, fdmUrl, parseTiers, deltas, pickOurId, parseFeuilleJoueurs, venueOf, fieldsOf, type Item, type Feuille } from "./lib.ts";
+import { UA, KEYWORD, norm, parseComponents, competitionBase, num, fdmUrl, parseTiers, deltas, pickOurId, parseFeuilleJoueurs, venueOf, fieldsOf, deepVenue, venuePaths, type Item, type Feuille } from "./lib.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -68,7 +68,7 @@ type Opt = { source_id?: string; feuilles?: boolean; feuillesOnly?: boolean };
 
 async function syncAll(only: number | null, refaireJoueurs = false, opt: Opt = {}) {
   const t0 = Date.now();
-  const rep = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, lieux: 0, champs: null as Record<string, string> | null, conflits: [] as string[], non_rapproches: [] as string[], erreurs: [] as string[] };
+  const rep = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, lieux: 0, salle_log: [] as string[], champs: null as Record<string, string> | null, conflits: [] as string[], non_rapproches: [] as string[], erreurs: [] as string[] };
   let q = admin.from("ffhb_sources").select("*").eq("active", true);
   if (only) q = q.eq("equipe", only);
   if (opt.source_id) q = q.eq("id", opt.source_id);
@@ -107,21 +107,43 @@ async function syncAll(only: number | null, refaireJoueurs = false, opt: Opt = {
       // Matchs de toute la poule (classement). Les tiers-temps déjà lus sont conservés (colonnes non envoyées).
       const pm = all.map((r: any) => {
         const played = num(r.equipe1Score) !== null && num(r.equipe2Score) !== null;
-        const lieu = venueOf(r);
-        if (lieu) rep.lieux++;
         return {
           source_id: src.id, ext_rencontre_id: String(r.ext_rencontreId), match_date: r.date || null,
           journee_num: num(r.journeeNumero), phase, poule: poule.libelle || "",
           team1: r.equipe1Libelle, team2: r.equipe2Libelle, ext_team1: String(r.equipe1Id), ext_team2: String(r.equipe2Id),
           score1: played ? num(r.equipe1Score) : null, score2: played ? num(r.equipe2Score) : null,
           ht1: played ? num(r.equipe1ScoreMT) : null, ht2: played ? num(r.equipe2ScoreMT) : null,
-          fdm_code: r.fdmCode || null, lieu, updated_at: new Date().toISOString(),
+          fdm_code: r.fdmCode || null, updated_at: new Date().toISOString(),
         };
       });
       if (pm.length) {
         const { error } = await admin.from("poule_matches").upsert(pm, { onConflict: "source_id,ext_rencontre_id" });
         if (error) rep.erreurs.push("poule : " + error.message);
       }
+
+      // Lieu : lu dans la liste si présent ; sinon sur la page « détail du match » (onglet Salle) des 3 prochains matchs de NOS équipes
+      try {
+        const lieuOf = new Map<string, string>();
+        for (const r of all) { const v = venueOf(r); if (v) lieuOf.set(String(r.ext_rencontreId), v); }
+        if (src.role !== "analyse" && pId) {
+          const kw0 = norm(KEYWORD);
+          const next = all.filter((r: any) => num(r.equipe1Score) === null && r.date && (norm(r.equipe1Libelle).includes(kw0) || norm(r.equipe2Libelle).includes(kw0)))
+            .sort((a: any, b: any) => Date.parse(a.date) - Date.parse(b.date)).slice(0, 3);
+          for (const r of next) {
+            if (Date.now() - t0 > DEADLINE_MS) break;
+            try {
+              const cc = await fetchComponents(`${base}poule-${pId}/rencontre-${r.ext_rencontreId}/`);
+              if (!rep.salle_log.length) rep.salle_log.push("composants: " + Object.keys(cc).join(", "), ...venuePaths(cc));
+              const v = deepVenue(cc);
+              if (v) lieuOf.set(String(r.ext_rencontreId), v);
+            } catch (e) { rep.erreurs.push(`salle ${r.ext_rencontreId} : ${(e as Error).message}`); }
+          }
+        }
+        for (const [rid0, v] of lieuOf) {
+          const { error: e2 } = await admin.from("poule_matches").update({ lieu: v }).eq("source_id", src.id).eq("ext_rencontre_id", rid0);
+          if (!e2) rep.lieux++;
+        }
+      } catch (e) { rep.erreurs.push("lieu : " + (e as Error).message); }
 
       // Nos matchs : rapprochement avec le calendrier de l'appli, puis remplissage des CASES VIDES seulement (pas pour les poules de suivi)
       const isAnalyse = src.role === "analyse";
