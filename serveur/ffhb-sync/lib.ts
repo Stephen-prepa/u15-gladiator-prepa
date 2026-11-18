@@ -222,7 +222,9 @@ export function venueOf(r: any): string | null {
     else if (typeof v === "object") for (const k of Object.keys(v)) if (typeof v[k] === "string" || typeof v[k] === "object") add(v[k], depth + 1);
   };
   for (const k of Object.keys(r)) if (VENUE_KEY.test(k) && !/id$/i.test(k)) add(r[k]);
-  const s = parts.join(", ").slice(0, 300);
+  // Nettoyage : on retire numéros internes (ex. 7097, 240), coordonnées GPS et clé Maps de la FFHB ; on garde le code postal (5 chiffres)
+  const keep = parts.map((p) => p.trim()).filter((p) => p && !/^-?\d+\.\d+$/.test(p) && !/^AIza/i.test(p) && !(/^\d+$/.test(p) && !/^\d{5}$/.test(p)));
+  const s = keep.join(", ").toLowerCase().replace(/(^|[\s,-])([a-zà-ÿ])/g, (_m, a1, b1) => a1 + b1.toUpperCase()).replace(/(\d{5}), /g, "$1 ").slice(0, 300);
   return s || null;
 }
 // Noms des champs d'une rencontre (pour comprendre ce que la FFHB envoie) : clé -> type / début de valeur
@@ -249,7 +251,7 @@ export function venuePaths(root: any): string[] {
   const out: string[] = [];
   const walk = (v: any, p: string, d: number) => {
     if (v === null || v === undefined || d > 8 || out.length >= 14) return;
-    if (typeof v === "string") { if (VENUE_KEY.test(p) && v.trim()) out.push(p + "=" + v.trim().slice(0, 80)); return; }
+    if (typeof v === "string") { if (VENUE_KEY.test(p) && v.trim() && !/^AIza/i.test(v.trim())) out.push(p + "=" + v.trim().slice(0, 80)); return; }
     if (typeof v === "object") for (const k of Object.keys(v)) walk(v[k], p + "." + k, d + 1);
   };
   walk(root, "", 0);
