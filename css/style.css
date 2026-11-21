@@ -1617,3 +1617,7 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
 /* z63 — pastille « notes en attente » sur l'onglet Évals */
 .cs-tab{position:relative;}
 .cs-tab-dot{position:absolute;top:2px;right:8px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--jaune);color:var(--noir);font-size:10px;font-weight:800;line-height:16px;text-align:center;}
+
+/* z66 — liens vidéo Rematch (Analyse) */
+.an-vids{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0;font-size:12px;}
+.an-vid{display:inline-block;padding:4px 9px;border-radius:8px;background:var(--bleu);color:var(--blanc);font-weight:800;font-size:11px;text-decoration:none;}

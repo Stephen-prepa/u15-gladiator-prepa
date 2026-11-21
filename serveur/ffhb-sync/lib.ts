@@ -257,3 +257,20 @@ export function venuePaths(root: any): string[] {
   walk(root, "", 0);
   return out;
 }
+
+// z66 : vidéo Rematch d'un match. Elle n'est pas dans la liste de la poule mais sur la page « détail du match » ; on cherche son adresse dans tout le code de la page
+// (texte, attributs JSON échappés). On préfère un lien Rematch ; les liens de réseaux sociaux du pied de page (chaînes YouTube) ne sont pas pris.
+export function videoOf(html: string): string | null {
+  const h = String(html || "").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/\\u002F/gi, "/").replace(/\\\//g, "/");
+  const found = h.match(/https?:\/\/[^"'\\\s<>)]*(?:rematch|youtube\.com\/(?:embed|watch)|youtu\.be|vimeo\.com\/\d|dailymotion\.com\/video)[^"'\\\s<>)]*/gi) || [];
+  return found.find((u) => /rematch/i.test(u)) || found[0] || null;
+}
+// Pour comprendre où la FFHB met la vidéo quand rien n'est trouvé : quelques extraits autour des mots rematch / video / iframe
+export function videoHints(html: string): string[] {
+  const h = String(html || "").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+  const out: string[] = [];
+  const re = /.{0,50}(?:rematch|video|iframe).{0,50}/gi;
+  let m;
+  while ((m = re.exec(h)) && out.length < 4) out.push(m[0].replace(/\s+/g, " ").slice(0, 110));
+  return out;
+}

@@ -5,10 +5,11 @@
 //       Sources « role = analyse » (poules où le club ne joue pas) : lues sans chercher notre équipe.
 // z51b : la plateforme coupe une requête qui dépasse ~2 s de TEMPS PROCESSEUR (erreur 546). On découpe donc le travail :
 //        une poule par appel (source_id, feuilles:false), puis les feuilles par petits lots (feuilles_only:true) bornés par le temps de lecture des PDF.
+// z66 : liens vidéo Rematch -> poule_matches.video_url (matchs joués des prochains adversaires).
 // z65 : lieu du match (salle / adresse) lu sur la page « détail du match » des prochains matchs de nos équipes -> poule_matches.lieu ; les noms de champs reçus sont notés dans le journal (sync_log).
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { getDocumentProxy } from "npm:unpdf@0.12.1";
-import { UA, KEYWORD, norm, parseComponents, competitionBase, num, fdmUrl, parseTiers, deltas, pickOurId, parseFeuilleJoueurs, venueOf, fieldsOf, deepVenue, venuePaths, type Item, type Feuille } from "./lib.ts";
+import { UA, KEYWORD, norm, parseComponents, competitionBase, num, fdmUrl, parseTiers, deltas, pickOurId, parseFeuilleJoueurs, venueOf, fieldsOf, deepVenue, venuePaths, videoOf, videoHints, type Item, type Feuille } from "./lib.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -68,7 +69,7 @@ type Opt = { source_id?: string; feuilles?: boolean; feuillesOnly?: boolean };
 
 async function syncAll(only: number | null, refaireJoueurs = false, opt: Opt = {}) {
   const t0 = Date.now();
-  const rep = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, lieux: 0, salle_log: [] as string[], champs: null as Record<string, string> | null, conflits: [] as string[], non_rapproches: [] as string[], erreurs: [] as string[] };
+  const rep = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, lieux: 0, videos: 0, video_log: [] as string[], salle_log: [] as string[], champs: null as Record<string, string> | null, conflits: [] as string[], non_rapproches: [] as string[], erreurs: [] as string[] };
   let q = admin.from("ffhb_sources").select("*").eq("active", true);
   if (only) q = q.eq("equipe", only);
   if (opt.source_id) q = q.eq("id", opt.source_id);
@@ -76,6 +77,7 @@ async function syncAll(only: number | null, refaireJoueurs = false, opt: Opt = {
   const { data: ours } = await admin.from("matches")
     .select("id,equipe,titre,debut,score_nous,score_eux,score_periodes,url_ffhb,ext_rencontre_id,mi_temps,tiers_done");
   const rows: any[] = ours || [];
+  const oppWords = new Set<string>();   // mots-clés des prochains adversaires (z66 : vidéos)
 
   for (const src of (opt.feuillesOnly ? [] : (sources || []))) {
     if (Date.now() - t0 > DEADLINE_MS) { rep.erreurs.push("Temps dépassé : relance « Mettre à jour »."); break; }
@@ -129,6 +131,10 @@ async function syncAll(only: number | null, refaireJoueurs = false, opt: Opt = {
           const kw0 = norm(KEYWORD);
           const next = all.filter((r: any) => num(r.equipe1Score) === null && r.date && (norm(r.equipe1Libelle).includes(kw0) || norm(r.equipe2Libelle).includes(kw0)))
             .sort((a: any, b: any) => Date.parse(a.date) - Date.parse(b.date)).slice(0, 3);
+          for (const r of next.slice(0, 2)) {
+            const o = norm(norm(r.equipe1Libelle).includes(kw0) ? r.equipe2Libelle : r.equipe1Libelle).split(" ")[0];
+            if (o && o.length >= 5) oppWords.add(o);
+          }
           for (const r of next) {
             if (Date.now() - t0 > DEADLINE_MS) break;
             try {
@@ -197,6 +203,32 @@ async function syncAll(only: number | null, refaireJoueurs = false, opt: Opt = {
       await admin.from("ffhb_sources").update({ last_sync_at: new Date().toISOString(), last_sync_status: (e as Error).message.slice(0, 200) }).eq("id", src.id);
     }
   }
+
+  // z66 : vidéos Rematch des matchs déjà joués de nos prochains adversaires (lien lu sur la page « détail du match »). 4 pages par passage ; re-contrôle après 2 jours si rien trouvé.
+  if (!opt.feuillesOnly && oppWords.size) try {
+    const { data: allSrc } = await admin.from("ffhb_sources").select("id,url").eq("active", true);
+    const urlOf = new Map<string, string>((allSrc || []).map((s: any) => [s.id, s.url]));
+    const orF = [...oppWords].map((w) => `team1.ilike.*${w}*,team2.ilike.*${w}*`).join(",");
+    const { data: vm } = await admin.from("poule_matches").select("source_id,ext_rencontre_id,match_date,video_checked_at")
+      .not("score1", "is", null).is("video_url", null).or(orF).order("match_date", { ascending: false }).limit(40);
+    const cutoff = Date.now() - 2 * 24 * 3600 * 1000;
+    const todoV = (vm || []).filter((m: any) => !m.video_checked_at || Date.parse(m.video_checked_at) < cutoff).slice(0, 4);
+    for (const m of todoV) {
+      if (Date.now() - t0 > DEADLINE_MS) break;
+      let v: string | null = null;
+      try {
+        const u = String(urlOf.get(m.source_id) || ""), seg = (u.match(/poule-\d+/) || [])[0];
+        if (!u || !seg) throw new Error("poule inconnue");
+        const r = await fetch(`${competitionBase(u)}${seg}/rencontre-${m.ext_rencontre_id}/`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(20000) });
+        if (!r.ok) throw new Error(`FFHB ${r.status}`);
+        const html = await r.text();
+        v = videoOf(html);
+        if (!v && !rep.video_log.length) rep.video_log.push(...videoHints(html));
+      } catch (e) { rep.erreurs.push(`vidéo ${m.ext_rencontre_id} : ${(e as Error).message}`); }
+      await admin.from("poule_matches").update({ video_url: v, video_checked_at: new Date().toISOString() }).eq("source_id", m.source_id).eq("ext_rencontre_id", m.ext_rencontre_id);
+      if (v) rep.videos++;
+    }
+  } catch (e) { rep.erreurs.push("vidéos : " + (e as Error).message); }
 
   // Feuilles de match (nos matchs d'abord) : tiers-temps de toute la poule + stats des joueurs des DEUX équipes.
   // Le lot s'arrête quand le temps de lecture des PDF dépasse CPU_BUDGET_MS (la 1re feuille est toujours lue).

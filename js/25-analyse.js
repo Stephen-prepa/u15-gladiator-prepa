@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z60 (17/11/2026)
+// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z66 (21/11/2026)
 // ===================== ANALYSE (carte « 🔬 Analyse » de l'accueil, visible seulement pour le coach qui l'a activée) =====================
 // Écran réservé aux coachs : poules de SUIVI (équipes qu'on rencontrera en phase 2 mais qu'on ne connaît que par leur phase 1),
 // leurs classements, et — dans les versions suivantes — probabilités de victoire et fiches des joueurs adverses.
@@ -123,7 +123,7 @@ function anBuild(d) {
     var id = String(p.ext_rencontre_id); if (seen[id]) return; seen[id] = true;
     var fo = p.forfait === 1 || p.forfait === 2, pl = anPlayedRow(p) && !fo;
     var tiers = p.t1_1 === null || p.t1_1 === undefined ? null : [[p.t1_1, p.t1_2], [p.t2_1, p.t2_2], [p.t3_1, p.t3_2]];
-    var base = { rid: id, src: s, j: p.journee_num, date: p.match_date, fdm: p.fdm_code, played: pl, forfait: fo, scored: anPlayedRow(p) };
+    var base = { rid: id, src: s, j: p.journee_num, date: p.match_date, fdm: p.fdm_code, video: p.video_url || '', played: pl, forfait: fo, scored: anPlayedRow(p) };
     var a = T(p.team1), b = T(p.team2);
     a.ms.push(Object.assign({}, base, { opp: p.team2, oppK: anTK(p.team2), home: true, gf: p.score1, ga: p.score2, tiers: tiers ? tiers.map(function (t) { return [t[0], t[1]]; }) : null, ht: p.ht1 !== null && p.ht1 !== undefined ? [p.ht1, p.ht2] : null }));
     b.ms.push(Object.assign({}, base, { opp: p.team1, oppK: anTK(p.team1), home: false, gf: p.score2, ga: p.score1, tiers: tiers ? tiers.map(function (t) { return [t[1], t[0]]; }) : null, ht: p.ht1 !== null && p.ht1 !== undefined ? [p.ht2, p.ht1] : null }));
@@ -444,7 +444,7 @@ function anTabVue(t) {
     anRow('Matchs serrés (≤ 3 buts)', 'b', st.close + ' / ' + st.n) + '</div>';
   var right = '<div class="an-right"><h4>Bilan des matchs lus</h4><div class="an-big"><div><small>Matchs</small><b>' + st.n + '</b><em>' + anRec(st) + '</em></div><div><small>Marqués</small><b>' + Math.round(st.gf * st.n) + '</b><em>' + anF1(st.gf) + ' / match</em></div><div><small>Encaissés</small><b>' + Math.round(st.ga * st.n) + '</b><em>' + anF1(st.ga) + ' / match</em></div></div>' +
     '<h4 class="an-h2">Calendrier restant</h4>' + anRemaining(t) + '<h4 class="an-h2">Comparé aux équipes suivies</h4>' + anBarsCmp(t) + '</div>';
-  return anGauges(t) + '<div class="an-body">' + attaque + defense + profil + right + '</div>' + anWatch(t);
+  return anGauges(t) + anVideos(t) + '<div class="an-body">' + attaque + defense + profil + right + '</div>' + anWatch(t);
 }
 function anNoData(t) {
   return '<div class="an-body" style="grid-template-columns:1fr"><div class="an-col"><div class="an-na" style="padding:14px 0;">Aucun match joué n\'a encore été lu pour cette équipe : elle vient sans doute d\'une poule que tu ne suis pas, ou sa phase 2 n\'a pas commencé. ' +
@@ -501,11 +501,23 @@ function anTabPlayers(t) {
   return '<div class="an-body" style="grid-template-columns:1fr"><div class="an-col"><div class="ms-scroll"><table class="an-mini"><tr><th>N°</th><th class="l">Joueur</th><th>Matchs</th><th>Buts</th><th>/ match</th><th>Tirs</th><th>7 m</th><th>Arrêts</th><th>2 min</th><th>Avert.</th><th>Disq.</th></tr>' + rows + '</table></div>' +
     '<div class="an-na" style="font-size:10px;margin-top:6px;">Cumul des ' + st.games + ' feuille(s) de match lue(s), toutes poules suivies confondues.</div></div></div>';
 }
+// z66 : lien vidéo Rematch d'un match (adresse lue sur la FFHB) — seulement http(s)
+function anVidBtn(m) {
+  if (!m || !m.video || !/^https?:\/\//i.test(m.video)) return '';
+  return ' <a class="an-vid" href="' + msEsc(m.video) + '" target="_blank" rel="noopener">▶ Vidéo</a>';
+}
+function anVideos(t) {
+  var vs = t.ms.filter(function (m) { return m.video && /^https?:\/\//i.test(m.video); }).sort(function (a, b) { return (b.date ? new Date(b.date).getTime() : 0) - (a.date ? new Date(a.date).getTime() : 0); });
+  if (!vs.length) return '';
+  return '<div class="an-vids"><b>🎥 Vidéos de ' + msEsc(t.name) + '</b>' + vs.slice(0, 6).map(function (m) {
+    return '<a class="an-vid" href="' + msEsc(m.video) + '" target="_blank" rel="noopener">▶ ' + (m.date ? msEsc(homeFmtDateShort(m.date)) + ' · ' : '') + (m.home ? 'vs ' : 'à ') + msEsc(m.opp) + (m.scored ? ' (' + m.gf + '–' + m.ga + ')' : '') + '</a>';
+  }).join('') + '</div>';
+}
 function anTabCal(t) {
   var ms = t.ms.slice().sort(function (a, b) { return (a.date ? new Date(a.date).getTime() : 9e15) - (b.date ? new Date(b.date).getTime() : 9e15) || (a.j || 0) - (b.j || 0); });
   var rows = ms.map(function (m) {
     var res = m.scored ? '<b class="an-res ' + (m.gf > m.ga ? 'w' : (m.gf < m.ga ? 'l' : 'n')) + '">' + m.gf + '–' + m.ga + '</b>' + (m.forfait ? ' <span class="ms-fo">PE</span>' : '') : '<span class="an-na">à venir</span>';
-    return '<tr><td>' + (m.j ? 'J' + m.j : '') + '</td><td>' + (m.date ? msEsc(homeFmtDateShort(m.date)) : '<span class="an-na">à confirmer</span>') + '</td><td class="l' + (anIsUs(m.opp) ? ' us' : '') + '">' + (m.home ? 'vs ' : 'à ') + msEsc(m.opp) + '</td><td>' + res + '</td><td class="an-na">' + msEsc((m.src.label || '').replace(/^Suivi — /, '')) + '</td></tr>';
+    return '<tr><td>' + (m.j ? 'J' + m.j : '') + '</td><td>' + (m.date ? msEsc(homeFmtDateShort(m.date)) : '<span class="an-na">à confirmer</span>') + '</td><td class="l' + (anIsUs(m.opp) ? ' us' : '') + '">' + (m.home ? 'vs ' : 'à ') + msEsc(m.opp) + '</td><td>' + res + anVidBtn(m) + '</td><td class="an-na">' + msEsc((m.src.label || '').replace(/^Suivi — /, '')) + '</td></tr>';
   }).join('');
   return '<div class="an-body" style="grid-template-columns:1fr"><div class="an-col"><div class="ms-scroll"><table class="an-mini"><tr><th>J</th><th>Date</th><th class="l">Match</th><th>Score</th><th class="l">Poule</th></tr>' + rows + '</table></div></div></div>';
 }
