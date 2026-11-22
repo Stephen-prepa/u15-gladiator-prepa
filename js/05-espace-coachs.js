@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z67 (22/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z69 (23/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -128,6 +128,40 @@ async function homePouleUpcoming(known) {
   return out;
 }
 
+// z69 : matchs de nos équipes déjà JOUÉS dans les poules FFHB mais absents du calendrier de l'appli (ex. phase 2) -> pastilles de résultats de l'accueil (coach connecté)
+async function homePoulePlayed(known) {
+  const out = [];
+  if (!coachSession || !coachSession.access_token) return out;
+  await ensureCoachSession();
+  if (!coachSession) return out;
+  const H = coachAuthHeaders();
+  const sr = await fetch(SB_URL + '/rest/v1/ffhb_sources?select=id,equipe&active=eq.true&equipe=not.is.null', { headers: H });
+  const srcs = sr.ok ? await sr.json() : [];
+  if (!srcs.length) return out;
+  const eqOf = {}; srcs.forEach(x => { eqOf[x.id] = x.equipe; });
+  const pr = await fetch(SB_URL + '/rest/v1/poule_matches?select=source_id,ext_rencontre_id,journee_num,match_date,team1,team2,score1,score2,t1_1,t1_2,t2_1,t2_2,t3_1,t3_2&score1=not.is.null&match_date=not.is.null&source_id=in.(' + srcs.map(x => x.id).join(',') + ')', { headers: H });
+  const pms = pr.ok ? await pr.json() : [];
+  const seen = {};
+  const mine = (name, eq) => {
+    if (!/CLERMONT\s+SALAGOU/i.test(name || '')) return false;
+    const d = (name || '').match(/(\d)\s*$/);
+    return !d || parseInt(d[1], 10) === eq;
+  };
+  pms.forEach(p => {
+    const rid = String(p.ext_rencontre_id), eq = eqOf[p.source_id];
+    if ((known && known[rid]) || seen[rid]) return;
+    const us1 = mine(p.team1, eq), us2 = mine(p.team2, eq);
+    if (!us1 && !us2) return;
+    seen[rid] = true;
+    let per = null;
+    if (p.t1_1 !== null && p.t1_1 !== undefined && p.t3_2 !== null && p.t3_2 !== undefined) {
+      per = [[p.t1_1, p.t1_2], [p.t2_1, p.t2_2], [p.t3_1, p.t3_2]].map(x => us1 ? { nous: x[0], eux: x[1] } : { nous: x[1], eux: x[0] });
+    }
+    out.push({ id: 'p' + rid, equipe: eq, titre: p.team1 + ' vs ' + p.team2, debut: p.match_date, score_nous: us1 ? p.score1 : p.score2, score_eux: us1 ? p.score2 : p.score1, score_periodes: per });
+  });
+  return out;
+}
+
 async function homeSyncAndLoad() {
   try {
     fetch(FUNCTIONS_URL, { headers: { Authorization: 'Bearer ' + SB_KEY, apikey: SB_KEY } }).catch(() => {});
@@ -191,7 +225,16 @@ async function homeLoadMatches() {
         upcoming.sort((a, b) => new Date(a.debut) - new Date(b.debut));
       } catch (e) { /* le complément n'est qu'indicatif */ }
     }
-    const past = rows.filter(r => new Date(r.debut) < now && (r.score_nous !== null && r.score_nous !== undefined));
+    let playedExtra = [];
+    if (!isFictional && coachSession) {
+      try {
+        const known2 = {}; rows.forEach(r => { if (r.ext_rencontre_id) known2[String(r.ext_rencontre_id)] = true; });
+        playedExtra = await homePoulePlayed(known2);
+        homeMatchesCache = rows.concat(playedExtra);
+      } catch (e) { /* complément indicatif */ }
+    }
+    const past = rows.concat(playedExtra).filter(r => new Date(r.debut) < now && (r.score_nous !== null && r.score_nous !== undefined))
+      .sort((a, b) => new Date(a.debut) - new Date(b.debut));
 
     document.getElementById('home-fictional-notice').style.display = isFictional ? 'block' : 'none';
 
