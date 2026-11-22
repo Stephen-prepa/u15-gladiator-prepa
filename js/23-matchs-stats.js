@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z58 (16/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z67 (22/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -95,8 +95,7 @@ function msTiersOf(m) {
 function msRender() {
   var box = document.getElementById('ms-matchs'), d = msState.data;
   if (!box || !d) return;
-  var html = '<div class="ms-bar"><button class="ms-btn ms-main" id="ms-sync-btn" onclick="msSync()">🔄 Mettre à jour</button><span class="ms-na" id="ms-stamp">' + msStamp(d) + '</span></div>' +
-    '<div id="ms-report"></div>' + '<div class="ms-cols"><div class="ms-c1">' + msMineHtml(d) + '</div><div class="ms-c2">' + msPouleHtml(d) + msSourcesHtml(d) + '</div></div>';
+  var html = '<div class="ms-bar"><span class="ms-na" id="ms-stamp">' + msStamp(d) + '</span><span class="ms-na"> · mise à jour : bouton ↻ de l\'accueil</span></div>' + '<div class="ms-cols"><div class="ms-c1">' + msMineHtml(d) + '</div><div class="ms-c2">' + msPouleHtml(d) + msSourcesHtml(d) + '</div></div>';
   // on garde ouverts les volets <details> déjà ouverts
   var open = {};
   Array.prototype.forEach.call(box.querySelectorAll('details[data-ms]'), function (el) { open[el.getAttribute('data-ms')] = el.open; });
@@ -170,7 +169,7 @@ function msPouleSources(d) {
 }
 function msPouleHtml(d) {
   var srcs = msPouleSources(d);
-  if (!srcs.length) return '<div class="ms-h">Poule</div><div class="ms-info">Pas encore de données de poule : appuie sur « Mettre à jour ».</div>';
+  if (!srcs.length) return '<div class="ms-h">Poule</div><div class="ms-info">Pas encore de données de poule : appuie sur ↻ (page d\'accueil).</div>';
   if (!msState.src || !srcs.some(function (s) { return s.id === msState.src; })) { msState.src = srcs[srcs.length - 1].id; msState.j = null; }
   var pm = d.poule.filter(function (p) { return p.source_id === msState.src; });
   var js = []; pm.forEach(function (p) { if (p.journee_num !== null && js.indexOf(p.journee_num) === -1) js.push(p.journee_num); });
@@ -288,7 +287,7 @@ async function msSrcAdd() {
       body: JSON.stringify({ equipe: eq, url: url, label: label || ((p.phase ? p.phase + ' — ' : '') + p.poule) }),
     });
     if (!res.ok) throw new Error(res.status === 409 ? 'Ce lien existe déjà pour cette équipe.' : 'Enregistrement impossible.');
-    msg.style.color = 'var(--vert)'; msg.textContent = '✓ Lien ajouté (' + (p.equipes_du_club.join(', ')) + '). Appuie sur « Mettre à jour ».';
+    msg.style.color = 'var(--vert)'; msg.textContent = '✓ Lien ajouté (' + (p.equipes_du_club.join(', ')) + '). Appuie sur ↻ (page d\'accueil).';
     document.getElementById('ms-add-url').value = '';
     await msLoad();
   } catch (e) { msg.style.color = '#e74c3c'; msg.textContent = e.message || 'Erreur.'; }
@@ -319,20 +318,16 @@ async function msBaremeSave() {
 }
 
 // ----- Mise à jour depuis la FFHandball (fonction serveur ffhb-sync) -----
-async function msSync(pref) {
+async function msSync() {
   if (msState.busy) return;
   msState.busy = true;
-  pref = pref || '';
-  var ids = pref === 'an' ? ['an-sync-btn', 'an-report'] : (pref ? ['ms-jsync-btn', 'ms-jreport'] : ['ms-sync-btn', 'ms-report']);
-  var btn = document.getElementById(ids[0]), rep = document.getElementById(ids[1]);
-  var setProg = function (txt) { if (pref === 'an') { if (btn) btn.textContent = '⏳'; if (rep) rep.innerHTML = '<div class="ms-info">' + msEsc(txt) + '</div>'; } else if (btn) btn.textContent = txt; };
-  if (btn) btn.disabled = true;
-  setProg('⏳ Mise à jour en cours (jusqu\'à 1–2 min)…');
-  if (rep) rep.innerHTML = '';
-  var html = '';
+  // z67 : la mise à jour tourne en tâche de fond (module global) ; la pastille ⏳ reste visible sur toutes les pages
+  var setProg = function (txt) { syncPill(txt, 'run'); };
+  setProg('⏳ Mise à jour…');
+  var html = '', ok = true;
   try {
     // z51b : la plateforme coupe un appel trop gourmand (erreur 546) : on lit UNE poule par appel, puis les feuilles par petits lots, tout seul
-    // z58 : UN seul bouton qui fait tout — nos deux poules de phase 2 ET les poules de suivi (on relit la liste complète)
+    // z58 : nos deux poules de phase 2 ET les poules de suivi (on relit la liste complète)
     var allRes = await fetch(SB_URL + '/rest/v1/ffhb_sources?select=*&order=created_at.asc', { headers: coachAuthHeaders() });
     var srcs = (allRes.ok ? await allRes.json() : ((msState.data && msState.data.sources) || [])).filter(function (x) { return x.active; });
     var r = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, conflits: [], non_rapproches: [], erreurs: [] };
@@ -341,7 +336,7 @@ async function msSync(pref) {
       ['conflits', 'non_rapproches', 'erreurs'].forEach(function (k) { (x[k] || []).forEach(function (v) { if (r[k].indexOf(v) < 0) r[k].push(v); }); });
     };
     for (var i = 0; i < srcs.length; i++) {
-      setProg('⏳ Lecture des poules… ' + (i + 1) + '/' + srcs.length + ' (ne ferme pas la page)');
+      setProg('⏳ Poules ' + (i + 1) + '/' + srcs.length);
       addRep(await msCall({ mode: 'sync', source_id: srcs[i].id, feuilles: false }));
     }
     // feuilles : nos deux équipes d'abord, puis les poules de suivi (equipe = null)
@@ -353,25 +348,48 @@ async function msSync(pref) {
         addRep(x); pass++;
         still = (x.joueurs_lus || 0) + (x.tiers_lus || 0) > 0 ? 0 : still + 1;
         r.feuilles_restantes = x.feuilles_restantes || 0;
-        if (r.feuilles_restantes > 0) setProg('⏳ Lecture des feuilles… encore ' + r.feuilles_restantes + ' (ne ferme pas la page)');
+        if (r.feuilles_restantes > 0) setProg('⏳ Feuilles : encore ' + r.feuilles_restantes);
       } while (r.feuilles_restantes > 0 && pass < 150 && still < 2);
     }
     var line = r.sources + ' lien(s) lu(s) · ' + r.rencontres + ' rencontre(s) · ' + r.joues + ' de nos matchs joués · ' + r.mis_a_jour + ' mis à jour · ' + r.tiers_lus + ' feuille(s) lue(s) pour les tiers-temps · ' + (r.joueurs_lus || 0) + ' feuille(s) lue(s) pour les stats joueurs';
     html = '<div class="ms-ok">✓ ' + msEsc(line) + '</div>';
-    if (r.feuilles_restantes) html += '<div class="ms-note">Il reste ' + r.feuilles_restantes + ' feuille(s) de match à lire : relance « Mettre à jour » pour continuer.</div>';
+    if (r.feuilles_restantes) html += '<div class="ms-note">Il reste ' + r.feuilles_restantes + ' feuille(s) de match à lire : relance la mise à jour (↻ sur l\'accueil) pour continuer.</div>';
     if (r.conflits && r.conflits.length) html += '<div class="ms-note"><b>Scores différents de la FFHandball (je n\'ai rien modifié) :</b><br>' + r.conflits.map(msEsc).join('<br>') + '</div>';
     if (r.non_rapproches && r.non_rapproches.length) html += '<div class="ms-note"><b>Matchs FFHandball absents du calendrier de l\'appli :</b><br>' + r.non_rapproches.map(msEsc).join('<br>') + '</div>';
     if (r.erreurs && r.erreurs.length) html += '<div class="ms-err"><b>À vérifier :</b><br>' + r.erreurs.map(msEsc).join('<br>') + '</div>';
   } catch (e) {
+    ok = false;
     html = '<div class="ms-err">Mise à jour impossible : ' + msEsc(e.message || 'erreur') + '</div>';
   }
   msState.busy = false;
-  if (btn) { btn.disabled = false; btn.textContent = pref === 'an' ? '🔄' : (pref ? '🔄 Mettre à jour les stats des joueurs' : '🔄 Mettre à jour'); }
-  await msLoad();
-  await msJLoad();
-  if (typeof anLoad === 'function' && typeof anState !== 'undefined' && anState.data) await anLoad();
-  var rep2 = document.getElementById(ids[1]); if (rep2) rep2.innerHTML = html;
+  msState.lastReport = html;
+  if (ok) { try { localStorage.setItem('u15_lastSync', String(Date.now())); } catch (e) {} }
+  try { await msLoad(); await msJLoad(); if (typeof anLoad === 'function' && typeof anState !== 'undefined' && anState.data) await anLoad(); } catch (e) {}
   if (typeof homeLoadMatches === 'function') homeLoadMatches();
+  var bad = !ok || html.indexOf('ms-err') >= 0;
+  syncPill(bad ? '⚠ Mise à jour : à vérifier' : '✓ Données à jour', bad ? 'err' : 'ok', bad ? 0 : 5000);
+}
+
+// ----- z67 : pastille de mise à jour (visible sur toutes les pages) + compte rendu -----
+var syncPillTimer = null;
+function syncPill(txt, kind, hideAfter) {
+  var el = document.getElementById('sync-pill');
+  if (!el) return;
+  if (syncPillTimer) { clearTimeout(syncPillTimer); syncPillTimer = null; }
+  el.textContent = txt; el.className = 'sync-pill ' + (kind || 'run'); el.style.display = 'block';
+  if (hideAfter) syncPillTimer = setTimeout(function () { el.style.display = 'none'; }, hideAfter);
+}
+function syncPillTap() {
+  var box = document.getElementById('sync-modal'), body = document.getElementById('sync-modal-body');
+  if (!box || !body) return;
+  body.innerHTML = msState.busy
+    ? '<div class="ms-info">⏳ Mise à jour en cours. Tu peux changer de page : elle continue. Ne ferme pas l\'appli avant la fin (1 à 2 minutes).</div>'
+    : (msState.lastReport || '<div class="ms-info">Rien à afficher.</div>');
+  box.style.display = 'flex';
+}
+function syncModalClose() {
+  var box = document.getElementById('sync-modal'); if (box) box.style.display = 'none';
+  if (!msState.busy) { var el = document.getElementById('sync-pill'); if (el && el.classList.contains('err')) el.style.display = 'none'; }
 }
 
 // ===================== STATS DES JOUEURS depuis les feuilles de match (z40) =====================
@@ -427,7 +445,7 @@ function msJRender() {
     return '<button class="ms-chip' + (msState.jeq === c[0] ? ' on' : '') + '" onclick="msJSetEq(\'' + c[0] + '\')">' + c[1] + '</button>';
   }).join('');
   var head = '<div class="ms-h">🏐 Stats des matchs (feuilles FFHandball) <span class="ms-chips">' + eqChips + '</span></div>' +
-    '<div class="ms-bar"><button class="ms-btn ms-main" id="ms-jsync-btn" onclick="msSync(\'j\')">🔄 Mettre à jour les stats des joueurs</button></div><div id="ms-jreport"></div>';
+    '<div class="ms-info">Mise à jour : bouton ↻ de l\'accueil.</div>';
 
   // joueurs de la feuille pas encore reliés à une fiche de l'appli
   var todo = d.joueurs.filter(function (j) { return !j.player_code; });
@@ -585,7 +603,7 @@ function msJRender() {
   var tLeft = any ? leaders + ctrl + '<h4 class="mj-h">Joueurs de champ</h4>' + (field.length ? fh : '<div class="ms-info">Aucun joueur de champ.</div>') : '';
   var table = any ? (gks.length ? gkTitle + gh : '') +
       '<div class="ms-legend">Touche un joueur pour le détail match par match. Tirs = total des tirs, buts compris (manqués = tirs − buts). AV = avertissement, 2′ = exclusion de 2 min, DQ = disqualification. % d\'arrêts équipe = arrêts ÷ (arrêts + buts encaissés). Pour un gardien, « ≈ » = calculé sur les matchs où il est le seul à avoir des arrêts (la feuille ne dit pas qui était dans le but à chaque but). « feuilles » = feuilles où le joueur est inscrit, pas forcément entré en jeu.</div>'
-    : '<div class="ms-info">Aucune stat de joueur pour l\'instant : appuie sur « Mettre à jour les stats des joueurs ».</div>';
+    : '<div class="ms-info">Aucune stat de joueur pour l\'instant : appuie sur ↻ (page d\'accueil).</div>';
 
   // actions non classées (à vérifier)
   var odd = [];

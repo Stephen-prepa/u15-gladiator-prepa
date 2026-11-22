@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z65 (18/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z67 (22/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -133,16 +133,36 @@ async function homeSyncAndLoad() {
     fetch(FUNCTIONS_URL, { headers: { Authorization: 'Bearer ' + SB_KEY, apikey: SB_KEY } }).catch(() => {});
   } catch (e) {}
   homeLoadMatches();
+  homeAutoSync();
 }
 
-async function homeRefreshTap() {
+// z67 : UN seul bouton de mise à jour (↻ de l'accueil) : calendrier (sync-matches) puis, pour un coach, lecture FFHB (ffhb-sync) en tâche de fond
+async function syncAll(auto) {
+  if (typeof msState !== 'undefined' && msState.busy) { if (!auto) syncPillTap(); return; }
   const btn = document.getElementById('home-refresh-btn');
   if (btn) btn.classList.add('spinning');
-  try {
-    await fetch(FUNCTIONS_URL, { headers: { Authorization: 'Bearer ' + SB_KEY, apikey: SB_KEY } });
-  } catch (e) {}
+  try { await fetch(FUNCTIONS_URL, { headers: { Authorization: 'Bearer ' + SB_KEY, apikey: SB_KEY } }); } catch (e) {}
   await homeLoadMatches();
+  if (coachSession && coachSession.access_token) {
+    try { await ensureCoachSession(); } catch (e) {}
+    if (coachSession) {
+      if (btn) setTimeout(() => btn.classList.remove('spinning'), 400);
+      await msSync();   // passe par la pastille ; ne bloque pas la navigation
+      return;
+    }
+  }
   if (btn) setTimeout(() => btn.classList.remove('spinning'), 400);
+}
+function homeRefreshTap() { syncAll(false); }
+// Mise à jour automatique à l'ouverture si la dernière date de plus de 2 h (coach connecté)
+function homeAutoSync() {
+  setTimeout(() => {
+    try {
+      if (!coachSession || !coachSession.access_token) return;
+      let last = 0; try { last = parseInt(localStorage.getItem('u15_lastSync') || '0', 10) || 0; } catch (e) {}
+      if (Date.now() - last > 2 * 3600 * 1000) syncAll(true);
+    } catch (e) {}
+  }, 4000);
 }
 
 let homeMatchesCache = [];

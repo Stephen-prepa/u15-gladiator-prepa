@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z66 (21/11/2026)
+// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z67 (22/11/2026)
 // ===================== ANALYSE (carte « 🔬 Analyse » de l'accueil, visible seulement pour le coach qui l'a activée) =====================
 // Écran réservé aux coachs : poules de SUIVI (équipes qu'on rencontrera en phase 2 mais qu'on ne connaît que par leur phase 1),
 // leurs classements, et — dans les versions suivantes — probabilités de victoire et fiches des joueurs adverses.
@@ -79,7 +79,7 @@ async function anLoad() {
 function anStamp(d) {
   var best = null;
   d.sources.forEach(function (s) { if (s.active && s.last_sync_at && (!best || s.last_sync_at > best)) best = s.last_sync_at; });
-  return best ? 'Données lues le ' + homeFmtDateShort(best).replace(/^[^ ]+ /, '').replace(' · ', ' à ') : 'Données jamais lues : appuie sur « Mettre à jour »';
+  return best ? 'Données lues le ' + homeFmtDateShort(best).replace(/^[^ ]+ /, '').replace(' · ', ' à ') : 'Données jamais lues : appuie sur ↻ (page d\'accueil)';
 }
 function anSuivi() { return anState.data.sources.filter(function (s) { return s.role === 'analyse'; }); }
 
@@ -360,7 +360,6 @@ function anColorCls(name) { var h = 0, i; for (i = 0; i < name.length; i++) h = 
 function anTopHtml(d) {
   return '<div class="an-tools"><span class="an-stamp">' + msEsc(anStamp(d)) + '</span>' +
     '<button class="an-ic" title="Notre équipe : points forts et faibles" onclick="anOpenOur()">📝</button>' +
-    '<button class="an-ic" id="an-sync-btn" title="Mettre à jour les données" onclick="anSync()">🔄</button>' +
     '<button class="an-ic' + (anState.menu ? ' on' : '') + '" title="Autres poules, classements, liens" onclick="anMenu()">⚙️</button></div><div id="an-report"></div>';
 }
 function anEqCards() {
@@ -402,7 +401,7 @@ function anTiles(t) {
 // ----- Fiche équipe -----
 function anTeamView(d) {
   var M = anState.M, k = M.keys[anState.ti];
-  if (!k) return '<div class="ms-info">Aucune équipe lue pour l\'instant : ouvre ⚙️ puis « Données » ou appuie sur 🔄.</div>';
+  if (!k) return '<div class="ms-info">Aucune équipe lue pour l\'instant : appuie sur ↻ (page d\'accueil) pour lire les poules.</div>';
   var t = M.teams[k], tab = anState.tab || 'vue';
   var tabs = [['vue', 'Vue d\'ensemble'], ['joueurs', 'Joueurs'], ['cal', 'Calendrier'], ['nous', 'Face à nous'], ['notes', 'Notes']];
   var tb = '<div class="an-tabs">' + tabs.map(function (x) { return '<button class="' + (tab === x[0] ? 'on' : '') + '" onclick="anTab(\'' + x[0] + '\')">' + x[1] + '</button>'; }).join('') + '</div>';
@@ -628,7 +627,7 @@ function anPouleHtml(d) {
   var ids = {};
   d.poule.forEach(function (p) { ids[p.source_id] = true; });
   var srcs = d.sources.filter(function (s) { return ids[s.id] && s.active && s.role === 'analyse'; });
-  if (!srcs.length) return '<div class="ms-h">Poules</div><div class="ms-info">Pas encore de données : appuie sur « Mettre à jour ».</div>';
+  if (!srcs.length) return '<div class="ms-h">Poules</div><div class="ms-info">Pas encore de données : appuie sur ↻ (page d\'accueil).</div>';
   if (!anState.src || !srcs.some(function (s) { return s.id === anState.src; })) { anState.src = srcs[0].id; anState.j = null; }
   var pm = d.poule.filter(function (p) { return p.source_id === anState.src; });
   var js = []; pm.forEach(function (p) { if (p.journee_num !== null && js.indexOf(p.journee_num) === -1) js.push(p.journee_num); });
@@ -701,7 +700,7 @@ async function anSrcAdd() {
       body: JSON.stringify({ equipe: null, role: 'analyse', url: url, label: label || ('Suivi — ' + (p.phase ? p.phase + ' — ' : '') + p.poule) }),
     });
     if (!res.ok) throw new Error(res.status === 409 ? 'Ce lien existe déjà.' : 'Enregistrement impossible.');
-    msg.style.color = 'var(--vert)'; msg.textContent = '✓ Poule ajoutée (' + p.nb_matchs_page + ' matchs sur la page). Appuie sur « Mettre à jour les poules de suivi ».';
+    msg.style.color = 'var(--vert)'; msg.textContent = '✓ Poule ajoutée (' + p.nb_matchs_page + ' matchs sur la page). Appuie sur ↻ (page d\'accueil).';
     document.getElementById('an-add-url').value = '';
     await anLoad();
   } catch (e) { msg.style.color = '#e74c3c'; msg.textContent = e.message || 'Erreur.'; }
@@ -717,4 +716,4 @@ async function anSrcDel(id) {
 }
 
 // ---- Mise à jour : une poule par appel, puis les feuilles de match par petits lots ----
-function anSync() { return msSync('an'); } // z58 : un seul bouton « Mettre à jour » (nos poules + poules de suivi + feuilles), défini dans 23-matchs-stats.js
+function anSync() { return syncAll(); } // z58 : un seul bouton « Mettre à jour » (nos poules + poules de suivi + feuilles), défini dans 23-matchs-stats.js

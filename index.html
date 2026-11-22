@@ -21,6 +21,8 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div id="sync-pill" class="sync-pill" style="display:none;" onclick="syncPillTap()"></div>
+<div id="sync-modal" class="sync-modal" style="display:none;" onclick="if(event.target===this)syncModalClose()"><div class="sync-modal-box"><div id="sync-modal-body"></div><button type="button" class="ms-btn" onclick="syncModalClose()">Fermer</button></div></div>
 
 <!-- ECRAN D'ACCUEIL -->
 <div id="screen-home" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px;text-align:center;">
