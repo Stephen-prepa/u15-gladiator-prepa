@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z67 (22/11/2026)
+// Prépa U15 HBCCS — js/23-matchs-stats.js — dernière modification : version z68 (22/11/2026)
 // ===================== MATCHS & STATS (U15 : équipe 1 et équipe 2) =====================
 // Onglet « Matchs & Stats » de l'espace coach : mes matchs (score, mi-temps, tiers-temps, points, feuille de match PDF),
 // classement de poule journée par journée, et gestion des liens FFHandball.
@@ -367,7 +367,10 @@ async function msSync() {
   try { await msLoad(); await msJLoad(); if (typeof anLoad === 'function' && typeof anState !== 'undefined' && anState.data) await anLoad(); } catch (e) {}
   if (typeof homeLoadMatches === 'function') homeLoadMatches();
   var bad = !ok || html.indexOf('ms-err') >= 0;
-  syncPill(bad ? '⚠ Mise à jour : à vérifier' : '✓ Données à jour', bad ? 'err' : 'ok', bad ? 0 : 5000);
+  var d0 = new Date(), hm = ('0' + d0.getHours()).slice(-2) + 'h' + ('0' + d0.getMinutes()).slice(-2);
+  var sl = document.getElementById('home-sync-line');
+  if (sl) { sl.textContent = (bad ? '⚠ Mise à jour de ' : '✓ Mise à jour de ') + hm + ' — touche pour voir le détail'; sl.style.display = 'block'; }
+  syncPill(bad ? '⚠ Mise à jour : à vérifier' : '✓ Données à jour', bad ? 'err' : 'ok', bad ? 0 : 15000);
 }
 
 // ----- z67 : pastille de mise à jour (visible sur toutes les pages) + compte rendu -----
