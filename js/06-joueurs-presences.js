@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z65 (18/11/2026)
+// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z71 (23/11/2026)
 // ===================== GESTION DES CODES JOUEURS =====================
 function codesOpenEditor() {
   const box = document.getElementById('codes-editor');
@@ -363,8 +363,12 @@ function renderCoachs2View() {
 }
 
 // Restrictions d'accès par coach (client-side — cohérent avec le reste de la gestion des rôles dans cette appli).
+// z71 : coachs adjoints (Sandrine, Nicolas) = accès limité : pas d'Évaluations ni de Convocation
+function coachIsRestricted() {
+  return !!(coachSession && (coachSession.name === 'Sandrine' || coachSession.name === 'Nicolas'));
+}
 function applyCoachPermissions() {
-  const restricted = coachSession && coachSession.name === 'Sandrine';
+  const restricted = coachIsRestricted();
   const evalTab = document.getElementById('cs-subtab-evaluations');
   if (evalTab) evalTab.style.display = restricted ? 'none' : '';
   const convocBtn = document.getElementById('convoc-btn');
