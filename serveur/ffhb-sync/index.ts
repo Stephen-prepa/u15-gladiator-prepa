@@ -5,6 +5,7 @@
 //       Sources « role = analyse » (poules où le club ne joue pas) : lues sans chercher notre équipe.
 // z51b : la plateforme coupe une requête qui dépasse ~2 s de TEMPS PROCESSEUR (erreur 546). On découpe donc le travail :
 //        une poule par appel (source_id, feuilles:false), puis les feuilles par petits lots (feuilles_only:true) bornés par le temps de lecture des PDF.
+// z70 : nos matchs de poule absents du calendrier ICS sont créés dans `matches` (phase 2).
 // z66 : liens vidéo Rematch -> poule_matches.video_url (matchs joués des prochains adversaires).
 // z65 : lieu du match (salle / adresse) lu sur la page « détail du match » des prochains matchs de nos équipes -> poule_matches.lieu ; les noms de champs reçus sont notés dans le journal (sync_log).
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
@@ -69,7 +70,7 @@ type Opt = { source_id?: string; feuilles?: boolean; feuillesOnly?: boolean };
 
 async function syncAll(only: number | null, refaireJoueurs = false, opt: Opt = {}) {
   const t0 = Date.now();
-  const rep = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, lieux: 0, videos: 0, video_log: [] as string[], salle_log: [] as string[], champs: null as Record<string, string> | null, conflits: [] as string[], non_rapproches: [] as string[], erreurs: [] as string[] };
+  const rep = { sources: 0, rencontres: 0, joues: 0, mis_a_jour: 0, crees: 0, tiers_lus: 0, joueurs_lus: 0, feuilles_restantes: 0, lieux: 0, videos: 0, video_log: [] as string[], salle_log: [] as string[], champs: null as Record<string, string> | null, conflits: [] as string[], non_rapproches: [] as string[], erreurs: [] as string[] };
   let q = admin.from("ffhb_sources").select("*").eq("active", true);
   if (only) q = q.eq("equipe", only);
   if (opt.source_id) q = q.eq("id", opt.source_id);
@@ -172,6 +173,14 @@ async function syncAll(only: number | null, refaireJoueurs = false, opt: Opt = {
               cands.sort((a, b) => Math.abs(Date.parse(a.debut) - t) - Math.abs(Date.parse(b.debut) - t));
               row = cands[0];
             }
+          }
+          if (!row && r.date && !isNaN(Date.parse(r.date))) {
+            // z70 : match de nos équipes absent du calendrier ICS (phase 2 : D2 et D4 ne sont pas dans les fichiers ICS) -> on le crée, pour que tout le monde le voie
+            const ins = { equipe: src.equipe, titre: `${r.equipe1Libelle} vs ${r.equipe2Libelle}`, debut: new Date(r.date).toISOString(), ics_uid: `ffhb-${rid}`, ext_rencontre_id: rid };
+            const { data: nr, error: ie } = await admin.from("matches").insert(ins)
+              .select("id,equipe,titre,debut,score_nous,score_eux,score_periodes,url_ffhb,ext_rencontre_id,mi_temps,tiers_done").single();
+            if (ie) rep.erreurs.push(`création match ${rid} : ${ie.message}`);
+            else { row = nr; rows.push(nr); rep.crees++; }
           }
           if (!row) { rep.non_rapproches.push(`J${r.journeeNumero ?? "?"} ${r.equipe1Libelle} – ${r.equipe2Libelle}`); continue; }
           const sf = num(home ? r.equipe1Score : r.equipe2Score), sa = num(home ? r.equipe2Score : r.equipe1Score);
