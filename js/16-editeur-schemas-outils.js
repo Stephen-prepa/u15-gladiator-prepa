@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z56 (16/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z73 (24/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -689,26 +689,49 @@ function schEdDup() {
 // ----- Liste d'exercices (démonstration) : nouvel exercice / copie / suppression -----
 function schNewEx(kind, theme, desc) {
   schEnsure();
-  const r = schRec({ id: schUuid(), name: 'Nouvel exercice', kind, theme, desc: desc || '', drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], dirty: true }); schUserEx.push(r); schRebuild();
-  schUserSave(); schUi.ex = schDemo.indexOf(r); schUi.step = 0; schEditorOpen(schUi.ex);
+  const r = schRec({ id: schUuid(), name: 'Nouveau brouillon', kind, theme, desc: desc || '', statut: 'brouillon', drawings: [schNormDrawing({ title: 'Étape 1', view: 'half' })], dirty: true }); schUserEx.push(r); schRebuild();
+  schUserSave(); schUi.draft = true; schUi.ex = schDemo.indexOf(r); schUi.step = 0;
+  schEditorOpen(schUi.ex, ex => { // brouillon resté vide : on ne le garde pas
+    if (ex.statut === 'brouillon' && !ex.deleted && ex.drawings.every(d => !(d.elements || []).length)) { ex.deleted = true; schMarkDirty(ex); schUserSave(); schRebuild(); schUi.ex = 0; schUi.step = 0; try { schRenderDemo(); } catch (e) {} schSyncSoon(300); }
+  });
 }
 // Fenêtre « Nouveau schéma » / « Classer le schéma » : type et thème obligatoires
 let schClsCtx = null;
-function schNewExAsk() { schClassUi('new', null); }
+function schNewExAsk() { schNewEx('', '', ''); }   // z73 : un nouveau schéma naît brouillon (privé) ; il se valide ensuite
 function schClassUi(mode, ex) {
-  schClassClose(); schClsCtx = { mode, ex: ex || null, kind: ex ? ex.kind || '' : '', theme: ex ? ex.theme || '' : '', desc: ex ? ex.desc || '' : '' };
+  schClassClose(); schClsCtx = { mode, ex: ex || null, name: ex ? ex.name || '' : '', kind: ex ? ex.kind || '' : '', theme: ex ? ex.theme || '' : '', desc: ex ? ex.desc || '' : '' };
   const o = document.createElement('div'); o.id = 'sch-cls'; o.className = 'sch-cls'; o.addEventListener('pointerdown', ev => { if (ev.target === o) schClassClose(); });
   document.documentElement.appendChild(o); schClassRender();
 }
+// Nom acceptable pour valider un schéma ('' = bon, sinon le message à afficher)
+function schValName(name, ex) {
+  const n = String(name || '').replace(/\s+/g, ' ').trim();
+  if (!n) return 'Donne un nom au schéma.';
+  if (/^(nouveau brouillon|nouvel exercice|sch[ée]ma|sans nom)$/i.test(n)) return 'Choisis un vrai nom (pas « ' + n + ' »).';
+  if (/\((copie|ma version)\)\s*$/i.test(n)) return 'Retire « (copie) » ou « (ma version) » du nom.';
+  if (schUserEx.some(x => x !== ex && !x.deleted && x.statut !== 'brouillon' && String(x.name).trim().toLowerCase() === n.toLowerCase())) return 'Un schéma validé porte déjà ce nom.';
+  return '';
+}
+function schClassReady() {
+  const st = schClsCtx; if (!st) return;
+  const nameErr = st.mode === 'validate' ? schValName(st.name, st.ex) : '', ready = !!(st.kind && st.theme) && !nameErr;
+  const go = document.getElementById('sch-cls-go'), h = document.getElementById('sch-cls-h');
+  if (go) go.disabled = !ready;
+  if (h) h.textContent = ready ? '' : (nameErr || 'Choisis le type et la sous-catégorie pour continuer.');
+}
 function schClassRender() {
   const o = document.getElementById('sch-cls'), st = schClsCtx; if (!o || !st) return;
-  const chip = (on, fn, lab) => `<button type="button" class="sch-cls-chip${on ? ' on' : ''}" onclick="${fn}">${lab}</button>`, ready = !!(st.kind && st.theme);
-  o.innerHTML = `<div class="sch-cls-card" role="dialog" aria-label="${st.mode === 'new' ? 'Nouveau schéma' : 'Classer le schéma'}"><div class="sch-cls-t">${st.mode === 'new' ? 'Nouveau schéma' : 'Classer le schéma'}</div><div class="sch-cls-s">Ces deux choix servent aux filtres de la bibliothèque.</div>`
-    + `<div class="sch-cls-l">Type de schéma</div><div class="sch-cls-r">${Object.keys(SCH_KINDS).map(k => chip(st.kind === k, `schClassSet('kind','${k}')`, SCH_KINDS[k])).join('')}</div>`
-    + `<div class="sch-cls-l">Thème (par poste)</div><div class="sch-cls-r">${Object.keys(SCH_THEMES).map(k => SCH_CUSTOM[k] ? `<span class="sch-cls-cx">${chip(st.theme === k, `schClassSet('theme','${k}')`, schEsc(SCH_THEMES[k]))}${schThemeUsed(k) ? '' : `<button type="button" class="sch-cls-x" aria-label="Supprimer ce thème" onclick="schThemeDel('${k}')">✕</button>`}</span>` : chip(st.theme === k, `schClassSet('theme','${k}')`, SCH_THEMES[k])).join('')}${st.adding ? '' : chip(false, 'schThemeAdd()', '＋ Nouveau thème')}</div>`
-    + (st.adding ? `<div class="sch-cls-add"><input id="sch-cls-new" class="sch-cls-in" type="text" maxlength="40" placeholder="Nom du thème (ex. Sortie de balle)" onkeydown="if(event.key==='Enter'){event.preventDefault();schThemeAddGo();}"><button type="button" class="sch-cls-ok" onclick="schThemeAddGo()">Ajouter</button></div>` : '')
+  const val = st.mode === 'validate', title = val ? 'Valider le schéma' : st.mode === 'new' ? 'Nouveau schéma' : 'Classer le schéma';
+  const chip = (on, fn, lab) => `<button type="button" class="sch-cls-chip${on ? ' on' : ''}" onclick="${fn}">${lab}</button>`;
+  const kinds = Object.keys(SCH_KINDS).filter(k => k !== 'grand' || st.kind === 'grand');   // « Jeu sur grand espace » : seulement pour les anciens schémas
+  o.innerHTML = `<div class="sch-cls-card" role="dialog" aria-label="${title}"><div class="sch-cls-t">${title}</div><div class="sch-cls-s">${val ? 'Un schéma validé entre dans la bibliothèque commune, visible par tous les coachs.' : 'Ces deux choix servent aux filtres de la bibliothèque.'}</div>`
+    + (val ? `<div class="sch-cls-l">Nom du schéma</div><input id="sch-cls-name" class="sch-cls-in" type="text" maxlength="120" value="${schEsc(st.name || '')}" placeholder="Nom clair, sans « copie »" oninput="if(schClsCtx){schClsCtx.name=this.value;schClassReady();}">` : '')
+    + `<div class="sch-cls-l">Type de schéma</div><div class="sch-cls-r">${kinds.map(k => chip(st.kind === k, `schClassSet('kind','${k}')`, SCH_KINDS[k])).join('')}</div>`
+    + `<div class="sch-cls-l">Sous-catégorie</div><div class="sch-cls-r">${Object.keys(SCH_THEMES).map(k => SCH_CUSTOM[k] ? `<span class="sch-cls-cx">${chip(st.theme === k, `schClassSet('theme','${k}')`, schEsc(SCH_THEMES[k]))}${schThemeUsed(k) ? '' : `<button type="button" class="sch-cls-x" aria-label="Supprimer cette sous-catégorie" onclick="schThemeDel('${k}')">✕</button>`}</span>` : chip(st.theme === k, `schClassSet('theme','${k}')`, SCH_THEMES[k])).join('')}${st.adding ? '' : chip(false, 'schThemeAdd()', '＋ Nouvelle sous-catégorie')}</div>`
+    + (st.adding ? `<div class="sch-cls-add"><input id="sch-cls-new" class="sch-cls-in" type="text" maxlength="40" placeholder="Nom (ex. Sortie de balle)" onkeydown="if(event.key==='Enter'){event.preventDefault();schThemeAddGo();}"><button type="button" class="sch-cls-ok" onclick="schThemeAddGo()">Ajouter</button></div>` : '')
     + `<div class="sch-cls-l">Descriptif (facultatif)</div><textarea class="sch-cls-in sch-cls-ta" rows="4" maxlength="2000" placeholder="Dispositif, consignes, rôle de chacun… Ce texte s'affiche quand tu choisis ce schéma pour un exercice." oninput="if(schClsCtx)schClsCtx.desc=this.value">${schEsc(st.desc || '')}</textarea>`
-    + `<button type="button" class="sch-cls-go" ${ready ? '' : 'disabled'} onclick="schClassGo()">${st.mode === 'new' ? 'Créer le schéma' : 'Enregistrer'}</button>${ready ? '' : '<div class="sch-cls-h">Choisis le type et le thème pour continuer.</div>'}<button type="button" class="sch-cls-c" onclick="schClassClose()">Annuler</button></div>`;
+    + `<button type="button" class="sch-cls-go" id="sch-cls-go" disabled onclick="schClassGo()">${val ? '✅ Valider et ajouter à la bibliothèque' : st.mode === 'new' ? 'Créer le schéma' : 'Enregistrer'}</button><div class="sch-cls-h" id="sch-cls-h"></div><button type="button" class="sch-cls-c" onclick="schClassClose()">Annuler</button></div>`;
+  schClassReady();
 }
 function schThemeUsed(k) { return schUserEx.some(x => !x.deleted && x.theme === k) || schDemo.some(x => x.theme === k) || (schEd && schEd.ex && schEd.ex.theme === k); }
 function schThemeAdd() { if (!schClsCtx) return; schClsCtx.adding = true; schClassRender(); const i = document.getElementById('sch-cls-new'); if (i) i.focus(); }
@@ -727,24 +750,40 @@ function schThemeDel(k) {
   if (schUi.ft === k) schUi.ft = '';
   schClassRender();
 }
-function schClassSet(k, v) { if (schClsCtx) { schClsCtx[k] = v; schClassRender(); } }
+function schClassSet(k, v) { if (schClsCtx) { schClsCtx[k] = v; const i = document.getElementById('sch-cls-name'); if (i) schClsCtx.name = i.value; schClassRender(); } }
 function schClassClose() { const o = document.getElementById('sch-cls'); if (o) o.remove(); schClsCtx = null; }
 function schClassGo() {
-  const st = schClsCtx; if (!st || !st.kind || !st.theme) return; schClassClose();
+  const st = schClsCtx; if (!st || !st.kind || !st.theme) return;
+  if (st.mode === 'validate') {
+    const ex = st.ex; if (!ex || schValName(st.name, ex)) return; schClassClose();
+    ex.name = String(st.name).replace(/\s+/g, ' ').trim().slice(0, 120); ex.kind = st.kind; ex.theme = st.theme; ex.desc = String(st.desc || '').slice(0, 2000); ex.statut = 'valide';
+    if (schEd && schEd.ex === ex) { const nm = schEd.el.querySelector('#sche-name'); if (nm) nm.value = ex.name; schEdTouch(); schEdTagUi(); }
+    else { schMarkDirty(ex); schUserSave(); schSyncSoon(300); schUi.draft = false; schRenderDemo(); }
+    return;
+  }
+  schClassClose();
   if (st.mode === 'new') { schNewEx(st.kind, st.theme, st.desc); return; }
   const ex = st.ex; if (!ex) return; ex.kind = st.kind; ex.theme = st.theme; ex.desc = String(st.desc || '').slice(0, 2000);
   if (schEd && schEd.ex === ex) { schEdTouch(); schEdTagUi(); } else { schMarkDirty(ex); schUserSave(); schSyncSoon(); schRenderDemo(); }
 }
 function schTagText(ex) { return ex && ex.kind && ex.theme ? SCH_KINDS_S[ex.kind] + ' · ' + SCH_THEMES_S[ex.theme] : ''; }
-function schEdTagUi() { const b = schEd && schEd.el.querySelector('#sche-tag'); if (!b) return; const t = schTagText(schEd.ex); b.textContent = t ? '🏷 ' + t : '🏷 Classer'; b.classList.toggle('todo', !t); }
+function schEdTagUi() { const v = schEd && schEd.el.querySelector('#sche-val'); if (v) v.style.display = schEd.ex.statut === 'brouillon' ? '' : 'none'; const b = schEd && schEd.el.querySelector('#sche-tag'); if (!b) return; const t = schTagText(schEd.ex); b.textContent = t ? '🏷 ' + t : '🏷 Classer'; b.classList.toggle('todo', !t); }
 function schEditCur() {
   schEnsure(); const ex = schDemo[schUi.ex]; if (!ex) return;
-  if (!ex.user) { const r = schRec({ id: schUuid(), name: ('Copie – ' + ex.name).slice(0, 120), drawings: JSON.parse(JSON.stringify(ex.drawings)), dirty: true }); schUserEx.push(r); schRebuild(); schUserSave(); schUi.ex = schDemo.indexOf(r); schUi.step = 0; }
+  if (ex.user && ex.statut !== 'brouillon' && !confirm('Tu vas modifier l\'ORIGINAL de « ' + ex.name + ' » (utilisé par les autres coachs).\nPour garder l\'original intact, annule et choisis « Dupliquer ».\n\nModifier l\'original ?')) return;
+  if (!ex.user) { const r = schRec({ id: schUuid(), name: ('Copie – ' + ex.name).slice(0, 120), drawings: JSON.parse(JSON.stringify(ex.drawings)), statut: 'brouillon', dirty: true }); schUserEx.push(r); schRebuild(); schUserSave(); schUi.ex = schDemo.indexOf(r); schUi.step = 0; }
   schEditorOpen(schUi.ex);
 }
+// z73 : Dupliquer = copie indépendante en brouillon (l'original n'est jamais touché)
+function schDupCur() {
+  schEnsure(); const ex = schDemo[schUi.ex]; if (!ex) return;
+  const nm = String(ex.name || 'Schéma'), r = schRec({ id: schUuid(), name: (/\(copie\)\s*$/i.test(nm) ? nm : nm + ' (copie)').slice(0, 120), drawings: JSON.parse(JSON.stringify(ex.drawings)), kind: ex.kind, theme: ex.theme, desc: ex.desc, statut: 'brouillon', dirty: true });
+  schUserEx.push(r); schRebuild(); schUserSave(); schUi.draft = true; schUi.ex = schDemo.indexOf(r); schUi.step = 0; schEditorOpen(schUi.ex);
+}
+function schSetDraft(v) { schUi.draft = !!v; schRenderDemo(); }
 function schDelCur() {
   const ex = schDemo[schUi.ex]; if (!ex || !ex.user) return;
-  if (!confirm('Supprimer « ' + ex.name + ' » ?\nL\'exercice disparaîtra aussi chez les autres coachs.')) return;
+  if (!confirm(ex.statut === 'brouillon' ? 'Supprimer ce brouillon « ' + ex.name + ' » ?' : 'Supprimer « ' + ex.name + ' » ?\nL\'exercice disparaîtra aussi chez les autres coachs.')) return;
   ex.deleted = true; schMarkDirty(ex); schUserSave(); schRebuild(); schUi.ex = 0; schUi.step = 0; schRenderDemo(); schSyncSoon(300);
 }
 
@@ -765,11 +804,11 @@ function schDemoData() {
     { key: 'demo', kind: 'attaque', theme: 'autre', name: 'Attaque placée vs 0-6 (3 étapes)', drawings: [{ id: 'd1', title: 'Étape 1', view: 'half', elements: s1 }, { id: 'd2', title: 'Étape 2', view: 'half', elements: s2 }, { id: 'd3', title: 'Étape 3', view: 'half', elements: s3 }] },
   ];
 }
-let schDemo = null, schUi = { ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '', open: false };
+let schDemo = null, schUi = { draft: false, ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '', open: false };
 try { const f = JSON.parse(localStorage.getItem('sch_filter_v1') || '{}'); if (f && SCH_KINDS[f.fk] || f.fk === '-') schUi.fk = f.fk; if (f && SCH_THEMES[f.ft] || f.ft === '-') schUi.ft = f.ft; if (f && (f.fp === 'pub' || f.fp === 'nopub')) schUi.fp = f.fp; } catch (e) {}
 function schInit() {
   schEnsure();
-  schRenderDemo(); schSyncAll();
+  schRenderDemo(); schSyncAll(); schThemesPull();
   if (typeof ejcPubRefresh === 'function') ejcPubRefresh().then(() => schRenderDemo());
 }
 function schRenderDemo() {
@@ -777,19 +816,21 @@ function schRenderDemo() {
   const ex = schDemo[schUi.ex], d0 = ex.drawings[Math.min(schUi.step, ex.drawings.length - 1)], d = schUi.view ? { ...d0, view: schUi.view + (schViewParse(d0.view).rot ? '@' + schViewParse(d0.view).rot : '') } : d0;
   const btn = (on, fn, label) => `<button type="button" class="sch-chip ${on ? 'on' : ''}" onclick="${fn}">${label}</button>`;
   const q = (schUi.q || '').trim().toLowerCase();
-  const okE = e => (schUi.fk === '' || (schUi.fk === '-' ? !e.kind : e.kind === schUi.fk)) && (schUi.ft === '' || (schUi.ft === '-' ? !e.theme : e.theme === schUi.ft)) && (!q || String(e.name).toLowerCase().includes(q)) && (!schUi.fp || (schUi.fp === 'pub') === (typeof ejcIsPublished === 'function' && ejcIsPublished(e)));
+  const okE = e => (schUi.draft ? e.statut === 'brouillon' : e.statut !== 'brouillon') && (schUi.fk === '' || (schUi.fk === '-' ? !e.kind : e.kind === schUi.fk)) && (schUi.ft === '' || (schUi.ft === '-' ? !e.theme : e.theme === schUi.ft)) && (!q || String(e.name).toLowerCase().includes(q)) && (!schUi.fp || (schUi.fp === 'pub') === (typeof ejcIsPublished === 'function' && ejcIsPublished(e)));
   const shown = schDemo.map((e, i) => [e, i]).filter(([e, i]) => i === schUi.ex || okE(e)); // l'exercice ouvert reste toujours visible
   const opts = (map, cur, all) => `<option value="">${all}</option>` + Object.keys(map).map(k => `<option value="${k}" ${cur === k ? 'selected' : ''}>${schEsc(map[k])}</option>`).join('') + `<option value="-" ${cur === '-' ? 'selected' : ''}>Non classé</option>`;
   const nMatch = schDemo.filter(okE).length;
   const keepQ = document.activeElement && document.activeElement.id === 'sch-q';
-  const fold = `<button type="button" class="sch-fold${schUi.open ? ' open' : ''}" aria-expanded="${schUi.open ? 'true' : 'false'}" onclick="schToggleFolder()"><span class="sch-fold-i">${schUi.open ? '📂' : '📁'}</span><span class="sch-fold-t"><span><b>Mes schémas</b> <small>(${schDemo.length})</small></span><span class="sch-fold-c">${schEsc(ex.name)}</span></span><span class="sch-fold-a">${schUi.open ? '▴' : '▾'}</span></button>`;
-  box.innerHTML = fold + (!schUi.open ? '' : `<div class="sch-bar sch-filt"><select class="sch-fsel" aria-label="Filtrer par type" onchange="schSetFilter('fk',this.value)">${opts(SCH_KINDS, schUi.fk, 'Tous les types')}</select><select class="sch-fsel" aria-label="Filtrer par thème" onchange="schSetFilter('ft',this.value)">${opts(SCH_THEMES, schUi.ft, 'Tous les thèmes')}</select><select class="sch-fsel" aria-label="Filtrer par publication" onchange="schSetFilter('fp',this.value)"><option value="">Publiés ou non</option><option value="pub" ${schUi.fp === 'pub' ? 'selected' : ''}>📢 Publiés aux joueurs</option><option value="nopub" ${schUi.fp === 'nopub' ? 'selected' : ''}>Non publiés</option></select><input id="sch-q" class="sch-fq" type="search" placeholder="Rechercher…" value="${schEsc(schUi.q || '')}" oninput="schSetQuery(this.value)" aria-label="Rechercher un schéma"><span class="sch-fn">${nMatch} / ${schDemo.length}</span></div>`
+  const nDraft = schDemo.filter(e => e.statut === 'brouillon').length, isDraft = ex.statut === 'brouillon';
+  const pubBtns = isDraft ? '' : `<button type="button" class="sch-play alt" onclick="ejcPubSchema(${schUi.ex})">${ejcIsPublished(ex) ? '🔄 Republier (mettre à jour)' : '📢 Publier aux joueurs'}</button>${ejcIsPublished(ex) ? `<button type="button" class="sch-play alt" onclick="ejcUnpubSchema(${schUi.ex})">🚫 Dépublier</button>` : ''}`;
+  const fold = `<button type="button" class="sch-fold${schUi.open ? ' open' : ''}" aria-expanded="${schUi.open ? 'true' : 'false'}" onclick="schToggleFolder()"><span class="sch-fold-i">${schUi.open ? '📂' : '📁'}</span><span class="sch-fold-t"><span><b>Mes schémas</b> <small>(${schDemo.length - nDraft}${nDraft ? ' · ' + nDraft + ' brouillon' + (nDraft > 1 ? 's' : '') : ''})</small></span><span class="sch-fold-c">${schEsc(ex.name)}</span></span><span class="sch-fold-a">${schUi.open ? '▴' : '▾'}</span></button>`;
+  box.innerHTML = fold + (!schUi.open ? '' : `<div class="sch-bar">${btn(!schUi.draft, 'schSetDraft(false)', 'Bibliothèque')}${btn(schUi.draft, 'schSetDraft(true)', '📝 Mes brouillons (' + nDraft + ')')}</div><div class="sch-bar sch-filt"><select class="sch-fsel" aria-label="Filtrer par type" onchange="schSetFilter('fk',this.value)">${opts(SCH_KINDS, schUi.fk, 'Tous les types')}</select><select class="sch-fsel" aria-label="Filtrer par thème" onchange="schSetFilter('ft',this.value)">${opts(SCH_THEMES, schUi.ft, 'Tous les thèmes')}</select><select class="sch-fsel" aria-label="Filtrer par publication" onchange="schSetFilter('fp',this.value)"><option value="">Publiés ou non</option><option value="pub" ${schUi.fp === 'pub' ? 'selected' : ''}>📢 Publiés aux joueurs</option><option value="nopub" ${schUi.fp === 'nopub' ? 'selected' : ''}>Non publiés</option></select><input id="sch-q" class="sch-fq" type="search" placeholder="Rechercher…" value="${schEsc(schUi.q || '')}" oninput="schSetQuery(this.value)" aria-label="Rechercher un schéma"><span class="sch-fn">${nMatch} / ${schDemo.length}</span></div>`
     + `<div class="sch-bar"><button type="button" class="sch-play alt" onclick="schNewExAsk()">＋ Nouvel exercice</button></div>`
-    + `<div class="sch-grid" id="sch-grid">${shown.map(([e, i]) => { const n = (e.drawings || []).length, tg = schTagText(e); return `<button type="button" class="sch-gc ${i === schUi.ex ? 'on' : ''}" onclick="schSet('ex',${i})"><span class="sch-gt">${n ? schDrawingSvg(e.drawings[0], { showBallStart: false }) : ''}</span><span class="sch-gn">${e.user ? '✎ ' : ''}${schEsc(e.name)}</span><span class="sch-gm">${typeof ejcIsPublished === 'function' && ejcIsPublished(e) ? '<em>📢 publié</em>' : ''}${tg ? `<em>${schEsc(tg)}</em>` : ''}<em>${n} étape${n > 1 ? 's' : ''}</em></span></button>`; }).join('') || '<span>Aucun schéma ne correspond.</span>'}</div>`)
+    + `<div class="sch-grid" id="sch-grid">${shown.map(([e, i]) => { const n = (e.drawings || []).length, tg = schTagText(e); return `<button type="button" class="sch-gc ${i === schUi.ex ? 'on' : ''}" onclick="schSet('ex',${i})"><span class="sch-gt">${n ? schDrawingSvg(e.drawings[0], { showBallStart: false }) : ''}</span><span class="sch-gn">${e.user ? '✎ ' : ''}${schEsc(e.name)}</span><span class="sch-gm">${e.statut === 'brouillon' ? '<em>📝 brouillon</em>' : ''}${typeof ejcIsPublished === 'function' && ejcIsPublished(e) ? '<em>📢 publié</em>' : ''}${tg ? `<em>${schEsc(tg)}</em>` : ''}<em>${n} étape${n > 1 ? 's' : ''}</em></span></button>`; }).join('') || '<span>Aucun schéma ne correspond.</span>'}</div>`)
     + (schUi.open ? '' : (ex.drawings.length > 1 ? `<div class="sch-bar">${ex.drawings.map((x, i) => btn(i === schUi.step, `schSet('step',${i})`, schEsc(x.title))).join('')}</div>` : '')
     + `<label class="sch-chk"><input type="checkbox" ${schUi.ball ? 'checked' : ''} onchange="schSet('ball',this.checked)"> Afficher le départ du ballon</label>`
     + `<div class="sch-bar"><span id="sch-sync" class="sch-sync">${schSyncLabel(false)}</span><button type="button" class="sch-chip" onclick="schSyncAll()">↻ Synchroniser</button></div>`
-    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schShareCur(this)">📤 Partager (GIF)</button><button type="button" class="sch-play alt" onclick="ejcPubSchema(${schUi.ex})">${ejcIsPublished(ex) ? '🔄 Republier (mettre à jour)' : '📢 Publier aux joueurs'}</button>${ejcIsPublished(ex) ? `<button type="button" class="sch-play alt" onclick="ejcUnpubSchema(${schUi.ex})">🚫 Dépublier</button>` : ''}<button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? '✏️ Modifier' : '✏️ Copier et modifier'}</button><button type="button" class="sch-play alt" onclick="schNewExAsk()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
+    + `<div class="sch-bar"><button type="button" class="sch-play" onclick="schPlayerOpen(${schUi.ex})">▶ Animer l'enchaînement</button><button type="button" class="sch-play alt" onclick="schShareCur(this)">📤 Partager (GIF)</button>${pubBtns}${isDraft ? `<button type="button" class="sch-play" onclick="schClassUi('validate', schDemo[schUi.ex])">✅ Valider</button>` : ''}<button type="button" class="sch-play alt" onclick="schEditCur()">${ex.user ? (isDraft ? '✏️ Modifier' : '✏️ Modifier l\'original') : '✏️ Copier et modifier'}</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDupCur()">⧉ Dupliquer</button>' : ''}<button type="button" class="sch-play alt" onclick="schNewExAsk()">＋ Nouvel exercice</button>${ex.user ? '<button type="button" class="sch-play alt" onclick="schDelCur()">🗑 Supprimer</button>' : ''}</div>`
     + (ejcViewLine(ex) ? `<div class="sch-bar"><span class="sch-sync">${ejcViewLine(ex)}</span></div>` : '')
     + `<div class="sch-svg">${schDrawingSvg(d, { showBallStart: schUi.ball })}</div>`
     + (ex.user ? `<div class="sch-bar"><button type="button" class="sch-chip" onclick="schClassUi('edit', schDemo[schUi.ex])">🏷 ${schTagText(ex) ? 'Type et thème : ' + schEsc(schTagText(ex)) : 'Classer ce schéma (type et thème)'}</button></div>` : ''));

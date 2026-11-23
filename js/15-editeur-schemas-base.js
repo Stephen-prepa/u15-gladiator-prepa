@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z49 (11/11/2026)
+// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z73 (24/11/2026)
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [
@@ -18,12 +18,32 @@ const SCH_PRESETS = {
 const SCH_LS = 'sch_ex_v2', SCH_LS_OLD = 'sch_user_ex_v1';
 // Classement des schémas : type + thème par poste (servent aux filtres de la bibliothèque). Stockés avec le schéma (aucun changement de la base : ils voyagent dans le champ « drawings », sur la 1re étape, clé « meta »).
 const SCH_KINDS = { attaque: 'Attaque', defense: 'Défense', grand: 'Jeu sur grand espace' }, SCH_KINDS_S = { attaque: 'Att.', defense: 'Déf.', grand: 'Grand esp.' };
-const SCH_THEMES = { c12: 'Charnière 1-2', c23: 'Charnière 2-3', c33: 'Charnière 3-3 (autour du pivot)', autre: 'Autre / tous postes' }, SCH_THEMES_S = { c12: 'Ch. 1-2', c23: 'Ch. 2-3', c33: 'Ch. 3-3', autre: 'Autre' };
+const SCH_THEMES = { enchainement: 'Enchaînement de tâches', echgb: 'Échauffement GB', montee: 'Montée de balle', motricite: 'Motricité', supnum: 'Sup Num ATT', c12: 'Charnière 1-2', c23: 'Charnière 2-3', c33: 'Charnière 3-3 (autour du pivot)', autre: 'Autre / tous postes' }, SCH_THEMES_S = { enchainement: 'Enchaîn.', echgb: 'Éch. GB', montee: 'Montée', motricite: 'Motricité', supnum: 'Sup Num', c12: 'Ch. 1-2', c23: 'Ch. 2-3', c33: 'Ch. 3-3', autre: 'Autre' };
 // Thèmes créés par les coachs : clé « x:nom-du-theme ». Le libellé est gardé sur l'appareil ET voyage avec chaque schéma classé dans ce thème (clé « themeLabel » à côté de « theme »), donc les autres coachs le retrouvent sans changement de base.
 const SCH_CUSTOM = {}, SCH_THEMES_LS = 'sch_themes_v1';
 function schThemeShort(l) { l = String(l); return l.length > 11 ? l.slice(0, 10).trim() + '…' : l; }
 function schThemeKey(label) { return 'x:' + String(label).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40); }
-function schThemesSave() { try { localStorage.setItem(SCH_THEMES_LS, JSON.stringify(SCH_CUSTOM)); } catch (e) {} }
+function schThemesSave() { try { localStorage.setItem(SCH_THEMES_LS, JSON.stringify(SCH_CUSTOM)); } catch (e) {} schThemesPushSoon(); }
+// z73 : la liste des thèmes ajoutés est partagée entre coachs (table app_settings, clé « sch_themes »)
+let schThemesTimer = 0;
+function schThemesPushSoon() { clearTimeout(schThemesTimer); schThemesTimer = setTimeout(schThemesPush, 1500); }
+async function schThemesPush() {
+  try {
+    if (!coachSession || !coachSession.access_token) return;
+    await fetch(SB_URL + '/rest/v1/app_settings?on_conflict=key', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify([{ key: 'sch_themes', value: JSON.stringify(SCH_CUSTOM) }]) });
+  } catch (e) { /* sans réseau : sera renvoyé à la prochaine modification */ }
+}
+async function schThemesPull() {
+  try {
+    if (!coachSession || !coachSession.access_token) return;
+    const r = await fetch(SB_URL + '/rest/v1/app_settings?key=eq.sch_themes&select=value', { headers: coachAuthHeaders() });
+    if (!r.ok) return;
+    const a = await r.json(); if (!a[0] || !a[0].value) return;
+    const o = JSON.parse(a[0].value); let n = 0;
+    Object.keys(o || {}).forEach(k => { if (schThemeReg(k, o[k], false)) n++; });
+    if (n) { try { localStorage.setItem(SCH_THEMES_LS, JSON.stringify(SCH_CUSTOM)); } catch (e) {} if (typeof schRenderDemo === 'function') schRenderDemo(); }
+  } catch (e) { /* thèmes locaux gardés */ }
+}
 function schThemeReg(key, label, save) {
   label = String(label || '').replace(/\s+/g, ' ').trim().slice(0, 40);
   if (!label || typeof key !== 'string' || key.indexOf('x:') !== 0 || key.length < 3 || SCH_THEMES[key]) return false;
@@ -35,7 +55,7 @@ function schDrawingsOut(x) { const out = JSON.parse(JSON.stringify(x.drawings));
 function schMetaFrom(rec, arr) { const m = schMetaOf(arr); schThemeReg(m.theme, m.themeLabel, true); rec.kind = SCH_KINDS[m.kind] ? m.kind : ''; rec.theme = SCH_THEMES[m.theme] ? m.theme : ''; rec.desc = typeof m.desc === 'string' ? m.desc.slice(0, 2000) : ''; }
 function schUuid() { try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }); }
 // Exercices de la bibliothèque : { id (uuid), name, user:true, drawings, updatedAt, serverUpdatedAt, dirty (à envoyer), deleted (suppression à envoyer), rev }
-function schRec(x) { const m = schMetaOf(x.drawings), k = x.kind || m.kind, t = x.theme || m.theme; schThemeReg(t, x.themeLabel || m.themeLabel, true); return { kind: SCH_KINDS[k] ? k : '', theme: SCH_THEMES[t] ? t : '', id: x.id, name: String(x.name || 'Sans nom').slice(0, 120), user: true, desc: String(x.desc != null ? x.desc : (m.desc || '')).slice(0, 2000), drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null, serverUpdatedAt: x.serverUpdatedAt || null, dirty: !!x.dirty, deleted: !!x.deleted, rev: x.rev || 0 }; }
+function schRec(x) { const m = schMetaOf(x.drawings), k = x.kind || m.kind, t = x.theme || m.theme; schThemeReg(t, x.themeLabel || m.themeLabel, true); return { kind: SCH_KINDS[k] ? k : '', theme: SCH_THEMES[t] ? t : '', id: x.id, name: String(x.name || 'Sans nom').slice(0, 120), user: true, desc: String(x.desc != null ? x.desc : (m.desc || '')).slice(0, 2000), drawings: schNormDrawings(x.drawings), updatedAt: x.updatedAt || null, serverUpdatedAt: x.serverUpdatedAt || null, dirty: !!x.dirty, deleted: !!x.deleted, rev: x.rev || 0, statut: x.statut === 'brouillon' ? 'brouillon' : 'valide' }; }
 function schUserLoad() {
   try {
     const raw = localStorage.getItem(SCH_LS);
@@ -46,7 +66,7 @@ function schUserLoad() {
 }
 let schSaveTimer = 0, schSyncTimer = 0, schBuiltin = null, schUserEx = [];
 function schUserSave() {
-  try { localStorage.setItem(SCH_LS, JSON.stringify(schUserEx.map(x => ({ id: x.id, name: x.name, kind: x.kind, theme: x.theme, themeLabel: SCH_CUSTOM[x.theme] || '', drawings: x.drawings, updatedAt: x.updatedAt, serverUpdatedAt: x.serverUpdatedAt, dirty: x.dirty, deleted: x.deleted, rev: x.rev })))); return true; } catch (e) { return false; }
+  try { localStorage.setItem(SCH_LS, JSON.stringify(schUserEx.map(x => ({ id: x.id, name: x.name, kind: x.kind, theme: x.theme, themeLabel: SCH_CUSTOM[x.theme] || '', drawings: x.drawings, updatedAt: x.updatedAt, serverUpdatedAt: x.serverUpdatedAt, dirty: x.dirty, deleted: x.deleted, rev: x.rev, statut: x.statut })))); return true; } catch (e) { return false; }
 }
 function schRebuild() { schDemo = (schBuiltin || []).concat(schUserEx.filter(x => !x.deleted)); }
 function schEnsure() { if (!schBuiltin) { schBuiltin = schDemoData(); schUserEx = schUserLoad(); schRebuild(); schUserSave(); } }
@@ -91,7 +111,7 @@ async function schSyncAll(quiet) {
       if (rec.dirty || rec.deleted) {
         if (!changed || rec.deleted) up.push(rec);
         else { // double modification : on garde les deux
-          const c = schRec({ id: schUuid(), name: (rec.name + ' (ma version)').slice(0, 120), drawings: JSON.parse(JSON.stringify(rec.drawings)), kind: rec.kind, theme: rec.theme, updatedAt: rec.updatedAt, dirty: true });
+          const c = schRec({ id: schUuid(), name: (rec.name + ' (ma version)').slice(0, 120), drawings: JSON.parse(JSON.stringify(rec.drawings)), kind: rec.kind, theme: rec.theme, updatedAt: rec.updatedAt, statut: rec.statut, dirty: true });
           schUserEx.push(c); up.push(c); rec.dirty = false; if (!rm.deleted_at) adopt[rec.id] = true; else schUserEx.splice(schUserEx.indexOf(rec), 1);
         }
       } else if (changed) { if (rm.deleted_at) schUserEx.splice(schUserEx.indexOf(rec), 1); else if (!open) adopt[rec.id] = true; }
@@ -99,7 +119,7 @@ async function schSyncAll(quiet) {
     Object.keys(remote).forEach(id => { if (!remote[id].deleted_at && !schUserEx.some(x => x.id === id)) newFromRemote.push(id); });
     // envoi
     if (up.length) {
-      const sent = up.map(x => ({ id: x.id, rev: x.rev, row: { id: x.id, name: x.name, drawings: schDrawingsOut(x), deleted_at: x.deleted ? new Date().toISOString() : null } }));
+      const sent = up.map(x => ({ id: x.id, rev: x.rev, row: { id: x.id, name: x.name, drawings: schDrawingsOut(x), statut: x.statut === 'brouillon' ? 'brouillon' : 'valide', deleted_at: x.deleted ? new Date().toISOString() : null } }));
       const res = await fetch(base + '?on_conflict=id', { method: 'POST', headers: { ...H, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(sent.map(s => s.row)) });
       if (!res.ok) throw new Error('envoi ' + res.status);
       const rows = await res.json();
@@ -112,13 +132,13 @@ async function schSyncAll(quiet) {
     // récupération de ce qui a changé ailleurs
     const ids = Object.keys(adopt).concat(newFromRemote);
     for (let k = 0; k < ids.length; k += 20) {
-      const part = ids.slice(k, k + 20), rr = await fetch(base + '?select=id,name,drawings,updated_at&id=in.(' + part.join(',') + ')', { headers: H });
+      const part = ids.slice(k, k + 20), rr = await fetch(base + '?select=id,name,drawings,updated_at,statut&id=in.(' + part.join(',') + ')', { headers: H });
       if (!rr.ok) throw new Error('lecture ' + rr.status);
       (await rr.json()).forEach(row => {
         let rec = schUserEx.find(x => x.id === row.id);
         if (rec && (rec.dirty || (schEd && schEd.ex === rec))) return; // modifié entre-temps ici : on ne l'écrase pas
         if (!rec) { rec = schRec({ id: row.id }); schUserEx.push(rec); }
-        rec.name = String(row.name || 'Sans nom').slice(0, 120); schMetaFrom(rec, row.drawings); rec.drawings = schNormDrawings(row.drawings); rec.serverUpdatedAt = row.updated_at; rec.updatedAt = row.updated_at; rec.dirty = false;
+        rec.name = String(row.name || 'Sans nom').slice(0, 120); rec.statut = row.statut === 'brouillon' ? 'brouillon' : 'valide'; schMetaFrom(rec, row.drawings); rec.drawings = schNormDrawings(row.drawings); rec.serverUpdatedAt = row.updated_at; rec.updatedAt = row.updated_at; rec.dirty = false;
       });
     }
     schSync.state = 'ok'; schSync.at = Date.now();
@@ -305,14 +325,14 @@ function schEditorOpen(exIdx, onClose) {
   const ex = schDemo[exIdx]; if (!ex || !ex.user) return;
   const el = document.createElement('div'); el.id = 'sch-editor'; el.className = 'sche';
   el.style.cssText = 'position:fixed;inset:0;z-index:99990;font-family:Arial,sans-serif;-webkit-user-select:none;user-select:none;overscroll-behavior:none;';
-  el.innerHTML = `<div class="sche-top"><button type="button" class="sche-btn" id="sche-close" aria-label="Fermer">✕</button><input id="sche-name" class="sche-name" maxlength="120" placeholder="Nom de l'exercice" style="-webkit-user-select:text;user-select:text;"><button type="button" class="sche-tag" id="sche-tag" aria-label="Type et thème du schéma"></button><span class="sche-saved" id="sche-saved"></span></div>`
+  el.innerHTML = `<div class="sche-top"><button type="button" class="sche-btn" id="sche-close" aria-label="Fermer">✕</button><input id="sche-name" class="sche-name" maxlength="120" placeholder="Nom de l'exercice" style="-webkit-user-select:text;user-select:text;"><button type="button" class="sche-tag" id="sche-tag" aria-label="Type et thème du schéma"></button><button type="button" class="sche-tag val" id="sche-val" aria-label="Valider le schéma">✅ Valider</button><span class="sche-saved" id="sche-saved"></span></div>`
     + `<div class="sche-bar" id="sche-bar"></div><div class="sche-main"><div class="sche-board"><div class="sche-stage" id="sche-stage"></div><div class="sche-warn" id="sche-warn"></div><div class="sche-toast" id="sche-toast"></div></div><div class="sche-grip" id="sche-grip" role="separator" aria-label="Régler la taille des options" title="Glisse pour agrandir / réduire (double-touche : taille d'origine)"></div><div class="sche-panel" id="sche-panel"></div></div><div class="sche-tools" id="sche-tools"></div>`;
   document.documentElement.appendChild(el);
   schEd = { ex, onClose: onClose || null, k: 0, tool: 'select', group: 'tools', sel: null, vb: null, undo: [], redo: [], ptrs: new Map(), drag: null, down: null, pinch: null, el, stage: el.querySelector('#sche-stage'), prevOverflow: document.documentElement.style.overflow, touch: false, penAt: 0 };
   schEd.vb = schEdBaseVb(); schEd.base = schEdSnapStr(); document.documentElement.style.overflow = 'hidden';
   const nm = el.querySelector('#sche-name'); nm.value = ex.name; nm.oninput = () => { ex.name = nm.value.slice(0, 120); schEdTouch(); };
   el.querySelector('#sche-close').onclick = schEditorClose;
-  el.querySelector('#sche-tag').onclick = () => schClassUi('edit', schEd.ex); schEdTagUi();
+  el.querySelector('#sche-tag').onclick = () => schClassUi('edit', schEd.ex); el.querySelector('#sche-val').onclick = () => schClassUi('validate', schEd.ex); schEdTagUi();
   const st = schEd.stage;
   st.style.touchAction = 'none'; st.addEventListener('contextmenu', ev => ev.preventDefault());
   st.addEventListener('pointerdown', schEdDown); st.addEventListener('pointermove', schEdMove); st.addEventListener('pointerup', schEdUp); st.addEventListener('pointercancel', schEdUp);

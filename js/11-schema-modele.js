@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/11-schema-modele.js — dernière modification : version z48 (10/11/2026)
+// Prépa U15 HBCCS — js/11-schema-modele.js — dernière modification : version z73 (24/11/2026)
 // ----- Schéma (terrain) : modèle, rendu, éditeur image par image -----
 const CR_COURT = { half: { w: 200, h: 200, vb: [-10, -10, 220, 220], k: 1 }, full: { w: 400, h: 200, vb: [-10, -10, 420, 220], k: 1.35 }, free: { w: 300, h: 200, vb: [-10, -10, 320, 220], k: 1.1 } };
 const CR_MAX_FRAMES = 40;
@@ -132,10 +132,10 @@ function crSchEdit(t) {
   const baseName = n => { n = String(n || 'Schéma'); return (/\(copie\)\s*$/.test(n) ? n : n + ' (copie)').slice(0, 120); };
   if (!rec && (L.fromOld || L.pend) && L.drawings) { // copie de l'exercice pas encore dans la bibliothèque : elle y entre à la première modification
     before = sig(L.drawings);
-    rec = schRec({ id: L.id, name: L.pend ? baseName(L.name) : L.name, drawings: JSON.parse(JSON.stringify(L.drawings)), dirty: true }); schUserEx.push(rec); schRebuild(); schUserSave(); fork = 'pend';
+    rec = schRec({ id: L.id, name: L.pend ? baseName(L.name) : L.name, drawings: JSON.parse(JSON.stringify(L.drawings)), statut: 'brouillon', dirty: true }); schUserEx.push(rec); schRebuild(); schUserSave(); fork = 'pend';
   } else if (rec && !L.own) { // ancien lien direct vers la bibliothèque : on travaille sur une copie, l'original reste intact
     before = sig(rec.drawings);
-    rec = schRec({ id: schUuid(), name: baseName(rec.name), drawings: JSON.parse(JSON.stringify(rec.drawings)), kind: rec.kind, theme: rec.theme, dirty: true }); schUserEx.push(rec); schRebuild(); schUserSave(); fork = 'link';
+    rec = schRec({ id: schUuid(), name: baseName(rec.name), drawings: JSON.parse(JSON.stringify(rec.drawings)), kind: rec.kind, theme: rec.theme, statut: 'brouillon', dirty: true }); schUserEx.push(rec); schRebuild(); schUserSave(); fork = 'link';
   }
   if (!rec) { alert('Ce schéma n\'est plus dans la bibliothèque.'); return; }
   schEditorOpen(schDemo.indexOf(rec), ex => {
@@ -152,7 +152,7 @@ function crSchEdit(t) {
 function crSchNew(t) {
   t = t || 'main';
   const x = crCurEx(); schEnsure(); crSchPickClose();
-  const r = schRec({ id: schUuid(), name: ((t === 'gb' ? 'GB · ' : '') + (x.name || 'Schéma')).slice(0, 120), drawings: [schNormDrawing({ title: 'Étape 1', view: t === 'gb' ? 'goal' : 'half' })], dirty: true }); schUserEx.push(r); schRebuild(); schUserSave();
+  const r = schRec({ id: schUuid(), name: ((t === 'gb' ? 'GB · ' : '') + (x.name || 'Schéma')).slice(0, 120), drawings: [schNormDrawing({ title: 'Étape 1', view: t === 'gb' ? 'goal' : 'half' })], statut: 'brouillon', dirty: true }); schUserEx.push(r); schRebuild(); schUserSave();
   schEditorOpen(schDemo.indexOf(r), ex => {
     if (ex.drawings.every(d => !d.elements.length)) { ex.deleted = true; schMarkDirty(ex); schUserSave(); schRebuild(); crRenderExView(); return; } // rien dessiné : on ne garde pas un schéma vide
     const h = crSchHolder(t); if (h) { h.schemaLib = crSchSnap(ex, true); crSchAdoptName(t, ex.name); crTouch(); } crRenderExView();
@@ -171,7 +171,7 @@ function crSchPickRefresh() { if (crSchPickEl) crSchPickRender(); }
 function crSchPickRender() {
   const el = crSchPickEl; if (!el) return; el.style.background = 'rgba(5,10,20,0.92)'; const list = schUserEx.filter(x => !x.deleted && x.drawings.length), cur = (((crSchHolder(crSchTgt) || {}).schemaLib || {}).srcId) || ((crSchHolder(crSchTgt) || {}).schemaLib || {}).id;
   el.innerHTML = `<div class="crsp-top"><b style="font-size:17px;">Schémas de la bibliothèque</b><button type="button" onclick="crSchPickClose()" aria-label="Fermer">✕</button></div><div style="font-size:11px;color:#8FA3BF;margin:2px 0 8px;">${schEsc(schSyncLabel(false))}</div>`
-    + `<div class="crsp-list">${list.length ? list.map(x => { const n = x.drawings.length; return `<button type="button" class="crsp-card ${x.id === cur ? 'on' : ''}" onclick="crSchPrev('${x.id}')"><div class="crsp-thumb">${schDrawingSvg(x.drawings[0], { showBallStart: false })}</div><div class="crsp-name">${schEsc(x.name)}</div><div class="crsp-meta">${n} étape${n > 1 ? 's' : ''}${schTagText(x) ? ' · ' + schEsc(schTagText(x)) : ''}${x.id === cur ? ' · choisi' : ''}</div>${x.desc ? `<div class="crsp-desc">${schEsc(x.desc)}</div>` : ''}</button>`; }).join('') : '<div style="color:#8FA3BF;font-size:13px;padding:20px 4px;">La bibliothèque est vide pour l\'instant. Crée ton premier schéma ci-dessous.</div>'}</div>`
+    + `<div class="crsp-list">${list.length ? list.map(x => { const n = x.drawings.length; return `<button type="button" class="crsp-card ${x.id === cur ? 'on' : ''}" onclick="crSchPrev('${x.id}')"><div class="crsp-thumb">${schDrawingSvg(x.drawings[0], { showBallStart: false })}</div><div class="crsp-name">${schEsc(x.name)}</div><div class="crsp-meta">${n} étape${n > 1 ? 's' : ''}${schTagText(x) ? ' · ' + schEsc(schTagText(x)) : ''}${x.statut === 'brouillon' ? ' · 📝 brouillon' : ''}${x.id === cur ? ' · choisi' : ''}</div>${x.desc ? `<div class="crsp-desc">${schEsc(x.desc)}</div>` : ''}</button>`; }).join('') : '<div style="color:#8FA3BF;font-size:13px;padding:20px 4px;">La bibliothèque est vide pour l\'instant. Crée ton premier schéma ci-dessous.</div>'}</div>`
     + `<div style="padding-top:10px;"><button type="button" class="cr-btn primary" style="width:100%;padding:14px;" onclick="crSchNew(crSchTgt)">＋ Créer un nouveau schéma</button></div>`;
 }
 // Aperçu avant réutilisation : tous les temps du schéma + son descriptif, puis « Utiliser ce schéma »

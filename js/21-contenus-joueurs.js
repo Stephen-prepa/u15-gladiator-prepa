@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/21-contenus-joueurs.js — dernière modification : version z32 (06/11/2026)
+// Prépa U15 HBCCS — js/21-contenus-joueurs.js — dernière modification : version z73 (24/11/2026)
 // ===================== CONTENUS PUBLIÉS AUX JOUEURS (lecture seule) =====================
 // Le coach « publie » une COPIE d'un schéma ou d'une séance dans la table Supabase contenus_joueurs.
 // Les joueurs ne lisent que ces copies (jamais la bibliothèque du coach). Modifier l'original ne change
@@ -153,6 +153,7 @@ function ejcPubSeance(id) {
 }
 function ejcPubSchema(i) {
   const ex = schDemo[i]; if (!ex || !(ex.drawings || []).length) { alert("Ce schéma n'a pas d'étape à publier."); return; }
+  if (ex.statut === 'brouillon') { alert('Valide d\'abord ce schéma (bouton « Valider ») pour le publier aux joueurs.'); return; }
   const src = (typeof ex.id === 'string' && /^[0-9a-f-]{36}$/i.test(ex.id)) ? ex.id : null;
   ejcPubDialog('enclenchements', ['enclenchements', 'fonctionnement'], ex.name || 'Schéma', async (t, r) => {
     await ejcSave('schema', r, t, src, { drawings: JSON.parse(JSON.stringify(ex.drawings)), src_key: src ? null : (ex.key || ex.name), orig_name: ex.name || '' });
