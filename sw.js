@@ -33,7 +33,8 @@ const APP_SHELL = [
   './js/22-questions-joueurs.js',
   './js/23-matchs-stats.js',
   './js/24-onglets-coach.js',
-  './js/25-analyse.js'
+  './js/25-analyse.js',
+  './js/26-activite-coachs.js'
 ];
 
 self.addEventListener('install', (event) => {

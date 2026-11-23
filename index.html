@@ -1198,8 +1198,11 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         </div></details>
 
 <details class="rg-cat" id="an-box" data-rg="an">
-          <summary><span class="rg-ttl">🔬 Analyse<small>Carte sur l'accueil, pour moi seulement</small></span></summary>
+          <summary><span class="rg-ttl">🔬 Analyse<small>Carte sur l'accueil</small></span></summary>
           <div class="rg-body">
+          <div id="an-allow-box" style="display:none;margin-bottom:14px;"></div>
+          <div id="an-note" style="display:none;font-size:12px;color:var(--gris-texte);">L'accès à « Analyse » est réglé par Stephen.</div>
+          <div id="an-own-box">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gris-clair);margin-bottom:10px;cursor:pointer;">
             <input type="checkbox" id="an-settings-visible" style="width:18px;height:18px;">
             Afficher la carte « Analyse » sur mon accueil
@@ -1207,6 +1210,14 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
           <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Ce réglage est propre à ton compte : les autres coachs, les joueurs et les parents ne voient rien tant qu'ils ne l'ont pas activé eux-mêmes.</div>
           <button onclick="anSettingsSave()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:var(--c-onacc,#1a1a1a);font-weight:800;cursor:pointer;">Enregistrer</button>
           <div id="an-settings-msg" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;"></div>
+          </div>
+        </div></details>
+
+<details class="rg-cat" id="act-box" data-rg="act" style="display:none;">
+          <summary><span class="rg-ttl">👥 Activité des coachs<small>Pages ouvertes et modifications (90 jours)</small></span></summary>
+          <div class="rg-body">
+          <div style="font-size:11px;color:var(--gris-texte);margin-bottom:10px;">Visible par toi seul. Sandrine, Arthur et Nicolas sont enregistrés (toi non). Un suivi d'usage normal, pas une preuve absolue.</div>
+          <div id="act-ui"></div>
         </div></details>
 
 <details class="rg-cat" id="crc-box" data-rg="crc">
@@ -1411,6 +1422,7 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
 <script src="js/23-matchs-stats.js"></script>
 <script src="js/24-onglets-coach.js"></script>
 <script src="js/25-analyse.js"></script>
+<script src="js/26-activite-coachs.js"></script>
 <script src="js/19-init.js"></script>
 </body>
 </html>

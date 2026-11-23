@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z67 (22/11/2026)
+// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z74 (23/11/2026)
 // ===================== ANALYSE (carte « 🔬 Analyse » de l'accueil, visible seulement pour le coach qui l'a activée) =====================
 // Écran réservé aux coachs : poules de SUIVI (équipes qu'on rencontrera en phase 2 mais qu'on ne connaît que par leur phase 1),
 // leurs classements, et — dans les versions suivantes — probabilités de victoire et fiches des joueurs adverses.
@@ -7,13 +7,44 @@ const anState = { data: null, src: null, j: null, busy: false, M: null, view: 't
 
 function anSetKey() { return coachSession && coachSession.login ? 'analyse_card_' + coachSession.login : null; }
 // ---- Carte sur l'accueil : visible si un coach est connecté ET qu'il l'a activée dans Réglages (réglage propre à chaque coach) ----
+function anIsStephen() { return !!(coachSession && coachSession.login === 'stephen'); }
+// z74 : Stephen décide qui voit Analyse (clé analyse_allow_<login>) ; lui garde son propre réglage
+function anCanSee() {
+  if (!coachSession || !coachSession.login) return false;
+  if (anIsStephen()) return appSettings[anSetKey()] === 'true';
+  return appSettings['analyse_allow_' + coachSession.login] === 'true';
+}
 function anUpdateCard() {
   var b = document.getElementById('home-btn-analyse');
   if (!b) return;
-  var k = anSetKey();
-  b.style.display = (k && appSettings[k] === 'true') ? 'flex' : 'none';
-  var cb = document.getElementById('an-settings-visible');
+  b.style.display = anCanSee() ? 'flex' : 'none';
+  var k = anSetKey(), cb = document.getElementById('an-settings-visible');
   if (cb) cb.checked = !!(k && appSettings[k] === 'true');
+  var st = anIsStephen(), own = document.getElementById('an-own-box'), note = document.getElementById('an-note'), al = document.getElementById('an-allow-box');
+  if (own) own.style.display = !coachSession || st ? '' : 'none';
+  if (note) note.style.display = coachSession && !st ? '' : 'none';
+  if (al) {
+    al.style.display = st ? '' : 'none';
+    if (st) al.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--gris-clair);margin-bottom:6px;">Qui voit « Analyse » ?</div>'
+      + ['sandrine', 'arthur', 'nicolas'].map(function (lg) {
+        return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gris-clair);margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="width:18px;height:18px;" ' + (appSettings['analyse_allow_' + lg] === 'true' ? 'checked ' : '') + 'onchange="anAllowSave(\'' + lg + '\',this)">' + lg.charAt(0).toUpperCase() + lg.slice(1) + '</label>';
+      }).join('')
+      + '<div id="an-allow-msg" style="font-size:12px;min-height:16px;margin-top:4px;"></div><div style="font-size:11px;color:var(--gris-texte);margin-top:6px;">Mon propre accès :</div>';
+  }
+}
+async function anAllowSave(login, cb) {
+  var msg = document.getElementById('an-allow-msg'), v = cb.checked ? 'true' : 'false';
+  if (msg) { msg.style.color = 'var(--gris-texte)'; msg.textContent = 'Enregistrement…'; }
+  try {
+    await ensureCoachSession();
+    var res = await fetch(SB_URL + '/rest/v1/app_settings?on_conflict=key', {
+      method: 'POST', headers: Object.assign({}, coachAuthHeaders(), { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }),
+      body: JSON.stringify([{ key: 'analyse_allow_' + login, value: v, updated_at: new Date().toISOString() }]),
+    });
+    if (!res.ok) throw new Error('x');
+    appSettings['analyse_allow_' + login] = v;
+    if (msg) { msg.style.color = 'var(--vert)'; msg.textContent = '✓ ' + login.charAt(0).toUpperCase() + login.slice(1) + (v === 'true' ? ' voit Analyse' : ' ne voit plus Analyse'); }
+  } catch (e) { cb.checked = !cb.checked; if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'Erreur — réessaie.'; } }
 }
 async function anSettingsSave() {
   var msg = document.getElementById('an-settings-msg'), k = anSetKey(), cb = document.getElementById('an-settings-visible');
@@ -35,6 +66,7 @@ async function anSettingsSave() {
 
 // ---- Écran ----
 function anEnter() {
+  if (!anCanSee()) return;   // z74 : accès réglé par Stephen
   document.getElementById('screen-home').style.display = 'none';
   document.getElementById('screen-analyse').style.display = 'block';
   window.scrollTo(0, 0);
