@@ -506,6 +506,7 @@ function schEdFinishAction(dr) {
   if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) {
     const hh = schEdHit(dr.p0, { handles: false }), onPl = hh && hh.kind === 'el' && schIsPlayer(hh.e);
     if (schToolPrefs().tapSelect && !onPl) { schEdTapSelect(dr.p0); return; }
+    if (dr.type !== 'MOVE') { schEdDraw(); schEdToast('Glisse le doigt pour tracer l\'action'); return; }   // z78 : tracé à virages = outil Déplacement seulement
     schEdPolyStart(dr); return;
   }
   schEdPush();
