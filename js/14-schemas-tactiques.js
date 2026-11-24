@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z75 (24/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z76 (24/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -306,6 +306,11 @@ function schDrawingSvg(d, o) {
 // Chronologie : les actions sont regroupées par numéro d'étape (step) croissant. Un groupe dure 1,4 s + son plus grand décalage ; chaque action démarre à (début du groupe + son décalage) et dure 1,2 s.
 // Tout est calculé à partir du temps seul (aucun état cumulé) : la barre de position (seek) donne donc exactement le même résultat qu'une lecture normale.
 const SCH_DUR = 1.2, SCH_GAP = 1.4, SCH_EMPTY = 0.6, SCH_TRANS = 0.9;
+// z75 : durée d'une action selon sa longueur (un long tracé n'est plus parcouru en 1,2 s) : course 5 m/s, balle (passe, tir) 12 m/s ; jamais moins de 1,2 s
+function schDurOf(a) {
+  const D = schSample(a.points, 40, a.path), L = schPathLen(D), v = (a.type === 'PASS' || a.type === 'PASS2' || a.type === 'SHOT') ? 12 : 5;
+  return Math.max(SCH_DUR, schR(L / v, 2));
+}
 function schEase(t) { t = Math.max(0, Math.min(1, t)); return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 function schGroups(d) {
   const acts = d.elements.filter(schIsAction), steps = [...new Set(acts.map(a => a.step))].sort((a, b) => a - b);
@@ -338,7 +343,7 @@ function schPlan(d0) {
   sched.forEach(s => {
     const a = s.a, f = a.fromElementId && byId[a.fromElementId];
     const o = f && schIsPlayer(f) ? f : nearestAt(a.points[0], s.ts); own[a.id] = o;
-    if (isMove(a) && o) (pre[o.id] = pre[o.id] || []).push({ t0: s.ts, t1: s.ts + SCH_DUR, pts: a.points, m: a.path });
+    if (isMove(a) && o) (pre[o.id] = pre[o.id] || []).push({ t0: s.ts, t1: s.ts + schDurOf(a), pts: a.points, m: a.path });
   });
   // un état de possession PAR ballon : porteur (ou position au sol) et instant à partir duquel il peut être rejoué
   const bs = els.filter(e => e.type === 'BALL').slice(0, SCH_MAX_BALLS).map((b, i) => {
@@ -347,13 +352,13 @@ function schPlan(d0) {
   });
   const segs = {}, events = [], windows = {}, warnings = [], ballOf = {};
   let maxEnd = 0;
-  const addSeg = (id, t0, a) => { (segs[id] = segs[id] || []).push({ t0, t1: t0 + SCH_DUR, pts: a.points, m: a.path, a }); windows[a.id] = [t0, t0 + SCH_DUR]; maxEnd = Math.max(maxEnd, t0 + SCH_DUR); };
+  const addSeg = (id, t0, a) => { const dq = schDurOf(a); (segs[id] = segs[id] || []).push({ t0, t1: t0 + dq, pts: a.points, m: a.path, a }); windows[a.id] = [t0, t0 + dq]; maxEnd = Math.max(maxEnd, t0 + dq); };
   // quel ballon cette action déplace-t-elle ? celui qui est choisi à la main, sinon celui que tient son joueur
   const bp = d.ballPlay && bs.some(q => q.id === d.ballPlay) ? d.ballPlay : null; // ballon joué dans l'étape : celui des passes / tirs / dribbles sans ballon choisi
   const ballFor = (a, o) => { const bid = a.ballId || bp; if (bid) { const z = bs.find(q => q.id === bid); if (z) return z; } return o ? (bs.find(q => q.poss === o.id) || null) : null; };
   sched.forEach(s => {
     const a = s.a; let o = own[a.id], t0 = s.ts;
-    const win = (w0) => { windows[a.id] = [w0, w0 + SCH_DUR]; maxEnd = Math.max(maxEnd, w0 + SCH_DUR); };
+    const win = (w0) => { const dw = schDurOf(a); windows[a.id] = [w0, w0 + dw]; maxEnd = Math.max(maxEnd, w0 + dw); };
     const win2 = (aa, w0, w1) => { windows[aa.id] = [w0, w1]; maxEnd = Math.max(maxEnd, w1); };
     // une action de ballon sans joueur imposé revient au porteur s'il est près de son départ (même s'il s'est déplacé entre-temps)
     if (bs.length && isBall(a) && !a.fromElementId) {
@@ -373,7 +378,7 @@ function schPlan(d0) {
     if (!z || z.poss !== o.id) { warnings.push({ id: a.id, owner: o.id, step: a.step }); win(t0); return; }
     ballOf[a.id] = z.id;
     t0 = Math.max(t0, z.tAvail); win(t0);
-    const dd = a.type === 'PASS2' ? SCH_DUR * 1.8 : SCH_DUR, t1 = t0 + dd, endPt = a.points[a.points.length - 1];
+    const dd = a.type === 'PASS2' ? schDurOf(a) * 1.8 : schDurOf(a), t1 = t0 + dd, endPt = a.points[a.points.length - 1];
     if (a.type === 'PASS2') win2(a, t0, t1);
     if (a.type === 'SHOT') { events.push({ type: 'SHOT', t0, t1, a, from: o.id, end: { x: endPt.x, y: endPt.y }, ball: z.id }); z.poss = null; z.ground = { x: endPt.x, y: endPt.y }; z.tAvail = t1; return; }
     let to = a.toElementId && byId[a.toElementId] && schIsPlayer(byId[a.toElementId]) ? a.toElementId : null;
