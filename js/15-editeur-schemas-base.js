@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z75 (24/11/2026)
+// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z81 (24/11/2026)
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [
@@ -262,7 +262,7 @@ function schEdD() { return schEd.ex.drawings[schEd.k]; }
 function schEdSel() { const d = schEdD(); return schEd.sel ? d.elements.find(e => e.id === schEd.sel) || null : null; }
 function schEdSnapStr() { return JSON.stringify(schEd.ex.drawings); }
 function schEdPush(s) { schEd.undo.push(s || schEdSnapStr()); if (schEd.undo.length > 60) schEd.undo.shift(); schEd.redo = []; }
-function schEdBaseVb() { const d = schEdD(), v = SCH_VIEWS[d.view] || SCH_VIEWS.half, M = schViewMargins(d.view, 0.5, 2); return { x: -M.l, y: -M.t, w: v.w + M.l + M.r, h: v.h + M.t + M.b }; }
+function schEdBaseVb() { const d = schEdD(), v = SCH_VIEWS[d.view] || SCH_VIEWS.half, M = schViewMargins(d.view, 2.6, 2.6); return { x: -M.l, y: -M.t, w: v.w + M.l + M.r, h: v.h + M.t + M.b }; }
 function schEdToast(msg) {
   const t = schEd && schEd.el.querySelector('#sche-toast'); if (!t) return;
   t.textContent = msg; t.style.opacity = '1'; clearTimeout(schEd.toastT); schEd.toastT = setTimeout(() => { if (t) t.style.opacity = '0'; }, 2200);

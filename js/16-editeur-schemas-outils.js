@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z75 (24/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z81 (24/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -125,7 +125,14 @@ function schEdPreset(k) {
 function schEdMap(vb) { const r = schEd.stage.getBoundingClientRect(), s = Math.min(r.width / vb.w, r.height / vb.h) || 1; return { r, s, ox: (r.width - vb.w * s) / 2, oy: (r.height - vb.h * s) / 2 }; }
 function schEdPt(e, vb) { vb = vb || schEd.vb; const m = schEdMap(vb); return { x: vb.x + (e.clientX - m.r.left - m.ox) / m.s, y: vb.y + (e.clientY - m.r.top - m.oy) / m.s, s: m.s }; }
 const schSnap = (v, g) => Math.round(v / g) * g;
-function schEdClampPt(p) { const v = SCH_VIEWS[schEdD().view]; return { x: Math.max(0, Math.min(v.w, p.x)), y: Math.max(0, Math.min(v.h, p.y)) }; }
+function schEdClampPt(p) { const v = SCH_VIEWS[schEdD().view], o = SCH_OUT; return { x: Math.max(-o, Math.min(v.w + o, p.x)), y: Math.max(-o, Math.min(v.h + o, p.y)) }; }
+// z81 : point hors du rectangle du terrain ?
+function schEdOutside(p) { const v = SCH_VIEWS[schEdD().view]; return p.x < 0 || p.x > v.w || p.y < 0 || p.y > v.h; }
+// z81 : un toucher hors du terrain quitte l'outil actif (un tracé à virages en cours est validé s'il a 2 points ou plus, sinon abandonné) et revient à Sélection
+function schEdLeaveTool(pt) {
+  const S = schEd; if (S.poly && S.poly.pts.length >= 2) { schEdPolyDone(); schEdTool('select'); schEdTools(); schEdPanel(); schEdDraw(); return; }
+  schEdTapSelect(pt);
+}
 
 // ----- Sélection par toucher -----
 function schEdRad(e) {
@@ -369,7 +376,7 @@ function schEdMove(e) {
   if (dr.kind === 'lasso') { dr.p1 = pt; schEdDraw(); return; }
   if (dr.kind === 'mmove') {
     const V = SCH_VIEWS[d.view] || SCH_VIEWS.half, bb = dr.bb;
-    const dx = Math.max(-bb.x0, Math.min(V.w - bb.x1, schSnap(pt.x - dr.pt0.x, 0.25))), dy = Math.max(-bb.y0, Math.min(V.h - bb.y1, schSnap(pt.y - dr.pt0.y, 0.25)));
+    const dx = Math.max(-bb.x0 - SCH_OUT, Math.min(V.w + SCH_OUT - bb.x1, schSnap(pt.x - dr.pt0.x, 0.25))), dy = Math.max(-bb.y0 - SCH_OUT, Math.min(V.h + SCH_OUT - bb.y1, schSnap(pt.y - dr.pt0.y, 0.25)));
     dr.ids.forEach(id => {
       const el = els.find(x => x.id === id), o = dr.orig[id]; if (!el || !o) return;
       if (schIsAction(el)) el.points = o.pts.map(p => ({ x: schR(p.x + dx, 2), y: schR(p.y + dy, 2) }));
@@ -425,6 +432,7 @@ function schEdUp(e) {
   if (dr.kind === 'pen') { schEdPenDone(dr); return; }
   if (dr.kind === 'erase') { if (dr.n) schEdChanged(true); else schEdDraw(); return; }
   if (dr.kind === 'new') {
+    if (!dr.trace && Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7 && schEdOutside(dr.p0)) { schEdLeaveTool(dr.p0); return; }   // z81
     if (S.poly && !dr.trace) { schEdPolyAdd(dr.p1); return; }
     if (dr.trace && Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { S.gmove = null; S.sel = dr.pid; schEdTools(); schEdPanel(); schEdDraw(); return; } // simple toucher : sélectionne le joueur
     if (S.gmove && dr.type === 'MOVE') schEdFinishGroup(dr); else schEdFinishAction(dr);
@@ -451,6 +459,7 @@ function schEdUp(e) {
   if (dr.kind === 'place') {
     if (dn.moved) return;
     const pt1 = schEdPt(e);
+    if (schEdOutside(pt1)) { schEdLeaveTool(pt1); return; }   // z81 : toucher hors du terrain = retour à Sélection
     if (schToolPrefs().tapSelect && !(S.tool === 'BALL' && schNearestPlayer(els, pt1, 1.8))) { schEdTapSelect(pt1); return; } // le ballon posé sur un joueur reste un placement
     schEdPlace(S.tool, pt1); return;
   }

@@ -20,6 +20,7 @@ SCH_VIEW_KEYS.forEach(k => [90, 180, 270].forEach(a => { const b = SCH_VIEWS[k],
 function schViewParse(v) { const m = /^([a-z]+)@(90|180|270)$/.exec(v || ''); return m ? { base: m[1], rot: +m[2] } : { base: v, rot: 0 }; }
 // marges autour du terrain (le côté du but garde sa marge plus large, quel que soit le sens)
 function schViewMargins(view, mx, top) { const p = schViewParse(view); let M = { l: mx, t: (p.base === 'half' || p.base === 'goal') ? top : mx, r: mx, b: mx }; for (let i = 0; i < p.rot / 90; i++) M = { t: M.l, r: M.t, b: M.r, l: M.b }; return M; }
+const SCH_OUT = 2; // z81 : on peut poser joueurs et outils jusqu'à 2 m hors du terrain (marges élargies en conséquence)
 const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', disc: '#2EAD5B', stroke: '#14213D', att: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
 const SCH_MAX_BALLS = Infinity; // aucun plafond : autant de ballons que voulu
 const SCH_BALL_COLS = [['#F2B705', '#14213D'], ['#2F7DE1', '#FFFFFF'], ['#1FA35C', '#FFFFFF'], ['#8E5BD9', '#FFFFFF'], ['#E8543A', '#FFFFFF'], ['#17A2B8', '#FFFFFF'], ['#E84393', '#FFFFFF'], ['#14213D', '#FFFFFF']]; // [fond, chiffre] du ballon 1 à 8 (au-delà, les couleurs se répètent : le chiffre les distingue)
@@ -160,7 +161,7 @@ function schPtsD(D) { return D.map((q, i) => (i ? 'L' : 'M') + schR(q.x) + ' ' +
 
 // ----- Terrain -----
 function schView(view) {
-  const v = SCH_VIEWS[view] || SCH_VIEWS.half, M = schViewMargins(view, 1.2, 2.4);
+  const v = SCH_VIEWS[view] || SCH_VIEWS.half, M = schViewMargins(view, 2.6, 2.6);
   return { W: v.w, H: v.h, vb: [-M.l, -M.t, v.w + M.l + M.r, v.h + M.t + M.b] };
 }
 function schCourtSvg(view) {
