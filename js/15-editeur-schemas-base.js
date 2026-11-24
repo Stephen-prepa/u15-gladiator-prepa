@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z81 (24/11/2026)
+// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z85 (24/11/2026)
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [
@@ -17,7 +17,7 @@ const SCH_PRESETS = {
 };
 const SCH_LS = 'sch_ex_v2', SCH_LS_OLD = 'sch_user_ex_v1';
 // Classement des schémas : type + thème par poste (servent aux filtres de la bibliothèque). Stockés avec le schéma (aucun changement de la base : ils voyagent dans le champ « drawings », sur la 1re étape, clé « meta »).
-const SCH_KINDS = { attaque: 'Attaque', defense: 'Défense', grand: 'Jeu sur grand espace' }, SCH_KINDS_S = { attaque: 'Att.', defense: 'Déf.', grand: 'Grand esp.' };
+const SCH_KINDS = { attaque: 'Attaque', defense: 'Défense', grand: 'Jeu sur grand espace', circuit: 'Circuit passe' }, SCH_KINDS_S = { attaque: 'Att.', defense: 'Déf.', grand: 'Grand esp.', circuit: 'Circuit' };
 const SCH_THEMES = { enchainement: 'Enchaînement de tâches', echgb: 'Échauffement GB', montee: 'Montée de balle', motricite: 'Motricité', supnum: 'Sup Num ATT', c12: 'Charnière 1-2', c23: 'Charnière 2-3', c33: 'Charnière 3-3 (autour du pivot)', autre: 'Autre / tous postes' }, SCH_THEMES_S = { enchainement: 'Enchaîn.', echgb: 'Éch. GB', montee: 'Montée', motricite: 'Motricité', supnum: 'Sup Num', c12: 'Ch. 1-2', c23: 'Ch. 2-3', c33: 'Ch. 3-3', autre: 'Autre' };
 // Thèmes créés par les coachs : clé « x:nom-du-theme ». Le libellé est gardé sur l'appareil ET voyage avec chaque schéma classé dans ce thème (clé « themeLabel » à côté de « theme »), donc les autres coachs le retrouvent sans changement de base.
 const SCH_CUSTOM = {}, SCH_THEMES_LS = 'sch_themes_v1';

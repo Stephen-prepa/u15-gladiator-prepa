@@ -1,4 +1,4 @@
-/* Prépa U15 HBCCS — css/style.css — dernière modification : version z45 (09/11/2026) */
+/* Prépa U15 HBCCS — css/style.css — dernière modification : version z85 (24/11/2026) */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 :root {
   --bleu:#003F8A; --bleu-light:#0052B4;
@@ -1649,3 +1649,17 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
 .home-tile.g2{background:linear-gradient(145deg,#F5C400,#C9A000);color:#0A1628;}
 .home-tile.g3{background:linear-gradient(145deg,#1f9e5b,#0f6b3c);}
 .home-tile.g4{background:linear-gradient(145deg,#8E5BD9,#5a35a0);}
+
+/* z85 — vignettes de type des schémas */
+.sch-kts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0;}
+.sch-kt{position:relative;border:none;text-align:left;cursor:pointer;border-radius:20px;padding:12px;min-height:104px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;font-family:inherit;box-shadow:0 6px 14px rgba(0,0,0,.35);}
+.sch-kt:active{transform:scale(.97);}
+.sch-kt.sel{outline:3px solid #fff;outline-offset:2px;}
+.sch-kt-i{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.sch-kt-n{font-weight:900;font-size:16px;}
+.sch-kt-s{font-size:11.5px;opacity:.92;}
+.sch-kt-b{position:absolute;top:10px;right:10px;background:#fff;color:#000;border-radius:999px;font-size:12px;font-weight:900;padding:2px 9px;}
+.sch-kt.k-att{background:linear-gradient(145deg,var(--rouge-light),var(--rouge));}
+.sch-kt.k-def{background:linear-gradient(145deg,var(--bleu-light),var(--bleu));}
+.sch-kt.k-grd{background:linear-gradient(145deg,#1f9e5b,#0f6b3c);}
+.sch-kt.k-cir{background:linear-gradient(145deg,#F5C400,#C9A000);color:#0A1628;}
