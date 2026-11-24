@@ -19,7 +19,7 @@ function schToolLabel(id) {
 // Préférences d'affichage des outils (Réglages, cet appareil) : taille, texte/icône, nombre de lignes, outils masqués (rangés sous « Plus »)
 function schToolPrefs() {
   const c = (typeof dispCfg !== 'undefined' && dispCfg) || {};
-  return { size: ['s', 'm', 'l'].includes(c.toolSize) ? c.toolSize : 'm', mode: ['both', 'icon', 'text'].includes(c.toolMode) ? c.toolMode : 'both', rows: [1, 2, 3].includes(Number(c.toolRows)) ? Number(c.toolRows) : 2, hidden: Array.isArray(c.toolHidden) ? c.toolHidden : [], tapSelect: c.toolTapSelect !== false };
+  return { size: ['s', 'm', 'l'].includes(c.toolSize) ? c.toolSize : 'm', mode: ['both', 'icon', 'text'].includes(c.toolMode) ? c.toolMode : 'both', rows: [1, 2, 3].includes(Number(c.toolRows)) ? Number(c.toolRows) : 2, hidden: Array.isArray(c.toolHidden) ? c.toolHidden : [], tapSelect: c.toolTapSelect === true };
 }
 function schEdTools() {
   const S = schEd, box = S.el.querySelector('#sche-tools'), names = {}, P = schToolPrefs();
