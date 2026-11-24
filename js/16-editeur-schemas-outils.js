@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z87 (24/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z88 (24/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -886,7 +886,7 @@ function schDemoData() {
     A('r1', 'RUN', [[15.8, 10.8], [15.6, 8.6], [14.4, 8.2]], 1), A('p2', 'PASS', [[14.7, 8.1], [13.4, 7.1]], 2, { toElementId: 'a5' }), A('m2', 'MOVE', [[18.8, 3.2], [16.4, 3.8]], 2, { delay: 0.5 }), A('sc', 'SCREEN', [[8.6, 8.1], [10.4, 7.5]], 1, { fromElementId: 'a2' })]);
   const s3 = base().filter(e => e.id !== 'a5').concat([P('a5', 'PLAYER', 13, 6.9, '1'), { id: 'ball', type: 'BALL', x: 13.8, y: 6.4, holderId: 'a5' }, A('sh', 'SHOT', [[13.4, 6.5], [10.6, 0.5]], 1, { fromElementId: 'a5' }), { id: 'c1', type: 'CONE', x: 10, y: 15 }]);
   return [
-    { key: 'demo', kind: 'attaque', theme: 'autre', name: 'Attaque placée vs 0-6 (3 étapes)', drawings: [{ id: 'd1', title: 'Étape 1', view: 'half', elements: s1 }, { id: 'd2', title: 'Étape 2', view: 'half', elements: s2 }, { id: 'd3', title: 'Étape 3', view: 'half', elements: s3 }] },
+    // z88 : le schéma d'exemple « Attaque placée vs 0-6 » a été retiré (demande de Stephen)
   ];
 }
 let schDemo = null, schUi = { draft: false, ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '', open: true };   // z87 : à l'ouverture de l'onglet, la bibliothèque (vignettes + liste) est dépliée
@@ -898,6 +898,7 @@ function schInit() {
 }
 function schRenderDemo() {
   const box = document.getElementById('sch-demo'); if (!box) return;
+  if (!schDemo.length) { box.innerHTML = '<div class="sch-bar"><button type="button" class="sch-play alt" onclick="schNewExAsk()">＋ Nouvel exercice</button></div><div class="ms-info">Aucun schéma pour l\'instant : crée ton premier exercice.</div>'; return; }   // z88 : plus de schéma d\'exemple intégré
   const ex = schDemo[schUi.ex], d0 = ex.drawings[Math.min(schUi.step, ex.drawings.length - 1)], d = schUi.view ? { ...d0, view: schUi.view + (schViewParse(d0.view).rot ? '@' + schViewParse(d0.view).rot : '') } : d0;
   const btn = (on, fn, label) => `<button type="button" class="sch-chip ${on ? 'on' : ''}" onclick="${fn}">${label}</button>`;
   const q = (schUi.q || '').trim().toLowerCase();

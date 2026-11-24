@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z85 (24/11/2026)
+// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z88 (24/11/2026)
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [
@@ -148,7 +148,7 @@ async function schSyncAll(quiet) {
     if (quiet === true && schSync.state === 'ok' && sig0 === sigOf()) { schSyncUi(); return; } // rien n'a changé : on ne redessine pas l'écran
     schUserSave();
     const cur = schDemo && schDemo[schUi.ex] ? schDemo[schUi.ex].id : null; schRebuild();
-    const ix = cur ? schDemo.findIndex(x => x.id === cur) : -1; schUi.ex = ix >= 0 ? ix : 0; if (schUi.step >= schDemo[schUi.ex].drawings.length) schUi.step = 0;
+    const ix = cur ? schDemo.findIndex(x => x.id === cur) : -1; schUi.ex = ix >= 0 ? ix : 0; if (!schDemo[schUi.ex] || schUi.step >= schDemo[schUi.ex].drawings.length) schUi.step = 0;
     if (!schEd && !schPl) { try { schRenderDemo(); } catch (e) {} }
     schSyncUi(); try { crSchPickRefresh(); } catch (e) {} if (schSync.state === 'error' && schPending()) schSyncSoon(30000);
   }
