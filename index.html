@@ -161,13 +161,6 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Présences, statistiques, évaluations</span>
       </span>
     </button>
-    <button id="home-btn-analyse" class="home-btn" onclick="anEnter()" style="display:none;">
-      <span style="font-size:28px;">🔬</span>
-      <span>
-        <span style="display:block;font-size:15px;font-weight:800;color:var(--blanc);">Analyse</span>
-        <span style="display:block;font-size:12px;color:var(--gris-texte);margin-top:2px;">Poules adverses, classements, joueurs à surveiller</span>
-      </span>
-    </button>
     <button id="home-btn-ej" class="home-btn" onclick="enterClubSpaceGated()">
       <span style="font-size:28px;">📊</span>
       <span>
@@ -177,16 +170,6 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
     </button>
   </div>
   <div class="app-version" id="app-version"></div>
-</div>
-
-<!-- ÉCRAN ANALYSE (z52) : réservé aux coachs, carte visible seulement si activée dans Réglages -->
-<div id="screen-analyse" style="display:none;min-height:100vh;padding:20px;box-sizing:border-box;">
-  <div style="max-width:1100px;margin:0 auto;">
-    <button onclick="anBack()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gris-clair);border-radius:6px;padding:8px 14px;font-size:12px;cursor:pointer;margin-bottom:18px;">← Retour</button>
-    <h2 style="font-size:20px;font-weight:900;color:var(--blanc);margin-bottom:4px;">🔬 Analyse</h2>
-    <div style="font-size:12px;color:var(--gris-texte);margin-bottom:16px;">Qui vais-je affronter ? Choisis l'équipe 1 ou 2, puis un adversaire. Réservé aux coachs.</div>
-    <div id="an-body"></div>
-  </div>
 </div>
 
 <div id="screen-club" style="display:none;min-height:100vh;padding:20px;box-sizing:border-box;">
@@ -891,6 +874,9 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         <button type="button" class="cs-tab" id="cs-subtab-composition" onclick="coachSubtabSwitch('composition')">
           <span class="cs-tab-icon">🎽</span><span class="cs-tab-label">Compos</span>
         </button>
+        <button type="button" class="cs-tab" id="cs-subtab-analyse" style="display:none;" onclick="coachSubtabSwitch('analyse')">
+          <span class="cs-tab-icon">🔬</span><span class="cs-tab-label">Analyse</span>
+        </button>
       </div>
       <div class="coachs2-subtabs coachs2-subtabs-bottom">
         <button type="button" class="cs-tab" id="cs-subtab-stats" onclick="coachSubtabSwitch('stats')">
@@ -1051,6 +1037,12 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         </div>
       </div>
 
+      <div class="cs-box cs-hide" id="cs-box-analyse" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
+        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:2px;">🔬 Analyse</h3>
+        <div style="font-size:12px;color:var(--gris-texte);margin-bottom:14px;">Qui vais-je affronter ? Choisis l'équipe 1 ou 2, puis un adversaire.</div>
+        <div id="an-body"></div>
+      </div>
+
       <div class="cs-box" id="cs-box-composition" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
         <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🎽 Compositions du week-end</h3>
         <div style="font-size:11px;color:var(--gris-texte);margin-bottom:12px;">Envoie chaque joueur dans une équipe pour cette date. Rien à valider — c'est enregistré à chaque tap.</div>
@@ -1193,7 +1185,7 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
           <div id="an-own-box">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gris-clair);margin-bottom:10px;cursor:pointer;">
             <input type="checkbox" id="an-settings-visible" style="width:18px;height:18px;">
-            Afficher la carte « Analyse » sur mon accueil
+            Afficher l'onglet « Analyse » dans mon Espace coachs
           </label>
           <div style="font-size:11px;color:var(--gris-texte);margin-bottom:8px;">Ce réglage est propre à ton compte : les autres coachs, les joueurs et les parents ne voient rien tant qu'ils ne l'ont pas activé eux-mêmes.</div>
           <button onclick="anSettingsSave()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--jaune);color:var(--c-onacc,#1a1a1a);font-weight:800;cursor:pointer;">Enregistrer</button>

@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/24-onglets-coach.js — dernière modification : version z42 (08/11/2026)
+// Prépa U15 HBCCS — js/24-onglets-coach.js — dernière modification : version z86 (24/11/2026)
 // ===================== ORGANISATION DES ONGLETS DU COACH =====================
 // Chaque onglet peut être placé : rangée du haut, barre du bas, ou menu « Plus ▾ ». L'ordre se règle dans Réglages.
 // Les boutons existent déjà dans index.html (ids cs-subtab-<id>) : on ne fait que les DÉPLACER (rien n'est supprimé).
@@ -12,12 +12,13 @@ const TB_TABS = [
   { id: 'schemas', ic: '✏️', name: 'Schémas' },
   { id: 'outils', ic: '🧩', name: 'Éq./Match' },
   { id: 'composition', ic: '🎽', name: 'Compos' },
+  { id: 'analyse', ic: '🔬', name: 'Analyse' },
   { id: 'stats', ic: '📊', name: 'Matchs & Stats' },
   { id: 'programme', ic: '🗓️', name: 'Programme' },
   { id: 'evaluations', ic: '🎯', name: 'Évals' },
   { id: 'reglages', ic: '⚙️', name: 'Réglages', fixed: true },
 ];
-const TB_DEFAULT = { top: ['dashboard', 'presence', 'seance', 'schemas', 'outils', 'composition'], bottom: ['stats', 'programme', 'evaluations', 'reglages'], more: [] };
+const TB_DEFAULT = { top: ['dashboard', 'presence', 'seance', 'schemas', 'outils', 'composition', 'analyse'], bottom: ['stats', 'programme', 'evaluations', 'reglages'], more: [] };
 let tbCfgState = null, tbPulled = false, tbSaveTimer = null;
 
 function tbClone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -33,7 +34,7 @@ function tbNormalize(c) {
       out[(z === 'more' && t.fixed) ? (id === 'dashboard' ? 'top' : 'bottom') : z].push(id);
     });
   });
-  TB_TABS.forEach(function (t) { if (!seen[t.id]) out.bottom.push(t.id); });
+  TB_TABS.forEach(function (t) { if (!seen[t.id]) out[t.id === 'analyse' ? 'top' : 'bottom'].push(t.id); });   // z86 : Analyse s'ajoute en haut (comme Présences), les autres nouveautés en bas
   return out;
 }
 function tbCfg() {

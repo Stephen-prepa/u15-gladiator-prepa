@@ -1,9 +1,9 @@
-// Prépa U15 HBCCS — js/26-activite-coachs.js — dernière modification : version z74 (23/11/2026)
+// Prépa U15 HBCCS — js/26-activite-coachs.js — dernière modification : version z86 (24/11/2026)
 // ===================== JOURNAL D'ACTIVITÉ DES COACHS (z74) =====================
 // Enregistre, pour Sandrine / Arthur / Nicolas (pas Stephen), les pages ouvertes et les écritures faites dans l'appli.
 // Table coach_activity : chaque coach peut y écrire pour lui-même ; seul Stephen peut la lire (RLS). Historique gardé 90 jours.
 // Écrit pour les navigateurs anciens (pas de ?. ni ??).
-var ACT_PAGES = { dashboard: 'Tableau de bord', presence: 'Présences', stats: 'Matchs & Stats', programme: 'Programme', seance: 'Séance', schemas: 'Schémas', composition: 'Compos', evaluations: 'Évals', reglages: 'Réglages', outils: 'Éq./Match' };
+var ACT_PAGES = { dashboard: 'Tableau de bord', presence: 'Présences', stats: 'Matchs & Stats', programme: 'Programme', seance: 'Séance', schemas: 'Schémas', composition: 'Compos', analyse: 'Analyse', evaluations: 'Évals', reglages: 'Réglages', outils: 'Éq./Match' };
 var ACT_TABLES = { players: 'fiches joueurs', presences: 'présences', evaluations: 'évaluations', seance_plans: 'séances', exercices_schemas: 'schémas', match_notes: 'notes d\'analyse', matches: 'matchs', match_lineup: 'compos de match', outils_composition: 'compos', outils_goals: 'objectifs d\'équipe', session_notes: 'notes de séance', physical_tests: 'tests physiques', objectif_progress: 'objectifs', programme_saison: 'programme', contenus_joueurs: 'contenus joueurs', questions_joueurs: 'questions joueurs', app_settings: 'réglages' };
 var actSeen = {};
 var actRawFetch = window.fetch.bind(window);
@@ -52,10 +52,6 @@ window.fetch = function (input, init) {
   if (typeof coachSubtabSwitch === 'function') {
     var cs = coachSubtabSwitch;
     coachSubtabSwitch = function (name) { actSessionPing(); actLog('page', ACT_PAGES[name] || String(name)); var r = cs.apply(this, arguments); if (name === 'reglages') { try { actUiInit(); } catch (e) {} } return r; };
-  }
-  if (typeof anEnter === 'function') {
-    var ae = anEnter;
-    anEnter = function () { actSessionPing(); actLog('page', 'Analyse'); return ae.apply(this, arguments); };
   }
 })();
 

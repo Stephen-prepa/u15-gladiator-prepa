@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z71 (23/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z86 (24/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -581,7 +581,8 @@ function pickCoachLogin(login) {
 function coachSubtabSwitch(name) {
   if (typeof tbApply === 'function') { tbApply(); if (typeof tbPull === 'function') tbPull(); }
   if (name === 'evaluations' && coachIsRestricted()) name = 'presence';
-  const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', schemas: 'cs-box-schemas', composition: 'cs-box-composition', outils: 'cs-box-outils', evaluations: 'cs-box-evaluations', reglages: 'cs-box-reglages' };
+  if (name === 'analyse' && !(typeof anCanSee === 'function' && anCanSee())) name = 'dashboard';
+  const boxes = { dashboard: 'cs-box-dashboard', presence: 'cs-box-presence', stats: 'cs-box-stats', programme: 'cs-box-programme', seance: 'cs-box-seance', schemas: 'cs-box-schemas', composition: 'cs-box-composition', analyse: 'cs-box-analyse', outils: 'cs-box-outils', evaluations: 'cs-box-evaluations', reglages: 'cs-box-reglages' };
   Object.keys(boxes).forEach(key => {
     document.getElementById(boxes[key]).classList.toggle('cs-hide', key !== name);
     const btn = document.getElementById('cs-subtab-' + key);
@@ -600,6 +601,7 @@ function coachSubtabSwitch(name) {
   if (name === 'presence' && typeof presViewInit === 'function') presViewInit();
   if (name === 'seance') seancePaneInit();
   if (name === 'schemas') schInit();
+  if (name === 'analyse' && typeof anEnter === 'function') anEnter();
   if (typeof tbMarkActive === 'function') tbMarkActive(name);
   if (typeof qjAlertTick === 'function') qjAlertTick();
 }

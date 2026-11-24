@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z74 (23/11/2026)
+// Prépa U15 HBCCS — js/25-analyse.js — dernière modification : version z86 (24/11/2026)
 // ===================== ANALYSE (carte « 🔬 Analyse » de l'accueil, visible seulement pour le coach qui l'a activée) =====================
 // Écran réservé aux coachs : poules de SUIVI (équipes qu'on rencontrera en phase 2 mais qu'on ne connaît que par leur phase 1),
 // leurs classements, et — dans les versions suivantes — probabilités de victoire et fiches des joueurs adverses.
@@ -15,9 +15,8 @@ function anCanSee() {
   return appSettings['analyse_allow_' + coachSession.login] === 'true';
 }
 function anUpdateCard() {
-  var b = document.getElementById('home-btn-analyse');
-  if (!b) return;
-  b.style.display = anCanSee() ? 'flex' : 'none';
+  var b = document.getElementById('cs-subtab-analyse');   // z86 : onglet de l'Espace coachs (plus de carte sur l'accueil de l'appli)
+  if (b) b.style.display = anCanSee() ? '' : 'none';
   var k = anSetKey(), cb = document.getElementById('an-settings-visible');
   if (cb) cb.checked = !!(k && appSettings[k] === 'true');
   var st = anIsStephen(), own = document.getElementById('an-own-box'), note = document.getElementById('an-note'), al = document.getElementById('an-allow-box');
@@ -67,16 +66,12 @@ async function anSettingsSave() {
 // ---- Écran ----
 function anEnter() {
   if (!anCanSee()) return;   // z74 : accès réglé par Stephen
-  document.getElementById('screen-home').style.display = 'none';
-  document.getElementById('screen-analyse').style.display = 'block';
-  window.scrollTo(0, 0);
   anState.view = 'team'; anState.menu = false; anState.first = true;
   anLoad();
 }
 function anBack() {
   if (anState.view === 'our' || anState.menu) { anState.view = 'team'; anState.menu = false; anRender(); return; }
-  document.getElementById('screen-analyse').style.display = 'none';
-  document.getElementById('screen-home').style.display = 'flex';
+  coachSubtabSwitch('dashboard');
 }
 async function anLoad() {
   var box = document.getElementById('an-body');
