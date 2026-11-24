@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z84 (24/11/2026)
+// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z89 (25/11/2026)
 // ===== Partage en GIF d'un schéma de la bibliothèque (module Schémas) =====
 // Même principe que l'ancien export : une image par instant de l'animation (celle que montre le lecteur), puis GIF 256 couleurs ; image fixe (PNG) s'il n'y a rien à animer.
 function schGifPalette(svgs) {
@@ -274,7 +274,7 @@ async function homeTilesLoad() {
   const wrap = document.getElementById('dash-tiles'); if (!wrap) return;
   const restricted = typeof coachIsRestricted === 'function' && coachIsRestricted();
   const tiles = [
-    { id: 'seance', tab: 'seance', cls: 'g1', ic: '📝', n: 'Séance', s: '' },
+    { id: 'seance', tab: 'seance', cls: 'g1', ic: '📝', n: 'Séances', s: '' },
     { id: 'schemas', tab: 'schemas', cls: 'g2', ic: '✏️', n: 'Schémas', s: '' },
     { id: 'compos', tab: 'composition', cls: 'g3', ic: '🎽', n: 'Compos', s: '' },
   ];

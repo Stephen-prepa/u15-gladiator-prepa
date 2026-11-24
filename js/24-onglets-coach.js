@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/24-onglets-coach.js — dernière modification : version z86 (24/11/2026)
+// Prépa U15 HBCCS — js/24-onglets-coach.js — dernière modification : version z89 (25/11/2026)
 // ===================== ORGANISATION DES ONGLETS DU COACH =====================
 // Chaque onglet peut être placé : rangée du haut, barre du bas, ou menu « Plus ▾ ». L'ordre se règle dans Réglages.
 // Les boutons existent déjà dans index.html (ids cs-subtab-<id>) : on ne fait que les DÉPLACER (rien n'est supprimé).
@@ -8,7 +8,7 @@ const TB_KEY = 'coach_cfg_tabs';
 const TB_TABS = [
   { id: 'dashboard', ic: '🏠', name: 'Accueil', fixed: true },
   { id: 'presence', ic: '📋', name: 'Présences' },
-  { id: 'seance', ic: '📝', name: 'Séance' },
+  { id: 'seance', ic: '📝', name: 'Séances' },
   { id: 'schemas', ic: '✏️', name: 'Schémas' },
   { id: 'outils', ic: '🧩', name: 'Éq./Match' },
   { id: 'composition', ic: '🎽', name: 'Compos' },
