@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z73 (24/11/2026)
+// Prépa U15 HBCCS — js/15-editeur-schemas-base.js — dernière modification : version z75 (24/11/2026)
 // ===================== ÉDITEUR =====================
 // Superposition plein écran (ajoutée à <html>, comme le lecteur). Les exercices créés ici sont gardés sur l'appareil (localStorage) en attendant la sauvegarde Supabase (étape 4).
 const SCH_GROUPS = [
@@ -467,6 +467,7 @@ function schEdKey(e) {
   if (document.getElementById('sch-cls')) { if (e.key === 'Escape') { e.preventDefault(); schClassClose(); } return; }
   if (schEd.el.querySelector('#sche-ask')) { if (e.key === 'Escape') { e.preventDefault(); schEdAsk(0); } return; }
   const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
+  if (schEd.poly && !typing && (e.key === 'Enter' || e.key === 'Escape')) { e.preventDefault(); e.key === 'Enter' ? schEdPolyDone() : schEdPolyCancel(); return; }
   if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? schEdRedo() : schEdUndo(); }
   else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); schEdRedo(); }
   else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && !schEd.sel && schEdMultiIds().length) { e.preventDefault(); schEdMultiDel(); }

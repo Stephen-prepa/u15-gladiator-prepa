@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z73 (24/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z75 (24/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -104,6 +104,7 @@ function schEdTapSelect(pt) {
 function schEdMore(on) { schEd.more = !!on; schEdTools(); }
 function schEdGroup(id) { const g = SCH_GROUPS.find(x => x.id === id); if (!g) return; schEd.group = id; if (id === 'tools') schEd.tool = 'select'; else if (!g.tools.some(t => t[0] === schEd.tool)) schEd.tool = g.tools[0][0]; schEdTools(); schEdPanel(); }
 function schEdTool(t) {
+  schEd.poly = null;
   if (t !== 'MOVE') schEd.gmove = null;
   if (t === 'multi' && schEd.tool !== 'multi') { schEdMultiSet(schEd.sel ? [schEd.sel] : schEdMultiIds()); schEd.sel = null; } else if (t !== 'multi') schEdMultiSet([]);
   schEd.tool = t; const g = SCH_GROUPS.find(x => x.tools.some(y => y[0] === t)); if (g) schEd.group = g.id; if (t !== 'select') schEd.drag = null;
@@ -134,6 +135,7 @@ function schEdRad(e) {
 function schEdPos(e, els) { return e.type === 'BALL' ? schBallStart(e, els) : { x: e.x, y: e.y }; }
 function schEdHandles(e) {
   if (schIsAction(e)) {
+    if (e.path) return e.points.map((q, i) => ({ k: 'pt', i, x: q.x, y: q.y }));   // tracé à virages : un rond par sommet
     const P = e.points, n = P.length, m = n === 3 ? schQuadAt(P[0], P[1], P[2], 0.5) : { x: (P[0].x + P[1].x) / 2, y: (P[0].y + P[1].y) / 2 };
     return [{ k: 'pt', i: 0, x: P[0].x, y: P[0].y }, { k: 'pt', i: n - 1, x: P[n - 1].x, y: P[n - 1].y }, { k: 'mid', x: m.x, y: m.y }];
   }
@@ -167,7 +169,7 @@ function schEdHit(pt, o) {
   if (best) return { kind: 'el', e: best };
   if (o.actions !== false) {
     let ba = null, bda = tol;
-    els.forEach(e => { if (!schIsAction(e)) return; const S = schSample(e.points, 24); let m = 1e9; for (let i = 1; i < S.length; i++) m = Math.min(m, schDistSeg(pt, S[i - 1], S[i])); if (m < bda) { bda = m; ba = e; } });
+    els.forEach(e => { if (!schIsAction(e)) return; const S = schSample(e.points, 24, e.path); let m = 1e9; for (let i = 1; i < S.length; i++) m = Math.min(m, schDistSeg(pt, S[i - 1], S[i])); if (m < bda) { bda = m; ba = e; } });
     if (ba) return { kind: 'el', e: ba };
   }
   if (o.actions !== false) { // trait libre : proche de la ligne
@@ -254,7 +256,7 @@ function schEdMultiPanel() {
 }
 function schEdRingSvg(e, els, col, sc) {
   if (e.type === 'PEN') { const b = schPenBox(e), pd = 0.35; return `<rect x="${b.x0 - pd}" y="${b.y0 - pd}" width="${b.x1 - b.x0 + pd * 2}" height="${b.y1 - b.y0 + pd * 2}" rx="0.15" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`; }
-  if (schIsAction(e)) { const Sm = schSample(e.points, 24); return `<polyline points="${Sm.map(p => p.x + ',' + p.y).join(' ')}" fill="none" stroke="${col}" stroke-opacity="0.55" stroke-width="0.55" stroke-linecap="round" stroke-linejoin="round"/>`; }
+  if (schIsAction(e)) { const Sm = schSample(e.points, 24, e.path); return `<polyline points="${Sm.map(p => p.x + ',' + p.y).join(' ')}" fill="none" stroke="${col}" stroke-opacity="0.55" stroke-width="0.55" stroke-linecap="round" stroke-linejoin="round"/>`; }
   if (e.type === 'ZONE_RECT') return `<rect x="${e.x - e.w / 2}" y="${e.y - e.h / 2}" width="${e.w}" height="${e.h}" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
   if (e.type === 'ZONE_CIRCLE') return `<ellipse cx="${e.x}" cy="${e.y}" rx="${e.w / 2}" ry="${e.h / 2}" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
   if (e.type === 'LADDER') { const s2 = e.scale || 1, hw = (e.n || 8) * 0.25 * s2 + 0.25, hh = 0.3 * s2 + 0.25; return `<rect x="${e.x - hw}" y="${e.y - hh}" width="${hw * 2}" height="${hh * 2}" rx="0.15" fill="none" stroke="${col}" stroke-width="0.16" stroke-dasharray="0.5 0.3"${e.rotation ? ` transform="rotate(${e.rotation} ${e.x} ${e.y})"` : ''}/>`; }
@@ -306,11 +308,26 @@ function schEdDown(e) {
     }
     S.drag = { kind: 'lasso', p0: pt, p1: pt }; return;
   }
+  // z75 : avec un outil de tracé actif, une poignée libre du tracé sélectionné (courbe, sommet, bout non rattaché) passe avant un nouveau tracé
+  if (SCH_ACTIONS.includes(tool) && !rightBtn) {
+    const sl = schEdSel();
+    if (sl && schIsAction(sl)) {
+      const tolH = (S.touch ? 26 : 12) / pt.s * 1.15, last = sl.points.length - 1; let hb = null, bd = tolH;
+      schEdHandles(sl).forEach(h => { if (h.k === 'pt' && ((h.i === 0 && sl.fromElementId) || (h.i === last && sl.toElementId))) return; const dd = Math.hypot(h.x - pt.x, h.y - pt.y); if (dd < bd) { bd = dd; hb = h; } });
+      if (hb) { S.poly = null; S.drag = { kind: 'handle', h: hb, snap0: schEdSnapStr() }; return; }
+    }
+  }
   if (SCH_ACTIONS.includes(tool)) { S.plan = schPlan(d); const q0 = schEdClampPt(pt); S.drag = { kind: 'new', type: tool, p0: q0, p1: q0, pts: [q0] }; return; }
   const hit = tool === 'BALL' ? null : schEdHit(pt, tool === 'select' ? {} : { zones: false, actions: false, handles: false }); // le ballon se pose sur un joueur : pas de sélection
   S.down.hit = hit;
   if (hit && hit.kind === 'handle') { S.drag = { kind: 'handle', h: hit.h, snap0: schEdSnapStr() }; return; }
   if (hit && hit.kind === 'el' && schIsAction(hit.e) && tool === 'select') { // glisser directement sur le tracé : on le courbe
+    if (hit.e.path) { // tracé à virages : glisser sur le trait crée un nouveau sommet
+      const e1 = hit.e, P1 = e1.points; let bs = 0, bdd = 1e9; for (let i = 1; i < P1.length; i++) { const dd = schDistSeg(pt, P1[i - 1], P1[i]); if (dd < bdd) { bdd = dd; bs = i; } }
+      S.sel = e1.id; schEdTools(); schEdPanel();
+      const snap1 = schEdSnapStr(); if (P1.length < 16) { P1.splice(bs, 0, { x: schR(pt.x, 2), y: schR(pt.y, 2) }); S.drag = { kind: 'handle', h: { k: 'pt', i: bs }, snap0: snap1 }; } else S.drag = { kind: 'move', id: e1.id, off: { x: 0, y: 0 }, snap0: snap1 };
+      schEdDraw(); return;
+    }
     const e0 = hit.e, Sm = schSample(e0.points, 24); let bi = 0, bd = 1e9; Sm.forEach((q, i) => { const dd = Math.hypot(q.x - pt.x, q.y - pt.y); if (dd < bd) { bd = dd; bi = i; } });
     S.sel = e0.id; schEdTools(); schEdPanel(); schEdDraw();
     S.drag = { kind: 'bend', id: e0.id, t: Math.max(0.2, Math.min(0.8, bi / (Sm.length - 1))), snap0: schEdSnapStr() }; return;
@@ -408,6 +425,7 @@ function schEdUp(e) {
   if (dr.kind === 'pen') { schEdPenDone(dr); return; }
   if (dr.kind === 'erase') { if (dr.n) schEdChanged(true); else schEdDraw(); return; }
   if (dr.kind === 'new') {
+    if (S.poly && !dr.trace) { schEdPolyAdd(dr.p1); return; }
     if (dr.trace && Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { S.gmove = null; S.sel = dr.pid; schEdTools(); schEdPanel(); schEdDraw(); return; } // simple toucher : sélectionne le joueur
     if (S.gmove && dr.type === 'MOVE') schEdFinishGroup(dr); else schEdFinishAction(dr);
     if (dr.trace) S.gmove = null; return;
@@ -445,7 +463,7 @@ function schEdUp(e) {
   }
   if (dr.kind === 'bend') {
     const el = els.find(x => x.id === dr.id);
-    if (el && el.points.length === 3) { const P = el.points, m = { x: (P[0].x + P[2].x) / 2, y: (P[0].y + P[2].y) / 2 }, b = schQuadAt(P[0], P[1], P[2], 0.5); if (Math.hypot(b.x - m.x, b.y - m.y) < 0.15) el.points = [P[0], P[2]]; }
+    if (el && !el.path && el.points.length === 3) { const P = el.points, m = { x: (P[0].x + P[2].x) / 2, y: (P[0].y + P[2].y) / 2 }, b = schQuadAt(P[0], P[1], P[2], 0.5); if (Math.hypot(b.x - m.x, b.y - m.y) < 0.15) el.points = [P[0], P[2]]; }
     if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); }
     return;
   }
@@ -453,7 +471,8 @@ function schEdUp(e) {
     const el = schEdSel();
     if (el && schIsAction(el)) {
       const plan = schPlan(d), P = el.points;
-      if (P.length === 3) { const m = { x: (P[0].x + P[2].x) / 2, y: (P[0].y + P[2].y) / 2 }, b = schQuadAt(P[0], P[1], P[2], 0.5); if (Math.hypot(b.x - m.x, b.y - m.y) < 0.15) el.points = [P[0], P[2]]; }
+      if (el.path) schEdPolyClean(el);
+      else if (P.length === 3) { const m = { x: (P[0].x + P[2].x) / 2, y: (P[0].y + P[2].y) / 2 }, b = schQuadAt(P[0], P[1], P[2], 0.5); if (Math.hypot(b.x - m.x, b.y - m.y) < 0.15) el.points = [P[0], P[2]]; }
       schEdAttach(el, plan, dr.h.k === 'pt' ? dr.h.i : -1);
     }
     if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); }
@@ -483,7 +502,12 @@ function schEdFit(pts, last) {
 }
 function schEdFinishAction(dr) {
   const S = schEd, d = schEdD(), els = d.elements;
-  if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) { if (schToolPrefs().tapSelect) { schEdTapSelect(dr.p0); return; } schEdDraw(); schEdToast('Glisse le doigt pour tracer ' + (dr.type === 'MOVE' ? 'un déplacement' : 'l\'action')); return; }
+  if (S.poly) { schEdPolyAdd(dr.p1); return; }   // z75 : tracé à virages en cours, chaque appui ajoute un sommet
+  if (Math.hypot(dr.p1.x - dr.p0.x, dr.p1.y - dr.p0.y) < 0.7) {
+    const hh = schEdHit(dr.p0, { handles: false }), onPl = hh && hh.kind === 'el' && schIsPlayer(hh.e);
+    if (schToolPrefs().tapSelect && !onPl) { schEdTapSelect(dr.p0); return; }
+    schEdPolyStart(dr); return;
+  }
   schEdPush();
   const fit = schEdFit(dr.pts, dr.p1).map(q => ({ x: schR(schSnap(q.x, 0.1), 2), y: schR(schSnap(q.y, 0.1), 2) }));
   const a = schNormElement({ type: dr.type, x: dr.p0.x, y: dr.p0.y, points: fit, step: schAutoStep(els, dr.type, dr.p0, S.plan || schPlan(d)), z: Math.max(0, ...els.map(e => e.z)) + 1 });
@@ -552,12 +576,17 @@ function schEdDraw() {
   }
   if (S.drag && S.drag.kind === 'new') f.acts.push({ a: schNormElement({ type: S.drag.type, points: schEdFit(S.drag.pts, S.drag.p1) }), badge: false });
   let ov = '';
+  if (S.poly) {
+    const pp = S.poly.pts, hr0 = 9 / sc;
+    if (pp.length >= 2) f.acts.push({ a: schNormElement({ type: S.poly.type, points: pp, path: pp.length >= 3 ? (S.polyMode || 'v') : undefined }), badge: false });
+    pp.forEach((q, i) => { ov += `<circle cx="${q.x}" cy="${q.y}" r="${hr0 * (i === pp.length - 1 ? 1.15 : 0.8)}" fill="${i === pp.length - 1 ? '#1F6FEB' : '#fff'}" stroke="#1F6FEB" stroke-width="${hr0 * 0.25}"/>`; });
+  }
   const plan = schPlan(d); (plan.warnings || []).forEach(w => { const a = plan.byId[w.id]; if (a) ov += `<circle cx="${a.points[0].x}" cy="${a.points[0].y}" r="0.95" fill="none" stroke="#E74C3C" stroke-width="0.13" stroke-dasharray="0.35 0.25"/>`; });
   if (S.drag && S.drag.kind === 'pen' && S.drag.pts.length) ov += schPenSvg(S.drag.pts, S.penCol || SCH_COL.stroke, 0.16 * (S.penW || 1));
   const sel = schEdSel();
   if (sel) {
     const HY = '#1F6FEB', hr = 10 / sc;
-    if (schIsAction(sel)) { const Sm = schSample(sel.points, 24); ov += `<polyline points="${Sm.map(p => p.x + ',' + p.y).join(' ')}" fill="none" stroke="${HY}" stroke-opacity="0.5" stroke-width="${0.55}" stroke-linecap="round" stroke-linejoin="round"/>`; }
+    if (schIsAction(sel)) { const Sm = schSample(sel.points, 24, sel.path); ov += `<polyline points="${Sm.map(p => p.x + ',' + p.y).join(' ')}" fill="none" stroke="${HY}" stroke-opacity="0.5" stroke-width="${0.55}" stroke-linecap="round" stroke-linejoin="round"/>`; }
     else if (sel.type === 'ZONE_RECT') ov += `<rect x="${sel.x - sel.w / 2}" y="${sel.y - sel.h / 2}" width="${sel.w}" height="${sel.h}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
     else if (sel.type === 'ZONE_CIRCLE') ov += `<ellipse cx="${sel.x}" cy="${sel.y}" rx="${sel.w / 2}" ry="${sel.h / 2}" fill="none" stroke="${HY}" stroke-width="0.16" stroke-dasharray="0.5 0.3"/>`;
     else if (sel.type === 'LADDER' || SCH_RECTS[sel.type] || sel.type === 'PEN') ov += schEdRingSvg(sel, els, HY, sc);
@@ -591,6 +620,13 @@ function schEdReorder() {
 function schEdPanel() {
   const S = schEd; if (!S) return; const e = schEdSel(), box = S.el.querySelector('#sche-panel');
   if (S.tool === 'multi' || (!e && schEdMultiIds().length)) { box.style.display = ''; box.innerHTML = schEdMultiPanel(); return; }
+  if (S.poly) {
+    const n = S.poly.pts.length, pm = S.polyMode || 'v', bt = (fn, lab, on) => `<button type="button" class="sche-all${on ? ' on' : ''}" onclick="${fn}">${lab}</button>`;
+    box.style.display = ''; box.innerHTML = `<div class="sche-hint"><b>Tracé en cours</b> (${n} point${n > 1 ? 's' : ''}). Touche le terrain pour ajouter un changement de direction ; double touche (ou ✓ Terminer) pour valider.</div>`
+      + `<div class="sche-row sche-wide" style="flex-direction:row;gap:8px;flex-wrap:wrap;">${bt('schEdPolyDone()', '✓ Terminer', 0)}${bt('schEdPolyUndo()', '↩ Retirer le dernier point', 0)}${bt('schEdPolyCancel()', '✕ Abandonner', 0)}</div>`
+      + `<div class="sche-row sche-wide" style="flex-direction:row;gap:8px;flex-wrap:wrap;"><span class="sche-lab">Virages</span>${bt("schEdPolyMode('v')", 'Angles vifs', pm === 'v')}${bt("schEdPolyMode('r')", 'Arrondis', pm === 'r')}</div>`;
+    return;
+  }
   if (S.tool === 'PEN' || S.tool === 'ERASER') {
     box.style.display = '';
     if (S.tool === 'ERASER') { box.innerHTML = `<div class="sche-hint">Passe le doigt (ou le stylet) sur un trait, un texte ou une zone pour l'effacer. Un geste annulé se retrouve avec ↶.</div>`; return; }
@@ -629,7 +665,9 @@ function schEdPanel() {
     h += row('Part de', sel('fromElementId', e.fromElementId, [['', 'Automatique']].concat(plist)));
     if (ballsAll.length > 1 && (e.type === 'PASS' || e.type === 'PASS2' || e.type === 'SHOT' || e.type === 'RUN')) h += row('Ballon', sel('ballId', e.ballId, [['', 'Automatique (celui du joueur)']].concat(ballsAll.map((b, i) => [b.id, 'Ballon ' + (i + 1)]))));
     if (e.type === 'PASS' || e.type === 'PASS2') h += row('Receveur', sel('toElementId', e.toElementId, [['', 'Automatique']].concat(plist.filter(p => p[0] !== e.fromElementId))));
-    h += row('Tracé', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdCurve()">${e.points.length === 3 ? 'Redresser' : 'Courber'}</button></div>`);
+    h += e.path
+      ? row('Tracé', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 12px;font-size:14px;${e.path === 'v' ? 'font-weight:800;' : ''}" onclick="schEdPathMode('v')">Angles vifs</button><button type="button" style="width:auto;padding:0 12px;font-size:14px;${e.path === 'r' ? 'font-weight:800;' : ''}" onclick="schEdPathMode('r')">Arrondis</button><button type="button" style="width:auto;padding:0 12px;font-size:14px" onclick="schEdCurve()">Redresser</button></div>`)
+      : row('Tracé', `<div class="sche-stp"><button type="button" style="width:auto;padding:0 14px;font-size:14px" onclick="schEdCurve()">${e.points.length === 3 ? 'Redresser' : 'Courber'}</button></div>`);
   }
   if (e.type === 'BALL') h += row('Porteur', sel('holderId', e.holderId, [['', 'Automatique (le plus proche)'], ['-', 'Aucun (au sol)']].concat(plist)));
   if (e.type === 'PEN') h += row('Épaisseur', stp(schR(e.scale, 1) + '×', `schEdAdd('scale',-0.2,0.4,3)`, `schEdAdd('scale',0.2,0.4,3)`));
@@ -670,8 +708,38 @@ function schEdSetRot(a) { const e = schEdSel(); if (!e) return; schEdPush(); e.r
 function schEdZone(delta) { const e = schEdSel(); if (!e) return; schEdPush(); e.w = Math.max(1, schR(e.w + delta * 2, 1)); e.h = Math.max(1, schR(e.h + delta * 2, 1)); schEdChanged(true); schEdBar(); }
 function schEdCurve() {
   const e = schEdSel(); if (!e || !schIsAction(e)) return; schEdPush(); const P = e.points;
-  if (P.length === 3) e.points = [P[0], P[2]]; else { const dx = P[1].x - P[0].x, dy = P[1].y - P[0].y, L = Math.hypot(dx, dy) || 1; e.points = [P[0], { x: schR((P[0].x + P[1].x) / 2 - dy / L * L * 0.3, 2), y: schR((P[0].y + P[1].y) / 2 + dx / L * L * 0.3, 2) }, P[1]]; }
+  if (e.path) { e.points = [P[0], P[P.length - 1]]; delete e.path; } else if (P.length === 3) e.points = [P[0], P[2]]; else { const dx = P[1].x - P[0].x, dy = P[1].y - P[0].y, L = Math.hypot(dx, dy) || 1; e.points = [P[0], { x: schR((P[0].x + P[1].x) / 2 - dy / L * L * 0.3, 2), y: schR((P[0].y + P[1].y) / 2 + dx / L * L * 0.3, 2) }, P[1]]; }
   schEdChanged(true); schEdBar();
+}
+// ----- z75 : tracés à plusieurs changements de direction (toucher pour poser des points, double toucher pour valider) -----
+function schEdPolyStart(dr) {
+  const S = schEd, q = schEdClampPt(dr.p0), p = { x: schR(schSnap(q.x, 0.1), 2), y: schR(schSnap(q.y, 0.1), 2) };
+  S.sel = null; S.poly = { type: dr.type, pts: [p], t: performance.now() }; schEdTools(); schEdPanel(); schEdDraw();
+  schEdToast('Touche pour ajouter un virage · double touche pour terminer');
+}
+function schEdPolyAdd(pt) {
+  const S = schEd, P = S.poly; if (!P) return; const c = schEdClampPt(pt), q = { x: schR(schSnap(c.x, 0.1), 2), y: schR(schSnap(c.y, 0.1), 2) }, L = P.pts[P.pts.length - 1], now = performance.now(), dist = Math.hypot(q.x - L.x, q.y - L.y);
+  if (now - P.t < 500 && dist < 0.6) { if (P.pts.length >= 2) schEdPolyDone(); return; }   // double toucher : on valide
+  if (dist < 0.15) return;
+  if (P.pts.length >= 16) { schEdToast('16 points au maximum : valide le tracé'); return; }
+  P.pts.push(q); P.t = now; schEdPanel(); schEdDraw();
+}
+function schEdPolyUndo() { const P = schEd.poly; if (!P) return; if (P.pts.length > 1) P.pts.pop(); else schEd.poly = null; schEdTools(); schEdPanel(); schEdDraw(); }
+function schEdPolyCancel() { schEd.poly = null; schEdTools(); schEdPanel(); schEdDraw(); }
+function schEdPolyMode(m) { schEd.polyMode = m; schEdPanel(); schEdDraw(); }
+function schEdPolyDone() {
+  const S = schEd, P = S.poly; if (!P) return;
+  if (P.pts.length < 2) { schEdPolyCancel(); return; }
+  const d = schEdD(), els = d.elements, plan = schPlan(d), pts = P.pts, p0 = pts[0];
+  S.poly = null; schEdPush();
+  const a = schNormElement({ type: P.type, x: p0.x, y: p0.y, points: pts, path: pts.length >= 3 ? (S.polyMode || 'v') : undefined, step: schAutoStep(els, P.type, p0, plan), z: Math.max(0, ...els.map(e => e.z || 0)) + 1 });
+  schEdAttach(a, plan, 'all'); els.push(a); S.sel = a.id; schEdTools(); schEdChanged(true);
+}
+function schEdPathMode(m) { const e = schEdSel(); if (!e || !e.path || e.path === m) return; schEdPush(); e.path = m; schEdChanged(true); schEdPanel(); }
+// Après un déplacement de sommet : deux sommets collés n'en font plus qu'un ; moins de 3 sommets = trait droit
+function schEdPolyClean(el) {
+  const P = el.points; for (let i = P.length - 2; i >= 1; i--) { if (Math.hypot(P[i].x - P[i - 1].x, P[i].y - P[i - 1].y) < 0.35 || Math.hypot(P[i].x - P[i + 1].x, P[i].y - P[i + 1].y) < 0.35) P.splice(i, 1); }
+  if (P.length < 3) delete el.path;
 }
 function schEdDel() {
   const S = schEd, e = schEdSel(); if (!e) return; schEdPush(); const d = schEdD();

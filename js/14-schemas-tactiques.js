@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z49 (10/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z75 (24/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -31,14 +31,20 @@ function schBallOff(i) {
   return { x: Math.round(Math.cos(a) * r * 100) / 100, y: Math.round(Math.sin(a) * r * 100) / 100 };
 }
 function schBallIdx(ball, els) { let i = 0; for (const e of els) { if (e === ball || e.id === ball.id) return i; if (e.type === 'BALL') i++; } return 0; }
+// Ballon de handball (z75) : toujours le même dessin ; s'il y a plusieurs ballons, un petit badge numéroté de la couleur du ballon (et un anneau) les distingue
 function schBallSvg(x, y, k, opacity, i, multi) {
-  const o = opacity != null ? `opacity="${opacity}"` : '';
+  const o = opacity != null ? `opacity="${opacity}"` : '', r = (multi ? 0.4 : 0.34) * k, st = SCH_COL.stroke, sw = schR(r * 0.2, 3), sx = schR(x, 3), sy = schR(y, 3);
+  const c = SCH_BALL_COLS[(i || 0) % SCH_BALL_COLS.length], seam = (ang) => { const a = ang * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a); return `M${schR(sx + ca * r * 0.22, 3)} ${schR(sy + sa * r * 0.22, 3)} Q${schR(sx + ca * r * 0.6 - sa * r * 0.18, 3)} ${schR(sy + sa * r * 0.6 + ca * r * 0.18, 3)} ${schR(sx + ca * r * 0.97, 3)} ${schR(sy + sa * r * 0.97, 3)}`; };
+  let g = `<circle cx="${sx}" cy="${sy}" r="${schR(r, 3)}" fill="${SCH_COL.ball}" stroke="${st}" stroke-width="${sw}"/>`
+    + `<path d="${seam(-90)} ${seam(30)} ${seam(150)}" fill="none" stroke="${st}" stroke-width="${schR(r * 0.12, 3)}" stroke-linecap="round"/>`
+    + `<circle cx="${sx}" cy="${sy}" r="${schR(r * 0.22, 3)}" fill="none" stroke="${st}" stroke-width="${schR(r * 0.1, 3)}"/>`
+    + `<path d="M${schR(sx - r * 0.62, 3)} ${schR(sy - r * 0.5, 3)} Q${schR(sx - r * 0.45, 3)} ${schR(sy - r * 0.78, 3)} ${schR(sx - r * 0.05, 3)} ${schR(sy - r * 0.84, 3)}" fill="none" stroke="#fff" stroke-opacity="0.65" stroke-width="${schR(r * 0.13, 3)}" stroke-linecap="round"/>`;
   if (multi) {
-    const r = 0.4 * k, c = SCH_BALL_COLS[(i || 0) % SCH_BALL_COLS.length], lab = (i || 0) + 1;
-    return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${c[0]}" stroke="${SCH_COL.stroke}" stroke-width="0.08"/><text x="${x}" y="${y + r * (lab > 9 ? 0.36 : 0.46)}" text-anchor="middle" font-size="${r * (lab > 9 ? 1.0 : 1.35)}" font-weight="800" fill="${c[1]}" style="font-family:Arial,sans-serif;pointer-events:none;">${(i || 0) + 1}</text></g>`;
+    const lab = (i || 0) + 1, br = r * 0.58, bx = schR(sx + r * 0.78, 3), by = schR(sy - r * 0.78, 3);
+    g += `<circle cx="${sx}" cy="${sy}" r="${schR(r, 3)}" fill="none" stroke="${c[0]}" stroke-width="${schR(r * 0.2, 3)}"/>`
+      + `<circle cx="${bx}" cy="${by}" r="${schR(br, 3)}" fill="${c[0]}" stroke="${st}" stroke-width="${schR(r * 0.1, 3)}"/><text x="${bx}" y="${schR(by + br * (lab > 9 ? 0.36 : 0.42), 3)}" text-anchor="middle" font-size="${schR(br * (lab > 9 ? 1.0 : 1.3), 3)}" font-weight="800" fill="${c[1]}" style="font-family:Arial,sans-serif;pointer-events:none;">${lab}</text>`;
   }
-  const r = 0.34 * k;
-  return `<g ${o}><circle cx="${x}" cy="${y}" r="${r}" fill="${SCH_COL.ball}" stroke="${SCH_COL.stroke}" stroke-width="0.07"/><path d="M${x - r} ${y} Q${x} ${y - r * 0.55} ${x + r} ${y}" fill="none" stroke="${SCH_COL.stroke}" stroke-width="0.05"/></g>`;
+  return `<g ${o}>${g}</g>`;
 }
 // Bras levés : toujours dessinés sur les attaquants et les défenseurs (petits traits devant le joueur, ils suivent son orientation)
 function schArmsSvg(e, x, y, r, f) {
@@ -62,7 +68,8 @@ function schNormElement(e) {
   const o = { id: e.id || schUid(), type: SCH_TYPES.includes(e.type) ? e.type : 'CONE', x: schNum(e.x, 0), y: schNum(e.y, 0), rotation: schNum(e.rotation, 0), scale: Math.max(0.4, Math.min(3, schNum(e.scale, 1))), label: String(e.label == null ? '' : e.label).slice(0, e.type === 'TEXT' ? 30 : 3), team: e.team || '', z: schNum(e.z, 0), step: Math.max(1, Math.round(schNum(e.step, 1))) };
   if (e.fromElementId) o.fromElementId = e.fromElementId;
   if (SCH_ACTIONS.includes(o.type)) {
-    o.points = (Array.isArray(e.points) ? e.points : []).map(p => ({ x: schNum(p && p.x, 0), y: schNum(p && p.y, 0) })).slice(0, 3);
+    o.points = (Array.isArray(e.points) ? e.points : []).map(p => ({ x: schNum(p && p.x, 0), y: schNum(p && p.y, 0) })).slice(0, e.path === 'v' || e.path === 'r' ? 16 : 3);
+    if ((e.path === 'v' || e.path === 'r') && o.points.length >= 3) o.path = e.path; else if (o.points.length > 3) o.points = o.points.slice(0, 3);
     if (o.points.length < 2) o.points = [{ x: o.x, y: o.y }, { x: o.x + 3, y: o.y }];
     o.delay = Math.max(0, Math.min(2, Math.round(schNum(e.delay, 0) / 0.25) * 0.25));
     if ((o.type === 'PASS' || o.type === 'PASS2') && e.toElementId) o.toElementId = e.toElementId;
@@ -109,22 +116,47 @@ function schBallStart(ball, els) {
 
 // ----- Géométrie des tracés -----
 function schQuadAt(p0, c, p1, t) { const u = 1 - t; return { x: u * u * p0.x + 2 * u * t * c.x + t * t * p1.x, y: u * u * p0.y + 2 * u * t * c.y + t * t * p1.y }; }
-function schSample(points, n) {
+// Tracé à virages (z75) : mode 'v' = angles vifs (sommets reliés par des segments), 'r' = coins arrondis. Sans mode : droite (2 points) ou courbe (3 points) comme avant.
+function schPolyDense(P, mode) {
+  if (mode !== 'r' || P.length < 3) return P.slice();
+  const out = [P[0]];
+  for (let i = 1; i < P.length - 1; i++) {
+    const a = P[i - 1], b = P[i], c = P[i + 1], l1 = Math.hypot(b.x - a.x, b.y - a.y) || 1, l2 = Math.hypot(c.x - b.x, c.y - b.y) || 1, r = Math.min(1.1, l1 * 0.45, l2 * 0.45);
+    const p1 = { x: b.x - (b.x - a.x) / l1 * r, y: b.y - (b.y - a.y) / l1 * r }, p2 = { x: b.x + (c.x - b.x) / l2 * r, y: b.y + (c.y - b.y) / l2 * r };
+    for (let k = 0; k <= 8; k++) out.push(schQuadAt(p1, b, p2, k / 8));
+  }
+  out.push(P[P.length - 1]); return out;
+}
+function schSample(points, n, mode) {
+  if (mode === 'v' || mode === 'r') return schPolyDense(points, mode);
   const out = [];
   for (let i = 0; i <= n; i++) { const t = i / n; out.push(points.length === 3 ? schQuadAt(points[0], points[1], points[2], t) : { x: points[0].x + (points[1].x - points[0].x) * t, y: points[0].y + (points[1].y - points[0].y) * t }); }
   return out;
 }
 function schPathLen(pts) { let L = 0; for (let i = 1; i < pts.length; i++) L += schDist(pts[i], pts[i - 1]); return L; }
 // Point à la fraction u (0-1) de la longueur du tracé
-function schPointAt(points, u) {
-  const pts = schSample(points, 40), L = schPathLen(pts); let target = Math.max(0, Math.min(1, u)) * L;
+function schPointAt(points, u, mode) {
+  const pts = schSample(points, 40, mode), L = schPathLen(pts); let target = Math.max(0, Math.min(1, u)) * L;
   for (let i = 1; i < pts.length; i++) { const d = schDist(pts[i], pts[i - 1]); if (target <= d || i === pts.length - 1) { const r = d ? Math.min(1, target / d) : 1; return { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * r, y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * r }; } target -= d; }
   return pts[pts.length - 1];
 }
-function schEndTangent(points) {
+function schEndTangent(points, mode) {
+  if (mode === 'v' || mode === 'r') {
+    const D = schPolyDense(points, mode), b = D[D.length - 1]; let a = D[D.length - 2];
+    for (let i = D.length - 2; i >= 0; i--) { a = D[i]; if (Math.hypot(b.x - a.x, b.y - a.y) > 0.05) break; }
+    const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1; return { ux: dx / L, uy: dy / L };
+  }
   const a = points.length === 3 ? points[1] : points[0], b = points[points.length - 1];
   const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1; return { ux: dx / L, uy: dy / L };
 }
+// Raccourcit un tracé (liste de points) de `cut` mètres à la fin
+function schTrimEnd(D, cut) {
+  const out = D.slice(); let rest = cut;
+  while (out.length > 2) { const a = out[out.length - 2], b = out[out.length - 1], l = Math.hypot(b.x - a.x, b.y - a.y); if (l > rest) break; rest -= l; out.pop(); }
+  const a = out[out.length - 2], b = out[out.length - 1], l = Math.hypot(b.x - a.x, b.y - a.y) || 1, k = Math.max(0, l - rest) / l;
+  out[out.length - 1] = { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k }; return out;
+}
+function schPtsD(D) { return D.map((q, i) => (i ? 'L' : 'M') + schR(q.x) + ' ' + schR(q.y)).join(' '); }
 
 // ----- Terrain -----
 function schView(view) {
@@ -208,16 +240,17 @@ function schElementSvg(e, k) {
 }
 function schActionSvg(a, badge) {
   const C = SCH_COL, P = a.points, s = a.scale || 1, col = a.type === 'SHOT' ? C.shot : C.stroke, w = (a.type === 'SHOT' ? 0.11 : 0.07) * s;
-  const t = schEndTangent(P), e = P[P.length - 1], px = -t.uy, py = t.ux;
+  const pm = a.path === 'v' || a.path === 'r' ? a.path : '', t = schEndTangent(P, pm), e = P[P.length - 1], px = -t.uy, py = t.ux;
   let g = '';
   if (a.type === 'SCREEN') {
     const bw = 0.4 * s;
-    g = `${P.length === 3 ? `<path d="M${P[0].x} ${P[0].y} Q${P[1].x} ${P[1].y} ${e.x} ${e.y}" fill="none"` : `<line x1="${P[0].x}" y1="${P[0].y}" x2="${e.x}" y2="${e.y}"`} stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><line x1="${e.x + px * bw}" y1="${e.y + py * bw}" x2="${e.x - px * bw}" y2="${e.y - py * bw}" stroke="${col}" stroke-width="${w * 1.6}" stroke-linecap="round"/>`;
+    if (pm) g = `<path d="${schPtsD(schSample(P, 40, pm))}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/><line x1="${e.x + px * bw}" y1="${e.y + py * bw}" x2="${e.x - px * bw}" y2="${e.y - py * bw}" stroke="${col}" stroke-width="${w * 1.6}" stroke-linecap="round"/>`;
+    else g = `${P.length === 3 ? `<path d="M${P[0].x} ${P[0].y} Q${P[1].x} ${P[1].y} ${e.x} ${e.y}" fill="none"` : `<line x1="${P[0].x}" y1="${P[0].y}" x2="${e.x}" y2="${e.y}"`} stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><line x1="${e.x + px * bw}" y1="${e.y + py * bw}" x2="${e.x - px * bw}" y2="${e.y - py * bw}" stroke="${col}" stroke-width="${w * 1.6}" stroke-linecap="round"/>`;
   } else {
     const hl = 0.6 * s, hw = 0.28 * s, bx = e.x - t.ux * hl, by = e.y - t.uy * hl, end = { x: bx, y: by };
     if (a.type === 'RUN') { // dribble : trait ondulé
-      const Q = P.slice(0, P.length - 1).concat([end]), L = schPathLen(schSample(Q, 30)), n = Math.max(6, Math.round(L / 0.24)); let d = `M${P[0].x} ${P[0].y}`;
-      for (let i = 1; i <= n; i++) { const q = schPointAt(Q, i / n), q2 = schPointAt(Q, Math.min(1, i / n + 0.01)), dx = q2.x - q.x, dy = q2.y - q.y, l = Math.hypot(dx, dy) || 1, off = Math.sin(i * 1.2) * 0.11 * s * (i === n ? 0 : 1); d += ` L${schR(q.x - dy / l * off)} ${schR(q.y + dx / l * off)}`; }
+      const Q = pm ? schTrimEnd(schSample(P, 40, pm), hl) : P.slice(0, P.length - 1).concat([end]), L = schPathLen(schSample(Q, 30, pm ? 'v' : '')), n = Math.max(6, Math.round(L / 0.24)); let d = `M${P[0].x} ${P[0].y}`;
+      for (let i = 1; i <= n; i++) { const qm = pm ? 'v' : '', q = schPointAt(Q, i / n, qm), q2 = schPointAt(Q, Math.min(1, i / n + 0.01), qm), dx = q2.x - q.x, dy = q2.y - q.y, l = Math.hypot(dx, dy) || 1, off = Math.sin(i * 1.2) * 0.11 * s * (i === n ? 0 : 1); d += ` L${schR(q.x - dy / l * off)} ${schR(q.y + dx / l * off)}`; }
       g = `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
     } else {
       const two = a.type === 'PASS2', dash = (a.type === 'PASS' || two) ? 'stroke-dasharray="0.4 0.28"' : '';
@@ -226,14 +259,15 @@ function schActionSvg(a, badge) {
         const dx = P[1].x - P[0].x, dy = P[1].y - P[0].y, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l, cx = P[0].x + ux * hl, cy = P[0].y + uy * hl;
         q0 = { x: cx, y: cy }; tail = `<polygon points="${P[0].x},${P[0].y} ${cx - uy * hw},${cy + ux * hw} ${cx + uy * hw},${cy - ux * hw}" fill="${col}"/>`;
       }
-      if (P.length === 3) g = `<path d="M${q0.x} ${q0.y} Q${P[1].x} ${P[1].y} ${bx} ${by}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${dash}/>`;
+      if (pm) { const Dn = schTrimEnd(schSample(P, 40, pm), hl); Dn[0] = q0; g = `<path d="${schPtsD(Dn)}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${dash}/>`; }
+      else if (P.length === 3) g = `<path d="M${q0.x} ${q0.y} Q${P[1].x} ${P[1].y} ${bx} ${by}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${dash}/>`;
       else g = `<line x1="${q0.x}" y1="${q0.y}" x2="${bx}" y2="${by}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${dash}/>`;
       g += tail;
     }
     g += `<polygon points="${e.x},${e.y} ${bx + px * hw},${by + py * hw} ${bx - px * hw},${by - py * hw}" fill="${col}"/>`;
   }
   if (badge !== false) { // numéro d'action au milieu du tracé, dans un cercle aussi fin que le trait (+ décalage s'il est non nul)
-    const m = schPointAt(P, 0.5), r = 0.45 * Math.max(0.8, s), dl = a.delay || 0;
+    const m = schPointAt(P, 0.5, pm), r = 0.45 * Math.max(0.8, s), dl = a.delay || 0;
     g += `<g style="pointer-events:none;"><circle cx="${schR(m.x)}" cy="${schR(m.y)}" r="${r}" fill="#fff" stroke="${col}" stroke-width="${w}"/><text x="${schR(m.x)}" y="${schR(m.y + r * 0.37, 3)}" text-anchor="middle" font-size="${schR(r * 1.2, 3)}" font-weight="800" fill="${col}" style="font-family:Arial,sans-serif;">${schEsc(a.step)}</text>`;
     if (dl > 0) g += `<rect x="${schR(m.x + r + 0.15)}" y="${schR(m.y - 0.28)}" width="1.35" height="0.5" rx="0.2" fill="#fff" stroke="${col}" stroke-width="${w}"/><text x="${schR(m.x + r + 0.15 + 0.675)}" y="${schR(m.y + 0.09, 3)}" text-anchor="middle" font-size="0.36" font-weight="800" fill="${col}" style="font-family:Arial,sans-serif;">+${String(dl).replace('.', ',')} s</text>`;
     g += `</g>`;
@@ -286,7 +320,7 @@ function schPosOn(base, segs, t) {
     if (t < s.t0) break;
     const P = s.pts, end = P[P.length - 1];
     if (t >= s.t1) { pos = { x: end.x, y: end.y }; continue; }
-    const u = schEase((t - s.t0) / (s.t1 - s.t0)), q = schPointAt(P, u);
+    const u = schEase((t - s.t0) / (s.t1 - s.t0)), q = schPointAt(P, u, s.m);
     return { x: q.x + (pos.x - P[0].x) * (1 - u), y: q.y + (pos.y - P[0].y) * (1 - u) };
   }
   return pos;
@@ -304,7 +338,7 @@ function schPlan(d0) {
   sched.forEach(s => {
     const a = s.a, f = a.fromElementId && byId[a.fromElementId];
     const o = f && schIsPlayer(f) ? f : nearestAt(a.points[0], s.ts); own[a.id] = o;
-    if (isMove(a) && o) (pre[o.id] = pre[o.id] || []).push({ t0: s.ts, t1: s.ts + SCH_DUR, pts: a.points });
+    if (isMove(a) && o) (pre[o.id] = pre[o.id] || []).push({ t0: s.ts, t1: s.ts + SCH_DUR, pts: a.points, m: a.path });
   });
   // un état de possession PAR ballon : porteur (ou position au sol) et instant à partir duquel il peut être rejoué
   const bs = els.filter(e => e.type === 'BALL').slice(0, SCH_MAX_BALLS).map((b, i) => {
@@ -313,7 +347,7 @@ function schPlan(d0) {
   });
   const segs = {}, events = [], windows = {}, warnings = [], ballOf = {};
   let maxEnd = 0;
-  const addSeg = (id, t0, a) => { (segs[id] = segs[id] || []).push({ t0, t1: t0 + SCH_DUR, pts: a.points, a }); windows[a.id] = [t0, t0 + SCH_DUR]; maxEnd = Math.max(maxEnd, t0 + SCH_DUR); };
+  const addSeg = (id, t0, a) => { (segs[id] = segs[id] || []).push({ t0, t1: t0 + SCH_DUR, pts: a.points, m: a.path, a }); windows[a.id] = [t0, t0 + SCH_DUR]; maxEnd = Math.max(maxEnd, t0 + SCH_DUR); };
   // quel ballon cette action déplace-t-elle ? celui qui est choisi à la main, sinon celui que tient son joueur
   const bp = d.ballPlay && bs.some(q => q.id === d.ballPlay) ? d.ballPlay : null; // ballon joué dans l'étape : celui des passes / tirs / dribbles sans ballon choisi
   const ballFor = (a, o) => { const bid = a.ballId || bp; if (bid) { const z = bs.find(q => q.id === bid); if (z) return z; } return o ? (bs.find(q => q.poss === o.id) || null) : null; };
@@ -374,7 +408,7 @@ function schPlanState(p, tau) {
       if (ev.type === 'PASS2') {
         const mid = (ev.t0 + ev.t1) / 2, P0 = ev.a.points[0], PE = ev.a.points[ev.a.points.length - 1];
         if (tau < ev.t1) {
-          const out = tau < mid, u = out ? schEase((tau - ev.t0) / (mid - ev.t0)) : schEase((tau - mid) / (ev.t1 - mid)), q = schPointAt(ev.a.points, out ? u : 1 - u);
+          const out = tau < mid, u = out ? schEase((tau - ev.t0) / (mid - ev.t0)) : schEase((tau - mid) / (ev.t1 - mid)), q = schPointAt(ev.a.points, out ? u : 1 - u, ev.a.path);
           const Ta = ev.to ? heldAt(ev.to, mid, b.i) : { x: PE.x, y: PE.y }, Sf = heldAt(ev.from, ev.t0, b.i), Tf = heldAt(ev.from, ev.t1, b.i);
           bpos[b.id] = out ? { x: q.x + (Sf.x - P0.x) * (1 - u) + (Ta.x - PE.x) * u, y: q.y + (Sf.y - P0.y) * (1 - u) + (Ta.y - PE.y) * u }
                            : { x: q.x + (Ta.x - PE.x) * (1 - u) + (Tf.x - P0.x) * u, y: q.y + (Ta.y - PE.y) * (1 - u) + (Tf.y - P0.y) * u };
@@ -383,7 +417,7 @@ function schPlanState(p, tau) {
         cur = { poss: ev.from, ground: null }; continue;
       }
       if (tau < ev.t1) {
-        const u = schEase((tau - ev.t0) / (ev.t1 - ev.t0)), q = schPointAt(ev.a.points, u), P0 = ev.a.points[0], PE = ev.a.points[ev.a.points.length - 1];
+        const u = schEase((tau - ev.t0) / (ev.t1 - ev.t0)), q = schPointAt(ev.a.points, u, ev.a.path), P0 = ev.a.points[0], PE = ev.a.points[ev.a.points.length - 1];
         const S = cur.poss ? heldAt(cur.poss, ev.t0, b.i) : { x: P0.x, y: P0.y };
         const T = (ev.type === 'PASS' && ev.to) ? heldAt(ev.to, ev.t1, b.i) : { x: PE.x, y: PE.y };
         bpos[b.id] = { x: q.x + (S.x - P0.x) * (1 - u) + (T.x - PE.x) * u, y: q.y + (S.y - P0.y) * (1 - u) + (T.y - PE.y) * u };
@@ -403,6 +437,11 @@ function schTimeline(drawings) {
   const ds = schNormDrawings(drawings); let T = 0; const ph = [];
   ds.forEach((d, k) => { const plan = schPlan(d), last = k === ds.length - 1; ph.push({ k, d, plan, T, D: plan.D, trans: last ? 0 : SCH_TRANS }); T += plan.D + (last ? 0 : SCH_TRANS); });
   return { ph, total: T, n: ds.length };
+}
+function schSubPath(a, u) { // tracé à virages : début du chemin jusqu'à la fraction u
+  const D = schSample(a.points, 40, a.path), L = schPathLen(D); let rest = Math.max(0, Math.min(1, u)) * L; const out = [D[0]];
+  for (let i = 1; i < D.length; i++) { const l = schDist(D[i], D[i - 1]); if (rest <= l) { const k = l ? rest / l : 1; out.push({ x: D[i - 1].x + (D[i].x - D[i - 1].x) * k, y: D[i - 1].y + (D[i].y - D[i - 1].y) * k }); return out; } rest -= l; out.push(D[i]); }
+  return out;
 }
 function schSub(a, u) { // sous-courbe [0,u] d'un tracé (droite ou Bézier quadratique, de Casteljau)
   const P = a.points, e = schPointAt(P, 1);
@@ -447,7 +486,7 @@ function schAt(tl, t) {
   const addGhosts = (f, plan, tau, fade) => { if (fade <= 0) return; const g = schGhosts(plan, tau); g.balls.forEach(b => f.ghosts.push({ ...b, o: fade })); g.players.forEach(e => f.pghosts.push({ ...e, _o: SCH_GHOST_OPACITY * fade })); };
   if (!inTrans) {
     const st = schPlanState(ph.plan, Math.min(tau, ph.D)), f = { els: mk(ph.plan, st), acts: [], balls: [], ghosts: [], pghosts: [] };
-    ph.plan.els.forEach(a => { if (!schIsAction(a) || st.drawn[a.id] == null) return; const u = st.drawn[a.id]; f.acts.push({ a: u >= 0.999 ? a : { ...a, points: schSub(a, Math.max(0.001, u)) }, badge: false }); });
+    ph.plan.els.forEach(a => { if (!schIsAction(a) || st.drawn[a.id] == null) return; const u = st.drawn[a.id]; f.acts.push({ a: u >= 0.999 ? a : (a.path ? { ...a, points: schSubPath(a, Math.max(0.001, u)), path: 'v' } : { ...a, points: schSub(a, Math.max(0.001, u)) }), badge: false }); });
     const multi = ph.plan.balls.length > 1;
     ph.plan.balls.forEach(b => { const q = st.balls[b.id]; f.balls.push({ x: q.x, y: q.y, s: b.el.scale, i: b.i, m: multi }); });
     addGhosts(f, ph.plan, Math.min(tau, ph.D), schGhostFade(tau, ph.D));

@@ -1,9 +1,9 @@
-// Prépa U15 HBCCS — js/00-version.js — dernière modification : version z74 (23/11/2026)
+// Prépa U15 HBCCS — js/00-version.js — dernière modification : version z75 (24/11/2026)
 // ===================== VERSION DE L'APPLICATION =====================
 // Source unique du numéro de version, affiché en bas à droite de l'accueil.
 // À modifier à chaque livraison (règles dans LISEZ-MOI.md).
-const APP_VERSION = 'z74';
-const APP_VERSION_DATE = '23/11/2026';
+const APP_VERSION = 'z75';
+const APP_VERSION_DATE = '24/11/2026';
 (function () {
   document.querySelectorAll('.app-version').forEach(function (el) {
     el.textContent = 'Version ' + APP_VERSION + ' · ' + APP_VERSION_DATE;
