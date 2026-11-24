@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z52 (14/11/2026)
+// Prépa U15 HBCCS — js/13-accueil-coach.js — dernière modification : version z84 (24/11/2026)
 // ===== Partage en GIF d'un schéma de la bibliothèque (module Schémas) =====
 // Même principe que l'ancien export : une image par instant de l'animation (celle que montre le lecteur), puis GIF 256 couleurs ; image fixe (PNG) s'il n'y a rien à animer.
 function schGifPalette(svgs) {
@@ -261,55 +261,47 @@ async function dashboardLoad() {
   // dashboardLastSessionLoad(); // MIS DE CÔTÉ (z36) : bloc « Dernier entraînement » masqué, voir index.html
   homeSessionTrackingLoad();
   loadAppSettings();
-  const wrap = document.getElementById('dash-todo-list');
-  if (!wrap) return;
-  wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
+  homeTilesLoad();
+}
+
+// ---------- Vignettes d'accès rapide (z84) ----------
+function homeTileDate(ds) { // 'AAAA-MM-JJ' ou date ISO -> « mer. 26/11 » (heure locale)
+  const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(String(ds || '')); if (!m) return '';
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  return ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'][d.getDay()] + ' ' + m[3] + '/' + m[2];
+}
+async function homeTilesLoad() {
+  const wrap = document.getElementById('dash-tiles'); if (!wrap) return;
+  const restricted = typeof coachIsRestricted === 'function' && coachIsRestricted();
+  const tiles = [
+    { id: 'seance', tab: 'seance', cls: 'g1', ic: '📝', n: 'Séance', s: '' },
+    { id: 'schemas', tab: 'schemas', cls: 'g2', ic: '✏️', n: 'Schémas', s: '' },
+    { id: 'compos', tab: 'composition', cls: 'g3', ic: '🎽', n: 'Compos', s: '' },
+  ];
+  if (!restricted) tiles.push({ id: 'evals', tab: 'evaluations', cls: 'g4', ic: '🎯', n: 'Évaluations', s: '' });
+  const draw = () => { wrap.innerHTML = tiles.map(t => `<button type="button" class="home-tile ${t.cls}" onclick="coachSubtabSwitch('${t.tab}')">${t.bd ? `<span class="ht-bd">${escapeSvgText(t.bd)}</span>` : ''}<span class="ht-ic">${t.ic}</span><span><span class="ht-n" style="display:block">${escapeSvgText(t.n)}</span>${t.s ? `<span class="ht-s" style="display:block">${t.s}</span>` : ''}</span></button>`).join(''); };
+  draw();
   try {
     await ensureCoachSession();
+    const H = coachAuthHeaders(), g = u => fetch(SB_URL + '/rest/v1/' + u, { headers: H }).then(r => r.ok ? r.json() : null).catch(() => null);
     const today = dateStr(new Date());
-    const [scoresRes, presRes, outilsRes] = await Promise.all([
-      fetch(SB_URL + '/rest/v1/matches?select=id&debut=lt.' + new Date().toISOString() + '&score_nous=is.null&ics_uid=not.like.manuel-*', { headers: coachAuthHeaders() }).catch(() => null),
-      fetch(SB_URL + '/rest/v1/presences?select=id&session_date=eq.' + today + '&limit=1', { headers: coachAuthHeaders() }).catch(() => null),
-      fetch(SB_URL + '/rest/v1/outils_composition?select=id&session_date=eq.' + today + '&limit=1', { headers: coachAuthHeaders() }).catch(() => null),
+    const [pl, sc, co, ev] = await Promise.all([
+      g('seance_plans?select=seance_date&is_template=eq.false&order=seance_date.asc.nullslast&limit=500'),
+      g('exercices_schemas?select=statut&deleted_at=is.null&limit=2000'),
+      g('outils_composition?select=session_date&order=session_date.desc&limit=1'),
+      restricted ? Promise.resolve(null) : g('evaluations?select=updated_at&order=updated_at.desc&limit=1'),
     ]);
-    const nbScores = scoresRes && scoresRes.ok ? (await scoresRes.json()).length : 0;
-    const hasPresToday = presRes && presRes.ok ? (await presRes.json()).length > 0 : false;
-    const hasOutilsToday = outilsRes && outilsRes.ok ? (await outilsRes.json()).length > 0 : false;
-
-    const rows = [];
-    rows.push({
-      warn: nbScores > 0, tab: 'seance', icon: nbScores > 0 ? '⚠️' : '✅',
-      title: nbScores > 0 ? nbScores + ' score' + (nbScores > 1 ? 's' : '') + ' officiel' + (nbScores > 1 ? 's' : '') + ' à saisir' : 'Aucun score officiel en attente',
-      sub: 'Onglet Séance — Scores à saisir',
-    });
-    rows.push({
-      warn: !hasPresToday, tab: 'presence', icon: hasPresToday ? '✅' : '⚠️',
-      title: hasPresToday ? 'Présences déjà marquées aujourd\'hui' : 'Présences pas encore marquées aujourd\'hui',
-      sub: 'Onglet Présences',
-    });
-    rows.push({
-      warn: !hasOutilsToday, tab: 'outils', icon: hasOutilsToday ? '✅' : '⚠️',
-      title: hasOutilsToday ? 'Équipes du jour déjà composées' : 'Pas encore d\'équipes composées aujourd\'hui',
-      sub: 'Onglet Équipes',
-    });
-
-    wrap.innerHTML = rows.map(r => `
-      <div class="dash-row ${r.warn ? 'warn' : 'ok'}" onclick="coachSubtabSwitch('${r.tab}')">
-        <span class="dash-icon">${r.icon}</span>
-        <span class="dash-text">
-          <span class="dash-title">${escapeSvgText(r.title)}</span>
-          <span class="dash-sub">${escapeSvgText(r.sub)}</span>
-        </span>
-        <span class="dash-arrow">›</span>
-      </div>
-    `).join('');
-  } catch (e) {
-    wrap.innerHTML = '<div style="text-align:center;padding:16px;color:#e74c3c;font-size:12px;">Erreur de chargement.</div>';
-  }
+    const T = id => tiles.find(t => t.id === id);
+    if (pl) { const nx = pl.filter(x => x.seance_date && x.seance_date >= today)[0]; T('seance').s = (nx ? 'Prochaine : ' + homeTileDate(nx.seance_date) : 'Aucune séance datée à venir') + '<br>' + pl.length + ' séance' + (pl.length > 1 ? 's' : '') + ' préparée' + (pl.length > 1 ? 's' : ''); }
+    if (sc) { const dr = sc.filter(x => x.statut === 'brouillon').length, ok = sc.length - dr; T('schemas').s = ok + ' schéma' + (ok > 1 ? 's' : '') + '<br>en bibliothèque'; if (dr) T('schemas').bd = dr + ' brouillon' + (dr > 1 ? 's' : ''); }
+    if (co) T('compos').s = co[0] ? 'Dernière compo :<br>' + homeTileDate(co[0].session_date) : 'Aucune compo<br>enregistrée';
+    if (ev && T('evals')) T('evals').s = ev[0] ? 'Dernière :<br>' + homeTileDate(ev[0].updated_at) : 'Aucune évaluation';
+    draw();
+  } catch (e) { /* les vignettes restent affichées sans détail */ }
 }
 
 async function scoresTodoLoad() {
-  const wrap = document.getElementById('scores-todo-list');
+  const wrap = document.getElementById('scores-todo-list'); if (!wrap) return;   // z84 : bloc retiré de l'accueil
   wrap.innerHTML = '<div style="text-align:center;padding:8px;color:var(--gris-texte);font-size:12px;">Chargement...</div>';
   try {
     await ensureCoachSession();

@@ -912,18 +912,8 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
 
         <div id="dash-next-match-box" style="margin-top:14px;"></div>
 
-        <div id="dash-scores-box" style="background:var(--noir);border-radius:10px;padding:12px;margin-top:12px;">
-          <h3 style="font-size:13px;font-weight:800;color:var(--blanc);margin-bottom:8px;">🏆 Scores à saisir</h3>
-          <div id="scores-todo-list" style="display:flex;flex-direction:column;gap:8px;">
-            <div style="text-align:center;padding:8px;color:var(--gris-texte);font-size:12px;">Chargement...</div>
-          </div>
-          <button onclick="scoresDoneOpenEditor()" style="width:100%;padding:7px;border:none;border-radius:6px;background:var(--gris-moyen);color:var(--blanc);font-weight:700;font-size:11px;cursor:pointer;margin-top:10px;">✏️ Corriger un score déjà saisi</button>
-          <div id="scores-done-editor" style="display:none;margin-top:10px;">
-            <div style="font-size:10.5px;color:var(--gris-texte);margin-bottom:8px;">Modifie puis réenregistre — ça remplace le score précédent.</div>
-            <div id="scores-done-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-          </div>
-        </div>
-
+        <div class="section-title" style="margin-top:18px;">Accès rapide</div>
+        <div id="dash-tiles" class="home-tiles"></div>
 
         <!-- MIS DE CÔTÉ (z36) : bloc « Dernier entraînement » masqué. Pour le ressortir : retirer display:none ci-dessous et remettre « dashboardLastSessionLoad();» dans dashboardLoad() (js/13-accueil-coach.js). -->
         <div id="dash-last-session-box" style="display:none;margin-top:16px;">
@@ -931,8 +921,6 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
           <div id="dash-last-session-wrap" style="background:var(--noir);border-radius:8px;padding:10px 12px;"></div>
         </div>
 
-        <div class="section-title" style="margin-top:18px;">À faire aujourd'hui</div>
-        <div id="dash-todo-list"></div>
         <div id="dash-sm1-box" style="display:none;margin-top:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div class="section-title" style="margin:0;">🌧️ Séance maison — suivi du jour</div>

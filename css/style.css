@@ -1636,3 +1636,16 @@ html .cr-fiche-page[data-sc="vert"]{--sc:#1e8a4c;--sc2:#6bb88e;} html .cr-fiche-
 
 /* z73 : bouton Valider de l'éditeur de schémas */
 .sche .sche-tag.val{border-color:#1E9E4A;color:#0B6B2F;background:#E6F7EC;}
+
+/* z84 : vignettes d'accès rapide de l'accueil coach (style icônes d'appli) */
+.home-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.home-tile{position:relative;border:none;text-align:left;cursor:pointer;border-radius:22px;padding:14px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 6px 14px rgba(0,0,0,.35);overflow:hidden;color:#fff;font-family:inherit;}
+.home-tile:active{transform:scale(.97);}
+.home-tile .ht-ic{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:26px;}
+.home-tile .ht-n{font-weight:900;font-size:17px;}
+.home-tile .ht-s{font-size:11.5px;opacity:.92;margin-top:2px;line-height:1.3;}
+.home-tile .ht-bd{position:absolute;top:12px;right:12px;background:#fff;color:#000;border-radius:999px;font-size:11px;font-weight:900;padding:3px 8px;}
+.home-tile.g1{background:linear-gradient(145deg,#0052B4,#003F8A);}
+.home-tile.g2{background:linear-gradient(145deg,#F5C400,#C9A000);color:#0A1628;}
+.home-tile.g3{background:linear-gradient(145deg,#1f9e5b,#0f6b3c);}
+.home-tile.g4{background:linear-gradient(145deg,#8E5BD9,#5a35a0);}
