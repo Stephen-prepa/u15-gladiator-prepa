@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z77 (24/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z82 (24/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -61,7 +61,7 @@ function schR(v, p) { const k = Math.pow(10, p == null ? 2 : p); return Math.rou
 function schUid() { return 'e' + Math.random().toString(36).slice(2, 9); }
 function schIsAction(e) { return SCH_ACTIONS.includes(e.type); }
 function schIsPlayer(e) { return SCH_PLAYERS.includes(e.type); }
-function schColorable(t) { return !SCH_ACTIONS.includes(t) && t !== 'BALL'; } // tout se colore sauf les tracés et le ballon
+function schColorable(t) { return t !== 'BALL'; } // tout se colore (z82 : flèches comprises) sauf le ballon
 
 // ----- Normalisation (accepte d'anciennes données ou des données incomplètes) -----
 function schNormElement(e) {
@@ -240,7 +240,7 @@ function schElementSvg(e, k) {
   return '';
 }
 function schActionSvg(a, badge) {
-  const C = SCH_COL, P = a.points, s = a.scale || 1, col = a.type === 'SHOT' ? C.shot : C.stroke, w = (a.type === 'SHOT' ? 0.11 : 0.07) * s;
+  const C = SCH_COL, P = a.points, s = a.scale || 1, col = a.color || (a.type === 'SHOT' ? C.shot : C.stroke), w = (a.type === 'SHOT' ? 0.11 : 0.07) * s;
   const pm = a.path === 'v' || a.path === 'r' ? a.path : '', t = schEndTangent(P, pm), e = P[P.length - 1], px = -t.uy, py = t.ux;
   let g = '';
   if (a.type === 'SCREEN') {
