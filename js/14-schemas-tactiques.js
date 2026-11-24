@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z82 (24/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z83 (24/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -459,9 +459,9 @@ function schSub(a, u) { // sous-courbe [0,u] d'un tracé (droite ou Bézier quad
 // Filigranes de l'animation : ils apparaissent quand l'élément quitte sa place (ballon : point de départ du porteur et départ de chaque passe / tir, après ses déplacements ; joueur : sa position de départ)
 // et disparaissent à la fin de l'étape, sans passer à l'étape suivante.
 const SCH_GHOST_OPACITY = 0.3;  // transparence du filigrane
-const SCH_GHOST_END = 0;        // MOMENT DE DISPARITION (s) par rapport à la fin de l'étape : 0 = à la fin ; -0,5 = 0,5 s avant ; +0,3 = 0,3 s après
-const SCH_GHOST_FADE = 0.35;    // durée (s) du fondu de disparition
-function schGhostFade(tau, D) { const t1 = D + SCH_GHOST_END; return tau <= t1 ? 1 : Math.max(0, 1 - (tau - t1) / SCH_GHOST_FADE); }
+const SCH_GHOST_FROM = 0.3;      // z83 : le filigrane commence à s'effacer à 30 % de la durée de l'étape…
+const SCH_GHOST_TO = 0.8;        // …et a disparu à 80 % (au lieu de seulement à la fin)
+function schGhostFade(tau, D) { const a = D * SCH_GHOST_FROM, b = D * SCH_GHOST_TO; return tau <= a ? 1 : tau >= b ? 0 : 1 - (tau - a) / (b - a); }
 function schBallStart0(plan, b) { return b.init.poss ? schBallStart(b.el, plan.els) : { x: b.init.ground.x, y: b.init.ground.y }; }
 function schGhosts(plan, tau) {
   const st = schPlanState(plan, tau), multi = plan.balls.length > 1, out = { balls: [], players: [] }, same = (p, q) => Math.hypot(p.x - q.x, p.y - q.y) < 0.06;
