@@ -2,7 +2,7 @@
 // ===================== VERSION DE L'APPLICATION =====================
 // Source unique du numéro de version, affiché en bas à droite de l'accueil.
 // À modifier à chaque livraison (règles dans LISEZ-MOI.md).
-const APP_VERSION = 'z86';
+const APP_VERSION = 'z87';
 const APP_VERSION_DATE = '24/11/2026';
 (function () {
   document.querySelectorAll('.app-version').forEach(function (el) {

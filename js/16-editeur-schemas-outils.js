@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z85 (24/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z87 (24/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
@@ -889,10 +889,10 @@ function schDemoData() {
     { key: 'demo', kind: 'attaque', theme: 'autre', name: 'Attaque placée vs 0-6 (3 étapes)', drawings: [{ id: 'd1', title: 'Étape 1', view: 'half', elements: s1 }, { id: 'd2', title: 'Étape 2', view: 'half', elements: s2 }, { id: 'd3', title: 'Étape 3', view: 'half', elements: s3 }] },
   ];
 }
-let schDemo = null, schUi = { draft: false, ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '', open: false };
+let schDemo = null, schUi = { draft: false, ex: 0, step: 0, view: '', ball: true, fk: '', ft: '', q: '', open: true };   // z87 : à l'ouverture de l'onglet, la bibliothèque (vignettes + liste) est dépliée
 try { const f = JSON.parse(localStorage.getItem('sch_filter_v1') || '{}'); if (f && SCH_KINDS[f.fk] || f.fk === '-') schUi.fk = f.fk; if (f && SCH_THEMES[f.ft] || f.ft === '-') schUi.ft = f.ft; if (f && (f.fp === 'pub' || f.fp === 'nopub')) schUi.fp = f.fp; } catch (e) {}
 function schInit() {
-  schEnsure();
+  schEnsure(); schUi.open = true;   // z87 : on arrive toujours sur la bibliothèque avec les vignettes
   schRenderDemo(); schSyncAll(); schThemesPull();
   if (typeof ejcPubRefresh === 'function') ejcPubRefresh().then(() => schRenderDemo());
 }
