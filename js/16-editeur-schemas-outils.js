@@ -443,7 +443,7 @@ function schEdUp(e) {
     dr.ids.forEach(id => {
       const el = els.find(x => x.id === id); if (!el) return;
       if (schIsAction(el)) { if (el.fromElementId && !dr.ids.includes(el.fromElementId)) delete el.fromElementId; if (el.toElementId && !dr.ids.includes(el.toElementId)) delete el.toElementId; }
-      else if (el.type === 'BALL' && el.holderId === '-') { const h = schNearestPlayer(els, el, 1.8); if (h) { const bo = schBallOff(schBallIdx(el, els)); el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } }
+      else if (el.type === 'BALL' && el.holderId === '-') { const h = schNearestPlayer(els, el, 1.2); if (h) { const bo = schBallOff(schBallIdx(el, els)); el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } }
     });
     if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); } else schEdPanel();
     return;
@@ -456,7 +456,7 @@ function schEdUp(e) {
   }
   if (dr.kind === 'move') {
     const el = els.find(x => x.id === dr.id);
-    if (el && el.type === 'BALL' && dn.moved) { const h = schNearestPlayer(els, el, 1.8); if (h) { const bo = schBallOff(schBallIdx(el, els)); el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } }
+    if (el && el.type === 'BALL' && dn.moved) { const h = schNearestPlayer(els, el, 1.2); if (h) { const bo = schBallOff(schBallIdx(el, els)); el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } }
     if (dr.snap0 !== schEdSnapStr()) { schEdPush(dr.snap0); schEdChanged(true); }
     else if (!dn.moved) { schEdPanel(); }
     return;
@@ -556,7 +556,7 @@ function schEdPlace(type, pt) {
     const nb = els.filter(e => e.type === 'BALL').length; // chaque appui pose un NOUVEAU ballon (4 au plus) ; pour déplacer un ballon, on le fait glisser
     if (nb >= SCH_MAX_BALLS) { schEdToast(SCH_MAX_BALLS + ' ballons maximum par étape'); S.undo.pop(); return; }
     el = schNormElement(o); els.push(el);
-    const h = schNearestPlayer(els, el, 1.8), bo = schBallOff(nb); if (h) { el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } else el.holderId = '-';
+    const h = schNearestPlayer(els, el, 1.2), bo = schBallOff(nb); if (h) { el.holderId = h.id; el.x = h.x + bo.x; el.y = h.y + bo.y; } else el.holderId = '-';
     if (nb > 0) schEdToast('Ballon ' + (nb + 1) + ' posé');
   } else { el = schNormElement(o); els.push(el); }
   S.sel = el.id;
@@ -580,6 +580,13 @@ function schEdDraw() {
     const pp = S.poly.pts, hr0 = 9 / sc;
     if (pp.length >= 2) f.acts.push({ a: schNormElement({ type: S.poly.type, points: pp, path: pp.length >= 3 ? (S.polyMode || 'v') : undefined }), badge: false });
     pp.forEach((q, i) => { ov += `<circle cx="${q.x}" cy="${q.y}" r="${hr0 * (i === pp.length - 1 ? 1.15 : 0.8)}" fill="${i === pp.length - 1 ? '#1F6FEB' : '#fff'}" stroke="#1F6FEB" stroke-width="${hr0 * 0.25}"/>`; });
+  }
+  { // z77 : le porteur du ballon (sélectionné ou en cours de déplacement) est entouré et relié au ballon
+    const bb = S.drag && S.drag.kind === 'move' && S.drag.id ? els.find(e => e.id === S.drag.id) : schEdSel();
+    if (bb && bb.type === 'BALL') {
+      const dragging = !!(S.drag && S.drag.kind === 'move'), hh = bb.holderId === '-' ? (dragging ? schNearestPlayer(els, bb, 1.2) : null) : schBallHolder(bb, els);
+      if (hh) { const bp = bb.holderId === '-' ? bb : schBallStart(bb, els), hs = (hh.scale || 1) * 1.05; ov += `<line x1="${hh.x}" y1="${hh.y}" x2="${bp.x}" y2="${bp.y}" stroke="#1F6FEB" stroke-width="${3 / sc}" stroke-linecap="round"/><circle cx="${hh.x}" cy="${hh.y}" r="${hs}" fill="none" stroke="#1F6FEB" stroke-width="${3.5 / sc}" stroke-dasharray="${8 / sc} ${5 / sc}"/>`; }
+    }
   }
   const plan = schPlan(d); (plan.warnings || []).forEach(w => { const a = plan.byId[w.id]; if (a) ov += `<circle cx="${a.points[0].x}" cy="${a.points[0].y}" r="0.95" fill="none" stroke="#E74C3C" stroke-width="0.13" stroke-dasharray="0.35 0.25"/>`; });
   if (S.drag && S.drag.kind === 'pen' && S.drag.pts.length) ov += schPenSvg(S.drag.pts, S.penCol || SCH_COL.stroke, 0.16 * (S.penW || 1));

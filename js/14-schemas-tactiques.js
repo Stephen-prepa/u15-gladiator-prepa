@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z76 (24/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z77 (24/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -23,7 +23,7 @@ function schViewMargins(view, mx, top) { const p = schViewParse(view); let M = {
 const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', disc: '#2EAD5B', stroke: '#14213D', att: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
 const SCH_MAX_BALLS = Infinity; // aucun plafond : autant de ballons que voulu
 const SCH_BALL_COLS = [['#F2B705', '#14213D'], ['#2F7DE1', '#FFFFFF'], ['#1FA35C', '#FFFFFF'], ['#8E5BD9', '#FFFFFF'], ['#E8543A', '#FFFFFF'], ['#17A2B8', '#FFFFFF'], ['#E84393', '#FFFFFF'], ['#14213D', '#FFFFFF']]; // [fond, chiffre] du ballon 1 à 8 (au-delà, les couleurs se répètent : le chiffre les distingue)
-const SCH_BALL_OFFS = [{ x: 0.85, y: -0.55 }, { x: -0.85, y: -0.55 }, { x: 0.85, y: 0.55 }, { x: -0.85, y: 0.55 }]; // place du ballon porté, selon son numéro (deux ballons chez le même joueur ne se superposent pas)
+const SCH_BALL_OFFS = [{ x: 0.45, y: -0.68 }, { x: -0.45, y: -0.68 }, { x: 0.45, y: 0.68 }, { x: -0.45, y: 0.68 }]; // place du ballon porté, selon son numéro (deux ballons chez le même joueur ne se superposent pas)
 const SCH_BALL_OFF = SCH_BALL_OFFS[0];
 function schBallOff(i) {
   i = i || 0; if (SCH_BALL_OFFS[i]) return SCH_BALL_OFFS[i];
@@ -106,7 +106,7 @@ function schActionOwner(a, els) {
 function schBallHolder(ball, els) {
   if (ball.holderId === '-') return null; // « aucun porteur » : ballon au sol
   if (ball.holderId) { const h = els.find(e => e.id === ball.holderId); if (h) return h; }
-  return schNearestPlayer(els, ball, 1.5);
+  return schNearestPlayer(els, ball, 1.2);
 }
 // Position de départ du ballon pour l'étape : à côté du porteur s'il y en a un, sinon à sa propre position
 function schBallStart(ball, els) {
