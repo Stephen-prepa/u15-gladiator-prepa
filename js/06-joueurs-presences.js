@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z91 (26/11/2026)
+// Prépa U15 HBCCS — js/06-joueurs-presences.js — dernière modification : version z92 (26/11/2026)
 // ===================== GESTION DES CODES JOUEURS =====================
 function codesOpenEditor() {
   const box = document.getElementById('codes-editor');
@@ -76,10 +76,10 @@ async function convocGenerate() {
       pouleCand = await homePouleUpcoming(knownIds);
     } catch (e) {}
     // z91 : adresses des salles déjà connues (lues sur les feuilles de match des poules) : salle de chaque équipe à domicile, la plus récente d'abord
-    const salleDe = {}, normSalle = t => String(t || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\([^)]*\)/g, '').replace(/[^A-Z0-9]+/g, ' ').replace(/^\s+|\s+$/g, '');
+    const salleDe = {}, pmLieux = [], normSalle = t => String(t || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\([^)]*\)/g, '').replace(/[^A-Z0-9]+/g, ' ').replace(/^\s+|\s+$/g, '');
     try {
-      const sRes = await fetch(SB_URL + '/rest/v1/poule_matches?select=team1,lieu,match_date&lieu=not.is.null&order=match_date.desc&limit=400', { headers: coachAuthHeaders() });
-      (sRes.ok ? await sRes.json() : []).forEach(r => { const k = normSalle(r.team1); if (k && r.lieu && !salleDe[k]) salleDe[k] = r.lieu; });
+      const sRes = await fetch(SB_URL + '/rest/v1/poule_matches?select=team1,team2,lieu,match_date&lieu=not.is.null&order=match_date.desc&limit=400', { headers: coachAuthHeaders() });
+      (sRes.ok ? await sRes.json() : []).forEach(r => { pmLieux.push(r); const k = normSalle(r.team1); if (k && r.lieu && !salleDe[k]) salleDe[k] = r.lieu; });
     } catch (e) {}
     const salleClub = () => { const k = Object.keys(salleDe).filter(x => x.indexOf('CLERMONT') === 0)[0]; return k ? salleDe[k] : ''; };
     for (const eq of [1, 2]) {
@@ -106,7 +106,12 @@ async function convocGenerate() {
         opp = info.opp;
         const dm = new Date(m.debut);
         heureMatch = String(dm.getHours()).padStart(2, '0') + 'h' + (dm.getMinutes() ? String(dm.getMinutes()).padStart(2, '0') : '00');
+        // z92 : adresse PRÉVUE de ce match (lue par la synchro sur la page FFHB du match) : même jour + même adversaire
+        let lieuPrevu = '';
+        const oppK = normSalle(opp), jour = dateStr(dm);
+        pmLieux.forEach(r => { if (!lieuPrevu && r.lieu && dateStr(new Date(String(r.match_date).replace(' ', 'T').replace(/([+-]\d\d)$/, '$1:00'))) === jour && (normSalle(r.team1) === oppK || normSalle(r.team2) === oppK)) lieuPrevu = r.lieu; });
         if (m.lieu) lieu = m.lieu;
+        else if (lieuPrevu) lieu = lieuPrevu;
         else if (info.home) lieu = salleClub() || 'Clermont-l\'Hérault (à confirmer)';
         else if (salleDe[normSalle(opp)]) lieu = salleDe[normSalle(opp)] + ' (adresse de leur dernier match à domicile : à vérifier)';
         else lieu = opp + ' (à confirmer)';
