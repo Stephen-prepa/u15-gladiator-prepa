@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z63 (18/11/2026)
+// Prépa U15 HBCCS — js/17-stats-evaluations.js — dernière modification : version z90 (26/11/2026)
 // ---------- Statistiques (SVG natif, pas de dependance externe) ----------
 // ---------- Présences : bascule Saisie | Statistiques (z41) ----------
 function presViewSet(v) {
@@ -464,6 +464,49 @@ const EVAL_ITEMS = [
       'Moteur / exemplaire.',
     ] },
 ];
+// ---------- z90 — Grille « compétences observables » (critères lus dans la table eval_criteres, modifiables par Stephen) ----------
+// Notes 0 à 5 (courbe d'évolution) regroupées en 4 niveaux de lecture ; case 💡 « sait quoi faire » (colonne evaluations.intention).
+const EVAL_OBS_LEVELS = ['Non observé', 'Pas encore', 'Début', 'En cours de stabilisation', 'Acquis', 'Maîtrisé'];
+const EVAL_OBS_SCALE = ['Non observé / compétence absente', 'Très insuffisant, notion non acquise', 'Insuffisant, acquis de façon très irrégulière', 'Acquis, à consolider (seuil de validation)', 'Bien maîtrisé, régulier', 'Excellent, transférable en match sous pression'];
+const EVAL_OBS_HINT = ['', 'notion non acquise', 'acquis de façon très irrégulière', 'à consolider (seuil de validation)', 'régulier', 'transférable en match sous pression'];
+const EVAL_OBS_SHORT = ['Non obs.', 'Pas enc.', 'Début', 'En cours', 'Acquis', 'Maîtrisé'];
+const EVAL_OBS_PALETTE = ['var(--rouge-light)', 'var(--bleu-light)', 'var(--vert)', '#9b59b6', '#16a085', '#e67e22'];
+let evalGrid = 'obs';        // 'obs' (nouvelle grille) | 'old' (ancienne grille 0-5)
+try { if (localStorage.getItem('evalGrid') === 'old') evalGrid = 'old'; } catch (e) {}
+let evalObsAll = [];         // tous les critères (actifs ou non) — pour l'éditeur
+let evalObsItems = [];       // critères actifs, au format des items de l'ancienne grille
+function evalObsMap(r) { return { code: r.code, domain: r.domain, kind: 'obs', comp: r.label, indicateur: r.indicateur || '', cle: !!r.cle, scale: EVAL_OBS_SCALE }; }
+async function evalObsLoad() {
+  try {
+    await ensureCoachSession();
+    const res = await fetch(SB_URL + '/rest/v1/eval_criteres?category=eq.' + EVAL_CATEGORY + '&select=code,domain,label,indicateur,cle,ordre,actif&order=ordre.asc,code.asc', { headers: coachAuthHeaders() });
+    if (res.ok) { evalObsAll = await res.json(); evalObsItems = evalObsAll.filter(r => r.actif).map(evalObsMap); }
+  } catch (e) {}
+}
+function evalItems() { return evalGrid === 'obs' ? evalObsItems : EVAL_ITEMS; }
+function evalFindItem(code) { return EVAL_ITEMS.filter(i => i.code === code)[0] || evalObsItems.filter(i => i.code === code)[0] || evalObsAll.map(evalObsMap).filter(i => i.code === code)[0] || null; }
+function evalSeuil() { const n = parseInt(appSettings && appSettings.eval_seuil_note, 10); return n >= 1 && n <= 5 ? n : 3; }
+function evalSeuilPct() { const n = parseInt(appSettings && appSettings.eval_seuil_passage, 10); return n >= 1 && n <= 100 ? n : 80; }
+function evalDomains() { const out = []; evalObsItems.forEach(i => { if (out.indexOf(i.domain) < 0) out.push(i.domain); }); return out; }
+function evalSeries() {
+  if (evalGrid !== 'obs') return EVAL_EVO_SERIES;
+  return evalDomains().map((d, k) => ({ k: d, lab: d.slice(0, 5) + (d.length > 5 ? '.' : ''), col: EVAL_OBS_PALETTE[k % EVAL_OBS_PALETTE.length] })).concat([{ k: 'GEN', lab: 'Général', col: 'var(--jaune)' }]);
+}
+function evalGridSet(g) {
+  evalGrid = g === 'old' ? 'old' : 'obs'; try { localStorage.setItem('evalGrid', evalGrid); } catch (e) {}
+  evalOpenSection = evalGrid === 'obs' ? null : 'filiere'; evalEvo.crit = '';
+  evaluationsRenderGridBar(); evaluationsRenderItems(); evaluationsRenderAverages();
+}
+function evaluationsRenderGridBar() {
+  const bar = document.getElementById('eval-grid-switch'); if (!bar) return;
+  const chip = (on, label, fn) => '<button type="button" onclick="' + fn + '" style="padding:7px 12px;border-radius:18px;border:1px solid ' + (on ? 'var(--jaune)' : 'rgba(255,255,255,.18)') + ';background:' + (on ? 'rgba(245,196,0,.14)' : 'transparent') + ';color:' + (on ? 'var(--jaune)' : 'var(--gris-clair)') + ';font-size:12px;font-weight:' + (on ? '800' : '600') + ';cursor:pointer;">' + label + '</button>';
+  bar.innerHTML = chip(evalGrid === 'obs', '🎯 Compétences observables', "evalGridSet('obs')") + chip(evalGrid === 'old', '📘 Ancienne grille', "evalGridSet('old')") +
+    (typeof evcCanEdit === 'function' && evcCanEdit() ? chip(typeof evcOpen !== 'undefined' && evcOpen, '⚙️ Critères', 'evcToggle()') : '');
+  const t = document.getElementById('eval-title'), st = document.getElementById('eval-sub');
+  if (t) t.textContent = evalGrid === 'obs' ? '🎯 Évaluations — compétences observables U15' : '🎯 Évaluations — référentiel filière U15';
+  if (st) st.textContent = evalGrid === 'obs' ? 'Note de 0 à 5 : le mot affiché te dit où se situe le joueur. 💡 = il sait quoi faire mais n\'y arrive pas encore. Puis « Valider ».' : 'Prérequis, accélérateurs et fil rouge défense Homme à Homme — note en un tap, puis « Valider ».';
+}
+
 const EVAL_DOMAIN_ORDER = ['Technique', 'Tactique', 'Physique / Motricité', 'Mental / Comportemental'];
 const EVAL_DOMAIN_SHORT = { 'Technique': 'Tech.', 'Tactique': 'Tact.', 'Physique / Motricité': 'Phys.', 'Mental / Comportemental': 'Ment.' };
 const EVAL_SCORE_COLOR = ['#C0392B', '#E67E22', '#F5C400', '#A8C93B', '#6FBF73', '#2ECC71'];
@@ -474,6 +517,9 @@ let evalScores = {};       // comp_code -> { mine: number|null, others: [{name, 
 let evalRosterLoaded = false;
 
 async function evaluationsInit() {
+  await evalObsLoad();
+  if (typeof evcLoadEditors === 'function') evcLoadEditors();
+  evaluationsRenderGridBar();
   if (!evalRosterLoaded) { await evaluationsLoadRoster(); evalRosterLoaded = true; }
   if (!evalCurrentPlayer && evalRoster.length) evalCurrentPlayer = evalRoster[0].code;
   evaluationsRenderPicker();
@@ -519,19 +565,39 @@ async function evaluationsLoadScores(code) {
   try {
     await ensureCoachSession();
     const myId = coachSession ? coachSession.id : null;
-    const res = await fetch(SB_URL + '/rest/v1/evaluations?player_code=eq.' + encodeURIComponent(code) + '&category=eq.' + EVAL_CATEGORY + '&select=comp_code,score,coach_id,coaches(display_name)', {
+    const res = await fetch(SB_URL + '/rest/v1/evaluations?player_code=eq.' + encodeURIComponent(code) + '&category=eq.' + EVAL_CATEGORY + '&select=comp_code,score,intention,coach_id,coaches(display_name)', {
       headers: coachAuthHeaders(),
     });
     const rows = res.ok ? await res.json() : [];
     rows.forEach(r => {
       if (!evalScores[r.comp_code]) evalScores[r.comp_code] = { mine: null, others: [] };
-      if (r.coach_id === myId) evalScores[r.comp_code].mine = r.score;
+      if (r.coach_id === myId) { evalScores[r.comp_code].mine = r.score; evalScores[r.comp_code].int = !!r.intention; }
       else evalScores[r.comp_code].others.push({ name: (r.coaches && r.coaches.display_name) || '?', score: r.score });
     });
   } catch (e) {}
 }
 
+function evalEffInt(comp) { const d = evalDraftOf(evalCurrentPlayer)[comp]; if (d) return !!d.i; const r = evalScores[comp]; return !!(r && r.int); }
+function evaluationsObsCard(it, num) {
+  const rec = evalScores[it.code], dr = evalDraftOf(evalCurrentPlayer)[it.code], pending = !!dr;
+  const cur = evalEff(it.code), intent = evalEffInt(it.code), others = rec ? rec.others : [];
+  const colors = EVAL_SCORE_COLOR;
+  const btns = colors.map((color, v) => { const active = cur === v;
+    return '<button type="button" onclick="evaluationsSetScore(\'' + it.code + '\',' + v + ')" style="flex:1;min-width:0;padding:7px 0 5px;border-radius:9px;border:1px solid ' + (active ? '#fff' : 'rgba(255,255,255,0.12)') + ';background:' + color + ';opacity:' + (active || cur === null || cur === undefined ? '1' : '.45') + ';color:#0A1628;font-weight:900;font-size:15px;cursor:pointer;line-height:1.1;' + (active ? 'outline:2px solid #fff;' : '') + '">' + v + '<span style="display:block;font-size:7.5px;font-weight:700;margin-top:1px;">' + EVAL_OBS_SHORT[v] + '</span></button>';
+  }).join('');
+  const hasScore = cur !== null && cur !== undefined, ok = hasScore && cur >= evalSeuil();
+  const band = hasScore ? EVAL_OBS_LEVELS[cur] + (EVAL_OBS_HINT[cur] ? ' · ' + EVAL_OBS_HINT[cur] : '') : 'Pas encore noté';
+  return '<div style="background:var(--noir);border:1px ' + (pending ? 'dashed' : 'solid') + ' ' + (pending ? 'var(--jaune)' : 'rgba(255,255,255,0.08)') + ';border-left:4px solid ' + (!hasScore ? 'rgba(255,255,255,.2)' : colors[cur]) + ';border-radius:12px;padding:10px 12px;">' +
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;"><div style="font-size:13px;font-weight:800;color:var(--blanc);">' + (it.cle ? '<span style="color:var(--jaune);">★</span> ' : '') + (num ? num + '. ' : '') + escapeSvgText(it.comp) + '</div>' +
+    (pending ? '<div style="font-size:9.5px;font-weight:800;color:var(--jaune);flex:0 0 auto;">EN ATTENTE</div>' : '') + '</div>' +
+    '<div style="font-size:11px;color:var(--gris-texte);margin:3px 0 8px;line-height:1.4;">Comment le voir : ' + escapeSvgText(it.indicateur || '—') + '</div>' +
+    '<div style="display:flex;gap:4px;">' + btns + '</div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;"><span style="font-size:11.5px;color:' + (ok ? '#2ecc71' : 'var(--gris-clair)') + ';">' + escapeSvgText(band) + '</span>' +
+    '<button type="button" onclick="evaluationsSetIntention(\'' + it.code + '\')" ' + (hasScore ? '' : 'disabled ') + 'style="border-radius:99px;padding:4px 10px;font-size:11px;cursor:pointer;' + (intent ? 'background:var(--jaune);color:#1a1a1a;border:1px solid var(--jaune);font-weight:800;' : 'background:transparent;color:var(--gris-clair);border:1.5px dashed rgba(255,255,255,.4);') + (hasScore ? '' : 'opacity:.35;') + '">💡 Sait quoi faire</button></div>' +
+    (others.length ? '<div style="font-size:9.5px;color:var(--gris-texte);margin-top:6px;">Autres coachs : ' + others.map(o => escapeSvgText(o.name) + ' ' + o.score).join(' · ') + '</div>' : '') + '</div>';
+}
 function evaluationsItemCard(it) {
+  if (it.kind === 'obs') return evaluationsObsCard(it);
   const rec = evalScores[it.code];
   const dr = evalDraftOf(evalCurrentPlayer)[it.code], pending = !!dr;
   const current = pending ? dr.s : (rec ? rec.mine : null);
@@ -565,6 +631,17 @@ function evaluationsRenderItems() {
   if (!wrap) return;
   if (!evalCurrentPlayer) { wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Choisis un joueur ci-dessus.</div>'; return; }
 
+  if (evalGrid === 'obs') {
+    if (!evalObsItems.length) { wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-texte);font-size:12px;">Aucun critère actif (ou lecture impossible). Stephen peut en ajouter avec ⚙️ Critères.</div>'; return; }
+    let n = 0, h = '';
+    evalDomains().forEach((d, k) => {
+      h += '<div style="font-size:10.5px;font-weight:800;color:' + EVAL_OBS_PALETTE[k % EVAL_OBS_PALETTE.length] + ';text-transform:uppercase;letter-spacing:0.5px;margin:' + (k ? '10px' : '0') + ' 0 4px;">' + escapeSvgText(d) + '</div><div style="display:flex;flex-direction:column;gap:8px;">' +
+        evalObsItems.filter(i => i.domain === d).map(i => evaluationsObsCard(i, ++n)).join('') + '</div>';
+    });
+    h += '<button type="button" onclick="evaluationsToggleSection(\'evolution\')" style="margin-top:12px;width:100%;display:flex;align-items:center;justify-content:space-between;background:' + (evalOpenSection === 'evolution' ? 'rgba(93,173,226,.12)' : 'var(--noir)') + ';border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;cursor:pointer;"><span style="font-size:13px;font-weight:800;color:var(--blanc);">📈 Évolution</span><span style="font-size:10.5px;color:var(--gris-texte);">graphique ' + (evalOpenSection === 'evolution' ? '▲' : '▼') + '</span></button>';
+    if (evalOpenSection === 'evolution') h += '<div id="eval-evo" style="padding-top:8px;">' + evaluationsEvoHtml() + '</div>';
+    wrap.innerHTML = h; return;
+  }
   const filiereGroups = [
     { label: '🛡️ Fil rouge filière', items: EVAL_ITEMS.filter(i => i.kind === 'hah'), accent: 'var(--jaune)' },
     { label: 'Prérequis — Technique', items: EVAL_ITEMS.filter(i => i.domain === 'Technique'), accent: 'var(--bleu-light)' },
@@ -643,8 +720,8 @@ function evaluationsEvoModel(rows) {
       if (same) same.to = nv; else changes.push({ c: r.comp_code, from: prev, to: nv });
     });
     const pt = { d, t: new Date(d + 'T12:00:00').getTime(), changes: changes.filter(x => x.from !== x.to), v: {} };
-    EVAL_EVO_SERIES.forEach(se => { pt.v[se.k] = se.k === 'GEN' ? avg(EVAL_ITEMS.filter(i => i.kind === 'prereq').map(i => i.code)) : avg(EVAL_ITEMS.filter(i => i.domain === se.k).map(i => i.code)); });
-    EVAL_ITEMS.forEach(i => { pt.v['c:' + i.code] = val(i.code); });
+    evalSeries().forEach(se => { pt.v[se.k] = se.k === 'GEN' ? avg(evalItems().filter(i => evalGrid === 'obs' || i.kind === 'prereq').map(i => i.code)) : avg(evalItems().filter(i => i.domain === se.k).map(i => i.code)); });
+    evalItems().forEach(i => { pt.v['c:' + i.code] = val(i.code); });
     out.push(pt);
   });
   return out;
@@ -658,9 +735,9 @@ function evaluationsEvoHtml() {
   let h = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;">' +
     chip(evalEvo.who === 'moi', 'Mes notes', "evaluationsEvoSet('who','moi')") + chip(evalEvo.who === 'tous', 'Tous les coachs', "evaluationsEvoSet('who','tous')") +
     '<select onchange="evaluationsEvoSet(\'crit\',this.value)" style="background:var(--noir);color:var(--blanc);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 6px;font-size:11px;max-width:55%;"><option value="">Par domaine</option>' +
-    EVAL_ITEMS.map(i => '<option value="' + i.code + '"' + (crit === i.code ? ' selected' : '') + '>' + escapeSvgText(i.code + ' — ' + i.comp).slice(0, 60) + '</option>').join('') + '</select></div>';
+    evalItems().map(i => '<option value="' + i.code + '"' + (crit === i.code ? ' selected' : '') + '>' + escapeSvgText(i.code + ' — ' + i.comp).slice(0, 60) + '</option>').join('') + '</select></div>';
   if (!pts.length) return h + '<div style="font-size:12px;color:var(--gris-texte);padding:12px 4px;line-height:1.5;">Aucune note enregistrée pour ce joueur' + (evalEvo.who === 'moi' ? ' par toi (essaie « Tous les coachs »)' : '') + '. Chaque nouvelle note ou modification sera ajoutée au graphique.</div>';
-  const series = crit ? [{ k: 'c:' + crit, lab: crit, col: 'var(--jaune)' }] : EVAL_EVO_SERIES;
+  const series = crit ? [{ k: 'c:' + crit, lab: crit, col: 'var(--jaune)' }] : evalSeries();
   if (!crit) h += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">' + series.map(se => chip(!evalEvo.hide[se.k], '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + se.col + ';margin-right:4px;"></span>' + se.lab, "evaluationsEvoSet('hide','" + se.k + "')", se.col)).join('') + '</div>';
   const W = 620, H = 250, L = 26, R = 12, T = 12, B = 26, t0 = pts[0].t, t1 = pts[pts.length - 1].t, span = Math.max(t1 - t0, 86400000 * 7);
   const X = t => L + (pts.length === 1 ? (W - L - R) / 2 : (t - t0) / span * (W - L - R)), Y = v => T + (5 - v) / 5 * (H - T - B);
@@ -677,7 +754,7 @@ function evaluationsEvoHtml() {
   });
   h += svg + '</svg>';
   // tableau : une ligne par jour de saisie (le plus récent en haut)
-  const cols = crit ? [{ k: 'c:' + crit, lab: crit }] : EVAL_EVO_SERIES;
+  const cols = crit ? [{ k: 'c:' + crit, lab: crit }] : evalSeries();
   const cell = v => v === null || v === undefined ? '<span style="color:var(--gris-texte)">—</span>' : v.toFixed(1);
   h += '<div style="overflow-x:auto;margin-top:10px;"><table style="width:100%;border-collapse:collapse;font-size:11px;"><tr style="color:var(--gris-texte);text-align:center;"><th style="text-align:left;padding:4px;">Date</th>' + cols.map(c => '<th style="padding:4px;">' + c.lab + '</th>').join('') + '<th style="text-align:left;padding:4px;">Changements</th></tr>' +
     pts.slice().reverse().map(pt => '<tr style="border-top:1px solid rgba(255,255,255,.08);text-align:center;"><td style="text-align:left;padding:5px 4px;white-space:nowrap;">' + fmt(pt.t) + '</td>' + cols.map(c => '<td style="padding:5px 4px;">' + cell(pt.v[c.k]) + '</td>').join('') +
@@ -686,10 +763,35 @@ function evaluationsEvoHtml() {
   return h;
 }
 
+function evaluationsObsSummary(wrap) {
+  const items = evalObsItems, seuil = evalSeuil(), pctMin = evalSeuilPct();
+  wrap.style.display = 'block';
+  const eff = i => evalEff(i.code), has = i => { const v = eff(i); return v !== null && v !== undefined; };
+  const avgOf = list => { const v = list.filter(has).map(eff); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const doms = evalDomains();
+  const cells = doms.map((d, k) => { const a = avgOf(items.filter(i => i.domain === d)); return '<div style="background:var(--noir);border-radius:8px;padding:8px 2px;text-align:center;"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:900;color:' + (a === null ? 'var(--gris-texte)' : EVAL_OBS_PALETTE[k % EVAL_OBS_PALETTE.length]) + ';">' + (a === null ? '—' : a.toFixed(1)) + '</div><div style="font-size:8.5px;color:var(--gris-texte);text-transform:uppercase;">' + escapeSvgText(d.slice(0, 7)) + '</div></div>'; });
+  const g = avgOf(items); cells.push('<div style="background:var(--jaune);border-radius:8px;padding:8px 2px;text-align:center;"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:900;color:#1a1a1a;">' + (g === null ? '—' : g.toFixed(1)) + '</div><div style="font-size:8.5px;color:#1a1a1a;text-transform:uppercase;font-weight:800;">Général</div></div>');
+  const num = {}; items.forEach((i, k) => { num[i.code] = k + 1; });
+  const cles = items.filter(i => i.cle), clesLow = cles.filter(i => !has(i) || eff(i) < seuil), clesZero = cles.filter(i => has(i) && eff(i) === 0);
+  const att = items.filter(i => i.domain === 'Attitude'), attOk = att.every(i => has(i) && eff(i) >= seuil);
+  const noted = items.filter(has).length, met = items.filter(i => has(i) && eff(i) >= seuil).length;
+  const pct = items.length ? Math.round(met / items.length * 100) : 0;
+  const passerelleOk = noted > 0 && !clesLow.length && attOk, passageOk = noted > 0 && pct >= pctMin && !clesZero.length;
+  const box = (ok, title, line) => '<div style="flex:1;border-radius:10px;padding:8px;text-align:center;background:' + (noted === 0 ? 'rgba(255,255,255,.06)' : ok ? 'rgba(46,204,113,.2)' : 'rgba(230,126,34,.2)') + ';border:1px solid ' + (noted === 0 ? 'rgba(255,255,255,.1)' : ok ? '#2ecc71' : '#e67e22') + ';"><div style="font-size:12px;font-weight:800;color:var(--blanc);">' + title + '</div><div style="font-size:10.5px;color:var(--gris-clair);margin-top:2px;line-height:1.35;">' + line + '</div></div>';
+  const lowTxt = clesLow.length ? clesLow.length + ' ★ sous ' + seuil + ' (n° ' + clesLow.slice(0, 6).map(i => num[i.code]).join(', ') + (clesLow.length > 6 ? '…' : '') + ')' : 'tous les ★ à ' + seuil + '+';
+  const intents = items.filter(i => has(i) && eff(i) < seuil && evalEffInt(i.code)).length;
+  wrap.innerHTML = '<div style="display:grid;grid-template-columns:repeat(' + cells.length + ',1fr);gap:6px;margin-bottom:8px;">' + cells.join('') + '</div>' +
+    '<div style="display:flex;gap:8px;">' + box(passerelleOk, 'Passerelle : ' + (noted === 0 ? '—' : passerelleOk ? 'ouverte' : 'pas encore'), noted === 0 ? 'rien de noté' : lowTxt + (att.length ? (attOk ? ' · attitude ✓' : ' · attitude à valider') : '')) +
+    box(passageOk, 'Passage : ' + (noted === 0 ? '—' : pct + ' %'), noted === 0 ? 'objectif ' + pctMin + ' %' : 'objectif ' + pctMin + ' %' + (clesZero.length ? ' · ★ à zéro : ' + clesZero.length : '')) + '</div>' +
+    (intents ? '<div style="font-size:11px;color:var(--jaune);margin-top:6px;">💡 ' + intents + ' critère' + (intents > 1 ? 's' : '') + ' sous le seuil avec la bonne intention : le joueur sait quoi faire, il manque les moyens.</div>' : '') +
+    '<div style="font-size:10px;color:var(--gris-texte);margin-top:6px;">Seuil ' + seuil + '/5 · passerelle = tous les ★ + attitude · passage = ' + pctMin + ' % des critères, aucun ★ à zéro. Notes non validées incluses.</div>';
+}
 function evaluationsRenderAverages() {
   const wrap = document.getElementById('eval-averages');
   if (!wrap) return;
   if (!evalCurrentPlayer) { wrap.innerHTML = ''; return; }
+  if (evalGrid === 'obs') { evaluationsObsSummary(wrap); return; }
+  wrap.style.display = 'grid';
   const avgFor = (codes) => {
     const vals = codes.map(c => evalEff(c)).filter(v => v !== null && v !== undefined);
     if (!vals.length) return null;
@@ -754,18 +856,30 @@ function evaluationsRenderDraft() {
 }
 function evaluationsSetScore(compCode, score) {
   if (!evalCurrentPlayer) return;
-  const item = EVAL_ITEMS.find(i => i.code === compCode);
+  const item = evalFindItem(compCode);
   if (!item) return;
   const rec = evalScores[compCode], saved = rec && rec.mine !== undefined ? rec.mine : null;
   const cur = evalEff(compCode);
   const next = cur === score ? null : score;     // retaper la même note l'efface (comme avant)
   const dr = evalDraftLoad();
-  if (next === saved) { if (dr[evalCurrentPlayer]) { delete dr[evalCurrentPlayer][compCode]; if (!Object.keys(dr[evalCurrentPlayer]).length) delete dr[evalCurrentPlayer]; } }   // retour à la valeur enregistrée : plus rien en attente
-  else { (dr[evalCurrentPlayer] = dr[evalCurrentPlayer] || {})[compCode] = { s: next, at: Date.now() }; }
+  const savedInt = !!(rec && rec.int), nextInt = next === null ? false : evalEffInt(compCode);   // z90 : la case 💡 suit la note
+  if (next === saved && nextInt === savedInt) { if (dr[evalCurrentPlayer]) { delete dr[evalCurrentPlayer][compCode]; if (!Object.keys(dr[evalCurrentPlayer]).length) delete dr[evalCurrentPlayer]; } }   // retour à la valeur enregistrée : plus rien en attente
+  else { (dr[evalCurrentPlayer] = dr[evalCurrentPlayer] || {})[compCode] = { s: next, i: nextInt, at: Date.now() }; }
   evalDraftSave();
   evaluationsRenderItems();
   evaluationsRenderAverages();
   evaluationsRenderDraft();
+  const msgEl = document.getElementById('eval-save-msg');
+  if (msgEl) { msgEl.style.color = 'var(--jaune)'; msgEl.textContent = 'Modification en attente — pense à valider.'; }
+}
+function evaluationsSetIntention(compCode) {   // z90 : case 💡 « sait quoi faire » (n'a de sens que sur un critère noté)
+  if (!evalCurrentPlayer) return;
+  const cur = evalEff(compCode); if (cur === null || cur === undefined) return;
+  const rec = evalScores[compCode], saved = rec && rec.mine !== undefined ? rec.mine : null, savedInt = !!(rec && rec.int);
+  const nextInt = !evalEffInt(compCode), dr = evalDraftLoad();
+  if (cur === saved && nextInt === savedInt) { if (dr[evalCurrentPlayer]) { delete dr[evalCurrentPlayer][compCode]; if (!Object.keys(dr[evalCurrentPlayer]).length) delete dr[evalCurrentPlayer]; } }
+  else { (dr[evalCurrentPlayer] = dr[evalCurrentPlayer] || {})[compCode] = { s: cur, i: nextInt, at: Date.now() }; }
+  evalDraftSave(); evaluationsRenderItems(); evaluationsRenderAverages(); evaluationsRenderDraft();
   const msgEl = document.getElementById('eval-save-msg');
   if (msgEl) { msgEl.style.color = 'var(--jaune)'; msgEl.textContent = 'Modification en attente — pense à valider.'; }
 }
@@ -783,7 +897,7 @@ async function evaluationsDraftValidate(code) {
   try {
     await ensureCoachSession();
     const myId = coachSession ? coachSession.id : null, now = new Date().toISOString();
-    const up = comps.filter(c => mine[c].s !== null).map(c => { const it = EVAL_ITEMS.find(i => i.code === c); return { player_code: code, category: EVAL_CATEGORY, domain: it ? it.domain : null, comp_code: c, axe: it ? it.comp : c, score: mine[c].s, coach_id: myId, updated_at: now }; });
+    const up = comps.filter(c => mine[c].s !== null).map(c => { const it = evalFindItem(c); return { player_code: code, category: EVAL_CATEGORY, domain: it ? it.domain : null, comp_code: c, axe: it ? it.comp : c, score: mine[c].s, intention: !!mine[c].i, coach_id: myId, updated_at: now }; });
     const del = comps.filter(c => mine[c].s === null);
     if (up.length) {
       const res = await fetch(SB_URL + '/rest/v1/evaluations?on_conflict=player_code,comp_code,coach_id', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(up) });
@@ -793,7 +907,7 @@ async function evaluationsDraftValidate(code) {
       const res2 = await fetch(SB_URL + '/rest/v1/evaluations?player_code=eq.' + encodeURIComponent(code) + '&coach_id=eq.' + encodeURIComponent(myId || '') + '&comp_code=in.(' + del.map(encodeURIComponent).join(',') + ')', { method: 'DELETE', headers: coachAuthHeaders() });
       if (!res2.ok) throw new Error('delete failed');
     }
-    comps.forEach(c => { if (code === evalCurrentPlayer) { const r = evalScores[c] || (evalScores[c] = { mine: null, others: [] }); r.mine = mine[c].s; } });
+    comps.forEach(c => { if (code === evalCurrentPlayer) { const r = evalScores[c] || (evalScores[c] = { mine: null, others: [] }); r.mine = mine[c].s; r.int = !!mine[c].i; } });
     delete evalDraftLoad()[code]; evalDraftSave(); delete evalHist[code];
     if (code === evalCurrentPlayer) { evaluationsRenderItems(); evaluationsRenderAverages(); if (evalOpenSection === 'evolution') evaluationsEvoLoad(); }
     evaluationsRenderDraft();

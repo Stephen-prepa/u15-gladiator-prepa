@@ -1145,8 +1145,10 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
       </div>
 
       <div class="cs-box" id="cs-box-evaluations" style="background:var(--gris-fonce);border-radius:10px;padding:14px;margin-top:16px;">
-        <h3 style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🎯 Évaluations — référentiel filière U15</h3>
-        <div style="font-size:11px;color:var(--gris-texte);margin-bottom:14px;">Prérequis, accélérateurs et fil rouge défense Homme à Homme — note en un tap, puis « Valider ».</div>
+        <h3 id="eval-title" style="font-size:14px;font-weight:800;color:var(--blanc);margin-bottom:4px;">🎯 Évaluations — compétences observables U15</h3>
+        <div id="eval-sub" style="font-size:11px;color:var(--gris-texte);margin-bottom:10px;">Note de 0 à 5 : le mot affiché te dit où se situe le joueur. 💡 = il sait quoi faire mais n'y arrive pas encore. Puis « Valider ».</div>
+        <div id="eval-grid-switch" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
+        <div id="eval-editor"></div>
 
         <div id="eval-draftbanner"></div>
         <div id="eval-player-picker" style="display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;"></div>
@@ -1178,7 +1180,7 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
         </div></details>
 
 <details class="rg-cat" id="an-box" data-rg="an">
-          <summary><span class="rg-ttl">🔬 Analyse<small>Carte sur l'accueil</small></span></summary>
+          <summary><span class="rg-ttl">🔬 Analyse<small>Onglet de l'Espace coachs</small></span></summary>
           <div class="rg-body">
           <div id="an-allow-box" style="display:none;margin-bottom:14px;"></div>
           <div id="an-note" style="display:none;font-size:12px;color:var(--gris-texte);">L'accès à « Analyse » est réglé par Stephen.</div>
@@ -1403,6 +1405,7 @@ var h=document.documentElement;h.setAttribute('data-theme',t);if(c.density)h.set
 <script src="js/24-onglets-coach.js"></script>
 <script src="js/25-analyse.js"></script>
 <script src="js/26-activite-coachs.js"></script>
+<script src="js/27-criteres-evals.js"></script>
 <script src="js/19-init.js"></script>
 </body>
 </html>
