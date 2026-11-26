@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z61 (17/11/2026)
+// Prépa U15 HBCCS — js/08-createur-seances.js — dernière modification : version z94 (26/11/2026)
 // ---------- Créateur de séances (coach) ----------
 const CR_CATS = ['Baby (3-5 ans)', '-7 ans', '-9 ans', '-11 ans', '-13 ans', '-15 ans', '-17 ans', '-18 ans', 'Seniors', 'Loisirs', 'Détection', 'Gardiens'];
 const CR_PUBLICS = ['Mixte', 'Garçons', 'Filles'];
@@ -28,8 +28,8 @@ const CR_TEMPLATES = [
 ];
 let crPlans = [];
 let crFilter = 'toutes';
-// Code couleur des séances (z44) : rouge = défense, bleu = attaque, vert = motricité / manipulation, violet = technique individuelle
-const CR_COULEURS = [['rouge', 'Défense'], ['bleu', 'Attaque'], ['vert', 'Motricité / manipulation'], ['violet', 'Technique individuelle']];
+// Code couleur des séances (z44) : rouge = défense, bleu = attaque, vert = motricité / manipulation, violet = technique individuelle, mixte (bleu|rouge) = attaque + défense
+const CR_COULEURS = [['rouge', 'Défense'], ['bleu', 'Attaque'], ['vert', 'Motricité / manipulation'], ['violet', 'Technique individuelle'], ['mixte', 'Attaque + défense']];
 let crColF = '';
 // Tri de la liste par date de séance (z45) : récentes d'abord par défaut ; sans date à la fin
 let crSortDesc = true;
@@ -184,7 +184,7 @@ async function crCreate(key) {
     const src = crPlans.find(p => p.id === key.slice(5));
     if (!src) return;
     base = { title: src.title, seance_type: src.seance_type, categorie: src.categorie, public_cible: src.public_cible, niveau: src.niveau || '', theme: src.theme, objectif_principal: src.objectif_principal, objectifs_secondaires: src.objectifs_secondaires, contexte: src.contexte,
-      materiel: JSON.parse(JSON.stringify(src.materiel || [])), blocks: (src.blocks || []).map(crCloneBlock), ...(src.couleur !== undefined ? { couleur: src.couleur } : {}), ...crIntCopy(src) };
+      materiel: JSON.parse(JSON.stringify(src.materiel || [])), blocks: (src.blocks || []).map(crCloneBlock), ...(src.couleur !== undefined ? { couleur: src.couleur } : {}), ...(src.extras !== undefined ? { extras: JSON.parse(JSON.stringify(src.extras || {})) } : {}), ...crIntCopy(src) };
   } else {
     const t = CR_TEMPLATES.find(x => x.key === key);
     if (!t) return;
@@ -292,7 +292,7 @@ function crIntCopy(s) { const o = {}; CR_INT_KEYS.forEach(k => { if (s[k] !== un
 function crBody(p) {
   return { title: p.title || 'Sans titre', seance_type: p.seance_type, status: p.status, is_template: !!p.is_template, categorie: p.categorie || null, public_cible: p.public_cible || null, niveau: p.niveau || null,
     seance_date: p.seance_date || null, nb_joueurs: p.nb_joueurs || null, entraineur: p.entraineur || null, theme: p.theme || null, objectif_principal: p.objectif_principal || null,
-    objectifs_secondaires: p.objectifs_secondaires || null, contexte: p.contexte || null, materiel: p.materiel || [], blocks: p.blocks || [], videos: p.videos || [], total_minutes: crTotal(p), ...(p.couleur !== undefined ? { couleur: p.couleur || null } : {}), ...crIntBody(p) };
+    objectifs_secondaires: p.objectifs_secondaires || null, contexte: p.contexte || null, materiel: p.materiel || [], blocks: p.blocks || [], videos: p.videos || [], total_minutes: crTotal(p), ...(p.couleur !== undefined ? { couleur: p.couleur || null } : {}), ...(p.extras !== undefined ? { extras: p.extras || {} } : {}), ...crIntBody(p) };
 }
 async function crSaveNow() {
   if (!crCur) return;
@@ -466,6 +466,25 @@ function crSetField(k, v) {
   if (k === 'title') { const h = document.getElementById('cr-head-title'); if (h) h.textContent = v || 'Sans titre'; }
   crTouch();
 }
+// z93 : champs réglables (js/28-champs-seance.js) : champs de base affichés selon Réglages + champs perso (valeurs dans plan.extras)
+function crOptFields(p) {
+  let h = '';
+  if (typeof SF_STD === 'undefined') return crField('Niveau', 'niveau', 'Départemental, régional, détection…') + crField('Entraîneur', 'entraineur', 'Nom de l\'entraîneur');
+  SF_STD.forEach(f => { if (sfStdOn(f, p)) h += crField(f.label, f.k, f.ph, f.multi); });
+  sfCfg().custom.forEach(f => { if (sfCustomOn(f, p)) h += crExtraField(f, p); });
+  return h;
+}
+function crExtraField(f, p) {
+  const v = (p.extras && p.extras[f.id]) || '';
+  return `<label class="cr-lbl">${crEsc(f.label)}</label>` + (f.multi
+    ? `<textarea class="cr-in" rows="2" oninput="crSetExtra('${f.id}',this.value)">${crEsc(v)}</textarea>`
+    : `<input class="cr-in" value="${crEsc(v)}" oninput="crSetExtra('${f.id}',this.value)">`);
+}
+function crSetExtra(id, v) {
+  if (!crCur.extras || typeof crCur.extras !== 'object') crCur.extras = {};
+  crCur.extras[id] = v;
+  crTouch();
+}
 let crInfoOpen = true;
 // z61 : volets de la carte « Intention » (fermés par défaut, état gardé pendant la session)
 const crIntOpen = { aide: false, det: false };
@@ -519,6 +538,7 @@ function crRenderEditor(p) {
         <div style="font-size:16px;font-weight:800;color:var(--blanc);">Informations générales</div><span style="color:var(--gris-texte);">${crInfoOpen ? '▲' : '▼'}</span></div>
       <div id="cr-info" style="${crInfoOpen ? '' : 'display:none;'}">
         ${crField('Titre', 'title', 'Titre de la séance')}
+        <label class="cr-lbl">Date</label><input type="date" class="cr-in" value="${crEsc(p.seance_date || '')}" onchange="crSetField('seance_date',this.value)">
         <label class="cr-lbl">Type de séance</label>
         <div style="display:flex;gap:0;border:1px solid var(--gris-moyen);border-radius:8px;overflow:hidden;">
           <button type="button" class="cr-chip ${p.seance_type === 'handball' ? 'on' : ''}" style="flex:1;border-radius:0;border:none;padding:11px;" onclick="crSetType('handball')">Handball</button>
@@ -528,13 +548,7 @@ function crRenderEditor(p) {
         <div class="cr-colrow">${CR_COULEURS.map(([k, l]) => `<button type="button" class="cr-colchip${p.couleur === k ? ' on' : ''}" data-sc="${k}" onclick="crSetColor('${k}')"><i></i>${l}</button>`).join('')}</div>
         <label class="cr-lbl">Catégorie</label>${crSel(CR_CATS, p.categorie, "crSetField('categorie',this.value)")}
         <label class="cr-lbl">Public</label>${crSel(CR_PUBLICS, p.public_cible, "crSetField('public_cible',this.value)")}
-        ${crField('Niveau', 'niveau', 'Départemental, régional, détection…')}
-        <label class="cr-lbl">Date</label><input type="date" class="cr-in" value="${crEsc(p.seance_date || '')}" onchange="crSetField('seance_date',this.value)">
-        ${crField('Nombre de joueurs', 'nb_joueurs', '14, 12 à 16…')}
-        ${crField('Entraîneur', 'entraineur', 'Nom de l\'entraîneur')}
-        ${crField('Thème principal', 'theme', 'Montée de balle, défense étagée…')}
-        ${crField('Objectifs secondaires', 'objectifs_secondaires', 'Un objectif par ligne', true)}
-        ${crField('Contexte', 'contexte', 'Période de la saison, état du groupe…', true)}
+        ${crOptFields(p)}
         <label class="cr-lbl">Matériel général</label>
         <div id="cr-mat" style="display:flex;flex-wrap:wrap;gap:6px;">${matChips} ${customMat}</div>
         <div style="display:flex;gap:6px;margin-top:8px;"><input class="cr-in" id="cr-mat-other" placeholder="Autre matériel…"><button type="button" class="cr-btn" onclick="crAddMat()">Ajouter</button></div>
@@ -799,7 +813,7 @@ async function crDuplicate(id) {
   const s = crPlans.find(p => p.id === id); if (!s) return;
   const copy = { title: crNextTitle(s.title), seance_type: s.seance_type, status: 'brouillon', is_template: false, categorie: s.categorie, public_cible: s.public_cible, niveau: s.niveau, seance_date: null, nb_joueurs: s.nb_joueurs,
     entraineur: s.entraineur, theme: s.theme, objectif_principal: s.objectif_principal, objectifs_secondaires: s.objectifs_secondaires, contexte: s.contexte, materiel: s.materiel || [],
-    blocks: (s.blocks || []).map(crCloneBlock), videos: s.videos || [], total_minutes: crTotal(s), ...(s.couleur !== undefined ? { couleur: s.couleur } : {}), ...crIntCopy(s) };
+    blocks: (s.blocks || []).map(crCloneBlock), videos: s.videos || [], total_minutes: crTotal(s), ...(s.couleur !== undefined ? { couleur: s.couleur } : {}), ...(s.extras !== undefined ? { extras: JSON.parse(JSON.stringify(s.extras || {})) } : {}), ...crIntCopy(s) };
   try {
     await ensureCoachSession();
     const res = await fetch(SB_URL + '/rest/v1/seance_plans', { method: 'POST', headers: { ...coachAuthHeaders(), 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify([copy]) });

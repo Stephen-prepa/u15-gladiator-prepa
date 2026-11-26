@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z86 (24/11/2026)
+// Prépa U15 HBCCS — js/05-espace-coachs.js — dernière modification : version z94 (26/11/2026)
 // ===================== ESPACE COACHS (Supabase Auth) =====================
 const COACH_SPACE_ACTIVATION = new Date('2026-08-17T00:00:00');
 const COACH_LOGINS = [
@@ -375,6 +375,7 @@ async function loadAppSettings() {
       rows.forEach(r => { appSettings[r.key] = r.value; });
     }
   } catch (e) { /* pas grave, on garde les valeurs par defaut (visible, sans code) */ }
+  try { if (typeof sfReset === 'function') { sfReset(); sfRender(); } } catch (e) {}
   applyAppSettingsToHome();
   ejSettingsLoadIntoForm();
   if (typeof ejApplyLayout === 'function') { ejApplyLayout(); ejModulesRenderUi(); }
@@ -596,7 +597,7 @@ function coachSubtabSwitch(name) {
   if (name === 'dashboard') dashboardLoad();
   if (name === 'outils') { outilsInit(); outilsPaneInit(); }
   if (name === 'evaluations') evaluationsInit();
-  if (name === 'reglages') { loadAppSettings(); try { dispRenderUi(); pwUiInit(); } catch (e) {} try { crCfgRenderUi(); crCfgPull(); } catch (e) {} }
+  if (name === 'reglages') { loadAppSettings(); try { dispRenderUi(); pwUiInit(); } catch (e) {} try { crCfgRenderUi(); crCfgPull(); } catch (e) {} try { sfEnter(); } catch (e) {} }
   if (name === 'stats' && typeof msInit === 'function') msInit();
   if (name === 'presence' && typeof presViewInit === 'function') presViewInit();
   if (name === 'seance') seancePaneInit();
