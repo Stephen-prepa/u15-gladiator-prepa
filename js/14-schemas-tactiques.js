@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z83 (24/11/2026)
+// Prépa U15 HBCCS — js/14-schemas-tactiques.js — dernière modification : version z95 (27/11/2026)
 // ===================== SCHÉMAS TACTIQUES (module) =====================
 // Étape 1 : modèle de données + rendu SVG en lecture seule. Unités : mètres (terrain de handball 40 × 20 m).
 // Drawing : { id, title, view:'half'|'full'|'goal'|'free', elements:[Element], updatedAt, validatedAt, variant ('B', 'C'… : variante de l'étape qui précède), ballPlay (id du ballon joué dans l'étape, si plusieurs ballons) }
@@ -21,7 +21,7 @@ function schViewParse(v) { const m = /^([a-z]+)@(90|180|270)$/.exec(v || ''); re
 // marges autour du terrain (le côté du but garde sa marge plus large, quel que soit le sens)
 function schViewMargins(view, mx, top) { const p = schViewParse(view); let M = { l: mx, t: (p.base === 'half' || p.base === 'goal') ? top : mx, r: mx, b: mx }; for (let i = 0; i < p.rot / 90; i++) M = { t: M.l, r: M.t, b: M.r, l: M.b }; return M; }
 const SCH_OUT = 2; // z81 : on peut poser joueurs et outils jusqu'à 2 m hors du terrain (marges élargies en conséquence)
-const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', disc: '#2EAD5B', stroke: '#14213D', att: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
+const SCH_COL = { floor: '#F4F8FC', zone: '#DCEAF6', line: '#003D7A', ball: '#F2B705', cone: '#F28C28', disc: '#2EAD5B', stroke: '#14213D', att: '#1B2A5E', attOut: '#F4F8FC', attRing: '#F5C400', attLine: '#0A1628', def: '#E8543A', gk: '#0052B4', shot: '#C0392B', parent: '#8E5BD9', coach: '#2ECC71', hoop: '#2F7DE1', badge: '#14213D', zoneFill: '#2F7DE1' };
 const SCH_MAX_BALLS = Infinity; // aucun plafond : autant de ballons que voulu
 const SCH_BALL_COLS = [['#F2B705', '#14213D'], ['#2F7DE1', '#FFFFFF'], ['#1FA35C', '#FFFFFF'], ['#8E5BD9', '#FFFFFF'], ['#E8543A', '#FFFFFF'], ['#17A2B8', '#FFFFFF'], ['#E84393', '#FFFFFF'], ['#14213D', '#FFFFFF']]; // [fond, chiffre] du ballon 1 à 8 (au-delà, les couleurs se répètent : le chiffre les distingue)
 const SCH_BALL_OFFS = [{ x: 0.45, y: -0.68 }, { x: -0.45, y: -0.68 }, { x: 0.45, y: 0.68 }, { x: -0.45, y: 0.68 }]; // place du ballon porté, selon son numéro (deux ballons chez le même joueur ne se superposent pas)
@@ -203,9 +203,9 @@ function schElementSvg(e, k) {
   const txt = (t, col, fs, dy) => t ? `<text x="${x}" y="${y + (dy || 0) + fs * 0.35}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${col}" style="font-family:Arial,sans-serif;pointer-events:none;">${schEsc(t)}</text>` : '';
   switch (e.type) {
     case 'PEN': return schPenSvg(schPenAbs(e), e.color || SCH_COL.stroke, 0.16 * (e.scale || 1));
-    case 'PLAYER': { const f = e.color || C.att; return schArmsSvg(e, x, y, r, f) + `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label, schInk(f, C.attLine, '#fff'), r * 1.15)}`; }
+    case 'PLAYER': { const f = e.color || C.att; return schArmsSvg(e, x, y, r, f) + `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${e.color ? C.attLine : C.attOut}" stroke-width="0.12"/>${txt(e.label, schInk(f, C.attLine, '#fff'), r * 1.15)}`; }
     case 'DEFENDER': return schArmsSvg(e, x, y, r, e.color || C.def) + `<polygon${tr} points="${x - r * 1.15},${y - r * 0.9} ${x + r * 1.15},${y - r * 0.9} ${x},${y + r * 1.15}" fill="${e.color || C.def}" stroke="${C.attLine}" stroke-width="0.12" stroke-linejoin="round"/>${txt(e.label, schInk(e.color || C.def, C.attLine, '#fff'), r * 0.95, -r * 0.3)}`;
-    case 'GOALKEEPER': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${e.color || C.gk}" stroke="${C.att}" stroke-width="0.16"/>${txt(e.label || 'GB', schInk(e.color || C.gk, C.attLine, '#fff'), r * (e.label && e.label.length > 1 ? 0.95 : 0.9))}`;
+    case 'GOALKEEPER': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${e.color || C.gk}" stroke="${C.attRing}" stroke-width="0.16"/>${txt(e.label || 'GB', schInk(e.color || C.gk, C.attLine, '#fff'), r * (e.label && e.label.length > 1 ? 0.95 : 0.9))}`;
     case 'PARENT': return `<circle cx="${x}" cy="${y}" r="${r}" fill="${e.color || C.parent}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'P', e.color ? schInk(e.color, C.attLine, '#fff') : '#fff', r)}`;
     case 'COACH': return `<rect x="${x - r}" y="${y - r}" width="${r * 2}" height="${r * 2}" rx="${r * 0.3}" fill="${e.color || C.coach}" stroke="${C.attLine}" stroke-width="0.12"/>${txt(e.label || 'C', e.color ? schInk(e.color, C.attLine, '#fff') : C.attLine, r)}`;
     case 'BALL': return schBallSvg(x, y, s);

@@ -670,7 +670,7 @@ html:not([data-bar=normal]) .coachs2-wrap.no-bottom-bar{padding-bottom:28px;}
 .sche .sche-sws{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
 .sche .sche-sw{width:38px;height:38px;border-radius:50%;border:2px solid rgba(20,33,61,0.22);cursor:pointer;padding:0;}
 .sche .sche-sw.on{border-color:#fff;box-shadow:0 0 0 3px var(--s-pri2);}
-.sche .sche-sw.auto{background:conic-gradient(#F5C400 0 33%,#E8543A 0 66%,#0052B4 0);}
+.sche .sche-sw.auto{background:conic-gradient(#1B2A5E 0 33%,#E8543A 0 66%,#0052B4 0);}
 .sche .sche-wide{grid-column:1 / -1;}
 .sche .sche-all{border:1px solid var(--s-line);background:#fff;color:var(--s-pri);border-radius:10px;min-height:40px;padding:0 12px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;}
 .sche .sche-tool.on{border-color:var(--s-pri2);color:var(--s-pri);background:var(--s-soft);box-shadow:0 0 0 1px var(--s-pri2);}

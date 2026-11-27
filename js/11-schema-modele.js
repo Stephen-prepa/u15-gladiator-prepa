@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/11-schema-modele.js — dernière modification : version z73 (24/11/2026)
+// Prépa U15 HBCCS — js/11-schema-modele.js — dernière modification : version z95 (27/11/2026)
 // ----- Schéma (terrain) : modèle, rendu, éditeur image par image -----
 const CR_COURT = { half: { w: 200, h: 200, vb: [-10, -10, 220, 220], k: 1 }, full: { w: 400, h: 200, vb: [-10, -10, 420, 220], k: 1.35 }, free: { w: 300, h: 200, vb: [-10, -10, 320, 220], k: 1.1 } };
 const CR_MAX_FRAMES = 40;
@@ -205,10 +205,10 @@ function crSchemaFrames(x) { return (x && x.schema && x.schema.frames) ? x.schem
 // Palette du schéma : thème "dark" (appli : marine / jaune / bleu / rouge) et "print" (fiche PDF, fond clair)
 const CR_TH = {
   dark: { svgBg: '#0E1F3D', bg: '#12284D', line: '#C8D4E8', lw: 2.4, zone: 'rgba(0,82,180,0.45)', dash: '#F5C400', gk: '#1A3060', mark: '#F5C400', grid: '#1A3060', free: '#12284D', freeLine: '#3a5588',
-    att: '#F5C400', attTx: '#0A1628', attSt: '#0A1628', def: '#E8543A', defTx: '#FFFFFF', defSt: '#0A1628', gb: '#0052B4', gbIn: '#003F8A', gbSt: '#F5C400', gbTx: '#FFFFFF',
+    att: '#1B2A5E', attTx: '#FFFFFF', attSt: '#F4F8FC', def: '#E8543A', defTx: '#FFFFFF', defSt: '#0A1628', gb: '#0052B4', gbIn: '#003F8A', gbSt: '#F5C400', gbTx: '#FFFFFF',
     arrow: '#FFFFFF', shot: '#E8543A', ball: '#FF9F1C', ballSt: '#7a3f00', cone: '#F28C1E', coneSt: '#0A1628', coupelle: '#F5C400', cerceau: '#4d9bff', cerceauBg: 'rgba(77,155,255,0.12)', haie: '#F5C400', mini: '#C8D4E8', miniSt: '#0A1628', sel: '#F5C400', jalon: '#FFFFFF', jalonDot: '#E8543A' },
   print: { svgBg: '#FFFFFF', bg: '#F4F8FD', line: '#0A1628', lw: 2.4, zone: 'rgba(0,63,138,0.14)', dash: '#003F8A', gk: '#C8D4E8', mark: '#0A1628', grid: '#dbe5f1', free: '#F8FBFF', freeLine: '#9fb4cf',
-    att: '#F5C400', attTx: '#0A1628', attSt: '#0A1628', def: '#C0392B', defTx: '#FFFFFF', defSt: '#0A1628', gb: '#003F8A', gbIn: '#0052B4', gbSt: '#0A1628', gbTx: '#FFFFFF',
+    att: '#1B2A5E', attTx: '#FFFFFF', attSt: '#F4F8FC', def: '#C0392B', defTx: '#FFFFFF', defSt: '#0A1628', gb: '#003F8A', gbIn: '#0052B4', gbSt: '#0A1628', gbTx: '#FFFFFF',
     arrow: '#0A1628', shot: '#C0392B', ball: '#FF9F1C', ballSt: '#7a3f00', cone: '#F28C1E', coneSt: '#7a3f00', coupelle: '#F5C400', cerceau: '#0052B4', cerceauBg: 'rgba(0,82,180,0.08)', haie: '#C9A000', mini: '#E6EDF6', miniSt: '#0A1628', sel: '#003F8A', jalon: '#FFFFFF', jalonDot: '#C0392B' },
 };
 function crCourtSvg(mode, th) {

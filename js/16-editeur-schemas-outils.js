@@ -1,4 +1,4 @@
-// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z88 (24/11/2026)
+// Prépa U15 HBCCS — js/16-editeur-schemas-outils.js — dernière modification : version z95 (27/11/2026)
 // ----- Outils (barre du bas) -----
 // Barre d'outils à plat sur 2 lignes (le plus utile en premier, à gauche). Ce qui ne tient pas dans 2 lignes passe sous « Plus ».
 const SCH_TOOL_ORDER = ['PLAYER', 'DEFENDER', 'BALL', 'DISC', 'MOVE', 'PASS', 'PASS2', 'SHOT', 'select', 'multi', 'RUN', 'GOALKEEPER', 'SCREEN', 'CONE', 'POLE', 'HOOP', 'HURDLE', 'LADDER', 'POPUP_GOAL', 'ZONE_RECT', 'TEXT', 'ZONE_CIRCLE', 'BALLOON', 'BALL_BOX', 'DUMMY', 'MAT', 'BENCH', 'BOX', 'RECT', '@d06', '@d15', '@att', 'pan', 'PEN', 'ERASER'];
